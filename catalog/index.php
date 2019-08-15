@@ -277,8 +277,7 @@ if($_REQUEST['ELEMENT_SORT_FIELD'] == "CATALOG_AVAILABLE" OR $_REQUEST['ELEMENT_
 			7 => "",
 		),
 		"FILTER_PRICE_CODE" => array(
-			0 => "SITE",
-			1 => "РОЗНИЦА",
+			0 => "РОЗНИЦА",
 		),
 		"FILTER_PROPERTY_CODE" => array(
 			0 => "VES_KG",
@@ -657,8 +656,7 @@ if($_REQUEST['ELEMENT_SORT_FIELD'] == "CATALOG_AVAILABLE" OR $_REQUEST['ELEMENT_
 		"PAGE_ELEMENT_COUNT" => $_REQUEST["PAGE_ELEMENT_COUNT"],
 		"PARTIAL_PRODUCT_PROPERTIES" => "N",
 		"PRICE_CODE" => array(
-			0 => "SITE",
-			1 => "РОЗНИЦА",
+			0 => "РОЗНИЦА",
 		),
 		"PRICE_VAT_INCLUDE" => "Y",
 		"PRICE_VAT_SHOW_VALUE" => "N",

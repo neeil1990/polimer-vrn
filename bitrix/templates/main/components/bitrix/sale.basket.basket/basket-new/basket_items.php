@@ -16,14 +16,14 @@ if ($normalCount > 0)
 			</div>
 			<div class="l-block">
 
-				<? foreach($arResult["GRID"]["ROWS"] as $k=>$arItem):?>
+				<? foreach($arResult["GRID"]["ROWS"] as $k=>$arItem): ?>
 				<div class="l-row cl">
 					<div class="l-cell img"><span><img src="<?=$arItem['PREVIEW_PICTURE_SRC']?>" alt=""></span></div>
 					<div class="l-cell name">
 						<a href="<?=$arItem['DETAIL_PAGE_URL']?>" class="plink"><?=$arItem['NAME']?></a>
 					</div>
 					<div class="l-cell price"><div class="txt pr">Цена</div><span><?=$arItem['FULL_PRICE']?></span> &#8381;</div>
-					<div class="l-cell sale"><div class="txt sl">Скидка</div><span><?=$arItem['DISCOUNT_PRICE_PERCENT']?></span>%</div>
+					<div class="l-cell sale"><div class="txt sl">Скидка</div><span><?=$arItem['DISCOUNT_PRICE_PERCENT_FORMATED']?></span></div>
 					<div class="l-cell quan">
 						<div class="txt qn">Кол-во</div>
 						<div class="quantity" id="<?=$arItem['ID']?>">

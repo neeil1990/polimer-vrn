@@ -2207,48 +2207,44 @@ if ($USER->IsAuthorized())
 		$arResult["ORDER_WEIGHT"] = 0;
 
 		CSaleBasket::UpdateBasketPrices(CSaleBasket::GetBasketUserID(), SITE_ID);
-		$dbBasketItems = CSaleBasket::GetList(
-				array("ID" => "ASC"),
-				array(
-						"FUSER_ID" => CSaleBasket::GetBasketUserID(),
-						"LID" => SITE_ID,
-						"ORDER_ID" => "NULL"
-					)
-			);
-		$arDiscount = array();
-		while ($arBasketItems = $dbBasketItems->Fetch())
-		{
-			$arBasketItems["DISCOUNT_PRICE"] = CCatalogProduct::GetOptimalPrice($arBasketItems["PRODUCT_ID"], 1, $USER->GetUserGroupArray(), 'N')['DISCOUNT']['VALUE'];
-			
-			$arDiscount[] = CCatalogProduct::GetOptimalPrice($arBasketItems["PRODUCT_ID"], 1, $USER->GetUserGroupArray(), 'N')['RESULT_PRICE']['DISCOUNT']*$arBasketItems["QUANTITY"];
-			if ($arBasketItems["DELAY"] == "N" && $arBasketItems["CAN_BUY"] == "Y")
-			{
-				$arBasketItems['NAME'] = htmlspecialcharsEx($arBasketItems['NAME']);
-				$arBasketItems['NOTES'] = htmlspecialcharsEx($arBasketItems['NOTES']);
-				$arResult["ORDER_WEIGHT"] += $arBasketItems["WEIGHT"] * $arBasketItems["QUANTITY"];
-				$arBasketItems["WEIGHT_FORMATED"] = roundEx(DoubleVal($arBasketItems["WEIGHT"]/$arResult["WEIGHT_KOEF"]), SALE_WEIGHT_PRECISION)." ".$arResult["WEIGHT_UNIT"];
-
-				$arBasketItems["PRICE_FORMATED"] = SaleFormatCurrency($arBasketItems["PRICE"], $arBasketItems["CURRENCY"]);
-				if(DoubleVal($arBasketItems["DISCOUNT_PRICE"]) > 0)
-				{
-					if(DoubleVal($arBasketItems["VAT_RATE"]) > 0)
-						$arBasketItems["VAT_VALUE"] = DoubleVal(($arBasketItems["PRICE"] / ($arBasketItems["VAT_RATE"] +1)) * $arBasketItems["VAT_RATE"]);
-					
-					
-
-					$arBasketItems["DISCOUNT_PRICE_PERCENT"] = $arBasketItems["DISCOUNT_PRICE"]*100 / ($arBasketItems["DISCOUNT_PRICE"] + $arBasketItems["PRICE"]);
-					$arBasketItems["DISCOUNT_PRICE_PERCENT_FORMATED"] = roundEx($arBasketItems["DISCOUNT_PRICE_PERCENT"], 0)."%";
-				}
-
-				$arBasketItems["PROPS"] = Array();
-				$dbProp = CSaleBasket::GetPropsList(Array("SORT" => "ASC", "ID" => "ASC"), Array("BASKET_ID" => $arBasketItems["ID"], "!CODE" => array("CATALOG.XML_ID", "PRODUCT.XML_ID")));
-				while($arProp = $dbProp -> GetNext())
-					$arBasketItems["PROPS"][] = $arProp;
 
 
-				$arResult["BASKET_ITEMS"][] = $arBasketItems;
-			}
-		}
+        $arBasketItems = array();
+        $dbBasketItems = CSaleBasket::GetList(
+            array(
+                "NAME" => "ASC",
+                "ID" => "ASC"
+            ),
+            array(
+                "FUSER_ID" => CSaleBasket::GetBasketUserID(),
+                "LID" => SITE_ID,
+                "ORDER_ID" => "NULL",
+                "DELAY" => "N"
+            ),
+            false,
+            false,
+            array("*")
+        );
+        while ($arItems = $dbBasketItems->Fetch())
+        {
+            $currentUserBasket[] = $arItems;
+        }
+
+        $arErrors = array();
+        $arWarnings = array();
+        $basketItems = CSaleOrder::DoCalculateOrder(
+            SITE_ID, // id текущего сайта
+            $USER->GetId(), // id текущего пользователя
+            $currentUserBasket, // массив текущей корзины
+            $arResult["PERSON_TYPE"],
+            false,
+            $arResult["DELIVERY_ID"],
+            $arResult["PAY_SYSTEM_ID"],
+            false,
+            $arErrors,
+            $arWarnings
+        );
+        $arResult['BASKET_ITEMS'] = $basketItems['BASKET_ITEMS'];
 
 		$arResult["ORDER_WEIGHT_FORMATED"] = roundEx(DoubleVal($arResult["ORDER_WEIGHT"]/$arResult["WEIGHT_KOEF"]), SALE_WEIGHT_PRECISION)." ".$arResult["WEIGHT_UNIT"];
 		$arResult["ORDER_PRICE_FORMATED"] = SaleFormatCurrency($arResult["ORDER_PRICE"], $arResult["BASE_LANG_CURRENCY"]);
@@ -2279,10 +2275,8 @@ if ($USER->IsAuthorized())
 			$arResult["DELIVERY_PRICE_FORMATED"] = SaleFormatCurrency($arResult["DELIVERY_PRICE"], $arResult["BASE_LANG_CURRENCY"]);
 		
 		$orderTotalSum = $arResult["ORDER_PRICE"] + $arResult["DELIVERY_PRICE"] + $arResult["TAX_PRICE"] - $arResult["DISCOUNT_PRICE"];
-		
-		
-		
-		$arResult["ORDER_TOTAL_PRICE_FORMATED"] = SaleFormatCurrency($orderTotalSum, $arResult["BASE_LANG_CURRENCY"]);
+
+		$arResult["ORDER_TOTAL_PRICE_FORMATED"] = $basketItems['ORDER_PRICE'];
 		
 		
 		if ($arResult["PAY_CURRENT_ACCOUNT"] == "Y")

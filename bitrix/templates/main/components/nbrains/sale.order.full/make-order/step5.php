@@ -1,4 +1,7 @@
-<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
+<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+
+use Bitrix\Sale\PriceMaths;
+?>
 
 
 
@@ -75,14 +78,10 @@
 						<td></td>
 						<td><a href="<?=$item['DETAIL_PAGE_URL'];?>" target="_blank"><img src="<?=$img;?>" style="max-height: 60px;max-width: 60px"></a></td>
 						<td><a href="<?=$item['DETAIL_PAGE_URL'];?>" target="_blank"><?=$item['NAME']?></a></td>
-						<td style="white-space: nowrap;"><?=$item['PRICE_FORMATED']?></td>
-						<td><?=round($item['DISCOUNT_PRICE'])?> %</td>
+						<td style="white-space: nowrap;"><?=$item['BASE_PRICE']?></td>
+						<td><?=$item['DISCOUNT_PRICE_PERCENT_FORMATED']?></td>
 						<td><?=$item['QUANTITY']?> <?=$item['MEASURE_NAME']?></td>
-						<?
-						$end_price = $item['PRICE']-($item['PRICE']/100*$item['DISCOUNT_PRICE']);
-					
-						?>
-						<td style="white-space: nowrap;"><?=round($end_price*$item['QUANTITY'], 2);?> ₽</td>
+						<td style="white-space: nowrap;"><?=PriceMaths::roundPrecision($item['PRICE']*$item['QUANTITY']);?> ₽</td>
 						<td></td>
 					</tr>
 				<?endforeach;?>
