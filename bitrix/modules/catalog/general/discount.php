@@ -43,8 +43,8 @@ class CAllCatalogDiscount
 		switch ($oneDiscount['VALUE_TYPE'])
 		{
 			case self::TYPE_PERCENT:
-				$discountValue = Price\Calculation::roundPrecision(
-					-(self::$getPercentFromBasePrice ? $basePrice : $currentPrice) * $oneDiscount['VALUE'] / 100
+				$discountValue = -Price\Calculation::roundPrecision(
+					(self::$getPercentFromBasePrice ? $basePrice : $currentPrice) * $oneDiscount['VALUE'] / 100
 				);
 				if (isset($oneDiscount['DISCOUNT_CONVERT']) && $oneDiscount['DISCOUNT_CONVERT'] > 0)
 				{
@@ -1899,6 +1899,7 @@ class CAllCatalogDiscount
 			return $result;
 
 		$accumulativeDiscountMode = (string)Option::get('catalog', 'discsave_apply');
+
 		$productDiscountList = array();
 		$accumulativeDiscountList = array();
 
@@ -1909,6 +1910,7 @@ class CAllCatalogDiscount
 			$productDiscountList,
 			$accumulativeDiscountList
 		);
+
 		if (!empty($productDiscountList))
 		{
 			if (self::$useSaleDiscount && Loader::includeModule('sale'))
@@ -1938,6 +1940,8 @@ class CAllCatalogDiscount
 					}
 				}
 				Catalog\Product\Price\Calculation::popConfig();
+
+
 			}
 			else
 			{
@@ -2006,7 +2010,6 @@ class CAllCatalogDiscount
 					break;
 			}
 		}
-
 		$result = array(
 			'PRICE' => $currentPrice,
 			'CURRENCY' => $currency,
