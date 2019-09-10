@@ -57,7 +57,27 @@ $APPLICATION->SetTitle("Корзина");
 		"COMPATIBLE_MODE" => "Y",
 		"ADDITIONAL_PICT_PROP_21" => "-",
 		"ADDITIONAL_PICT_PROP_22" => "-",
-		"BASKET_IMAGES_SCALING" => "adaptive"
+		"BASKET_IMAGES_SCALING" => "adaptive",
+		"DEFERRED_REFRESH" => "N",
+		"USE_DYNAMIC_SCROLL" => "Y",
+		"SHOW_FILTER" => "Y",
+		"SHOW_RESTORE" => "Y",
+		"COLUMNS_LIST_MOBILE" => array(
+			0 => "PREVIEW_TEXT",
+			1 => "DELETE",
+		),
+		"TOTAL_BLOCK_DISPLAY" => array(
+			0 => "top",
+		),
+		"DISPLAY_MODE" => "extended",
+		"PRICE_DISPLAY_MODE" => "Y",
+		"SHOW_DISCOUNT_PERCENT" => "Y",
+		"DISCOUNT_PERCENT_POSITION" => "bottom-right",
+		"PRODUCT_BLOCKS_ORDER" => "props,sku,columns",
+		"USE_PRICE_ANIMATION" => "Y",
+		"LABEL_PROP" => "",
+		"EMPTY_BASKET_HINT_PATH" => "/",
+		"USE_ENHANCED_ECOMMERCE" => "N"
 	),
 	false
 );?>
