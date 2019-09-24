@@ -39,7 +39,9 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 
 			<div class="row">
 
-				<?foreach($arResult["ITEMS"] as $key=>$arItem)//prices
+
+				<?
+                foreach($arResult["ITEMS"] as $key=>$arItem)//prices
 				{
 					$key = $arItem["ENCODED_ID"];
 					if(isset($arItem["PRICE"])):
@@ -55,7 +57,7 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 						?>
 
 
-						<li class="cat-li">
+						<li class="cat-li <?=(in_array("1472", $arResult['SECTION'])) ? "li-open" : null?>">
 							<span class="bx-filter-container-modef"></span>
 							<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></span></a>
 							<div class="inner">
@@ -184,7 +186,7 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 
 
 
-					<li class="cat-li">
+					<li class="cat-li <?=(in_array("1472", $arResult['SECTION'])) ? "li-open" : null?>">
 						<span class="bx-filter-container-modef"></span>
 						<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></a>
 
