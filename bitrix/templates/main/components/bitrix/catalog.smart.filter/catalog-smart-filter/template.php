@@ -57,7 +57,7 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 						?>
 
 
-						<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1463","1721","1787","1452","1456","1457"])) ? "li-open" : null?>">
+						<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1473","1463","1721","1787","1452","1456","1457"])) ? "li-open" : null?>">
 							<span class="bx-filter-container-modef"></span>
 							<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></span></a>
 							<div class="inner">
@@ -186,7 +186,7 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 
 
 
-					<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1463","1721","1787","1452","1456","1457"])) ? "li-open" : null?>">
+					<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1473","1463","1721","1787","1452","1456","1457"])) ? "li-open" : null?>">
 						<span class="bx-filter-container-modef"></span>
 						<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></a>
 
