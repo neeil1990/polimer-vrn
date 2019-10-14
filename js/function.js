@@ -178,6 +178,17 @@ $(function(){
         return false;
     });
 
+    $('.show_brand').click(function(){
+        var than = $(this);
+        than.closest('.brand-list').find('.brand-hidden').slideToggle({
+            start : function () {
+                if ($(this).is(':visible'))
+                    $(this).css('display','inline-block');
+            }
+        });
+        return false;
+    });
+
 
 	  $('.ym-goal-subscribe-price').submit(function(e) {
         var $form = $(this);
