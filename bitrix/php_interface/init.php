@@ -130,3 +130,74 @@ function AddOrderProperty($code, $value, $order)    {
         }
     }
 }
+
+//Обнавление ИБ Каталог брендов
+CAgent::AddAgent(
+    "CBrands::updateBrandsAgent();",
+    "",
+    "N",
+    604800,
+    "",
+    "Y",
+    ""
+);
+Class CBrands
+{
+    public static function updateBrandsAgent()
+    {
+        if(CModule::IncludeModule("iblock")) {
+
+            $arResult = [];
+            $arSelect = Array(
+                "ID",
+                "IBLOCK_ID",
+                "IBLOCK_SECTION_ID",
+                "NAME",
+                "PROPERTY_PROIZVODITEL"
+            );
+
+            $arFilter = Array("IBLOCK_ID" => 21, "ACTIVE" => "Y");
+            $res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
+            $i = 0;
+            while ($ob = $res->GetNextElement()) {
+                $arFields = $ob->GetFields();
+                if (isset($arFields['PROPERTY_PROIZVODITEL_VALUE']) && strlen($arFields['PROPERTY_PROIZVODITEL_VALUE']) > 0 && $arFields['IBLOCK_SECTION_ID']) {
+                    $brand_name = trim($arFields['PROPERTY_PROIZVODITEL_VALUE']);
+                    $arResult[$brand_name]["n" . $i] = ["VALUE" => $arFields['ID']];
+                }
+                $i++;
+            }
+            if (count($arResult) > 0) {
+
+                foreach ($arResult as $brand => $arItem) {
+
+                    $find = CIBlockElement::GetList(Array(), ["IBLOCK_ID" => 28, "=NAME" => trim($brand)], false, false, ["ID"])->Fetch();
+
+                    $el = new CIBlockElement;
+                    $params = Array(
+                        "max_len" => "100", // обрезает символьный код до 100 символов
+                        "change_case" => "L", // буквы преобразуются к нижнему регистру
+                        "replace_space" => "_", // меняем пробелы на нижнее подчеркивание
+                        "replace_other" => "_", // меняем левые символы на нижнее подчеркивание
+                        "delete_repeat_replace" => "true", // удаляем повторяющиеся нижние подчеркивания
+                        "use_google" => "false", // отключаем использование google
+                    );
+
+                    $PROP["PRODUCT"] = $arItem;
+                    $arLoadProductArray = Array(
+                        "IBLOCK_SECTION_ID" => false,
+                        "IBLOCK_ID" => 28,
+                        "PROPERTY_VALUES" => $PROP,
+                        "NAME" => trim($brand),
+                        "CODE" => CUtil::translit($brand, "ru" , $params),
+                        "ACTIVE" => "Y"
+                    );
+                    if(!$el->Add($arLoadProductArray)){
+                        $el->Update($find['ID'], $arLoadProductArray);
+                    }
+                }
+            }
+        }
+        return "CBrands::updateBrandsAgent();";
+    }
+}

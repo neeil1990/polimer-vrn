@@ -52,16 +52,16 @@ $this->setFrameMode(true);
 
         <div class="brand-list cl">
             <? foreach($arSection as $i => $arItems):?>
-                <div class="brand-item <?if($i > 5):?>brand-hidden<?endif;?>">
+                <div class="brand-item <?if($i > 11):?>brand-hidden<?endif;?>">
                     <a href="<?=$arItems['DETAIL_PAGE_URL']?>">
                         <div class="img">
-                            <img src="<?=$arItems['PREVIEW_PICTURE']['SRC']?>" height="120">
+                            <img src="<?=($src = $arItems['PREVIEW_PICTURE']['SRC']) ? $src : SITE_TEMPLATE_PATH.'/img/no_photo.png'?>" height="120">
                         </div>
                         <div class="name"><?=$arItems['NAME']?></div>
                     </a>
                 </div>
             <?endforeach;?>
-            <?if($i > 5):?>
+            <?if($i > 11):?>
                 <div class="more"><a href="#" class="show_brand">Показать ещё</a></div>
             <?endif;?>
         </div>

@@ -39,6 +39,11 @@
 }
 .brand-list .brand-item a .name{
 	font-weight: 500;
+	max-height: 20px;
+	overflow: hidden;
+}
+.brand-list .brand-item a .name:hover{
+	overflow: auto;
 }
 
 ul.letter-list{

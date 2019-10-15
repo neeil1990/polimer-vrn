@@ -2,7 +2,7 @@
 
 foreach($arResult['ITEMS'] as $arItem){
     $letter = (substr(trim($arItem['NAME']),0, 1)) ?: "*";
-    $arResult['SECTION_ITEMS'][$letter][] = $arItem;
+    $arResult['SECTION_ITEMS'][strtoupper($letter)][] = $arItem;
 }
 
 if(count($arResult['SECTION_ITEMS']) > 0)
