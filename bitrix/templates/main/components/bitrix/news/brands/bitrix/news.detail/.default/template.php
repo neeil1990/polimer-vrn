@@ -14,23 +14,24 @@ $this->setFrameMode(true);
 ?>
 
 <div class="row cl">
-    <div class="h1"><?=$arResult['NAME']?></div>
+    <h1 class="h1">Бренд <?=$arResult['NAME']?></h1>
     <?echo $arResult["DETAIL_TEXT"];?>
 </div>
 
-<div class="h1">Категории бренда</div>
+<h2 class="h2">Категории бренда <?=$arResult['NAME']?></h2>
 <div class="catalog-sections-list cl">
     <?foreach ($arResult['SECTIONS'] as $arSection):?>
         <div class="catalog-sections-list__item">
-            <a href="<?=$arSection['SECTION_PAGE_URL']?>" class="link">
+            <a href="<?=$arSection['SECTION_PAGE_URL']?>filter/proizvoditel-is-<?=$arSection['VALUE_XML_ID']?>/apply/" class="link">
                 <img alt="<?=$arSection['NAME']?>" src="<?=$arSection['PICTURE'];?>" height="120" class="img">
-                <span class="name"><?=$arSection['NAME'];?></span></a>
+                <span class="name"><?=$arSection['NAME'];?></span>
+            </a>
         </div>
     <?endforeach;?>
 </div>
 
 <!--end::catalog-sections-->
-<div class="h1">Товары бренда</div>
+<h2 class="h2">Товары бренда <?=$arResult['NAME']?></h2>
 <div class="row cl">
     <div class="products_roll">
         <div class="pr_box cl">
