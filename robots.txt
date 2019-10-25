@@ -97,6 +97,6 @@ Allow: /*.jpeg
 Allow: /*.png
 Allow: /*.gif
 Clean-param: utm_source&utm_medium&utm_term&utm_content&utm_campaign&yclid&gclid&_openstat&from /
-Host: http://polimer-vrn.ru/
 
-Sitemap: http://polimer-vrn.ru/sitemap.xml
+Host: https://polimer-vrn.ru/
+Sitemap: https://polimer-vrn.ru/sitemap.xml

@@ -68,6 +68,13 @@ RewriteRule ^ /%1/ [R=301,L]
 RewriteCond %{QUERY_STRING} ^idc=4&marea=6$ [NC]
 RewriteRule ^index\.php$ /? [R=301,L]
 
+
+RewriteEngine On
+RewriteCond %{HTTPS} =off
+RewriteCond %{REQUEST_URI} !^/bitrix/admin/1c_exchange.php
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [QSA,L]
+
+
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
