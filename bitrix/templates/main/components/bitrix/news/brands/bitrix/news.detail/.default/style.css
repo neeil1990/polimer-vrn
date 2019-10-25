@@ -18,3 +18,9 @@
 	max-height: 120px!important;
 	min-height: 120px!important;
 }
+.catalog-sections-list .catalog-sections-list__item:hover{
+	border: 2px solid #ffffff00;
+	-webkit-box-shadow: 0 0 15px 0px rgba(0,0,0,0.20);
+	-moz-box-shadow: 0 0 15px 0px rgba(0,0,0,0.20);
+	box-shadow: 0 0 15px 0px rgba(0,0,0,0.20);
+}
