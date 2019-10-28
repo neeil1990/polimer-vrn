@@ -111,7 +111,6 @@ $this->setFrameMode(true);
 			$rsSect = CIBlockSection::GetList(Array("SORT"=>"ASC"),$arFilter,false, array('UF_BROWSER_TITLE','UF_KEYWORDS','UF_META_DESCRIPTION'));
 			$arSect = $rsSect->GetNext();
 
-
 			$sectionID = $APPLICATION->IncludeComponent(
 				"bitrix:catalog.section.list",
 				"",
@@ -138,10 +137,11 @@ $this->setFrameMode(true);
 
 
 
-				if($arSect['UF_BROWSER_TITLE']){
-					$APPLICATION->SetTitle( $arSect['UF_BROWSER_TITLE'] );
+                $ipropValues = new \Bitrix\Iblock\InheritedProperty\SectionValues($arSect['IBLOCK_ID'],$arSect['ID']);
+				if($META_TITLE = $ipropValues->getValues()){
+                    $APPLICATION->SetTitle( $META_TITLE['SECTION_META_TITLE'] );
 				}else{
-					$APPLICATION->SetTitle( $arSect['NAME'] );
+                    $APPLICATION->SetTitle( $arSect['UF_BROWSER_TITLE'] );
 				}
 				if ($arSect['UF_KEYWORDS']) {
 					$APPLICATION->SetPageProperty ( "keywords", $arSect['UF_KEYWORDS'] );
