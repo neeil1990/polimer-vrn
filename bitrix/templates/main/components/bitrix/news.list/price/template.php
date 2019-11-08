@@ -47,6 +47,7 @@ $this->setFrameMode(true);
 		</div>
 	</div>
 
+    <?if(false): //Скрыть на время?>
 	<form class="ym-goal-subscribe-price" method="post" action="/ajax/price.php">
 	<div class="pl__subscribe">
 		<div class="form">
@@ -74,6 +75,7 @@ $this->setFrameMode(true);
 		</div>
 	</div>
 	</form>
+    <?endif;?>
 </div>
 
 <script>
