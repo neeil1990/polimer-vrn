@@ -201,3 +201,41 @@ Class CBrands
         return "CBrands::updateBrandsAgent();";
     }
 }
+
+
+use Bitrix\Main;
+Main\EventManager::getInstance()->addEventHandler(
+    'sale',
+    'OnSaleOrderSaved',
+    'sendRoiOrder'
+);
+
+function sendRoiOrder(Main\Event $event)
+{
+    /** @var Order $order */
+    $order = $event->getParameter("ENTITY");
+    $isNew = $event->getParameter("IS_NEW");
+
+    if ($isNew)
+    {
+        if($order->getUserId())
+            $arUser = CUser::GetByID($order->getUserId())->Fetch();
+
+        $roistatData = array(
+            'roistat' => isset($_COOKIE['roistat_visit']) ? $_COOKIE['roistat_visit'] : 'nocookie',
+            'key'     => 'MTk1MTI4OjExNzQ3NTplZmFhZTc4MGRkMDM0M2Q4MWVjYmE1MjY0YjExZTkzMA==',
+            'title' => 'Заказ ID ('.$order->getId().')',
+            'name' => $arUser['NAME'].' '.$arUser['LAST_NAME'],
+            'comment' => SITE_SERVER_NAME.'/bitrix/admin/sale_order_view.php?ID='.$order->getId(),
+            'phone'   => $arUser['WORK_PHONE'],
+            'email'   => $arUser['EMAIL'],
+            'fields'  => array(
+                "price" => $order->getPrice(),
+            ),
+        );
+
+        try {
+            file_get_contents("https://cloud.roistat.com/api/proxy/1.0/leads/add?" . http_build_query($roistatData));
+        } catch (Exception $e) {}
+    }
+}
