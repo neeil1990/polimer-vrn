@@ -91,7 +91,10 @@
 			</div><!--end::wr-->
      	</div><!--end::container-->
 
-
+    <?
+    $config = \Bitrix\Main\Config\Configuration::getInstance()->get("exception_handling");
+    if(!$config['debug']):
+    ?>
 				<!— BEGIN JIVOSITE CODE {literal} —>
 				<script type='text/javascript'>
 					(function(){ var widget_id = 'Ms4VnpNIHY';var d=document;var w=window;function l(){
@@ -99,72 +102,73 @@
 				</script>
 				<!— {/literal} END JIVOSITE CODE —>
 
-<!-- Yandex.Metrika counter Prime -->
-<script type="text/javascript" >
-    (function (d, w, c) {
-        (w[c] = w[c] || []).push(function() {
-            try {
-                w.yaCounter29722775 = new Ya.Metrika({
-                    id:29722775,
-                    clickmap:true,
-                    trackLinks:true,
-                    accurateTrackBounce:true,
-                    webvisor:true
-                });
-            } catch(e) { }
-        });
+                <!-- Yandex.Metrika counter Prime -->
+                <script type="text/javascript" >
+                    (function (d, w, c) {
+                        (w[c] = w[c] || []).push(function() {
+                            try {
+                                w.yaCounter29722775 = new Ya.Metrika({
+                                    id:29722775,
+                                    clickmap:true,
+                                    trackLinks:true,
+                                    accurateTrackBounce:true,
+                                    webvisor:true
+                                });
+                            } catch(e) { }
+                        });
 
-        var n = d.getElementsByTagName("script")[0],
-            s = d.createElement("script"),
-            f = function () { n.parentNode.insertBefore(s, n); };
-        s.type = "text/javascript";
-        s.async = true;
-        s.src = "https://mc.yandex.ru/metrika/watch.js";
+                        var n = d.getElementsByTagName("script")[0],
+                            s = d.createElement("script"),
+                            f = function () { n.parentNode.insertBefore(s, n); };
+                        s.type = "text/javascript";
+                        s.async = true;
+                        s.src = "https://mc.yandex.ru/metrika/watch.js";
 
-        if (w.opera == "[object Opera]") {
-            d.addEventListener("DOMContentLoaded", f, false);
-        } else { f(); }
-    })(document, window, "yandex_metrika_callbacks");
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/29722775" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
+                        if (w.opera == "[object Opera]") {
+                            d.addEventListener("DOMContentLoaded", f, false);
+                        } else { f(); }
+                    })(document, window, "yandex_metrika_callbacks");
+                </script>
+                <noscript><div><img src="https://mc.yandex.ru/watch/29722775" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+                <!-- /Yandex.Metrika counter -->
 
-<!-- Yandex.Metrika counter Веброст -->
-<script type="text/javascript" >
-    (function (d, w, c) {
-        (w[c] = w[c] || []).push(function() {
-            try {
-                w.yaCounter45640992 = new Ya.Metrika({
-                    id:45640992,
-                    clickmap:true,
-                    trackLinks:true,
-                    accurateTrackBounce:true,
-                    webvisor:true,
-                    ecommerce:"dataLayer"
-                });
-            } catch(e) { }
-        });
+                <!-- Yandex.Metrika counter Веброст -->
+                <script type="text/javascript" >
+                    (function (d, w, c) {
+                        (w[c] = w[c] || []).push(function() {
+                            try {
+                                w.yaCounter45640992 = new Ya.Metrika({
+                                    id:45640992,
+                                    clickmap:true,
+                                    trackLinks:true,
+                                    accurateTrackBounce:true,
+                                    webvisor:true,
+                                    ecommerce:"dataLayer"
+                                });
+                            } catch(e) { }
+                        });
 
-        var n = d.getElementsByTagName("script")[0],
-            s = d.createElement("script"),
-            f = function () { n.parentNode.insertBefore(s, n); };
-        s.type = "text/javascript";
-        s.async = true;
-        s.src = "https://mc.yandex.ru/metrika/watch.js";
+                        var n = d.getElementsByTagName("script")[0],
+                            s = d.createElement("script"),
+                            f = function () { n.parentNode.insertBefore(s, n); };
+                        s.type = "text/javascript";
+                        s.async = true;
+                        s.src = "https://mc.yandex.ru/metrika/watch.js";
 
-        if (w.opera == "[object Opera]") {
-            d.addEventListener("DOMContentLoaded", f, false);
-        } else { f(); }
-    })(document, window, "yandex_metrika_callbacks");
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/45640992" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
+                        if (w.opera == "[object Opera]") {
+                            d.addEventListener("DOMContentLoaded", f, false);
+                        } else { f(); }
+                    })(document, window, "yandex_metrika_callbacks");
+                </script>
+                <noscript><div><img src="https://mc.yandex.ru/watch/45640992" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+                <!-- /Yandex.Metrika counter -->
 
+    <? endif; ?>
 
-			<?$APPLICATION->IncludeComponent(
-	"nbrains:main.feedback", 
-	"order-product", 
-	array(
+    <?$APPLICATION->IncludeComponent(
+        "nbrains:main.feedback",
+        "order-product",
+        array(
 		"EMAIL_TO" => "sale@polimer-vrn.ru, sv6@list.ru",
 		"EVENT_MESSAGE_ID" => array(
 			0 => "103",
@@ -327,14 +331,7 @@
 	false
 );?>
 
-<script>
-(function(w, d, s, h, id) {
-    w.roistatProjectId = id; w.roistatHost = h;
-    var p = d.location.protocol == "https:" ? "https://" : "http://";
-    var u = /^.*roistat_visit=[^;]+(.*)?$/.test(d.cookie) ? "/dist/module.js" : "/api/site/1.0/"+id+"/init";
-    var js = d.createElement(s); js.charset="UTF-8"; js.async = 1; js.src = p+h+u; var js2 = d.getElementsByTagName(s)[0]; js2.parentNode.insertBefore(js, js2);
-})(window, document, 'script', 'cloud.roistat.com', '0e03e67d2cf7ac55a00f173bca769e45');
-</script>
+
 
 
 
