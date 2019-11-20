@@ -5,6 +5,9 @@ class RoiStat {
 
     public function send($arFields, $arTemplate){
 
+        if(empty(COption::GetOptionString('roistat.leads', "RoiProxyLeads")))
+            return false;
+
         $mess = "";
         foreach($arFields as $keyField => $arField)
             $mess .= $keyField .':'. $arField.'; ';
