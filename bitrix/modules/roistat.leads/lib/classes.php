@@ -5,8 +5,15 @@ class RoiStat {
 
     public function send($arFields, $arTemplate){
 
-        if(empty(COption::GetOptionString('roistat.leads', "RoiProxyLeads")))
+        //AddMessage2Log(null, "roistat.leads");
+
+        $module = "roistat.leads";
+
+        if(empty(COption::GetOptionString($module, "RoiProxyLeads")) ||
+            empty(COption::GetOptionString($module, "RoiEvent")))
             return false;
+
+        $RoiEvent = unserialize(COption::GetOptionString($module, "RoiEvent"));
 
         $mess = "";
         foreach($arFields as $keyField => $arField)
@@ -26,9 +33,10 @@ class RoiStat {
                 "request" => $_SERVER['REQUEST_URI'],
             ),
         );
-        //AddMessage2Log($roistatData, "roistat.leads");
+
         try {
-            file_get_contents("https://cloud.roistat.com/api/proxy/1.0/leads/add?" . http_build_query($roistatData));
+            if(in_array($arTemplate['ID'], $RoiEvent))
+                file_get_contents("https://cloud.roistat.com/api/proxy/1.0/leads/add?" . http_build_query($roistatData));
         } catch (Exception $e) {}
     }
 

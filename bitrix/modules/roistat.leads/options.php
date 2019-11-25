@@ -11,6 +11,15 @@ use Bitrix\Main\Type;
 	Loader::includeModule('catalog');
 	Loc::loadMessages(__FILE__);
 
+
+
+
+    $arEvent = [];
+    $dbType = CEventMessage::GetList($by="ID", $order="DESC", ["ACTIVE" => "Y"]);
+    while($arType = $dbType->GetNext())
+        $arEvent[$arType["ID"]] = "[".$arType["ID"]."] ".$arType["SUBJECT"];
+
+
 	$aTabs = array(
 		array("DIV" => "edit0", "TAB" => "Ключ для интеграции roistat", "ICON" => "currency_settings", "TITLE" => "Ключ для интеграции roistat"),
 	);
@@ -22,7 +31,14 @@ use Bitrix\Main\Type;
 	    if(strlen($_REQUEST['RoiProxyLeads']) > 0){
             COption::SetOptionString($module_id,"RoiProxyLeads",$_REQUEST['RoiProxyLeads']);
         }
+
+	    if(count($_REQUEST['RoiEvent']) > 0){
+            COption::SetOptionString($module_id,"RoiEvent",serialize($_REQUEST['RoiEvent']));
+        }
 	}
+
+	if(COption::GetOptionString($module_id, "RoiEvent"))
+	    $RoiEvent = unserialize(COption::GetOptionString($module_id, "RoiEvent"));
 
     $tabControl->Begin( array(
         "FORM_ACTION" => $APPLICATION->GetCurUri()
@@ -41,6 +57,22 @@ use Bitrix\Main\Type;
         </tr>
 	<?
     $tabControl->EndCustomField( "RoiProxyLeads" );
+
+
+    $tabControl->BeginCustomField( "RoiEvent", "Шаблоны отправки письма", false );
+    ?>
+    <tr id="tr_TYPE_OF_INFOBLOCK">
+        <td width="40%"><? echo $tabControl->GetCustomLabelHTML(); ?></td>
+        <td width="60%">
+            <select name="RoiEvent[]" size="20" multiple>
+                <? foreach ($arEvent as $id => $e):?>
+                    <option value="<?=$id?>" <? if(in_array($id, $RoiEvent)):?> selected <? endif;?>><?=$e?></option>
+                <? endforeach; ?>
+            </select>
+        </td>
+    </tr>
+    <?
+    $tabControl->EndCustomField( "RoiEvent" );
 
     $arButtonsParams = array(
         "disabled" => $readOnly,
