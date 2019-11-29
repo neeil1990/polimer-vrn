@@ -629,7 +629,7 @@ foreach($arResult['PROPERTIES']['MORE_PHOTO']['VALUE'] as $key => $photo){
 	$arResult['GALLERY'][$key]['SRC'] = CFile::GetPath($photo);
 	$arResult['GALLERY'][$key]['DATA'] = CFile::ResizeImageGet(
 		$photo,
-		["width" => 510, "height" => 350],
+		["width" => 510, "height" => 400],
 		BX_RESIZE_IMAGE_PROPORTIONAL,
 		true
 	)['src'];

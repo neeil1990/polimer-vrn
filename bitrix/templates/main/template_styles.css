@@ -9415,7 +9415,7 @@ a.pickup-stores__item .desc {
     float: left;
     display: block;
     position: relative;
-    width: 570px;
+    width: 600px;
     text-align: center;
 }
 
@@ -9448,7 +9448,7 @@ a.pickup-stores__item .desc {
 .pc__buy-block {
     float: right;
     position: relative;
-    width: 425px;
+    width: 450px;
     padding: 30px;
     border-radius: 2px;
     -webkit-box-shadow: 0 0 15px 0px rgba(0,0,0,0.20);
