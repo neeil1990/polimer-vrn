@@ -2174,7 +2174,7 @@ function ImgShw(ID, width, height, alt)
 		}
 
 		$hLock = $io->OpenFile($sourceFile, "r+");
-		if ($hLock)
+/*		if ($hLock)
 		{
 			flock($hLock, LOCK_EX);
 			if ($io->FileExists($destinationFile))
@@ -2192,7 +2192,7 @@ function ImgShw(ID, width, height, alt)
 					return true;
 				}
 			}
-		}
+		}*/
 
 		if(CFile::isEnabledTrackingResizeImage())
 		{

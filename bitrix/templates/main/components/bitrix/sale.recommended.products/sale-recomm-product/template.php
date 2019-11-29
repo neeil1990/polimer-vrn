@@ -9,9 +9,9 @@ $this->setFrameMode(true);
 <? if (isset($arResult['ITEMS']) && !empty($arResult['ITEMS'])): ?>
 <div class="pc__prod-also">
 	<div class="pc__vertical-carousel">
-		<div class="vc-title">С этим товаром покупают</div>
 		<div class="vc-shell">
-			<div class="vc-block">
+            <div class="vc-title">С этим товаром покупают</div>
+            <div class="vc-block">
 			<?
 			foreach ($arResult['ITEMS'] as $key => $arItem)
 			{

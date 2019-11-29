@@ -45,6 +45,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/vendor.min.css');
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/slick.css');
+		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/Font-Awesome/css/font-awesome.css');
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/fonts.css');
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/ion.rangeSlider.css');
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/ion.rangeSlider.skinModern.css');
@@ -53,8 +54,13 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/social-likes_classic.css');
 		Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/css/wickedpicker.min.css');
 
+        Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/js/lightslider/css/lightslider.css');
+        Asset::getInstance()->addCss(SITE_TEMPLATE_PATH.'/js/lightGallery/css/lightgallery.css');
+
 
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/jquery.min.js');
+        Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/lightslider/js/lightslider.js');
+        Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/lightGallery/js/lightgallery.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/vendor.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/slick.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/jquery-ui.min.js');
@@ -62,10 +68,13 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/ion.rangeSlider.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/jquery.fancybox.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/jquery.kinetic.min.js');
+
+
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/common.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/social-likes.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/wickedpicker.min.js');
 		Asset::getInstance()->addJs(SITE_TEMPLATE_PATH.'/js/jquery.maskedinput.min.js');
+
 
 		Asset::getInstance()->addJs('/js/readmore.js');
 		Asset::getInstance()->addJs('/js/function.js');

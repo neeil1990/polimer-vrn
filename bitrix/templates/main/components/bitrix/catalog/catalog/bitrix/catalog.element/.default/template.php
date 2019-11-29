@@ -34,61 +34,82 @@ $this->setFrameMode(true);
 
 <div class="prod_card cl">
    <div class="pc__prod-info">
-      <h1><?=$arResult['NAME']?></h1>
 
-<!--      <div class="pc__code">Код товара: <span>--><?//=$arResult['PROPERTIES']['CML2_ARTICLE']['VALUE']?><!--</span></div>-->
+       <div class="cl">
+           <div class="bb_col">
+               <h1><?=$arResult['NAME']?></h1>
+           </div>
+           <? if($arResult['BRAND']): ?>
+           <div class="bb_col right">
+               <a href="/brands/<?=$arResult['BRAND']['URL']?>/" target="_blank">
+                   <img src="<?=$arResult['BRAND']['IMAGE']?>" alt="<?=$arResult['NAME']?>" style="max-height:50px">
+               </a>
+           </div>
+           <? endif; ?>
+       </div>
 
-      <div class="cl">
+       <div class="cl mb-40">
+           <div class="bb_col">
+               <span>Код товара: <?=$arResult['ID']?></span>
+           </div>
+           <div class="bb_col">
+               <span><a href="#" class="blue">Бесплатная доставка</a></span>
+           </div>
+           <? if($arResult['ITEM_PRICES']): ?>
+               <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
+                   <div class="bb_col" >
+                       <span><a href="#" class="red" title='<b>Скидка <?=$price['PERCENT']?>%</b> При заказе через интернет-магазин'>Скидка <?=$price['PERCENT']?>% онлайн</a></span>
+                   </div>
+               <? endforeach; ?>
+           <? endif; ?>
+           <div class="bb_col right">
+               <? if($arResult['RATING']['COUNT']): ?>
+               <div class="rates" id="rate_main_result"></div>
+               <script type="text/javascript">
+                   $(function() {
+                       $('#rate_main_result').rateit({ value: <?=$arResult['RATING']['STARS']?>, ispreset: true, readonly: true });
+                   });
+               </script>
+                   <span style="vertical-align: top;border-bottom: 1px dotted;"><?=$arResult['RATING']['COUNT']?> Отзыв'а</span>
+               <? endif; ?>
+           </div>
+       </div>
+
+
+      <div class="cl mb-40">
+
          <div class="pc__prod-gallery cl">
-            <div class="pg-thumbnails">
-               <? foreach($arResult['GALLERY'] as $key => $img):?>
-               <div class="item <? if($key < 1): ?>active<? endif; ?>"><a href="#"><span>
-                           <img src="<?=$img?>" alt="<?=$arResult['NAME']?>"></span></a></div>
-               <? endforeach; ?>
-
-            </div>
-            <div class="pg-current">
-               <? foreach($arResult['GALLERY'] as $key => $img):?>
-               <a href="<?=$img?>" class="<? if($key < 1): ?>active<? endif; ?>" data-fancybox="gallery<?=$arResult['ID']?>">
-                   <img src="<?=$img?>" alt="<?=$arResult['NAME']?>"></a>
-               <? endforeach; ?>
-            </div>
+             <ul id="imageGallery">
+                 <? foreach($arResult['GALLERY'] as $key => $img): ?>
+                     <li data-thumb="<?=$img['THUMB']?>" data-src="<?=$img['SRC']?>">
+                         <img src="<?=$img['DATA']?>" />
+                     </li>
+                 <? endforeach; ?>
+             </ul>
+             <div class="GallerylSAction">
+                 <a class="GallerylSPrev"></a>
+                 <a class="GallerylSNext"></a>
+             </div>
          </div>
 
          <div class="pc__buy-block cl">
-            <div class="bb_compare">
-               <input type="checkbox" id="icompare" id-cat="<?=$arResult['IBLOCK_SECTION_ID']?>" value="<?=$arResult['ID']?>">
-               <label for="icompare">Сравнить</label>
-            </div>
 
             <? if(empty($arResult['ITEM_PRICES'])): ?>
-                <h1>Цену уточняйте у менеджера</h1>
+                <div class="bb_row">
+                    <h1>Цену уточняйте у менеджера</h1>
+                </div>
             <? else: ?>
-            <div class="bb_col">
-               <div class="price">
-                  <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
-                  <div class="price-old"><span><?=$price['BASE_PRICE']?></span> &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
-                  <div class="price-new"><span><?=str_replace("&#8381;","",$price['PRINT_PRICE'])?></span>  &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
-                  <? endforeach; ?>
-               </div>
-<!--               <a href="#" class="cheaper">Нашли дешевле ?</a>-->
-            </div>
-
-            <div class="bb_col right">
-               <div class="sale">
-                  <?
-					//var_dump($arResult);
-				  foreach($arResult['ITEM_PRICES'] as $name => $price):?>
-                  <span>СКИДКА <?=$price['PERCENT']?>%</span>
-                  <? endforeach; ?>
-                  <span>при заказе<br>с сайта</span>
-               </div>
-               <div class="quantity">
-                  <a class="minus na" href="#"></a>
-                  <input type="text" value="1" id="count_product"/>
-                  <a class="plus" href="#"></a>
-               </div>
-            </div>
+                <div class="bb_row">
+                   <div class="price">
+                      <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
+                          <div class="price-new"><span><?=str_replace("&#8381;","",$price['PRINT_PRICE'])?></span>  &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                          <div class="price-old"><span><?=$price['BASE_PRICE']?></span> &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                      <? endforeach; ?>
+                       <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
+                       <div class="sale-y"><span>- <?=$price['PERCENT']?>%</span></div>
+                       <? endforeach; ?>
+                   </div>
+                </div>
             <? endif; ?>
 
             <? if($arResult['CATALOG_QUANTITY'] > 0 and $arResult['ITEM_PRICES'][0]['BASE_PRICE']): ?>
@@ -97,9 +118,52 @@ $this->setFrameMode(true);
             <a href="javascript:void(0)" class="add2cart show-popup" data-id="order-product">Товар под заказ</a>
             <?endif;?>
 
-            <a href="#" class="bb_btn show-popup" data-id="oneclick"><span>Купить<br>в один клик</span></a>
-            <a href="#" class="bb_btn spec_help show-popup" data-id="specialist"><span>Помощь<br>специалиста</span></a>
+            <a href="#" class="bb_btn show-popup" data-id="oneclick"><span>Купить в один клик</span></a>
+            <a href="#" class="bb_btn spec_help show-popup" data-id="specialist"><span>Помощь специалиста</span></a>
+
+             <div class="bb_compare">
+                 <a href="#" id="compare" data-id="<?=$arResult['IBLOCK_SECTION_ID']?>" data-value="<?=$arResult['ID']?>">
+                     <i class="fa fa-bar-chart" aria-hidden="true"></i>
+                     <span>Сравнить</span>
+                 </a>
+             </div>
+
+             <div class="bb_info">
+                 <div class="i_rows">
+                     <i class="fa fa-check-square-o" aria-hidden="true"></i>
+                     <span>
+                         В наличии -
+                         <a href="#">Много</a>
+                     </span>
+                 </div>
+                 <div class="i_rows">
+                     <i class="fa fa-truck" aria-hidden="true"></i>
+                     <span>
+                         Доставка курьером,
+                         <a href="#">бесплатно</a>
+                     </span>
+                 </div>
+                 <? if($arResult['PROPERTIES']['GARANTIYA']['VALUE']): ?>
+                 <div class="i_rows">
+                     <i class="fa fa-shield" aria-hidden="true"></i>
+                     <span>
+                         Гарантия производителя - <?=$arResult['PROPERTIES']['GARANTIYA']['VALUE'];?>
+                     </span>
+                 </div>
+                 <? endif; ?>
+
+                 <? if($arResult['PROPERTIES']['STRANA_PROIZVODITELYA']['VALUE']): ?>
+                 <div class="i_rows">
+                     <i class="fa fa-flag-o" aria-hidden="true"></i>
+                     <span>
+                         Страна производителя - <?=$arResult['PROPERTIES']['STRANA_PROIZVODITELYA']['VALUE']?>
+                     </span>
+                 </div>
+                 <? endif; ?>
+             </div>
+
          </div>
+
       </div>
 
 
@@ -108,202 +172,170 @@ $this->setFrameMode(true);
          <div class="t-list cl">
             <a href="#"><span>Описание</span></a>
             <a href="#"><span>Технические характеристики</span></a>
-            <a href="#"><span>Отзывы </span></a>
-            <a href="#" class="active"><span>Наличие в магазинах</span></a>
+            <a href="#" class="active"><span>Отзывы </span></a>
+            <a href="#"><span>Наличие в магазинах</span></a>
          </div>
          <div class="t-content">
             <div class="tab tab_des">
                <a href="#" class="mtb" onclick="return false">Описание</a>
                <div class="content">
-                  <?=$arResult['DETAIL_TEXT']?>
-                   <? foreach($arResult['PROPERTIES']['FILES']['VALUE'] as $key => $file): ?>
-                   <p><a class="download" href="<?=CFile::GetPath($file);?>"><?=$arResult['PROPERTIES']['FILES']['DESCRIPTION'][$key];?></a></p>
-                   <? endforeach; ?>
+                   <div class="cl">
+                       <div class="bb_col w-70">
+                           <?=$arResult['DETAIL_TEXT']?>
+                           <? foreach($arResult['PROPERTIES']['FILES']['VALUE'] as $key => $file): ?>
+                               <p><a class="download" href="<?=CFile::GetPath($file);?>"><?=$arResult['PROPERTIES']['FILES']['DESCRIPTION'][$key];?></a></p>
+                           <? endforeach; ?>
+                       </div>
+                       <div class="bb_col w-30"><? include('inc/list.php'); ?></div>
+                   </div>
                </div>
             </div>
             <div class="tab tab_tec">
                <a href="#" class="mtb" onclick="return false">Технические характеристики</a>
                <div class="content">
-                  <?
-                  if (!empty($arResult['PROPERTIES']))
-                  {
-                     foreach($arResult['PROPERTIES'] as $property){
-                        if(
-                            strlen($property['VALUE']) > 1 AND
-                            $property['MULTIPLE'] == "N" AND
-                            $property['CODE'] != "CML2_BASE_UNIT" AND
-                            $property['CODE'] != "MORE_PHOTO" AND
-                            $property['CODE'] != "YANDEKS_MARKET_PREDOPLATA" AND
-                            ($property['PROPERTY_TYPE'] == "S" OR
-                            $property['PROPERTY_TYPE'] == "L")
-                        ){
-                           ?>
-                           <div class="line cl">
-                              <div class="prop"><?=$property['NAME']?></div>
-                              <div class="val"><?=$property['VALUE']?></div>
-                           </div>
+                   <div class="cl">
+                       <div class="bb_col w-70">
                            <?
+                           if (!empty($arResult['PROPERTIES']))
+                           {
+                               foreach($arResult['PROPERTIES'] as $property){
+                                   if(
+                                       strlen($property['VALUE']) > 1 AND
+                                       $property['MULTIPLE'] == "N" AND
+                                       $property['CODE'] != "CML2_BASE_UNIT" AND
+                                       $property['CODE'] != "MORE_PHOTO" AND
+                                       $property['CODE'] != "YANDEKS_MARKET_PREDOPLATA" AND
+                                       ($property['PROPERTY_TYPE'] == "S" OR
+                                           $property['PROPERTY_TYPE'] == "L")
+                                   ){
+                                       ?>
+                                       <div class="line cl">
+                                           <div class="prop"><?=$property['NAME']?></div>
+                                           <div class="val"><?=$property['VALUE']?></div>
+                                       </div>
+                                       <?
 
-                        }
-                     }
-                  }
-                  ?>
+                                   }
+                               }
+                           }
+                           ?>
+                       </div>
+                       <div class="bb_col w-30">
+                           <? include('inc/list.php'); ?>
+                       </div>
+                   </div>
                </div>
             </div>
-            <div class="tab tab_fed">
+            <div class="tab tab_fed active">
                <a href="#" class="mtb" onclick="return false">Отзывы</a>
                <div class="content">
+                   <div class="cl">
+                       <div class="bb_col w-70">
+                           <?$APPLICATION->IncludeComponent("khayr:main.comment", "catalog.comment", Array(
+                               "OBJECT_ID" => $arResult["ID"],	// ID объекта комментирования
+                               "COUNT" => "10",	// Количество комментариев на странице
+                               "MAX_DEPTH" => "1",	// Максимальный уровень вложенности
+                               "JQUERY" => "N",	// Подключить jQuery (если не подключен)
+                               "MODERATE" => "N",	// Включить премодерацию
+                               "LEGAL" => "N",	// Требовать согласиться с правилами
+                               "LEGAL_TEXT" => "Я согласен с правилами размещения сообщений на сайте.",	// Текст галочки о согласии с правилами
+                               "CAN_MODIFY" => "N",	// Разрешить редактирование комментария
+                               "NON_AUTHORIZED_USER_CAN_COMMENT" => "Y",	// Разрешить неавторизованным пользователям добавлять комментарии
+                               "REQUIRE_EMAIL" => "Y",	// Требовать e-mail
+                               "USE_CAPTCHA" => "N",	// Показывать CAPTCHA неавторизованным пользователям
+                               "AUTH_PATH" => "/personal/",	// Путь до страницы авторизации
+                               "ACTIVE_DATE_FORMAT" => "j F Y, G:i",	// Формат показа даты
 
-
-                   <?$APPLICATION->IncludeComponent(
-                       "bitrix:catalog.comments",
-                       ".default",
-                       array(
-                           "TEMPLATE_THEME" => "blue",
-                           "IBLOCK_TYPE" => "1c_catalog",
-                           "IBLOCK_ID" => $arParams["IBLOCK_ID"],
-                           "ELEMENT_ID" => $arResult["ID"],
-                           "ELEMENT_CODE" => $arResult["CODE"],
-                           "URL_TO_COMMENT" => $arResult["DETAIL_PAGE_URL"],
-                           "WIDTH" => "",
-                           "COMMENTS_COUNT" => "10",
-                           "BLOG_USE" => "Y",
-                           "FB_USE" => "N",
-                           "VK_USE" => "N",
-                           "CACHE_TYPE" => "N",
-                           "CACHE_TIME" => "0",
-                           "BLOG_TITLE" => "Отзывы на товары",
-                           "BLOG_URL" => "catalog_comments",
-                           "PATH_TO_SMILE" => "/bitrix/images/blog/smile/",
-                           "EMAIL_NOTIFY" => "N",
-                           "AJAX_POST" => "Y",
-                           "SHOW_SPAM" => "N",
-                           "SHOW_RATING" => "N",
-                           "RATING_TYPE" => "like_graphic",
-                           "FB_TITLE" => "Facebook",
-                           "FB_USER_ADMIN_ID" => "",
-                           "FB_APP_ID" => "",
-                           "FB_COLORSCHEME" => "dark",
-                           "FB_ORDER_BY" => "time",
-                           "VK_TITLE" => "Вконтакте",
-                           "VK_API_ID" => "API_ID",
-                           "COMPONENT_TEMPLATE" => ".default",
-                           "SHOW_DEACTIVATED" => "N"
-                       ),
-                       false
-                   );?>
-
-
+                               "LOAD_MARK" => "Y",	// Разрешить оценивать
+                               "LOAD_DIGNITY" => "Y",	// Разрешить Достоинства
+                               "LOAD_FAULT" => "Y",	// Разрешить Недостатки
+                               "ADDITIONAL" => array(	// Дополнительные свойства
+                                   0 => "Опыт использования",
+                               ),
+                               "ALLOW_RATING" => "N",	// Включить рейтинг
+                               "DISPLAY_TOP_PAGER" => "N",	// Выводить над списком
+                               "DISPLAY_BOTTOM_PAGER" => "Y",	// Выводить под списком
+                               "PAGER_TITLE" => "",	// Название категорий
+                               "PAGER_SHOW_ALWAYS" => "N",	// Выводить всегда
+                               "PAGER_TEMPLATE" => ".default",	// Шаблон постраничной навигации
+                               "PAGER_DESC_NUMBERING" => "N",	// Использовать обратную навигацию
+                               "PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",	// Время кеширования страниц для обратной навигации
+                               "PAGER_SHOW_ALL" => "N",	// Показывать ссылку "Все"
+                               "COMPONENT_TEMPLATE" => ".default"
+                           ),
+                               false
+                           );?>
+                       </div>
+                       <div class="bb_col w-30"><? include('inc/list.php'); ?></div>
+                   </div>
                </div>
             </div>
-            <div class="tab tab_nal active">
+            <div class="tab tab_nal">
                <a href="#" class="mtb" onclick="return false">Наличие в магазинах</a>
                <div class="content">
-                  <?$APPLICATION->IncludeComponent(
-	"nbrains:catalog.store.amount", 
-	"store", 
-	array(
-		"CACHE_TIME" => "36000",
-		"CACHE_TYPE" => "N",
-		"ELEMENT_CODE" => "",
-		"ELEMENT_ID" => $arResult["ID"],
-		"FIELDS" => array(
-			0 => "TITLE",
-			1 => "ADDRESS",
-			2 => "DESCRIPTION",
-			3 => "PHONE",
-			4 => "EMAIL",
-			5 => "IMAGE_ID",
-			6 => "COORDINATES",
-			7 => "SCHEDULE",
-			8 => "",
-		),
-		"IBLOCK_ID" => "21",
-		"IBLOCK_TYPE" => "1c_catalog",
-		"MAIN_TITLE" => "",
-		"MIN_AMOUNT" => "0",
-		"OFFER_ID" => "",
-		"SHOW_EMPTY_STORE" => "N",
-		"SHOW_GENERAL_STORE_INFORMATION" => "N",
-		"STORES" => array(
-			0 => "8",
-			1 => "6",
-			2 => "5",
-			3 => "3",
-			4 => "17",
-			5 => "4",
-			6 => "7",
-		),
-		"STORE_PATH" => "",
-		"USER_FIELDS" => array(
-			0 => "",
-			1 => "",
-		),
-		"USE_MIN_AMOUNT" => "N",
-		"COMPONENT_TEMPLATE" => "store",
-		"COMPOSITE_FRAME_MODE" => "A",
-		"COMPOSITE_FRAME_TYPE" => "AUTO",
-		"CATALOG_QUANTITY" => $arResult['CATALOG_QUANTITY']
-	),
-	false
-);?>
+                   <div class="cl">
+                       <div class="bb_col w-70">
+                           <?$APPLICATION->IncludeComponent(
+                               "nbrains:catalog.store.amount",
+                               "store",
+                               array(
+                                   "CACHE_TIME" => "36000",
+                                   "CACHE_TYPE" => "N",
+                                   "ELEMENT_CODE" => "",
+                                   "ELEMENT_ID" => $arResult["ID"],
+                                   "FIELDS" => array(
+                                       0 => "TITLE",
+                                       1 => "ADDRESS",
+                                       2 => "DESCRIPTION",
+                                       3 => "PHONE",
+                                       4 => "EMAIL",
+                                       5 => "IMAGE_ID",
+                                       6 => "COORDINATES",
+                                       7 => "SCHEDULE",
+                                       8 => "",
+                                   ),
+                                   "IBLOCK_ID" => "21",
+                                   "IBLOCK_TYPE" => "1c_catalog",
+                                   "MAIN_TITLE" => "",
+                                   "MIN_AMOUNT" => "0",
+                                   "OFFER_ID" => "",
+                                   "SHOW_EMPTY_STORE" => "N",
+                                   "SHOW_GENERAL_STORE_INFORMATION" => "N",
+                                   "STORES" => array(
+                                       0 => "8",
+                                       1 => "6",
+                                       2 => "5",
+                                       3 => "3",
+                                       4 => "17",
+                                       5 => "4",
+                                       6 => "7",
+                                   ),
+                                   "STORE_PATH" => "",
+                                   "USER_FIELDS" => array(
+                                       0 => "",
+                                       1 => "",
+                                   ),
+                                   "USE_MIN_AMOUNT" => "N",
+                                   "COMPONENT_TEMPLATE" => "store",
+                                   "COMPOSITE_FRAME_MODE" => "A",
+                                   "COMPOSITE_FRAME_TYPE" => "AUTO",
+                                   "CATALOG_QUANTITY" => $arResult['CATALOG_QUANTITY']
+                               ),
+                               false
+                           );?>
+                       </div>
+                       <div class="bb_col w-30">
+                           <? include('inc/list.php'); ?>
+                       </div>
+                   </div>
+
                </div>
             </div>
          </div>
       </div>
    </div><!--end::pc__prod-info-->
 
-    <?$APPLICATION->IncludeComponent(
-        "bitrix:sale.recommended.products",
-        "sale-recomm-product",
-        Array(
-            "ACTION_VARIABLE" => "action",
-            "ADDITIONAL_PICT_PROP_10" => "MORE_PHOTO",
-            "ADDITIONAL_PICT_PROP_11" => "MORE_PHOTO",
-            "ADDITIONAL_PICT_PROP_12" => "MORE_PHOTO",
-            "ADD_PROPERTIES_TO_BASKET" => "Y",
-            "BASKET_URL" => "/personal/basket.php",
-            "CACHE_TIME" => "86400",
-            "CACHE_TYPE" => "A",
-            "CART_PROPERTIES_10" => array("",""),
-            "CART_PROPERTIES_11" => array("",""),
-            "CART_PROPERTIES_12" => array("",""),
-            "CODE" => "",
-            "CONVERT_CURRENCY" => "N",
-            "DETAIL_URL" => "",
-            "HIDE_NOT_AVAILABLE" => "N",
-            "IBLOCK_ID" => "21",
-            "IBLOCK_TYPE" => "1c_catalog",
-            "ID" => $arResult['ID'],
-            "LABEL_PROP_10" => "-",
-            "LABEL_PROP_11" => "-",
-            "LINE_ELEMENT_COUNT" => "3",
-            "MESS_BTN_BUY" => "РљСѓРїРёС‚СЊ",
-            "MESS_BTN_DETAIL" => "РџРѕРґСЂРѕР±РЅРµРµ",
-            "MESS_BTN_SUBSCRIBE" => "РџРѕРґРїРёСЃР°С‚СЊСЃСЏ",
-            "MESS_NOT_AVAILABLE" => "РќРµС‚ РІ РЅР°Р»РёС‡РёРё",
-            "MIN_BUYES" => "1",
-            "OFFER_TREE_PROPS_12" => array(),
-            "PAGE_ELEMENT_COUNT" => "30",
-            "PARTIAL_PRODUCT_PROPERTIES" => "N",
-            "PRICE_CODE" => array(),
-            "PRICE_VAT_INCLUDE" => "Y",
-            "PRODUCT_ID_VARIABLE" => "id",
-            "PRODUCT_PROPS_VARIABLE" => "prop",
-            "PRODUCT_QUANTITY_VARIABLE" => "quantity",
-            "PRODUCT_SUBSCRIPTION" => "N",
-            "PROPERTY_CODE_10" => array("",""),
-            "PROPERTY_CODE_11" => array("",""),
-            "PROPERTY_CODE_12" => array("",""),
-            "SHOW_DISCOUNT_PERCENT" => "N",
-            "SHOW_IMAGE" => "Y",
-            "SHOW_NAME" => "Y",
-            "SHOW_OLD_PRICE" => "N",
-            "SHOW_PRICE_COUNT" => "1",
-            "TEMPLATE_THEME" => "blue",
-            "USE_PRODUCT_QUANTITY" => "N"
-        )
-    );?>
+
 
    <div class="cl"></div>
 

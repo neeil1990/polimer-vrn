@@ -624,13 +624,48 @@ if($arResult['DETAIL_PAGE_URL'] != $APPLICATION->GetCurPage()){
 	LocalRedirect($arResult['DETAIL_PAGE_URL'],false,301);
 }
 
-foreach($arResult['PROPERTIES']['MORE_PHOTO']['VALUE'] as $photo){
-	if($photo){
-		$arResult['GALLERY'][] = CFile::GetPath($photo);
-	}else{
-		$arResult['GALLERY'][] = $arResult['DEFAULT_PICTURE']['SRC'];
+foreach($arResult['PROPERTIES']['MORE_PHOTO']['VALUE'] as $key => $photo){
+
+	$arResult['GALLERY'][$key]['SRC'] = CFile::GetPath($photo);
+	$arResult['GALLERY'][$key]['DATA'] = CFile::ResizeImageGet(
+		$photo,
+		["width" => 510, "height" => 350],
+		BX_RESIZE_IMAGE_PROPORTIONAL,
+		true
+	)['src'];
+	$arResult['GALLERY'][$key]['THUMB'] = CFile::ResizeImageGet(
+		$photo,
+		["width" => 95, "height" => 95],
+		BX_RESIZE_IMAGE_EXACT,
+		true
+	)['src'];
+
+}
+
+if(strlen($arResult['PROPERTIES']['PROIZVODITEL']['VALUE']) > 0){
+	$arSelect = Array("ID", "CODE", "PREVIEW_PICTURE");
+	$arFilter = Array("IBLOCK_ID" => $arParams["IBLOCK_BRAND_ID"], "NAME" => $arResult['PROPERTIES']['PROIZVODITEL']['VALUE']);
+	$res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
+	if($arFields = $res->GetNext())
+	{
+		$arResult['BRAND']['URL'] = $arFields['CODE'];
+		$arResult['BRAND']['IMAGE'] = CFile::GetPath($arFields['PREVIEW_PICTURE']);
 	}
 }
+
+if (CModule::IncludeModule("parnas.khayrcomment")){
+
+	$aRrating = KhayRComment::Show(["OBJECT_ID" => $arResult["ID"]], array("ID", "IBLOCK_ID", "NAME"), false, false);
+
+	$arResult['RATING']['TOTAL'] = array_sum(array_map(function ($data){
+		return $data['PROPERTIES']['MARK']['VALUE'];
+	}, $aRrating['ITEMS']));
+
+	$arResult['RATING']['COUNT'] = count($aRrating['ITEMS']);
+	$arResult['RATING']['STARS'] = round($arResult['RATING']['TOTAL']/$arResult['RATING']['COUNT'],1);
+}
+
+
 ?>
 
 
