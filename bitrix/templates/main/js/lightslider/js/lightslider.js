@@ -362,6 +362,7 @@
                         } else {
                             pagers += '<li><a href="#">' + (i + 1) + '</a></li>';
                         }
+						console.log('slide');
                         if (settings.mode === 'slide') {
                             if ((v) >= w - elSize - settings.slideMargin) {
                                 i = i + 1;
