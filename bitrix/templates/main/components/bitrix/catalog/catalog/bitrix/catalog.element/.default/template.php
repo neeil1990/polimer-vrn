@@ -50,7 +50,7 @@ $this->setFrameMode(true);
 
        <div class="cl mb-40">
            <div class="bb_col">
-               <span>Код товара: <?=$arResult['ID']?></span>
+               <span>Код товара: <?=$arResult['PROPERTIES']['CML2_TRAITS']['VALUE'][2];?></span>
            </div>
            <!--<div class="bb_col">
                <span><a href="#" class="blue">Бесплатная доставка</a></span>
@@ -135,7 +135,7 @@ $this->setFrameMode(true);
                      <i class="fa fa-check-square-o" aria-hidden="true"></i>
                      <span>
                          В наличии -
-                         <a href="#all_tabs" class="open_tab" for="tab_nal">Много</a>
+                         <a href="#all_tabs" class="open_tab" for="tab_nal">посмотреть</a>
                      </span>
                  </div>
                  <div class="i_rows">
