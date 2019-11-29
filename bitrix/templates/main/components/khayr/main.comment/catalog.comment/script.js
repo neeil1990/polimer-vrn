@@ -63,6 +63,9 @@ function KHAYR_MAIN_COMMENT_validate(_this, pagen)
 		contentType: false,
         success: function(result) {
 			$("#KHAYR_MAIN_COMMENT_container").html(result);
+			grecaptcha.render(document.getElementById('KHAYR_MAIN_COMMENT_grecaptcha'), {
+				'sitekey' : '6LfZ8kgUAAAAAJWtIx1_4_pUvd1Xk_VfdMhpqT4P'
+			});
 			KHAYR_MAIN_COMMENT_ShowMessage();
 		},
         error: function() {

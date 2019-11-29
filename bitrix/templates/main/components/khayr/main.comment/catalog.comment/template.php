@@ -207,13 +207,14 @@ function KHAYR_MAIN_COMMENT_ShowTree($arItem, $arParams, $arResult)
                 <input type='hidden' name='ACTION' value='add' />
                 <input type='hidden' name='DEPTH' value='1' />
                 <?if ($arParams["USE_CAPTCHA"]) {?>
-                    <div>
-                        <div><?=GetMessage("KHAYR_MAIN_COMMENT_CAP_1")?></div>
-                        <input type="hidden" name="captcha_sid" value="<?=$arResult["capCode"]?>" />
-                        <img src="/bitrix/tools/captcha.php?captcha_sid=<?=$arResult["capCode"]?>" width="180" height="40" alt="CAPTCHA" />
-                        <div><?=GetMessage("KHAYR_MAIN_COMMENT_CAP_2")?></div>
-                        <input type="text" name="captcha_word" size="30" maxlength="50" value="" />
-                        <input type='hidden' name='clear_cache' value='Y' />
+                    <div class="line cl">
+                        <div class="cl_col">
+                            <div class="value">
+                                <div class="mf-captcha">
+                                    <div class="g-recaptcha" id="KHAYR_MAIN_COMMENT_grecaptcha" data-sitekey="6LfZ8kgUAAAAAJWtIx1_4_pUvd1Xk_VfdMhpqT4P"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 <?}?>
                 <?if ($arParams["LEGAL"]) {?>

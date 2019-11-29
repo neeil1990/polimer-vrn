@@ -26,7 +26,7 @@ if (!$arParams["LEGAL_TEXT"])
 $arParams["CAN_MODIFY"] = ($arParams["CAN_MODIFY"] == "N" ? "N" : "Y");
 $arParams["NON_AUTHORIZED_USER_CAN_COMMENT"] = ($arParams["NON_AUTHORIZED_USER_CAN_COMMENT"] == "N" ? "N" : "Y");
 $arParams["REQUIRE_EMAIL"] = ($arParams["REQUIRE_EMAIL"] == "N" ? "N" : "Y");
-$arParams["USE_CAPTCHA"] = (($arParams["USE_CAPTCHA"] == "Y") && !$GLOBALS["USER"]->IsAuthorized());
+$arParams["USE_CAPTCHA"] = ($arParams["USE_CAPTCHA"] == "Y");
 $arParams["AUTH_PATH"] = trim($arParams["AUTH_PATH"]);
 if (!$arParams["AUTH_PATH"])
 	$arParams["AUTH_PATH"] = "/auth/";
@@ -84,6 +84,7 @@ $arResult["LOAD_AVATAR"] = (!$arResult["USER"]["AVATAR"] && $arParams["LOAD_AVAT
 
 if (strlen($arResult["POST"]["ACTION"]) > 0)
 {
+
 	if ($arParams["LEGAL"])
 	{
 		if ($arResult["POST"]["LEGAL"] != "Y")
@@ -92,20 +93,10 @@ if (strlen($arResult["POST"]["ACTION"]) > 0)
 	
 	if ($arParams["USE_CAPTCHA"])
 	{
-		include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/classes/general/captcha.php");
-		$captcha_code = $arResult["POST"]["captcha_sid"];
-		$captcha_word = $arResult["POST"]["captcha_word"];
-		$cpt = new CCaptcha();
-		$captchaPass = COption::GetOptionString("main", "captcha_password", "");
-		if ((strlen($captcha_word) > 0) && (strlen($captcha_code) > 0))
-		{
-			if (!$cpt->CheckCodeCrypt($captcha_word, $captcha_code, $captchaPass))
-				$errors[] = GetMessage("KHAYR_MAIN_COMMENT_CAPTCHA_WRONG");
-		}
-		else
-		{
-			$errors[] = GetMessage("KHAYR_MAIN_COMMENT_CAPTHCA_EMPTY");
-		}
+        $captcha_code = $arResult["POST"]["g-recaptcha-response"];
+        if (empty($captcha_code))
+            $errors[] = GetMessage("KHAYR_MAIN_COMMENT_CAPTHCA_EMPTY");
+
 	}
 	
 	if ($arResult["POST"]["ACTION"] == "add")
@@ -124,6 +115,9 @@ if (strlen($arResult["POST"]["ACTION"]) > 0)
 	
 	if (!$arResult["POST"]["MESSAGE"] && ($arResult["POST"]["ACTION"] != "delete"))
 		$errors[] = GetMessage("KHAYR_MAIN_COMMENT_MESSAGE_EMPTY");
+
+	if(!$arResult['POST']['MARK'])
+        $errors[] = GetMessage("KHAYR_MAIN_COMMENT_MARK_EMPTY");
 	
 	// если у авторизованного юзера есть аватар, в форме не требуется загрузка нового аватара, и, соответственно, в инфоблок аватар не сохраняется
 	// сейчас в инфоблок всегда сохраняются только аватары неавторизованных юзеров, при этом в каждом элементе он должен быть загружен заново
@@ -312,8 +306,7 @@ else
 
 $arResult = array_merge($arResult, KhayRComment::Show($arParams, array("ID", "IBLOCK_ID", "IBLOCK_SECTION_ID", "NAME", "PREVIEW_TEXT", "PREVIEW_PICTURE", "PROPERTY_*"), array("DATE_CREATE" => "DESC"), $arNavParams));
 
-if ($arParams["USE_CAPTCHA"])
-	$arResult["capCode"] = $APPLICATION->CaptchaGetCode();
+
 
 $arResult["ERROR_MESSAGE"] = implode(" ", $errors);
 $arResult["ERROR_MESSAGES"] = $errors;

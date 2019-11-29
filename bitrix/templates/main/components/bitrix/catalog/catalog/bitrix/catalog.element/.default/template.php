@@ -243,7 +243,7 @@ $this->setFrameMode(true);
                                "CAN_MODIFY" => "N",	// Разрешить редактирование комментария
                                "NON_AUTHORIZED_USER_CAN_COMMENT" => "Y",	// Разрешить неавторизованным пользователям добавлять комментарии
                                "REQUIRE_EMAIL" => "Y",	// Требовать e-mail
-                               "USE_CAPTCHA" => "N",	// Показывать CAPTCHA неавторизованным пользователям
+                               "USE_CAPTCHA" => "Y",	// Показывать CAPTCHA неавторизованным пользователям
                                "AUTH_PATH" => "/personal/",	// Путь до страницы авторизации
                                "ACTIVE_DATE_FORMAT" => "j F Y, G:i",	// Формат показа даты
 

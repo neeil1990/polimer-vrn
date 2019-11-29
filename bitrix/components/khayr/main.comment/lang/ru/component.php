@@ -7,6 +7,7 @@ $MESS["KHAYR_MAIN_COMMENT_AVATAR_WRONG"] = "Неверный файл авата
 $MESS["KHAYR_MAIN_COMMENT_EMAIL_WRONG"] = "Неверно указан e-mail.";
 $MESS["KHAYR_MAIN_COMMENT_EMAIL_EMPTY"] = "Не указан e-mail.";
 $MESS["KHAYR_MAIN_COMMENT_NONUSER_EMPTY"] = "Не указано имя.";
+$MESS["KHAYR_MAIN_COMMENT_MARK_EMPTY"] = "Не указано поле оцените товар.";
 $MESS["KHAYR_MAIN_COMMENT_MESSAGE_EMPTY"] = "Не введено сообщение.";
 $MESS["KHAYR_MAIN_COMMENT_SUC_MODER"] = "Комментарий отправлен на модерацию.";
 $MESS["KHAYR_MAIN_COMMENT_SUC_ADD"] = "Комментарий успешно добавлен.";
