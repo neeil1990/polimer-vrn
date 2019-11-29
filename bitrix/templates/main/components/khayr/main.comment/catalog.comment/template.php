@@ -128,7 +128,7 @@ function KHAYR_MAIN_COMMENT_ShowTree($arItem, $arParams, $arResult)
                 <div class="line cl">
                     <div class="cl_col w-50">
                         <div class="label">
-                            <?=GetMessage("KHAYR_MAIN_COMMENT_DIGNITY")?>
+                            <?=GetMessage("KHAYR_MAIN_COMMENT_FNAME")?>
                         </div>
                         <div class="value">
                             <input type="text" name='NONUSER' value='<?=$arResult["POST"]["NONUSER"]?>' <?=($arResult["USER"]["ID"] ? "readonly='readonly'" : "")?> placeholder="<?=GetMessage("KHAYR_MAIN_COMMENT_FNAME")?>"/>
@@ -137,7 +137,7 @@ function KHAYR_MAIN_COMMENT_ShowTree($arItem, $arParams, $arResult)
                     <? if ($arResult["LOAD_EMAIL"]) {?>
                         <div class="cl_col w-50">
                             <div class="label">
-                                <?=GetMessage("KHAYR_MAIN_COMMENT_DIGNITY")?>
+                                <?=GetMessage("KHAYR_MAIN_COMMENT_EMAIL")?>
                             </div>
                             <div class="value">
                                 <input type="text" name='EMAIL' <?=($arResult["USER"]["ID"] ? "value='".$arResult["USER"]["EMAIL"]."' readonly='readonly'" : "value='".$arResult["POST"]["EMAIL"]."'")?> placeholder="<?=GetMessage("KHAYR_MAIN_COMMENT_EMAIL")?>" />
