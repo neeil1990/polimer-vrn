@@ -52,9 +52,9 @@ $this->setFrameMode(true);
            <div class="bb_col">
                <span>Код товара: <?=$arResult['ID']?></span>
            </div>
-           <div class="bb_col">
+           <!--<div class="bb_col">
                <span><a href="#" class="blue">Бесплатная доставка</a></span>
-           </div>
+           </div>-->
            <? if($arResult['ITEM_PRICES']): ?>
                <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
                    <div class="bb_col" >
@@ -70,7 +70,9 @@ $this->setFrameMode(true);
                        $('#rate_main_result').rateit({ value: <?=$arResult['RATING']['STARS']?>, ispreset: true, readonly: true });
                    });
                </script>
-                   <span style="vertical-align: top;border-bottom: 1px dotted;"><?=$arResult['RATING']['COUNT']?> Отзыв'а</span>
+                   <span style="vertical-align: top;border-bottom: 1px dotted;"><?=$arResult['RATING']['COUNT']?>
+                       <a href="#all_tabs" class="open_tab" for="tab_fed" style="border: none;padding: unset;color: gray;">Отзыв'а</a>
+                   </span>
                <? endif; ?>
            </div>
        </div>
@@ -133,14 +135,13 @@ $this->setFrameMode(true);
                      <i class="fa fa-check-square-o" aria-hidden="true"></i>
                      <span>
                          В наличии -
-                         <a href="#">Много</a>
+                         <a href="#all_tabs" class="open_tab" for="tab_nal">Много</a>
                      </span>
                  </div>
                  <div class="i_rows">
                      <i class="fa fa-truck" aria-hidden="true"></i>
                      <span>
-                         Доставка курьером,
-                         <a href="#">бесплатно</a>
+                         <a href="/delivery/" target="_blank">Информация о доставке</a>
                      </span>
                  </div>
                  <? if($arResult['PROPERTIES']['GARANTIYA']['VALUE']): ?>
@@ -168,7 +169,7 @@ $this->setFrameMode(true);
 
 
 
-      <div class="pc__tabs">
+      <div class="pc__tabs" id="all_tabs">
          <div class="t-list cl">
             <a href="#"><span>Описание</span></a>
             <a href="#"><span>Технические характеристики</span></a>
