@@ -9448,6 +9448,10 @@ a.pickup-stores__item .desc {
     border-radius: 5px;
 }
 
+.lSSlideOuter .lSPager.lSGallery img{
+    margin: 0 auto;
+}
+
 
 .pc__buy-block {
     float: right;
