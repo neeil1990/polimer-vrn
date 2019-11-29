@@ -9419,6 +9419,7 @@ a.pickup-stores__item .desc {
     text-align: center;
 }
 
+
 .GallerylSAction > a{
     width: 32px;
     display: block;
@@ -9442,7 +9443,10 @@ a.pickup-stores__item .desc {
     background-position: -32px 0;
     right: -20px;
 }
-
+.lSSlideOuter .lSPager.lSGallery li.active a img{
+    box-shadow: 0 0 10px 0px rgba(0,0,0,0.10);
+    border-radius: 5px;
+}
 
 
 .pc__buy-block {
