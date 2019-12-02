@@ -131,6 +131,7 @@ $this->setFrameMode(true);
              </div>
 
              <div class="bb_info">
+                 <? if($arResult['ITEM_PRICES']): ?>
                  <div class="i_rows">
                      <i class="fa fa-check-square-o" aria-hidden="true"></i>
                      <span>
@@ -138,6 +139,7 @@ $this->setFrameMode(true);
                          <a href="#all_tabs" class="open_tab" for="tab_nal">посмотреть</a>
                      </span>
                  </div>
+                 <? endif; ?>
                  <div class="i_rows">
                      <i class="fa fa-truck" aria-hidden="true"></i>
                      <span>

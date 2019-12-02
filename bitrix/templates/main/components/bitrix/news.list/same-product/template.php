@@ -24,12 +24,13 @@ if($arResult["ITEMS"]):
 			</a>
 			<a href="<?=$arItem["DETAIL_PAGE_URL"]?>" class="name"><?=$arItem["NAME"]?></a>
 			<div class="price">
+                <?if(price($arItem['ID'])):?>
 				<span><?=price($arItem['ID']);?></span> &#8381;/<?=$arItem['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?>
+                <?else:?>
+                    <span>&nbsp;</span>
+                <? endif; ?>
 			</div>
-			<?if(!price($arItem['ID'])){
-				print '<span class="noprice" style="font-size: 11px;margin: 17px 0">Цену уточняйте у менеджера</span>';
-			}?>
-			
+
 			<? if((float)price($arItem['ID'])): ?>
 				<a href="javascript:void(0)" onclick="addToBasket2(<?=$arItem['ID']?>,1,this);" class="cart">В корзину</a>
 			<? else: ?>
