@@ -181,12 +181,11 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 						)
 					)
 						continue;
+
+                    $config = \Bitrix\Main\Config\Configuration::getInstance()->get('section_filter');
 					?>
 
-
-
-
-					<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1473","1463","1721","1787","1452","1456","1457"])) ? "li-open" : null?>">
+					<li class="cat-li <?=(in_array($arItem['CODE'], $config['section_filter'][$arResult['SECTION']['ID']])) ? "li-open" : null?>">
 						<span class="bx-filter-container-modef"></span>
 						<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></a>
 
