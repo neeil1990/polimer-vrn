@@ -1,0 +1,35 @@
+<?
+$langPrefix = 'SOTBIT_SCHEMA_PRODUCT_';
+$MESS[$langPrefix.'SETTINGS'] = 'Товар';
+$MESS[$langPrefix.'award'] = 'Выигранная награда (award): ';
+$MESS[$langPrefix.'awards'] = 'Выиграные награды (awards): ';
+$MESS[$langPrefix.'brand'] = 'Марка (бренд) продукта (brand): ';
+$MESS[$langPrefix.'color'] = 'Цвет (color): ';
+$MESS[$langPrefix.'isAccessoryOrSparePartFor'] = 'Указатель на другой продукт(для которого этот является аксессуаром или запасной частью) (isAccessoryOrSparePartFor): ';
+$MESS[$langPrefix.'isConsumableFor'] = 'Указатель на другой продукт(для которого этот является расходным материалом) (isConsumableFor): ';
+$MESS[$langPrefix.'itemCondition'] = 'Состояние товара (itemCondition): ';
+$MESS[$langPrefix.'logo'] = 'URL картинки, являющейся логотипом (logo): ';
+$MESS[$langPrefix.'manufacturer'] = 'Производитель продукта (manufacturer): ';
+$MESS[$langPrefix.'model'] = 'Модель продукта (model): ';
+$MESS[$langPrefix.'mpn'] = 'Номер изготовителя (mpn): ';
+$MESS[$langPrefix.'productID'] = 'Идентификатор продукта (productID): ';
+$MESS[$langPrefix.'releaseDate'] = 'Дата релиза (releaseDate): ';
+$MESS[$langPrefix.'reviews'] = 'Отзывы (reviews): ';
+$MESS[$langPrefix.'review'] = 'Отзыв (review): ';
+$MESS[$langPrefix.'sku'] = 'Учет запасов (sku): ';
+$MESS[$langPrefix.'category'] = 'Категория (category): ';
+$MESS[$langPrefix.'gtin12'] = 'Числовой код продукта (GTIN12): ';
+$MESS[$langPrefix.'gtin13'] = 'Числовой код продукта (GTIN13): ';
+$MESS[$langPrefix.'gtin14'] = 'Числовой код продукта (GTIN14): ';
+$MESS[$langPrefix.'gtin8'] = 'Числовой код продукта (GTIN8): ';
+$MESS[$langPrefix.'weight'] = 'Вес продукта (weight): ';
+$MESS[$langPrefix.'material'] = 'Материал (material): ';
+$MESS[$langPrefix.'aggregateRating'] = 'Общая оценка (aggregateRating): ';
+$MESS[$langPrefix.'additionalProperty'] = 'Характеристики (additionalProperty): ';
+$MESS[$langPrefix.'productionDate'] = 'Дата изготовления (productionDate): ';
+$MESS[$langPrefix.'purchaseDate'] = 'Дата покупки (purchaseDate): ';
+$MESS[$langPrefix.'offers'] = 'Предложения о продаже (offers): ';
+$MESS[$langPrefix.'isRelatedTo'] = 'Указатель на другой, как-либо связанный с этим продуктом (isRelatedTo): ';
+$MESS[$langPrefix.'isSimilarTo'] = 'Указатель на другой, функционально аналогичный продукт (isSimilarTo): ';
+$MESS[$langPrefix.'audience'] = 'Целевая аудитория работы (audience): ';
+?>

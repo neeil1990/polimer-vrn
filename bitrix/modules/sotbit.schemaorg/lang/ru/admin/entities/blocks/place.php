@@ -1,0 +1,34 @@
+<?
+$langPrefix = 'SOTBIT_SCHEMA_PLACE_';
+$MESS[$langPrefix.'SETTINGS'] = 'Место';
+$MESS[$langPrefix.'containsPlace'] = 'Включает в себя место (containsPlace): ';
+$MESS[$langPrefix.'event'] = "Мероприятия (event): ";
+$MESS[$langPrefix.'events'] = "Мероприятия (events): ";
+$MESS[$langPrefix.'faxNumber'] = "Номер факса (faxNumber): ";
+$MESS[$langPrefix.'geo'] = "Географические координаты этого места (geo): ";
+$MESS[$langPrefix.'isAccessibleForFree'] = "Флаг, указывающий, что элемент, бесплатный (isAccessibleForFree): ";
+$MESS[$langPrefix.'maps'] = "Ссылка на карту этого места (maps): ";
+$MESS[$langPrefix.'interactionCount'] = "Количество специфических взаимодействий пользователя (interactionCount): ";
+$MESS[$langPrefix.'isicV4'] = "Стандарт (ISIC v4): ";
+$MESS[$langPrefix.'logo'] = "URL картинки (logo): ";
+$MESS[$langPrefix.'openingHoursSpecification'] = "Время работы этого места (openingHoursSpecification): ";
+$MESS[$langPrefix.'photo'] = "Фотография этого места (photo): ";
+$MESS[$langPrefix.'reviews'] = "Отзывы (reviews): ";
+$MESS[$langPrefix.'telephone'] = "Номер телефона (telephone): ";
+$MESS[$langPrefix.'hasMap'] = "URL к карте места (hasMap): ";
+$MESS[$langPrefix.'aggregateRating'] = "Общая оценка (aggregateRating): ";
+$MESS[$langPrefix.'globalLocationNumber'] = "Глобальный номер местоположения (globalLocationNumber): ";
+$MESS[$langPrefix.'review'] = "Отзыв о месте (review): ";
+$MESS[$langPrefix.'additionalProperty'] = "Дополнительные характеристики (additionalProperty): ";
+$MESS[$langPrefix.'address'] = "Физический адрес (address)*: ";
+$MESS[$langPrefix.'branchCode'] = "Короткий текстовый код (также называемый «магазинный код») (branchCode): ";
+$MESS[$langPrefix.'containedInPlace'] = "Содержится в месте (containedInPlace): ";
+$MESS[$langPrefix.'specialOpeningHoursSpecification'] = "Специальные часы работы определенного места (specialOpeningHoursSpecification): ";
+$MESS[$langPrefix.'amenityFeature'] = "Особенность удобства размещения (amenityFeature): ";
+$MESS[$langPrefix.'smokingAllowed'] = "Указывает, разрешено ли курить в этом месте (smokingAllowed): ";
+$MESS[$langPrefix.'maximumAttendeeCapacity'] = "Общее количество людей, которые могут посетить место (maximumAttendeeCapacity): ";
+$MESS[$langPrefix.'publicAccess'] = "Флаг, указывающий, что место открыто для публичных посетителей (publicAccess): ";
+$MESS[$langPrefix.'containedIn'] = "Основной родительский элемент, место (containedIn): ";
+$MESS[$langPrefix.'map'] = "Ссылка на карту этого места (map): ";
+$MESS[$langPrefix.'photos'] = "Фотографии этого места (photos): ";
+?>

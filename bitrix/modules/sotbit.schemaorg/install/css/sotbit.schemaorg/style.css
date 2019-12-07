@@ -1,0 +1,168 @@
+#tabControl_layout .adm-detail-content-wrap, #tabControl_buttons_div {
+    background-color: #eef2f4;
+}
+
+#tr_NAME .adm-detail-content-cell-r {
+    padding-top: 3px;
+}
+
+.adm-detail-content-item-block, .adm-detail-content-item-block table {
+    background-color: #ffffff;
+    color: #303030;
+    font-size: 14px !important;
+}
+
+.adm-detail-content-item-block .heading td {
+    background-color: #eef2f4;
+    color: #424242;
+    border-bottom: 22px solid #ffffff;
+    font-size: 16px;
+}
+
+.adm-detail-content-item-block input,
+.adm-detail-content-item-block select,
+#SECTIONS select {
+    border-color: #e2e2e2 !important;
+    border-radius: 5px !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.adm-detail-content-item-block input:not([type=button]) {
+    min-width: 193px;
+}
+
+#SECTIONS select {
+    background-image: none;
+}
+
+.adm-detail-content-item-block select::-ms-expand {
+    display: none;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.adm-detail-content-item-block select {
+    font-size: 14px;
+    min-width: 205px;
+
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    box-sizing: border-box;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat, repeat;
+    background-position: right .7em top 50%, 0 0;
+    background-size: .65em auto, 90%;
+}
+
+#tr_ENTITIES .select_entity_multiple,
+#tr_ENTITIES_BLOCK select,
+#tr_ENTITIES_BLOCK input:not(.add-more) {
+    background-color: #f9f9f9;
+    margin-right: 2px;
+}
+
+#tr_ENTITIES_BLOCK .add-more,
+#tr_ENTITIES_BLOCK .remove-this-entity {
+    width: 22px;
+    height: 22px;
+    border-radius: 20px !important;
+    background-color: #6e99c5 !important;
+    background-image: none !important;
+    padding: 0px;
+    color: #ffffff;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+}
+
+tr td input.remove-this-entity {
+    position: absolute !important;
+    top: 9px;
+    right: 16px;
+    padding-bottom: 3px !important;
+}
+
+tr td input.add-more {
+    font-size: 17px !important;
+    font-weight: 100 !important;
+    padding-top: 2px !important;
+    margin-bottom: 2px !important;
+}
+
+#tr_ENTITIES_BLOCK tbody tr:not(.adm-detail-file-row) {
+    height: 45px;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK .heading td{
+    background-color: #e4edf1;
+    border-bottom: 0px;
+    text-align: left !important;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK .heading td:before {
+    content: "";
+    border-top: 5px solid black;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    position: relative;
+    display: inline-block;
+    margin: 0px 5px 3px 0px;
+}
+
+.arroy-right:before {
+    transform: rotate(270deg);
+}
+
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK .td-is-empty {
+    padding-left: 8px !important;
+    padding-top: 8px !important;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK td table.adm-detail-content-table tbody tr.heading td {
+    padding-left: 20px !important;
+    width: 2500px;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK table td:not(.td-is-empty),
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK table td:not(.adm-detail-file-row) {
+    border-bottom: 2px solid #eef2f4;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK tbody .adm-detail-file-row > td,
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK tbody .td-is-empty {
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK table {
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(219,220,221,1);
+    -moz-box-shadow: 0px 0px 10px 0px rgba(219,220,221,1);
+    box-shadow: 0px 0px 10px 0px rgba(219,220,221,1);
+}
+
+#tr_ENTITIES_BLOCK table tr td {
+    text-align: left;
+    padding-left: 18px;
+}
+
+#tr_ENTITIES_BLOCK #tr_ENTITIES_BLOCK table {
+    position: relative !important;
+}
+
+#tr_ENTITIES_BLOCK .heading td {
+    border: none;
+    height: 28px;
+}
+
+.hiden {
+    display: none;
+}
+
+.blue-text-left-select {
+    color: #084078;
+}
