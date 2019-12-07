@@ -174,8 +174,8 @@ $this->setFrameMode(true);
       <div class="pc__tabs" id="all_tabs">
          <div class="t-list cl">
             <a href="#"><span>Описание</span></a>
-            <a href="#"><span>Технические характеристики</span></a>
-            <a href="#" class="active"><span>Отзывы </span></a>
+            <a href="#" class="active"><span>Технические характеристики</span></a>
+            <a href="#"><span>Отзывы </span></a>
             <a href="#"><span>Наличие в магазинах</span></a>
          </div>
          <div class="t-content">
@@ -193,7 +193,7 @@ $this->setFrameMode(true);
                    </div>
                </div>
             </div>
-            <div class="tab tab_tec">
+            <div class="tab tab_tec active">
                <a href="#" class="mtb" onclick="return false">Технические характеристики</a>
                <div class="content">
                    <div class="cl">
@@ -229,7 +229,7 @@ $this->setFrameMode(true);
                    </div>
                </div>
             </div>
-            <div class="tab tab_fed active">
+            <div class="tab tab_fed">
                <a href="#" class="mtb" onclick="return false">Отзывы</a>
                <div class="content">
                    <div class="cl">
