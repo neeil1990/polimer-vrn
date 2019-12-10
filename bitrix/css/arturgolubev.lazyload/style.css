@@ -1,0 +1,16 @@
+.agll0708bg {background-color:#fff; background-repeat: no-repeat; background-position: 50% 50%;}
+
+.agll0708bg.ag-loading {background-image: url('/bitrix/images/arturgolubev.lazyload/loaders/loading.gif');}
+.agll0708bg.ag-loading2 {background-image: url('/bitrix/images/arturgolubev.lazyload/loaders/loading2.gif');}
+.agll0708bg.ag-loading3 {background-image: url('/bitrix/images/arturgolubev.lazyload/loaders/loading3.gif');}
+.agll0708bg.ag-loading4 {background-image: url('/bitrix/images/arturgolubev.lazyload/loaders/loading4.gif');}
+.agll0708bg.ag-loading5 {background-image: url('/bitrix/images/arturgolubev.lazyload/loaders/loading5.gif');}
+
+.agll0708bg.ag-pw16 {background-size: 16px 16px;}
+.agll0708bg.ag-pw32 {background-size: 32px 32px;}
+.agll0708bg.ag-pw64 {background-size: 64px 64px;}
+
+img.agll0708bg.ag-sts {width: 100%; height: 100%; max-width: 100%; max-height: 100%;}
+img.agll0708bg.ag-sts.ag-pw16 {min-width: 16px; min-height: 16px;}
+img.agll0708bg.ag-sts.ag-pw32 {min-width: 32px; min-height: 32px;}
+img.agll0708bg.ag-sts.ag-pw64 {min-width: 64px; min-height: 64px;}

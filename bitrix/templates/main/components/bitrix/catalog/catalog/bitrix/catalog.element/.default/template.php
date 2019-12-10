@@ -84,7 +84,7 @@ $this->setFrameMode(true);
              <ul id="imageGallery">
                  <? foreach($arResult['GALLERY'] as $key => $img): ?>
                      <li data-thumb="<?=$img['THUMB']?>" data-src="<?=$img['SRC']?>">
-                         <img src="<?=$img['DATA']?>" />
+                         <img src="<?=$img['DATA']?>"  alt="<?=$arResult['NAME']?>"/>
                      </li>
                  <? endforeach; ?>
              </ul>

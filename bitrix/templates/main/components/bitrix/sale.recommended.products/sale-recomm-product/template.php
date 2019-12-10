@@ -18,7 +18,7 @@ $this->setFrameMode(true);
 				?>
 				<div>
 					<div class="item cl">
-						<a href="<?=$arItem['DETAIL_PAGE_URL']?>"><span><img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt=""></span></a>
+						<a href="<?=$arItem['DETAIL_PAGE_URL']?>"><span><img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="<?=$arItem['NAME']?>"></span></a>
 						<div class="cost"><span><?=price($arItem['ID']);?></span> &#8381;/<?=$arItem['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
 						<a href="<?=$arItem['DETAIL_PAGE_URL']?>" class="txt"><?=$arItem['NAME']?></a>
 						<? if((float)price($arItem['ID'])): ?>

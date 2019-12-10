@@ -141,7 +141,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 		"MESS_BTN_SUBSCRIBE" => "Подписаться",
 		"MESS_NOT_AVAILABLE" => "Нет в наличии",
 		"OFFER_TREE_PROPS_12" => "",
-		"PAGE_ELEMENT_COUNT" => "30",
+		"PAGE_ELEMENT_COUNT" => "10",
 		"PARTIAL_PRODUCT_PROPERTIES" => "N",
 		"PERIOD" => "0",
 		"PRICE_CODE" => array(
@@ -195,7 +195,9 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 		),
 		"ADDITIONAL_PICT_PROP_22" => "MORE_PHOTO",
 		"OFFER_TREE_PROPS_22" => array(
-		)
+		),
+		"COMPOSITE_FRAME_MODE" => "A",
+		"COMPOSITE_FRAME_TYPE" => "AUTO"
 	),
 	false
 );?>
@@ -206,7 +208,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 				<?
 				$arSelect = Array("ID","IBLOCK_ID", "NAME", "DETAIL_PAGE_URL","PREVIEW_PICTURE","PROPERTY_SALE","PROPERTY_CML2_BASE_UNIT");
 				$arFilter = array('IBLOCK_ID' => 21, 'ACTIVE' => 'Y','>=TIMESTAMP_X' => date($DB->DateFormatToPHP(CLang::GetDateFormat("SHORT")), strtotime('-30 day')));
-				$res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize" => 20), $arSelect);
+				$res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize" => 10), $arSelect);
 				while($ob = $res->GetNextElement()):
 					$arFields = $ob->GetFields();
 					$arProps = $ob->GetProperties();
@@ -214,7 +216,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 					<div>
 						<div class="product">
 							<a href="<?=$arFields['DETAIL_PAGE_URL']?>" style="display: block;height: 110px;">
-								<img src="<?=CFile::GetPath($arFields["PREVIEW_PICTURE"]);?>" alt="" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
+								<img src="<?=CFile::GetPath($arFields["PREVIEW_PICTURE"]);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 							</a>
 							<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
 							<div class="price"><span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?></div>
@@ -229,7 +231,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 				<?
 				$arSelect = Array("ID","IBLOCK_ID", "NAME", "DETAIL_PAGE_URL","PREVIEW_PICTURE","PROPERTY_SALE","PROPERTY_CML2_BASE_UNIT");
 				$arFilter = Array("IBLOCK_ID" => 21, "ACTIVE" => "Y", "PROPERTY_SALE_VALUE" => "Y");
-				$res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
+				$res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize" => 10), $arSelect);
 				while($ob = $res->GetNextElement()):
 				$arFields = $ob->GetFields();
 					$arProps = $ob->GetProperties();
@@ -237,7 +239,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 				<div>
 					<div class="product">
 						<a href="<?=$arFields['DETAIL_PAGE_URL']?>" style="display: block;height: 110px;">
-							<img src="<?=CFile::GetPath($arFields["PREVIEW_PICTURE"]);?>" alt="" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
+							<img src="<?=CFile::GetPath($arFields["PREVIEW_PICTURE"]);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 						</a>
 						<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
 						<div class="price"><span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?></div>

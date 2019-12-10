@@ -132,6 +132,7 @@ function AddOrderProperty($code, $value, $order)    {
 }
 
 //Обнавление ИБ Каталог брендов
+/*
 CAgent::AddAgent(
     "CBrands::updateBrandsAgent();",
     "",
@@ -141,6 +142,7 @@ CAgent::AddAgent(
     "Y",
     ""
 );
+*/
 Class CBrands
 {
     public static function updateBrandsAgent()

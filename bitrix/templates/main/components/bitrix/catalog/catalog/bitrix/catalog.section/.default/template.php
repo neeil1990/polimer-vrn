@@ -104,7 +104,7 @@ if (!empty($arResult['ITEMS']))
 								<div class="close"></div>
 								<a href="<?=$arItem['DETAIL_PAGE_URL']?>" class="pic">
 								   <span>
-									  <img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="">
+									  <img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="<?=$arItem['NAME']?>">
 								   </span>
 								</a>
 								<a href="<?=$arItem['DETAIL_PAGE_URL']?>" class="title"><?=$arItem['NAME']?></a>

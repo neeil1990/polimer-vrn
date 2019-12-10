@@ -14,7 +14,7 @@ $this->setFrameMode(true);
 	<div>
 		<div class="product">
 			<a href="<?=$item['DETAIL_PAGE_URL']?>" style="display: block;height: 110px;">
-				<img src="<?=$item["PREVIEW_PICTURE"]["SRC"]?>" alt="" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
+				<img src="<?=$item["PREVIEW_PICTURE"]["SRC"]?>" alt="<?=$item['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 			</a>
 			<a href="<?=$item['DETAIL_PAGE_URL']?>" class="name"><?=$item['NAME']?></a>
 			<div class="price"><span><?=price($item['ID']);?></span> &#8381;/<?=$item['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>

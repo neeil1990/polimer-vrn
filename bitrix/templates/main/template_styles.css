@@ -30,7 +30,6 @@ article, aside, details, figcaption, figurefooter, header, hgroup, menu, nav, se
 
 img {
     max-width: 99%;
-    height: auto
 }
 
 .cl:after {
@@ -792,7 +791,7 @@ header .header__top .menu__top {
     display: inline-block;
     text-align: justify;
     float: left;
-    width: 47.5%;
+    width: 50%;
     height: 40px
 }
 
@@ -806,7 +805,7 @@ header .header__top .menu__top:after {
 
 header .header__top .menu__top li {
     margin: 0;
-    padding: 0;
+    padding: 0 5px;
     list-style: none;
     display: inline-block;
     position: relative
@@ -825,7 +824,7 @@ header .header__top .menu__top li a {
     -webkit-transition: all .3s ease;
     transition: all .3s ease;
     line-height: 40px;
-    font-size: .928em
+    font-size: 12px;
 }
 
 header .header__top .menu__top li a:hover, header .header__top .menu__top li a:active {

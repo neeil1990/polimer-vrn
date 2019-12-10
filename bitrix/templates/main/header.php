@@ -19,7 +19,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 <!DOCTYPE html>
 <html lang="ru">
 	<head>
-        <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+
 
 
 		<title><?$APPLICATION->ShowTitle()?></title>
@@ -90,7 +90,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 		<script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
 		<![endif]-->
 		<meta name="yandex-verification" content="2094627454c95762" />
-
+<script src='https://www.google.com/recaptcha/api.js' async defer></script>
 	</head>
    	<body>
    		<?$APPLICATION->ShowPanel()?>
