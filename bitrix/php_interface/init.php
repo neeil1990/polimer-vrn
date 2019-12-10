@@ -131,6 +131,18 @@ function AddOrderProperty($code, $value, $order)    {
     }
 }
 
+function resizeImage($id, $w, $h){
+    if(!is_numeric($id) || empty($id))
+        return '/bitrix/templates/main/img/no_photo.png';
+
+    return CFile::ResizeImageGet(
+        $id,
+        ["width" => $w, "height" => $h],
+        BX_RESIZE_IMAGE_PROPORTIONAL,
+        true
+    )['src'];
+}
+
 //Обнавление ИБ Каталог брендов
 /*
 CAgent::AddAgent(

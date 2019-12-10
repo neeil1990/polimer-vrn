@@ -69,7 +69,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 				<? foreach($section[$i] as $item):?>
 				<div class="category">
 					<a href="<?=$item['SECTION_PAGE_URL']?>" class="link">
-						<img src="<?=CFile::GetPath($item["PICTURE"]);?>" alt="<?=$item['NAME']?>" height="120" class="img">
+						<img src="<?=resizeImage($item["PICTURE"], 190, 120);?>" alt="<?=$item['NAME']?>" height="120" class="img">
 						<span class="name"><?=$item['NAME']?></span>
 					</a>
 				</div>
@@ -216,7 +216,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 					<div>
 						<div class="product">
 							<a href="<?=$arFields['DETAIL_PAGE_URL']?>" style="display: block;height: 110px;">
-								<img src="<?=CFile::GetPath($arFields["PREVIEW_PICTURE"]);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
+								<img src="<?=resizeImage($arFields["PREVIEW_PICTURE"], 150, 110);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 							</a>
 							<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
 							<div class="price"><span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?></div>
@@ -239,7 +239,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 				<div>
 					<div class="product">
 						<a href="<?=$arFields['DETAIL_PAGE_URL']?>" style="display: block;height: 110px;">
-							<img src="<?=CFile::GetPath($arFields["PREVIEW_PICTURE"]);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
+							<img src="<?=resizeImage($arFields["PREVIEW_PICTURE"], 150, 110);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 						</a>
 						<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
 						<div class="price"><span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?></div>

@@ -83,7 +83,7 @@ $this->setFrameMode(true);
          <div class="pc__prod-gallery cl">
              <ul id="imageGallery">
                  <? foreach($arResult['GALLERY'] as $key => $img): ?>
-                     <li data-thumb="<?=$img['THUMB']?>" data-src="<?=$img['SRC']?>">
+                     <li data-thumb="<?=$img['THUMB']?>" data-src="<?=$img['SRC']?>" data-alt="<?=$arResult['NAME']?>">
                          <img src="<?=$img['DATA']?>"  alt="<?=$arResult['NAME']?>"/>
                      </li>
                  <? endforeach; ?>

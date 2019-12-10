@@ -17,7 +17,7 @@ $this->setFrameMode(true);
 	<div>
 		<div class="item cl">
 			<div class="slider__product">
-				<img src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>" alt="<?=$arItem['NAME']?>" width="" height="" >
+				<img src="<?=resizeImage($arItem["PREVIEW_PICTURE"]["ID"], 380, 380)?>" alt="<?=$arItem['NAME']?>">
 			</div>
 			<div class="slider__content">
 					<h2><?=$arItem['NAME']?></h2>
