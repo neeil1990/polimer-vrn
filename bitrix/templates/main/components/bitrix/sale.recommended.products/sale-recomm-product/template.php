@@ -21,11 +21,12 @@ $this->setFrameMode(true);
 						<a href="<?=$arItem['DETAIL_PAGE_URL']?>"><span><img src="<?=resizeImage($arItem['PREVIEW_PICTURE']['ID'], 150, 150)?>" alt="<?=$arItem['NAME']?>"></span></a>
 						<div class="cost"><span><?=price($arItem['ID']);?></span> &#8381;/<?=$arItem['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
 						<a href="<?=$arItem['DETAIL_PAGE_URL']?>" class="txt"><?=$arItem['NAME']?></a>
-						<? if((float)price($arItem['ID'])): ?>
-							<a href="javascript:void(0)" onclick="addToBasket2(<?=$arItem['ID']?>,1,this);" class="add2cart">В корзину</a>
-						<? else: ?>
-							<a href="javascript:void(0)" class="add2cart show-popup" data-id="order-product">под заказ</a>
-						<? endif; ?>
+
+                        <? if(checkProduct($arItem['ID'])): ?>
+                            <a href="javascript:void(0)" onclick="addToBasket2(<?=$arItem['ID']?>,1,this);" class="add2cart">В корзину</a>
+                        <? else: ?>
+                            <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
+                        <? endif; ?>
 					</div>
 				</div>
 				<?

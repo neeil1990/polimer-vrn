@@ -31,11 +31,11 @@ if($arResult["ITEMS"]):
                 <? endif; ?>
 			</div>
 
-			<? if((float)price($arItem['ID'])): ?>
-				<a href="javascript:void(0)" onclick="addToBasket2(<?=$arItem['ID']?>,1,this);" class="cart">В корзину</a>
-			<? else: ?>
-				<a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
-			<? endif; ?>
+            <? if(checkProduct($arItem['ID'])): ?>
+                <a href="javascript:void(0)" onclick="addToBasket2(<?=$arItem['ID']?>,1,this);" class="cart">В корзину</a>
+            <? else: ?>
+                <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
+            <? endif; ?>
 		</div>
 	</div>
 	<? endforeach; ?>

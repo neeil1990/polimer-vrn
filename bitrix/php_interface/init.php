@@ -19,6 +19,14 @@ function priceDiscount($id){
     }
 }
 
+function checkProduct($id){
+    $ar_res = CCatalogProduct::GetByID($id);
+    if($ar_res['QUANTITY'] > 0 && (float)price($id))
+        return true;
+
+    return false;
+}
+
 function getUrlProd($url){
     if($url){
         $code = explode('/',$url);

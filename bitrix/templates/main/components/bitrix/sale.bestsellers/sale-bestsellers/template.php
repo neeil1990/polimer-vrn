@@ -18,7 +18,12 @@ $this->setFrameMode(true);
 			</a>
 			<a href="<?=$item['DETAIL_PAGE_URL']?>" class="name"><?=$item['NAME']?></a>
 			<div class="price"><span><?=price($item['ID']);?></span> &#8381;/<?=$item['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
-			<a href="javascript:void(0)" onclick="addToBasket2(<?=$item['ID']?>, 1,this);" class="cart">В корзину</a>
+
+            <? if(checkProduct($item['ID'])): ?>
+                <a href="javascript:void(0)" onclick="addToBasket2(<?=$item['ID']?>, 1,this);" class="cart">В корзину</a>
+            <? else: ?>
+                <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
+            <? endif; ?>
 		</div>
 	</div>
 	<? endforeach; ?>

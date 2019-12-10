@@ -147,7 +147,7 @@ $areaIds = array();
                         <? endif;?>
 					</div>
 
-					<? if((float)price($item['ID'])): ?>
+                    <? if(checkProduct($item['ID'])): ?>
 					<a href="javascript:void(0)" onclick="addToBasket2(<?=$item['ID']?>,1,this);" class="cart">В корзину</a>
 					<? else: ?>
 					<a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>

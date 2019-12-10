@@ -227,7 +227,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
                                 <? endif; ?>
                             </div>
 
-                            <? if((float)price($arFields['ID'])): ?>
+                            <? if(checkProduct($arFields['ID'])): ?>
                                 <a href="javascript:void(0)" onclick="addToBasket2(<?=$arFields['ID']?>,1,this);" class="cart">В корзину</a>
                             <? else: ?>
                                 <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
@@ -261,7 +261,7 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
                             <? endif; ?>
                         </div>
 
-                        <? if((float)price($arFields['ID'])): ?>
+                        <? if(checkProduct($arFields['ID'])): ?>
                             <a href="javascript:void(0)" onclick="addToBasket2(<?=$arFields['ID']?>,1,this);" class="cart">В корзину</a>
                         <? else: ?>
                             <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>

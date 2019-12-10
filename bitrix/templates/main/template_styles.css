@@ -4437,7 +4437,7 @@ header .header__bottom .header__cart:hover .cart__number {
     margin-bottom: 12px;
     font: 400 12px/14px 'Fira Sans', sans-serif;
     text-align: left;
-    color: #blue_l
+    color: blue;
 }
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .list-item:before {
