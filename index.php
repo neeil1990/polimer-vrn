@@ -219,8 +219,19 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 								<img src="<?=resizeImage($arFields["PREVIEW_PICTURE"], 150, 110);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 							</a>
 							<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
-							<div class="price"><span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?></div>
-							<a href="javascript:void(0)" onclick="addToBasket2(<?=$arFields['ID']?>, 1,this);" class="cart">В корзину</a>
+                            <div class="price">
+                                <?if(price($arFields['ID'])):?>
+                                    <span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?>
+                                <?else:?>
+                                    <span>&nbsp;</span>
+                                <? endif; ?>
+                            </div>
+
+                            <? if((float)price($arFields['ID'])): ?>
+                                <a href="javascript:void(0)" onclick="addToBasket2(<?=$arFields['ID']?>,1,this);" class="cart">В корзину</a>
+                            <? else: ?>
+                                <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
+                            <? endif; ?>
 						</div>
 					</div>
 				<? endwhile; ?>
@@ -242,8 +253,19 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 							<img src="<?=resizeImage($arFields["PREVIEW_PICTURE"], 150, 110);?>" alt="<?=$arFields['NAME']?>" height="110" style="max-height: 110px;margin: 0 auto;" class="img">
 						</a>
 						<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
-						<div class="price"><span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?></div>
-						<a href="javascript:void(0)" onclick="addToBasket2(<?=$arFields['ID']?>, 1,this);" class="cart">В корзину</a>
+                        <div class="price">
+                            <?if(price($arFields['ID'])):?>
+                                <span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?>
+                            <?else:?>
+                                <span>&nbsp;</span>
+                            <? endif; ?>
+                        </div>
+
+                        <? if((float)price($arFields['ID'])): ?>
+                            <a href="javascript:void(0)" onclick="addToBasket2(<?=$arFields['ID']?>,1,this);" class="cart">В корзину</a>
+                        <? else: ?>
+                            <a href="javascript:void(0)" class="cart show-popup" data-id="order-product">под заказ</a>
+                        <? endif; ?>
 					</div>
 				</div>
 				<? endwhile; ?>
