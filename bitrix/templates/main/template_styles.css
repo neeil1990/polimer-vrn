@@ -9613,13 +9613,13 @@ a.pickup-stores__item .desc {
 
 .pc__buy-block .bb_row .price .price-new {
     float: left;
-    font: 500 20px/22px 'Fira Sans', sans-serif;
+    font: 500 14px/22px 'Fira Sans', sans-serif;
     color: #333;
     margin-right: 20px;
 }
 
 .pc__buy-block .bb_row .price .price-new span {
-    font: 700 36px/32px 'Fira Sans', sans-serif
+    font: 700 30px/32px 'Fira Sans', sans-serif
 }
 
 .pc__buy-block .bb_row .price .sale-y {
