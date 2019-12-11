@@ -9,6 +9,15 @@ body, html {
     background-color: #dfe5e9
 }
 
+.popup{
+    display: none;
+}
+
+.mf-captcha{
+    margin: 10px auto;
+    max-width: 300px;
+}
+
 * {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;

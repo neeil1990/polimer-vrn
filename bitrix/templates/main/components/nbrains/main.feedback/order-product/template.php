@@ -48,7 +48,7 @@ if(!defined("B_PROLOG_INCLUDED")||B_PROLOG_INCLUDED!==true)die();
 
 			<? if($field['XML_ID'] == 'hidden'):?>
 				<?
-				$prod = getUrlProd($APPLICATION->GetCurPage(false));
+				$prod = getUrlProd($arParams['URL']);
 				?>
 				<?if($field['CODE'] == 'PRODUCT'):?>
 				<input type="hidden" name="<?=$field['CODE']?>" value="<?=$prod['NAME']?>">

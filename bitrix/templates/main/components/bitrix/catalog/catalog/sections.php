@@ -12,7 +12,7 @@
 /** @var CBitrixComponent $component */
 
 $this->setFrameMode(true);
-$this->addExternalCss("/bitrix/css/main/bootstrap.css");
+//$this->addExternalCss("/bitrix/css/main/bootstrap.css");
 
 ?>
 
