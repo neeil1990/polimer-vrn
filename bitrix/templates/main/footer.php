@@ -160,7 +160,7 @@
                         } else { f(); }
                     })(document, window, "yandex_metrika_callbacks");
                 </script>
-                <noscript><div><img src="https://mc.yandex.ru/watch/45640992" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+                <noscript><div><img src="https://mc.yandex.ru/watch/45640992" style="position:absolute; left:-9999px;" alt="yandex.metrika" /></div></noscript>
                 <!-- /Yandex.Metrika counter -->
 
     <? endif; ?>

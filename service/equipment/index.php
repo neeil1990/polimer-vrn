@@ -57,10 +57,10 @@ $APPLICATION->SetTitle("Сервисный центр оборудования")
 	<h3>
 	III. Контакты, адреса, схема проезда </h3>
 </blockquote>
- <a href="/images/shema-proezda-big.jpg"><img width="50%" src="/images/shema-proezda.jpg" style="float: left; margin: 0px 17px 0 0"></a> <br>
+ <a href="/images/shema-proezda-big.jpg"><img width="50%" alt="схема проезда" src="/images/shema-proezda.jpg" height="300" style="float: left; margin: 0px 17px 0 0"></a> <br>
  <br>
 <p>
-	394028 г. Воронеж, Монтажный проезд д.26
+	 394028 г. Воронеж, Монтажный проезд д.26
 </p>
 <div>
 	 ПН-ПТ - 8:00 - 17:00 <br>
@@ -77,9 +77,9 @@ $APPLICATION->SetTitle("Сервисный центр оборудования")
 	 По вопросам выдачи Юлия Грачева (добавочный номер: 385)
 </div>
  <br>
-<br>
  <br>
-<br>
+ <br>
+ <br>
 <h3>Заводским и транспортировочным браком считаются: &nbsp;</h3>
 <ul style="margin-top: 10px;">
 	<li>Внешние повреждения насоса и элементов автоматики, выявленные во время предпродажного осмотра; </li>
