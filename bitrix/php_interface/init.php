@@ -151,7 +151,6 @@ function resizeImage($id, $w, $h){
         false,
         false,
         85
-
     )['src'];
 }
 
