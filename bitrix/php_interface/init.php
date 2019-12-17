@@ -147,7 +147,11 @@ function resizeImage($id, $w, $h){
         $id,
         ["width" => $w, "height" => $h],
         BX_RESIZE_IMAGE_PROPORTIONAL,
-        true
+        true,
+        false,
+        false,
+        85
+
     )['src'];
 }
 
