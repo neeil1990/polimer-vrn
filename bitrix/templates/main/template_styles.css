@@ -2780,12 +2780,12 @@ header .header__bottom .header__cart:hover .cart__number {
     }
 
     .mp__banners .mp__slider .item .slider__product img {
-        height: 160px
+        height: 320px
     }
 
     .mp__banners .mp__slider .item .slider__content {
         width: 100%;
-        padding: 0 10px 0 0
+        padding: 0 10px 30px 0
     }
 
     .mp__banners .mp__slider .item .slider__content img {
