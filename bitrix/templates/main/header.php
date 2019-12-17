@@ -232,7 +232,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 				<div class="header__main">
 					<div class="wr cl">
 						<a href="/" class="header__logo">
-							<img src="<?=SITE_TEMPLATE_PATH?>/img/h_logo.jpg" alt="Полимер" width="206" height="44">
+							<img src="<?=SITE_TEMPLATE_PATH?>/img/h_logo.jpg" alt="Полимер" width="206">
 						</a>
 						<div class="header__phone">
 							<table style="display: table;border-collapse: separate;border-spacing: 5px;line-height: 17px;text-align: left;">
