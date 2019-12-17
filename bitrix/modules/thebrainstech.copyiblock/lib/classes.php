@@ -209,7 +209,7 @@ class TheBrains {
 
     public static function htmlspecialchars($string, $flags=ENT_COMPAT)
     {
-        return htmlspecialchars($string, $flags, (defined("BX_UTF")? "UTF-8" : "ISO-8859-1"));
+        return $string;
     }
 
 

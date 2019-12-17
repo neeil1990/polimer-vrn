@@ -1,6 +1,6 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
-$APPLICATION->SetTitle("Каталог");
+$APPLICATION->SetTitle("Каталог инженерной сантехники и строительных материалов в интернет-магазине Полимер");
 ?>
 
 <?
