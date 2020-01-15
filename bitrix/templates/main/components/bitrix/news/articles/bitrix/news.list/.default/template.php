@@ -18,7 +18,7 @@ $this->setFrameMode(true);
 	
 		<?if($arItem["PREVIEW_PICTURE"]["SRC"]):?>
 		<a href="<?=$arItem["DETAIL_PAGE_URL"]?>" class="pic">
-			<img src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>">
+			<img src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>" alt="<?=$arItem["NAME"]?>">
 		</a>
 		<?endif;?>
 		

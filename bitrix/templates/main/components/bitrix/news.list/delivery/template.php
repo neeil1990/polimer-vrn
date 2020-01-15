@@ -74,7 +74,7 @@ $this->setFrameMode(true);
 				<div class="map">
 					<span>
 						<a href="<?=$arItem['PREVIEW_PICTURE']['DESCRIPTION']?>">
-							<img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" width="560" height="610" alt="">
+							<img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" width="560" height="610" alt="<?=$arItem['PREVIEW_PICTURE']['ALT']?>">
 						</a>
 					</span>
 				</div>
