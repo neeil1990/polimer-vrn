@@ -1,5 +1,6 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetPageProperty("title", "Каталог брендов инженерной сантехники и строительного оборудования в интернет-магазине Полимер");
 $APPLICATION->SetTitle("Бренды");
 ?>
 

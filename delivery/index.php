@@ -1,10 +1,12 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetPageProperty("title", "Информация о доставке интернет-магазина Полимер");
 $APPLICATION->SetTitle("Доставка");
-?><?$APPLICATION->IncludeComponent(
-	"bitrix:news.list", 
-	"delivery", 
-	array(
+?><h1>Доставка</h1>
+<?$APPLICATION->IncludeComponent(
+	"bitrix:news.list",
+	"delivery",
+	Array(
 		"ACTIVE_DATE_FORMAT" => "d.m.Y",
 		"ADD_SECTIONS_CHAIN" => "N",
 		"AJAX_MODE" => "N",
@@ -17,6 +19,7 @@ $APPLICATION->SetTitle("Доставка");
 		"CACHE_TIME" => "36000000",
 		"CACHE_TYPE" => "A",
 		"CHECK_DATES" => "Y",
+		"COMPONENT_TEMPLATE" => "delivery",
 		"DETAIL_URL" => "",
 		"DISPLAY_BOTTOM_PAGER" => "Y",
 		"DISPLAY_DATE" => "Y",
@@ -24,10 +27,7 @@ $APPLICATION->SetTitle("Доставка");
 		"DISPLAY_PICTURE" => "Y",
 		"DISPLAY_PREVIEW_TEXT" => "Y",
 		"DISPLAY_TOP_PAGER" => "N",
-		"FIELD_CODE" => array(
-			0 => "",
-			1 => "",
-		),
+		"FIELD_CODE" => array(0=>"",1=>"",),
 		"FILTER_NAME" => "",
 		"HIDE_LINK_WHEN_NO_DETAIL" => "N",
 		"IBLOCK_ID" => "17",
@@ -46,14 +46,7 @@ $APPLICATION->SetTitle("Доставка");
 		"PARENT_SECTION" => "",
 		"PARENT_SECTION_CODE" => "",
 		"PREVIEW_TRUNCATE_LEN" => "",
-		"PROPERTY_CODE" => array(
-			0 => "DELIVERY_MAP",
-			1 => "ORDER_DELEVERY",
-			2 => "PICKAP_PRODUCT",
-			3 => "COST_DELEVERY",
-			4 => "IMG_AUTO",
-			5 => "",
-		),
+		"PROPERTY_CODE" => array(0=>"DELIVERY_MAP",1=>"ORDER_DELEVERY",2=>"PICKAP_PRODUCT",3=>"COST_DELEVERY",4=>"IMG_AUTO",5=>"",),
 		"SET_BROWSER_TITLE" => "Y",
 		"SET_LAST_MODIFIED" => "N",
 		"SET_META_DESCRIPTION" => "Y",
@@ -65,8 +58,6 @@ $APPLICATION->SetTitle("Доставка");
 		"SORT_BY2" => "SORT",
 		"SORT_ORDER1" => "DESC",
 		"SORT_ORDER2" => "ASC",
-		"STRICT_SECTION_CHECK" => "N",
-		"COMPONENT_TEMPLATE" => "delivery"
-	),
-	false
+		"STRICT_SECTION_CHECK" => "N"
+	)
 );?><?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

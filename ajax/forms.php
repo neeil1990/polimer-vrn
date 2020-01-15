@@ -50,10 +50,10 @@ switch ($_REQUEST['FORM_ID']) {
                 "IBLOCK_TYPE" => "feedback",
                 "OK_TEXT" => "Спасибо, ваше сообщение принято.",
                 "PROPERTY_CODE" => array(
-                    0 => "IMG_PRODUCT",
+                    0 => "FIO",
                     1 => "PRICE",
                     2 => "STORE",
-                    3 => "FIO",
+                    3 => "IMG_PRODUCT",
                     4 => "PHONE",
                     5 => "EMAIL",
                     6 => "RULE",

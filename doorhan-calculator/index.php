@@ -1,20 +1,16 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
-$APPLICATION->SetTitle("КАЛЬКУЛЯТОР DOORHAN");
-?>
-
-    <style>
+$APPLICATION->SetPageProperty("title", "Калькулятор ворот Дорхан (DOORHAN) онлайн на официальном сайте");
+$APPLICATION->SetTitle("Калькулятор ворот Дорхан (DOORHAN)");
+?><style>
         #dha-canvas #dha-base{
             margin: 0 auto;
         }
     </style>
-
-
-    <div id="dhaide"></div>
-
+<div id="dhaide">
+</div>
     <!--[if gt IE 8]>-->
-    <script>window.jQuery || document.write('<script type="text/javascript" src="https://aide.doorhan.ru/dhaide/js/vendor/jquery.js"><\/script>');</script>
-
+    <script>window.jQuery || document.write('<script type="text/javascript" src="https://aide.doorhan.ru/dhaide/js/vendor/jquery.js"><\/script>');
     <script>
         (function (t, h, e, A, I, D, E) {
             D=h.createElement(e);D.async=1;D.setAttribute('crossorigin','use-credentials');D.src=A+'/?data='+encodeURIComponent(JSON.stringify(I));
@@ -32,6 +28,4 @@ $APPLICATION->SetTitle("КАЛЬКУЛЯТОР DOORHAN");
                 }
             });
     </script>
-    <!--<![endif]-->
-
-<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>
+    <!--<![endif]--><?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

@@ -1,7 +1,8 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetPageProperty("title", "Оформление кредита в интернет магазине Полимер");
 $APPLICATION->SetTitle("Кредит");
-?><h2>Как оформить?</h2>
+?><h1>Как оформить кредит?</h1>
 <p>
 	 Для того чтобы заказать товар в нашей компании требуется минимум действий, документов и несколько минут вашего времени. Алгоритм следующий:
 </p>
@@ -106,18 +107,18 @@ $APPLICATION->SetTitle("Кредит");
 <tbody>
 <tr>
 	<td>
-		<a href="/kredit/kredit-na-ilyushina/"><img alt="почта банк" src="/images/image001.png"></a>
+ <a href="/kredit/kredit-na-ilyushina/"><img alt="почта банк" src="/images/image001.png"></a>
 	</td>
 	<td>
-		<a href="/kredit/kredit-na-shishkova/"><img alt="почта банк" src="/images/image001.png"></a>
+ <a href="/kredit/kredit-na-shishkova/"><img alt="почта банк" src="/images/image001.png"></a>
 	</td>
 </tr>
 <tr>
 	<td>
-		<a href="/kredit/kredit-na-ilyushina/">Подать звявку в магазин по адресу г. Воронеж, Ильюшина, д. 10 А</a>
+ <a href="/kredit/kredit-na-ilyushina/">Подать звявку в магазин по адресу г. Воронеж, Ильюшина, д. 10 А</a>
 	</td>
 	<td>
-		<a href="/kredit/kredit-na-shishkova/">Подать звявку в магазин по адресу г. Воронеж, Шишкова, 107 Б</a>
+ <a href="/kredit/kredit-na-shishkova/">Подать звявку в магазин по адресу г. Воронеж, Шишкова, 107 Б</a>
 	</td>
 </tr>
 </tbody>
