@@ -20,12 +20,7 @@ CJSCore::Init(array("ajax"));
 			new JsSuggest(input, '<?echo $arResult["ADDITIONAL_VALUES"]?>');
 	});
 </script>
-<IFRAME
-	style="width:0px; height:0px; border: 0px;"
-	src="javascript:''"
-	name="<?echo $arResult["ID"]?>_div_frame"
-	id="<?echo $arResult["ID"]?>_div_frame"
-></IFRAME><input
+<input
 	<?if($arParams["INPUT_SIZE"] > 0):?>
 		size="<?echo $arParams["INPUT_SIZE"]?>"
 	<?endif?>
@@ -34,5 +29,5 @@ CJSCore::Init(array("ajax"));
 	value="<?echo $arParams["VALUE"]?>"
 	class="search-suggest search__input input"
 	type="text"
-	autocomplete="on"
+	autocomplete="off"
 />
