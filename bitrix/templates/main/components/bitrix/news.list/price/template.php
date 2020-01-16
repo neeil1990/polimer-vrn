@@ -16,7 +16,7 @@ $this->setFrameMode(true);
 <div class="row cl">
 	<div class="pl__content">
 		<h1 class="h1-pl"><?=$arResult['NAME']?></h1>
-		<div class="date"><img src="/bitrix/templates/main/img/price.jpg">Обновлено: <span><?=$arResult['TIMESTAMP_X'];?></span></div>
+		<div class="date"><img src="/bitrix/templates/main/img/price.jpg" alt="Прайс-листы">Обновлено: <span><?=$arResult['TIMESTAMP_X'];?></span></div>
 		<div class="block cl">
 
 

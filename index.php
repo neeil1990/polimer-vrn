@@ -1,5 +1,6 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetPageProperty("title", "Интернет-магазин инженерной сантехники и строительных материалов c доставкой — «Полимер»");
 $APPLICATION->SetTitle("«Полимер» — главная страница сайта");
 ?>
 <div class="mp__categories">

@@ -23,7 +23,7 @@ if (!empty($arResult['ITEMS']))
 			<? if($arResult['ORIGINAL_PARAMETERS']['SECTION_CODE'] == "garazhnye_vorota_doorhan"): ?>
 			<div class="cl">
 				<a href="/doorhan-calculator/">
-					<img src="<?=SITE_TEMPLATE_PATH?>/img/doorhan.jpg" style="max-width: 100%">
+					<img src="<?=SITE_TEMPLATE_PATH?>/img/doorhan.jpg" alt="Калькулятор Дорхан" style="max-width: 100%">
 				</a>
 			</div>
 			<? endif; ?>
