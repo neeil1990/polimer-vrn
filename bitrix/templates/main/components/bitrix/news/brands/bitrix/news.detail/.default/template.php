@@ -15,6 +15,7 @@ $this->setFrameMode(true);
 
 <div class="row cl">
     <h1 class="h1">Бренд <?=$arResult['NAME']?></h1>
+    <img src="<?=$arResult['DETAIL_PICTURE']['SRC']?>" alt="<?=$arResult['NAME']?>">
     <?echo $arResult["DETAIL_TEXT"];?>
 </div>
 
