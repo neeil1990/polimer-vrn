@@ -55,7 +55,7 @@ $this->setFrameMode(true);
                 <div class="brand-item <?if($i > 11):?>brand-hidden<?endif;?>">
                     <a href="<?=$arItems['DETAIL_PAGE_URL']?>">
                         <div class="img">
-                            <img src="<?=($src = $arItems['PREVIEW_PICTURE']['SRC']) ? $src : SITE_TEMPLATE_PATH.'/img/no_photo.png'?>" height="80">
+                            <img src="<?=($src = $arItems['PREVIEW_PICTURE']['SRC']) ? $src : SITE_TEMPLATE_PATH.'/img/no_photo.png'?>" height="60">
                         </div>
                         <div class="name"><?=$arItems['NAME']?></div>
                     </a>
