@@ -935,6 +935,8 @@ if($_REQUEST['ELEMENT_SORT_FIELD'] == "CATALOG_AVAILABLE" OR $_REQUEST['ELEMENT_
 		"DETAIL_BLOG_USE" => "Y",
 		"URL_TEMPLATES_READ" => "",
 		"SHOW_LINK_TO_FORUM" => "N",
+		"SET_META_KEYWORDS" => "Y",
+		"SET_META_DESCRIPTION" => "Y",
 		"SEF_URL_TEMPLATES" => array(
 			"sections" => "",
 			"section" => "#SECTION_CODE#/",

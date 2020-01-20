@@ -134,24 +134,26 @@ $this->setFrameMode(true);
 				$component,
 				array("HIDE_ICONS" => "Y")
 			);
-
-
-
+			
                 $ipropValues = new \Bitrix\Iblock\InheritedProperty\SectionValues($arSect['IBLOCK_ID'],$arSect['ID']);
-				if($META_TITLE = $ipropValues->getValues()){
-                    $APPLICATION->SetTitle( $META_TITLE['SECTION_META_TITLE'] );
-				}else{
-                    $APPLICATION->SetTitle( $arSect['UF_BROWSER_TITLE'] );
-				}
-				if ($arSect['UF_KEYWORDS']) {
-					$APPLICATION->SetPageProperty ( "keywords", $arSect['UF_KEYWORDS'] );
-				}else{
-					$APPLICATION->SetPageProperty ( "keywords", "" );
-				}
-				if ($arSect['UF_META_DESCRIPTION']) {
-					$APPLICATION->SetPageProperty ( "description", $arSect['UF_META_DESCRIPTION'] );
-				}else{
-					$APPLICATION->SetPageProperty ( "description", "" );
+				if($sectionMeta = $ipropValues->getValues()){
+
+                    if ($sectionMeta['SECTION_META_TITLE'])
+                        $APPLICATION->SetPageProperty("title", $sectionMeta['SECTION_META_TITLE'], null);
+                    else
+                        $APPLICATION->SetTitle( $arSect['NAME'] );
+
+                    if ($arParams["SET_META_KEYWORDS"] === 'Y')
+                    {
+                        if ($sectionMeta['SECTION_META_KEYWORDS'])
+                            $APPLICATION->SetPageProperty("keywords", $sectionMeta['SECTION_META_KEYWORDS'], null);
+                    }
+
+                    if ($arParams["SET_META_DESCRIPTION"] === 'Y')
+                    {
+                        if ($sectionMeta['SECTION_META_DESCRIPTION'])
+                            $APPLICATION->SetPageProperty("description", $sectionMeta['SECTION_META_DESCRIPTION'], null);
+                    }
 				}
 
 
