@@ -1381,6 +1381,90 @@ header .header__bottom .header__cart:hover:before {
 header .header__bottom .header__cart:hover .cart__number {
     background-color: #ffd400
 }
+header .header__bottom .f_phone,
+header .header__bottom .logo{
+    display: none;
+}
+
+/* fixed menu top */
+header .header__bottom.fixed{
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    width: 1300px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(4, 6, 4, 0.06);
+}
+header .header__bottom.fixed .header__catalog .catalog__name{
+    color:#0358a6;
+}
+header .header__bottom.fixed .header__catalog .catalog__trigger span{
+    background:#0358a6;
+}
+header .header__bottom.fixed .logo{
+    display: block;
+    float: left;
+}
+header .header__bottom.fixed .f_phone{
+    display: block;
+    float: left;
+    height: 60px;
+    margin-top: 10px;
+    margin-right: 5px;
+}
+header .header__bottom.fixed .f_phone div{
+    display: inline-block;
+}
+header .header__bottom.fixed .f_phone div p{
+    margin: 0px 30px 0px 0px;
+    font-size: 0.9em;
+}
+header .header__bottom.fixed .f_phone div p:first-child{
+    color: #0358a6;
+    font-weight: 600;
+    font-size: 1.2em;
+}
+
+header .header__bottom.fixed .header__cart{
+    color:#0358a6;
+}
+header .header__bottom.fixed .header__cart:before{
+    background-image: url(/bitrix/templates/main/img/hbottom_icons_f.png);
+}
+header .header__bottom.fixed .cart__number{
+    background-color:#0358a6;
+    color: #fff;
+}
+header .header__bottom.fixed .header__catalog{
+    margin: 0 5px 0 -20px;
+}
+header .header__bottom.fixed .header__catalog .catalog-sections-menu{
+    left: 205px;
+}
+
+header .header__bottom.fixed .header__search{
+    max-width: 220px;
+    margin-right:auto;
+}
+header .header__bottom.fixed .header__search .search__input{
+    max-width: 160px;
+}
+
+header .header__bottom.fixed .header__action,
+header .header__bottom.fixed .header__account
+{
+    display: none;
+}
+
+@media screen and (max-width: 1319px){
+    header .header__bottom.fixed{
+        width: 100%;
+    }
+    header .header__bottom.fixed .f_phone{
+        display: none;
+    }
+}
+/* fixed menu top END*/
 
 @media screen and (max-width: 1319px) {
     header .header__top .menu__top {

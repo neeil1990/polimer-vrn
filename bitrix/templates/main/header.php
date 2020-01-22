@@ -269,142 +269,162 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 						<a href="/price/" class="header__price">Прайс-листы</a>
 					</div><!--end::wr-->
 				</div><!--end::header__main-->
-				<div class="header__bottom">
-					<div class="wr cl">
-						<div class="header__catalog cl">
-							<?$APPLICATION->IncludeComponent(
-	"bitrix:catalog.section.list", 
-	"top-menu-catalog", 
-	array(
-		"ADD_SECTIONS_CHAIN" => "Y",
-		"CACHE_GROUPS" => "Y",
-		"CACHE_TIME" => "36000000",
-		"CACHE_TYPE" => "A",
-		"COUNT_ELEMENTS" => "Y",
-		"IBLOCK_ID" => "21",
-		"IBLOCK_TYPE" => "1c_catalog",
-		"SECTION_CODE" => "",
-		"SECTION_FIELDS" => array(
-			0 => "",
-			1 => "",
-		),
-		"SECTION_ID" => $_REQUEST["SECTION_ID"],
-		"SECTION_URL" => "",
-		"SECTION_USER_FIELDS" => array(
-			0 => "",
-			1 => "",
-		),
-		"SHOW_PARENT_NAME" => "Y",
-		"TOP_DEPTH" => "3",
-		"VIEW_MODE" => "LINE",
-		"COMPONENT_TEMPLATE" => "top-menu-catalog"
-	),
-	false
-);?>
-						</div>
-					<div class="header__action">
 
-						<?$APPLICATION->IncludeComponent(
-	"bitrix:news.list", 
-	"last-sale", 
-	array(
-		"ACTIVE_DATE_FORMAT" => "d.m.Y",
-		"ADD_SECTIONS_CHAIN" => "N",
-		"AJAX_MODE" => "N",
-		"AJAX_OPTION_ADDITIONAL" => "",
-		"AJAX_OPTION_HISTORY" => "N",
-		"AJAX_OPTION_JUMP" => "N",
-		"AJAX_OPTION_STYLE" => "Y",
-		"CACHE_FILTER" => "N",
-		"CACHE_GROUPS" => "Y",
-		"CACHE_TIME" => "36000000",
-		"CACHE_TYPE" => "A",
-		"CHECK_DATES" => "Y",
-		"DETAIL_URL" => "",
-		"DISPLAY_BOTTOM_PAGER" => "Y",
-		"DISPLAY_DATE" => "Y",
-		"DISPLAY_NAME" => "Y",
-		"DISPLAY_PICTURE" => "Y",
-		"DISPLAY_PREVIEW_TEXT" => "Y",
-		"DISPLAY_TOP_PAGER" => "N",
-		"FIELD_CODE" => array(
-			0 => "",
-			1 => "",
-		),
-		"FILTER_NAME" => "",
-		"HIDE_LINK_WHEN_NO_DETAIL" => "N",
-		"IBLOCK_ID" => "3",
-		"IBLOCK_TYPE" => "news",
-		"INCLUDE_IBLOCK_INTO_CHAIN" => "N",
-		"INCLUDE_SUBSECTIONS" => "Y",
-		"MESSAGE_404" => "",
-		"NEWS_COUNT" => "5",
-		"PAGER_BASE_LINK_ENABLE" => "N",
-		"PAGER_DESC_NUMBERING" => "N",
-		"PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",
-		"PAGER_SHOW_ALL" => "N",
-		"PAGER_SHOW_ALWAYS" => "N",
-		"PAGER_TEMPLATE" => ".default",
-		"PAGER_TITLE" => "Акции",
-		"PARENT_SECTION" => "",
-		"PARENT_SECTION_CODE" => "",
-		"PREVIEW_TRUNCATE_LEN" => "",
-		"PROPERTY_CODE" => array(
-			0 => "",
-			1 => "",
-		),
-		"SET_BROWSER_TITLE" => "N",
-		"SET_LAST_MODIFIED" => "N",
-		"SET_META_DESCRIPTION" => "N",
-		"SET_META_KEYWORDS" => "N",
-		"SET_STATUS_404" => "N",
-		"SET_TITLE" => "N",
-		"SHOW_404" => "N",
-		"SORT_BY1" => "ACTIVE_FROM",
-		"SORT_BY2" => "SORT",
-		"SORT_ORDER1" => "DESC",
-		"SORT_ORDER2" => "ASC",
-		"STRICT_SECTION_CHECK" => "N",
-		"COMPONENT_TEMPLATE" => "last-sale"
-	),
-	false
-);?>
+                <div class="header__bottom"> <!-- fixed -->
+                    <div class="wr cl">
 
-					</div>
+                        <a href="/" class="logo">
+                            <img src="<?=SITE_TEMPLATE_PATH?>/img/f_logo.jpg" alt="Полимер">
+                        </a>
 
-						<?$APPLICATION->IncludeComponent(
-							"bitrix:search.form",
-							"search-form",
-							array(
-								"PAGE" => "#SITE_DIR#search/",
-								"USE_SUGGEST" => "Y",
-								"COMPONENT_TEMPLATE" => "search-form"
-							),
-							false
-						);?>
+                        <div class="header__catalog cl">
+                            <?$APPLICATION->IncludeComponent(
+                                "bitrix:catalog.section.list",
+                                "top-menu-catalog",
+                                array(
+                                    "ADD_SECTIONS_CHAIN" => "Y",
+                                    "CACHE_GROUPS" => "Y",
+                                    "CACHE_TIME" => "36000000",
+                                    "CACHE_TYPE" => "A",
+                                    "COUNT_ELEMENTS" => "Y",
+                                    "IBLOCK_ID" => "21",
+                                    "IBLOCK_TYPE" => "1c_catalog",
+                                    "SECTION_CODE" => "",
+                                    "SECTION_FIELDS" => array(
+                                        0 => "",
+                                        1 => "",
+                                    ),
+                                    "SECTION_ID" => $_REQUEST["SECTION_ID"],
+                                    "SECTION_URL" => "",
+                                    "SECTION_USER_FIELDS" => array(
+                                        0 => "",
+                                        1 => "",
+                                    ),
+                                    "SHOW_PARENT_NAME" => "Y",
+                                    "TOP_DEPTH" => "3",
+                                    "VIEW_MODE" => "LINE",
+                                    "COMPONENT_TEMPLATE" => "top-menu-catalog"
+                                ),
+                                false
+                            );?>
+                        </div>
 
-					<a href="<?if ($USER->IsAuthorized()){?>/personal/orders-list.php<?}else{?>/personal/order/make/<?}?>" class="header__account">Личный кабинет</a>
+                        <div class="f_phone">
+                            <div>
+                                <p>+7 (473) <?= tplvar('phone_top_one', true);?></p>
+                                <p>Инженерная сантехника</p>
+                            </div>
+                            <div>
+                                <p>+7 (473) <?= tplvar('phone_top_two', true);?></p>
+                                <p>Строительные материалы</p>
+                            </div>
 
-						<?$APPLICATION->IncludeComponent("bitrix:sale.basket.basket.line", "basket.small", Array(
-							"HIDE_ON_BASKET_PAGES" => "Y",	// Не показывать на страницах корзины и оформления заказа
-							"PATH_TO_BASKET" => SITE_DIR."personal/cart/",	// Страница корзины
-							"PATH_TO_ORDER" => SITE_DIR."personal/order/",	// Страница оформления заказа
-							"PATH_TO_PERSONAL" => SITE_DIR."personal/",	// Страница персонального раздела
-							"PATH_TO_PROFILE" => SITE_DIR."personal/",	// Страница профиля
-							"PATH_TO_REGISTER" => SITE_DIR."login/",	// Страница регистрации
-							"POSITION_FIXED" => "N",	// Отображать корзину поверх шаблона
-							"SHOW_AUTHOR" => "N",	// Добавить возможность авторизации
-							"SHOW_EMPTY_VALUES" => "Y",	// Выводить нулевые значения в пустой корзине
-							"SHOW_NUM_PRODUCTS" => "Y",	// Показывать количество товаров
-							"SHOW_PERSONAL_LINK" => "Y",	// Отображать персональный раздел
-							"SHOW_PRODUCTS" => "N",	// Показывать список товаров
-							"SHOW_TOTAL_PRICE" => "Y",	// Показывать общую сумму по товарам
-						),
-							false
-						);?>
+                        </div>
 
-					</div><!--end::wr-->
-				</div><!--end::header__bottom-->
+                        <div class="header__action">
+
+                            <?$APPLICATION->IncludeComponent(
+                                "bitrix:news.list",
+                                "last-sale",
+                                array(
+                                    "ACTIVE_DATE_FORMAT" => "d.m.Y",
+                                    "ADD_SECTIONS_CHAIN" => "N",
+                                    "AJAX_MODE" => "N",
+                                    "AJAX_OPTION_ADDITIONAL" => "",
+                                    "AJAX_OPTION_HISTORY" => "N",
+                                    "AJAX_OPTION_JUMP" => "N",
+                                    "AJAX_OPTION_STYLE" => "Y",
+                                    "CACHE_FILTER" => "N",
+                                    "CACHE_GROUPS" => "Y",
+                                    "CACHE_TIME" => "36000000",
+                                    "CACHE_TYPE" => "A",
+                                    "CHECK_DATES" => "Y",
+                                    "DETAIL_URL" => "",
+                                    "DISPLAY_BOTTOM_PAGER" => "Y",
+                                    "DISPLAY_DATE" => "Y",
+                                    "DISPLAY_NAME" => "Y",
+                                    "DISPLAY_PICTURE" => "Y",
+                                    "DISPLAY_PREVIEW_TEXT" => "Y",
+                                    "DISPLAY_TOP_PAGER" => "N",
+                                    "FIELD_CODE" => array(
+                                        0 => "",
+                                        1 => "",
+                                    ),
+                                    "FILTER_NAME" => "",
+                                    "HIDE_LINK_WHEN_NO_DETAIL" => "N",
+                                    "IBLOCK_ID" => "3",
+                                    "IBLOCK_TYPE" => "news",
+                                    "INCLUDE_IBLOCK_INTO_CHAIN" => "N",
+                                    "INCLUDE_SUBSECTIONS" => "Y",
+                                    "MESSAGE_404" => "",
+                                    "NEWS_COUNT" => "5",
+                                    "PAGER_BASE_LINK_ENABLE" => "N",
+                                    "PAGER_DESC_NUMBERING" => "N",
+                                    "PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",
+                                    "PAGER_SHOW_ALL" => "N",
+                                    "PAGER_SHOW_ALWAYS" => "N",
+                                    "PAGER_TEMPLATE" => ".default",
+                                    "PAGER_TITLE" => "Акции",
+                                    "PARENT_SECTION" => "",
+                                    "PARENT_SECTION_CODE" => "",
+                                    "PREVIEW_TRUNCATE_LEN" => "",
+                                    "PROPERTY_CODE" => array(
+                                        0 => "",
+                                        1 => "",
+                                    ),
+                                    "SET_BROWSER_TITLE" => "N",
+                                    "SET_LAST_MODIFIED" => "N",
+                                    "SET_META_DESCRIPTION" => "N",
+                                    "SET_META_KEYWORDS" => "N",
+                                    "SET_STATUS_404" => "N",
+                                    "SET_TITLE" => "N",
+                                    "SHOW_404" => "N",
+                                    "SORT_BY1" => "ACTIVE_FROM",
+                                    "SORT_BY2" => "SORT",
+                                    "SORT_ORDER1" => "DESC",
+                                    "SORT_ORDER2" => "ASC",
+                                    "STRICT_SECTION_CHECK" => "N",
+                                    "COMPONENT_TEMPLATE" => "last-sale"
+                                ),
+                                false
+                            );?>
+
+                        </div>
+
+                        <?$APPLICATION->IncludeComponent(
+                            "bitrix:search.form",
+                            "search-form",
+                            array(
+                                "PAGE" => "#SITE_DIR#search/",
+                                "USE_SUGGEST" => "Y",
+                                "COMPONENT_TEMPLATE" => "search-form"
+                            ),
+                            false
+                        );?>
+
+                        <a href="<?if ($USER->IsAuthorized()){?>/personal/orders-list.php<?}else{?>/personal/order/make/<?}?>" class="header__account">Личный кабинет</a>
+
+                        <?$APPLICATION->IncludeComponent("bitrix:sale.basket.basket.line", "basket.small", Array(
+                            "HIDE_ON_BASKET_PAGES" => "Y",	// Не показывать на страницах корзины и оформления заказа
+                            "PATH_TO_BASKET" => SITE_DIR."personal/cart/",	// Страница корзины
+                            "PATH_TO_ORDER" => SITE_DIR."personal/order/",	// Страница оформления заказа
+                            "PATH_TO_PERSONAL" => SITE_DIR."personal/",	// Страница персонального раздела
+                            "PATH_TO_PROFILE" => SITE_DIR."personal/",	// Страница профиля
+                            "PATH_TO_REGISTER" => SITE_DIR."login/",	// Страница регистрации
+                            "POSITION_FIXED" => "N",	// Отображать корзину поверх шаблона
+                            "SHOW_AUTHOR" => "N",	// Добавить возможность авторизации
+                            "SHOW_EMPTY_VALUES" => "Y",	// Выводить нулевые значения в пустой корзине
+                            "SHOW_NUM_PRODUCTS" => "Y",	// Показывать количество товаров
+                            "SHOW_PERSONAL_LINK" => "Y",	// Отображать персональный раздел
+                            "SHOW_PRODUCTS" => "N",	// Показывать список товаров
+                            "SHOW_TOTAL_PRICE" => "Y",	// Показывать общую сумму по товарам
+                        ),
+                            false
+                        );?>
+
+                    </div><!--end::wr-->
+                </div><!--end::header__bottom-->
+
 			</header>
 			<?if(!$is_main){?>
 
