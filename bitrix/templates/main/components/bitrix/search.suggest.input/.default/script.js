@@ -65,8 +65,9 @@ function JsSuggest(oHandler, sParams, sParser)
 			t.oThis["str"] = t.oThis["arr"].join(":");
 
 			// Getting modificated element
-			if (t.oThis["str"] && (t.oThis["str"] != t.oLast["str"]))
-			{
+			//if (t.oThis["str"] && (t.oThis["str"] != t.oLast["str"]))
+			//{
+
 				cursor['position'] = TCJsUtils.getCursorPosition(t.oObj);
 				if (cursor['position']['end'] > 0 && !t.sExp.test(t.oObj.value.substr(cursor['position']['end']-1, 1)))
 				{
@@ -80,7 +81,7 @@ function JsSuggest(oHandler, sParams, sParser)
 					t.oLast["arr"] = t.oThis["arr"];
 					t.oLast["str"] = t.oThis["str"];
 				}
-			}
+			//}
 			if (sThis)
 			{
 				// Checking for UnfinedWords
@@ -169,6 +170,9 @@ function JsSuggest(oHandler, sParams, sParser)
 
 		t.aDiv = t.Print(result);
 		var pos = TCJsUtils.GetRealPos(t.oObj);
+		if(pos.top <= 10)
+			t.oDiv.style.position = 'fixed';
+
 		t.oDiv.style.width = parseInt(pos["width"]) + "px";
 		TCJsUtils.show(t.oDiv, pos["left"], pos["bottom"]);
 		TCJsUtils.addEvent(document, "click", t.CheckMouse);

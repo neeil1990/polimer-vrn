@@ -1389,7 +1389,7 @@ header .header__bottom .logo{
 /* fixed menu top */
 header .header__bottom.fixed{
     position: fixed;
-    z-index: 2;
+    z-index: 100;
     top: 0;
     width: 1300px;
     background: #fff;
