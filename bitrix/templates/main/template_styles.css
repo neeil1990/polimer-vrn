@@ -5255,16 +5255,28 @@ header .header__bottom.fixed .header__account
     background-size: 100%
 }
 
-.products_roll .pr_box .item .hover .inner .instock {
+.products_roll .pr_box .item .hover .inner .incode {
     display: none;
     position: absolute;
     width: 100%;
     left: 0;
     bottom: -14px;
+    font: 400 14px/18px 'Fira Sans', sans-serif;
+    text-align: center;
+    color: #0060bf;
+}
+
+
+.products_roll .pr_box .item .hover .inner .instock {
+    display: block;
+    position: absolute;
+    width: 100%;
+    left: -10px;
+    bottom: 110px;
     padding-right: 30px;
     font: 400 14px/18px 'Fira Sans', sans-serif;
     text-align: center;
-    color: #00a600
+    color: #00a600;
 }
 
 .products_roll .pr_box .item .hover .inner .instock:after {
@@ -5311,7 +5323,8 @@ header .header__bottom.fixed .header__account
     display: block
 }
 
-.products_roll .pr_box .item:hover .hover .inner .instock {
+
+.products_roll .pr_box .item:hover .hover .inner .incode {
     display: block
 }
 
@@ -5807,6 +5820,10 @@ header .header__bottom.fixed .header__account
         margin-left: 0;
         margin-top: 0;
         padding: 70px 0 0 140px
+    }
+
+    .products_roll .pr_box .item .hover .inner .incode{
+        bottom: 0px;
     }
 
     .products_roll .pr_box .item .hover .inner .instock {
