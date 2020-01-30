@@ -1690,7 +1690,7 @@ header .header__bottom.fixed .header__account
 }
 
 .li-open > a {
-    background: #da0000;
+    background: #2ABBDE;
     padding: 5px;
     border-radius: 5px;
     color: #fff !important
@@ -4456,13 +4456,9 @@ header .header__bottom.fixed .header__account
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .checkboxes .item {
     float: left;
-    width: 50%;
+    width: 100%;
     height: 16px;
     margin-top: 15px
-}
-
-.ct__leftbar .cat .cat-ul .cat-li .inner .checkboxes .item:nth-child(-n+2) {
-    margin-top: 0
 }
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .checkboxes .item input[type="checkbox"] {
