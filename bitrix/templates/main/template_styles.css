@@ -4690,6 +4690,7 @@ header .header__bottom.fixed .header__account
     color: #333;
     font-weight: 600;
     font-size: 12px;
+    padding: 5px;
 }
 
 /* Filter Top */
