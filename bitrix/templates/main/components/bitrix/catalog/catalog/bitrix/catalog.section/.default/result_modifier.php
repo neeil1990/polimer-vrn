@@ -507,3 +507,27 @@ $arResult['NAME'] = preg_replace('#(~(.*?)~)#is', '', $arResult['NAME']);
 foreach ($arResult['ITEMS'] as $key => $arItem){
 	$arResult['ITEMS'][$key]['NAME'] = preg_replace('#(~(.*?)~)#is', '', $arItem['NAME']);
 }
+
+if(count($arParams['SECTION_USER_FIELDS'])){
+
+    foreach ($arParams['SECTION_USER_FIELDS'] as $ibCode){
+        $res = CIBlock::GetList(Array(), Array('TYPE' => $arParams['IBLOCK_TYPE'], 'CODE' => $ibCode, 'SITE_ID' => SITE_ID, 'ACTIVE' => 'Y'), false);
+        if($ar_res = $res->Fetch())
+        {
+            if(count($arResult[$ibCode]) > 0){
+                $arSelect = Array("ID", "IBLOCK_ID", "NAME", "CODE", "PREVIEW_PICTURE", "PROPERTY_*");
+                $arFilter = Array("IBLOCK_ID" => IntVal($ar_res['ID']), "ID" => $arResult[$ibCode], "ACTIVE" => "Y");
+                $res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
+                while($ob = $res->GetNextElement())
+                {
+                    $arFields = $ob->GetFields();
+                    $arProps = $ob->GetProperties();
+                    $newCode = str_replace('UF_', 'ITEM_', $ibCode );
+                    $arResult[$newCode][$arFields['ID']] = $arFields;
+                    $arResult[$newCode][$arFields['ID']]['PREVIEW_PICTURE'] = CFile::GetPath($arFields['PREVIEW_PICTURE']);
+                    $arResult[$newCode][$arFields['ID']]['PROP'] = $arProps;
+                }
+            }
+        }
+    }
+}

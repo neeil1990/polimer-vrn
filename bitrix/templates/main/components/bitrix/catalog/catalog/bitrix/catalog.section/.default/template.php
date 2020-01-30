@@ -15,9 +15,44 @@ if (!empty($arResult['ITEMS']))
 {
 ?>
 
-
 	<div class="ct__content">
 		<div class="h1"><?=$arResult['NAME']?></div>
+
+        <div class="product_top">
+            <? if(count($arResult['ITEM_SECTION_TOP']) > 0): ?>
+            <div class="catalog_top cl">
+                <? foreach($arResult['ITEM_SECTION_TOP'] as $arItem):?>
+                <div class="item_c">
+                    <a href="<?=$arItem['CODE']?>">
+                        <div class="img_c">
+                            <img src="<?=$arItem['PREVIEW_PICTURE']?>" alt="<?=$arItem['NAME']?>">
+                        </div>
+                        <div class="name_c"><?=$arItem['NAME']?></div>
+                    </a>
+                </div>
+                <? endforeach; ?>
+            </div>
+            <? endif; ?>
+
+            <? if(count($arResult['ITEM_FILTER_CATALOG']) > 0): ?>
+            <div class="filter_top">
+                <div class="header_f cl">
+                    <div class="title_f">Популярные разделы</div>
+                    <div class="close_f"></div>
+                </div>
+                <div class="body_f">
+                    <? foreach($arResult['ITEM_FILTER_CATALOG'] as $arItem):?>
+                    <div class="item_f">
+                        <span class="name_f"><?=$arItem['NAME']?></span>
+                        <? foreach ($arItem['PROP']['PARAM']['VALUE'] as $desc => $val):?>
+                            <a href="<?=$arItem['PROP']['PARAM']['DESCRIPTION'][$desc]?>"><?=$val?></a>
+                        <? endforeach; ?>
+                    </div>
+                    <? endforeach; ?>
+                </div>
+            </div>
+            <? endif; ?>
+        </div>
 
 		<div class="products_roll">
 			<? if($arResult['ORIGINAL_PARAMETERS']['SECTION_CODE'] == "garazhnye_vorota_doorhan"): ?>

@@ -4661,6 +4661,89 @@ header .header__bottom.fixed .header__account
     display: none
 }
 
+/* header catalog */
+
+.product_top .catalog_top{
+    margin-bottom: 10px;
+}
+.product_top .catalog_top .item_c{
+    float: left;
+    text-align: center;
+    width: 140px;
+    height: 200px;
+    border: 1px solid #ced5d9;
+    margin-left: 14px;
+    padding: 5px 0;
+}
+.product_top .catalog_top .item_c:nth-child(6n+1) {
+    margin-left: 0;
+}
+.product_top .catalog_top .item_c:hover{
+    border-color: #0464bb;
+}
+.product_top .catalog_top .item_c a .img_c{
+    width: auto;
+    height: 135px;
+    overflow: hidden;
+}
+.product_top .catalog_top .item_c a .name_c{
+    color: #333;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* Filter Top */
+
+.product_top .filter_top{
+    padding: 0px 30px;
+    border: 1px solid #ced5d9;
+    background: #f5f6f8;
+    margin-bottom: 10px;
+}
+.product_top .filter_top .header_f{
+    margin: 15px auto;
+    cursor: pointer;
+}
+.product_top .filter_top .header_f .title_f{
+    color: #333;
+    font-weight: 700;
+    float: left;
+}
+.product_top .filter_top .header_f .close_f{
+    width: 10px;
+    height: 6px;
+    margin-top: 7px;
+    background: url(/bitrix/templates/main/img/selectmenu.png) no-repeat;
+    -webkit-background-size: 100%;
+    -o-background-size: 100%;
+    background-size: 100%;
+    float: right;
+}
+.product_top .filter_top .body_f{}
+.product_top .filter_top .body_f .item_f{
+    margin-bottom: 15px;
+}
+.product_top .filter_top .body_f .item_f .name_f{
+    margin-right: 10px;
+}
+.product_top .filter_top .body_f .item_f a{
+    border: 1px solid #ced5d9;
+    padding: 5px 10px;
+    line-height: 26px;
+    background: #fff;
+    border-radius: 3px;
+    color: #333;
+    font-size: 12px;
+}
+
+.product_top .filter_top .body_f .item_f a:hover{
+    color: #0464bb;
+    border-color: #0464bb;
+}
+
+/* header catalog END */
+
+
 .products_roll .pr_header {
     position: relative;
     padding: 15px 30px;
@@ -5631,6 +5714,14 @@ header .header__bottom.fixed .header__account
 
     .ct__content.active {
         right: -200%
+    }
+
+    .product_top .catalog_top .item_c{
+        width: 133px;
+    }
+
+    .product_top .catalog_top .item_c:nth-child(2n+1) {
+        margin-left: 0;
     }
 
     .products_roll .pr_header {
