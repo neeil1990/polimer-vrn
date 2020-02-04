@@ -237,8 +237,8 @@ if (!empty($arResult['ITEMS']))
 		</div><!--end::products_roll-->
 
 		<?$APPLICATION->IncludeComponent(
-	"bitrix:catalog.products.viewed", 
-	"products-viewed", 
+	"bitrix:catalog.products.viewed",
+	"products-viewed",
 	array(
 		"ACTION_VARIABLE" => "action_cpv",
 		"ADDITIONAL_PICT_PROP_10" => "-",
