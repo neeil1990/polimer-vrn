@@ -5,16 +5,17 @@ class ChpuWriter extends AbstractWriter
 {
     private static $Writer = false;
 
-    private function __construct($id)
+    private function __construct($id, $isProgress = false)
     {
         $this->id = $id;
-        \Sotbit\Seometa\SeometaUrlTable::deleteByConditionId( $id);
+        if (!$isProgress)
+            \Sotbit\Seometa\SeometaUrlTable::deleteByConditionId( $id);
     }
 
-    public static function GetInstance($Id)
+    public static function GetInstance($Id, $isProgress = false)
     {
         if(self::$Writer === false)
-            self::$Writer = new ChpuWriter($Id);
+            self::$Writer = new ChpuWriter($Id, $isProgress);
         return self::$Writer;
     }
 
@@ -33,7 +34,7 @@ class ChpuWriter extends AbstractWriter
     {
         $chpu['CONDITION_ID'] = $this->id;
         $chpu['REAL_URL'] = $arFields['real_url'];
-        $chpu['ACTIVE'] = 'N';
+        $chpu['ACTIVE'] = (in_array($arFields['active'], array('Y', 'N'), true)) ? $arFields['active'] : 'N';
         $chpu['NAME'] = $arFields['name'];
         $chpu['NEW_URL'] = $arFields['new_url'];
         $chpu['CATEGORY_ID'] = 0;

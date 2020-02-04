@@ -30,8 +30,4 @@ $MESS["SEO_META_TABLE_PRICE"] = "Сумма заказа";
 $MESS["SEO_META_TABLE_DATE_CREATE"] = "Дата оформления заказа";  
 $MESS["SEO_META_TABLE_PAGES_COUNT"] = "Количество просмотренных страниц";  
 $MESS["SEO_META_TABLE_ORDERS"] = "Информация о совершенных заказах";  
-$MESS[""] = "";  
-$MESS[""] = "";  
-$MESS[""] = "";  
-$MESS[""] = "";
 ?>

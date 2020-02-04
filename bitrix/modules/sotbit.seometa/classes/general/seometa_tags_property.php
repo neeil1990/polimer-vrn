@@ -113,7 +113,11 @@ class CSeoMetaTagsProperty extends CSeoMetaTags
                             {
                                 foreach($elements['VALUES'] as $key_val => $value)
                                 {
-									if(strcmp(\CUtil::translit($value['VALUE'], 'ru', array("replace_space" => "-", "replace_other" => "-")), $sef_name) == 0 || strcmp($value['VALUE_ID'], $sef_name) == 0 || $key_val == $sef_name)
+									if(
+									    strcmp(\CUtil::translit($value['VALUE'], 'ru', array("replace_space" => "-", "replace_other" => "-")), $sef_name) == 0 ||
+                                        strcmp($value['VALUE_ID'], $sef_name) == 0 ||
+                                        $key_val == $sef_name
+                                    )
 									{
 										/*if($elements['USER_TYPE'] == 'directory' && $elements['PROPERTY_TYPE'] == 'S')
 											$return[] = $value['VALUE_LIST'];

@@ -30,6 +30,4 @@ $MESS["SEO_META_EDIT_NEW_URL"] ="Желаемый URL";
 $MESS["SEO_META_EDIT_ENABLE_URL"] ="Включить ЧПУ";
 $MESS["SEO_META_EDIT_DATE_CHANGE"] ="Последнее изменение:"; 
 $MESS["SEO_META_EDIT_CONDITION_ID"] ="Прикрепить к условию:";                     
-$MESS[""] ="";                     
-$MESS[""] ="";
 ?>

@@ -1,6 +1,6 @@
 <?
 if (!defined( "B_PROLOG_INCLUDED" ) || B_PROLOG_INCLUDED !== true) die();
- 
+
 use Bitrix\Highloadblock as HL;
 use Bitrix\Main\Entity;
 use Bitrix\Main\Entity\Validator\Length;
@@ -18,7 +18,7 @@ class CSeoMetaSitemap extends CCSeoMeta
     {
         if($a[0]['CLASS_ID'] != 'CondGroup')
             return -1;
-        
+
         if($a[0]['CLASS_ID'] == 'CondGroup' && $a[0]['DATA']['All'] == 'OR')
             return 1;
 
@@ -44,7 +44,7 @@ class CSeoMetaSitemap extends CCSeoMeta
             {
                 if($child['CLASS_ID'] == null)
                     $child = current($child);
-                
+
                 $arCond = explode( ':', $child['CLASS_ID'] );
                 $IdIblock = $arCond[1];
                 $IdProperty = $arCond[2];
@@ -57,18 +57,19 @@ class CSeoMetaSitemap extends CCSeoMeta
                     default:
                         $prop_values = self::AllEnteredPRoperties($IdIblock, $ConditionSections, $IdProperty, $property);
 
-                        /*if(is_array(CCatalogSKU::GetInfoByProductIBlock($property['IBLOCK_ID']))) {
-                            $prop_values = self::AllEnteredPRoperties($IdIblock, $ConditionSections, $IdProperty, $property);
-                        } else {
-                            $prop_values = self::GetValuesIfEmptyValue($IdIblock, $IdProperty, $ConditionSections);
-                        }*/
+                    /*if(is_array(CCatalogSKU::GetInfoByProductIBlock($property['IBLOCK_ID']))) {
+                        $prop_values = self::AllEnteredPRoperties($IdIblock, $ConditionSections, $IdProperty, $property);
+                    } else {
+                        $prop_values = self::GetValuesIfEmptyValue($IdIblock, $IdProperty, $ConditionSections);
+                    }*/
                 }
 
                 $el = $Condition['CHILDREN'][$id];
-                
-                if($el['CLASS_ID'] == null)
+
+                if ($el['CLASS_ID'] == null) {
                     $el = current($el);
-                    
+                }
+
                 unset($Condition['CHILDREN'][$id]);
 
                 foreach($prop_values as $prop)
@@ -76,8 +77,8 @@ class CSeoMetaSitemap extends CCSeoMeta
                     $el['DATA']['value'] = $prop;
 
                     if(!self::conditionExist(array($el), $Condition['CHILDREN']))
-                         $Condition['CHILDREN'][] = array($el);
-                    
+                        $Condition['CHILDREN'][] = array($el);
+
                 }
             }
         }
@@ -99,7 +100,7 @@ class CSeoMetaSitemap extends CCSeoMeta
         if ($arParentSection = $rsParentSection->GetNext())
         {
             $Sections[] = $arParentSection;
-            
+
             $arFilter = array('IBLOCK_ID' => $arParentSection['IBLOCK_ID'],'>LEFT_MARGIN' => $arParentSection['LEFT_MARGIN'],'<RIGHT_MARGIN' => $arParentSection['RIGHT_MARGIN'],'>DEPTH_LEVEL' => $arParentSection['DEPTH_LEVEL']); // ������� �������� ��� ����� ����������
             $rsSect = CIBlockSection::GetList(array('left_margin' => 'asc'),$arFilter, false, array('ID'));
             while ($arSect = $rsSect->GetNext())
@@ -107,9 +108,9 @@ class CSeoMetaSitemap extends CCSeoMeta
                 $Sections[] = $arSect;
             }
         }
-        
+
         $code = strtoupper($property['CODE']);
-        
+
         $prop_values = array();
         foreach($Sections as $Section)
         {
@@ -118,7 +119,7 @@ class CSeoMetaSitemap extends CCSeoMeta
                 "IBLOCK_ID" => $IdIblock,
                 "PROPERTY_CODE" => $code,
                 //"IBLOCK_SECTION_ID" => 8,
-                ),
+            ),
                 array(
                     "LOGIC" => "AND",
                     array( "IBLOCK_ID" => $IdIblock),
@@ -129,16 +130,16 @@ class CSeoMetaSitemap extends CCSeoMeta
                 false,
                 false,
                 Array("ID", "IBLOCK_ID", "NAME", "CODE", "PROPERTY_ID", "XML_ID", "PROPERTY_$code")
-                
-                );
-            
-            
+
+            );
+
+
             while ($prop_fields = $properties->GetNext())
             {
                 if(!empty($prop_fields["PROPERTY_$code"."_ENUM_ID"]) && !in_array($prop_fields["PROPERTY_$code"."_ENUM_ID"], $prop_values))
                     $prop_values[] = $prop_fields["PROPERTY_$code"."_ENUM_ID"];
             }
-            
+
         }
         unset($code);
         return $prop_values;
@@ -156,7 +157,7 @@ class CSeoMetaSitemap extends CCSeoMeta
             if ($arParentSection = $rsParentSection->GetNext())
             {
                 $Sections[] = $arParentSection;
-                
+
                 $arFilter = array('IBLOCK_ID' => $arParentSection['IBLOCK_ID'],'>LEFT_MARGIN' => $arParentSection['LEFT_MARGIN'],'<RIGHT_MARGIN' => $arParentSection['RIGHT_MARGIN'],'>DEPTH_LEVEL' => $arParentSection['DEPTH_LEVEL']); // ������� �������� ��� ����� ����������
                 $rsSect = CIBlockSection::GetList(array('left_margin' => 'asc'),$arFilter, false, array('ID'));
                 while ($arSect = $rsSect->GetNext())
@@ -174,28 +175,28 @@ class CSeoMetaSitemap extends CCSeoMeta
                 "IBLOCK_ID" => $IdIblock,
                 "PROPERTY_CODE" => $code,
                 //"IBLOCK_SECTION_ID" => 8,
-                ),
+            ),
                 array(
                     "LOGIC" => "AND",
                     array( "IBLOCK_ID" => $IdIblock),
                     array("PROPERTY_CODE"=>$code),
-                //  array(
-                //        'LOGIC' => 'OR',
-                //  array("!PROPERTY_$code"=>false),
-                //  array("!PROPERTY_".$code."_VALUE_ID"=>false),
-                //                    ),
+                    //  array(
+                    //        'LOGIC' => 'OR',
+                    //  array("!PROPERTY_$code"=>false),
+                    //  array("!PROPERTY_".$code."_VALUE_ID"=>false),
+                    //                    ),
                     array("!PROPERTY_$code"=>false),
                     array("SECTION_ID" => $Section['ID']),
-                //  array('INCLUDE_SUBSECTIONS' => 'Y')
+                    //  array('INCLUDE_SUBSECTIONS' => 'Y')
                 ),
                 false,
                 false,
                 Array("ID", "IBLOCK_ID", "NAME", "CODE", "PROPERTY_ID", "XML_ID", "PROPERTY_$code", "PROPERTY_".$code."_VALUE_ID")
 
-                );
+            );
             while ($prop_fields = $properties->GetNext())
             {
-                  if(!empty($prop_fields["PROPERTY_".$code."_VALUE"]) && !in_array($prop_fields["PROPERTY_".$code."_VALUE"], $prop_values))
+                if(!empty($prop_fields["PROPERTY_".$code."_VALUE"]) && !in_array($prop_fields["PROPERTY_".$code."_VALUE"], $prop_values))
                     $prop_values[] = $prop_fields["PROPERTY_".$code."_VALUE"];
             }
 
@@ -224,7 +225,7 @@ class CSeoMetaSitemap extends CCSeoMeta
         $return = array();
         $i = 0;
         $PropVals = array();
-      
+
         foreach ( $conditions['CHILDREN'] as $id => $condition )
         {
             if(strpos( $condition['CLASS_ID'], 'FilterPrice' ) !== false) // If filter price
@@ -273,25 +274,25 @@ class CSeoMetaSitemap extends CCSeoMeta
         /*
         if(empty($Conditions))
             return array();
-            
+
         $array = Array();
         $array[1] = $main_array = $Conditions;
-    
+
         $size = sizeof($array[1]);
-        
+
         $arr_name = 1;
         for ($count = 2; $count <= $size; $count++) {
-            
+
             $this_size = sizeof($array[$arr_name]);
             $arr_name++;
-            
+
             for ($i = 0; $i < $this_size; $i++) {
                 $gg = $array[($arr_name-1)][$i];
-                
+
                 if($gg['CLASS_ID'] != null)
                     $gg = array($gg);
 
-                
+
                 for ($x = 0; $x < $size; $x++)
                 {
                     if(!self::conditionExist($array[1][$x], $gg) && !self::sameArray(array_merge($gg, $array[1][$x]), $array) && !empty($array[1][$x]))
@@ -315,20 +316,20 @@ class CSeoMetaSitemap extends CCSeoMeta
     protected function sameArray($array, $main_array)
     {
         $return = false;
-        
+
         foreach ($main_array as $arr1)
             foreach($arr1 as $arr)
-            if(count($arr) == count($array) && is_array($arr))
-            {
-            $return = array();
-            foreach($array as $ar)
-                if(self::conditionExist(array($ar), $arr))
-                    $return[] = true;
-            
-            if(count($return) == count($array) && self::allTrue($return))
-                return true;
-            }
-        
+                if(count($arr) == count($array) && is_array($arr))
+                {
+                    $return = array();
+                    foreach($array as $ar)
+                        if(self::conditionExist(array($ar), $arr))
+                            $return[] = true;
+
+                    if(count($return) == count($array) && self::allTrue($return))
+                        return true;
+                }
+
         return false;
     }
 
@@ -341,7 +342,7 @@ class CSeoMetaSitemap extends CCSeoMeta
         foreach($return as $re)
             if(!$re)
                 return false;
-            
+
         return true;
     }
 
@@ -410,11 +411,11 @@ class CSeoMetaSitemap extends CCSeoMeta
         elseif ($IdIblock == $OffersResult['IBLOCK_ID']) // If property of offer
         {
             $res = CIBlockElement::GetList( Array(), Array(
-                    "IBLOCK_ID" => $IdIblock,
-                    "ACTIVE" => "Y"
+                "IBLOCK_ID" => $IdIblock,
+                "ACTIVE" => "Y"
             ), false, false, array(
-                    'ID',
-                    'PROPERTY_' . $IdProperty
+                'ID',
+                'PROPERTY_' . $IdProperty
             ) );
             $Offers = array();
             $OffersIds = array();
@@ -441,13 +442,13 @@ class CSeoMetaSitemap extends CCSeoMeta
             // Find in section
             $NeedPropducts = array();
             $res = CIBlockElement::GetList( Array(), Array(
-                    "ID" => $Products,
-                    "IBLOCK_ID" => $OffersResult['PRODUCT_IBLOCK_ID'],
-                    "ACTIVE" => "Y",
-                    "SECTION_ID" => $ConditionSections,
-                    "INCLUDE_SUBSECTIONS" => "Y"
+                "ID" => $Products,
+                "IBLOCK_ID" => $OffersResult['PRODUCT_IBLOCK_ID'],
+                "ACTIVE" => "Y",
+                "SECTION_ID" => $ConditionSections,
+                "INCLUDE_SUBSECTIONS" => "Y"
             ), false, false, array(
-                    'ID'
+                'ID'
             ) );
             while ( $ob = $res->GetNextElement() )
             {
@@ -556,9 +557,14 @@ class CSeoMetaSitemap extends CCSeoMeta
         $arPricesMS = array();
         $flagMS = false;
 
+        $sortIdPropXML = [];
+        $sortIdPropCODE = [];
+
         foreach($Pages['CHILDREN'] as $i => &$Children)
         {
             $sortChild = array();
+
+
             foreach(self::$AllPropsForSort as $Prop)
             {
                 if(is_array($Children['CHILDREN']))
@@ -569,6 +575,14 @@ class CSeoMetaSitemap extends CCSeoMeta
                             if(isset($Child[$Prop['ID']]))
                             {
                                 $sortChild[][$Prop['ID']] = $Child[$Prop['ID']];
+
+                                if (isset($Child[$Prop['ID']]["SORT_XML"])) {
+                                    $sortIdPropXML[$i] = $Child[$Prop['ID']]["SORT_XML"];
+                                }
+
+                                if (isset($Child[$Prop['ID']]["SORT_CODE"])) {
+                                    $sortIdPropCODE[$i] = $Child[$Prop['ID']]["SORT_CODE"];
+                                }
                             }
                             if(isset($Child['FILTER'][$Prop['ID']]) && $Prop['FILTER_TYPE'] == 'BITRIX')
                             {
@@ -639,7 +653,7 @@ class CSeoMetaSitemap extends CCSeoMeta
                         }
                     }
                 }
-            
+
                 if ($condId != 'PRICE')
                 {
                     if(!$exist)
@@ -658,7 +672,7 @@ class CSeoMetaSitemap extends CCSeoMeta
                             $return[$index][$returnId][$condId]['MISSSHOP'][0][] = $Cond[$condId]['MISSSHOP'][0][0];
                             $return[$index][$returnId][$condId]['BITRIX'][1][] = $Cond[$condId]['BITRIX'][1][0];
                             $return[$index][$returnId][$condId]['BITRIX'][0][] = $Cond[$condId]['BITRIX'][0][0];
-                            
+
                             if(!is_array($return[$index][$returnId][$condId]['VALUE']))
                                 $return[$index][$returnId][$condId]['VALUE'] = array($return[$index][$returnId][$condId]['VALUE']);
 
@@ -686,20 +700,66 @@ class CSeoMetaSitemap extends CCSeoMeta
                     }
                 }
             }
+
+            ///////////////////////////////
+            /// Сортировка значения
+            if (count($sortIdPropXML[$j]) > 0) {
+                if(!empty($sortIdPropXML[$j]) && is_array(reset($sortIdPropXML[$j]))) {
+                    usort(
+                        $sortIdPropXML[$j], function ($val1, $val2)
+                        {
+                            return ($val1['sort'] - $val2['sort']);
+                        }
+                    );
+
+
+                    $sortIdPropXML[$j] = array_map(
+                        function ($data_sort)
+                        {
+                            return $data_sort['code'];
+                        }, $sortIdPropXML[$j]
+                    );
+                } else {
+                    $sortIdPropXML[$j] = !empty($sortIdPropXML[$j]['code']) ? array($sortIdPropXML[$j]['code']) : '';
+                }
+
+                $return[$index][$returnId][$condId]['BITRIX'][1] = $sortIdPropXML[$j];
+            }
+
+            if (count($sortIdPropCODE[$j]) > 0) {
+                if(!empty($sortIdPropCODE[$j]) && is_array(reset($sortIdPropCODE[$j]))) {
+                    usort(
+                        $sortIdPropCODE[$j], function ($val1, $val2) {
+                        return ($val1['sort'] - $val2['sort']);
+                    }
+                    );
+
+                    $sortIdPropCODE[$j] = array_map(
+                        function ($data_sort) {
+                            return $data_sort['code'];
+                        }, $sortIdPropCODE[$j]
+                    );
+                } else {
+                    $sortIdPropCODE[$j] = !empty($sortIdPropCODE[$j]['code']) ? array($sortIdPropCODE[$j]['code']) : '';
+                }
+                $return[$index][$returnId][$condId]['MISSSHOP'][1] = $sortIdPropCODE[$j];
+            }
+            ///////////////////////////////
+
             $index++;
         }
- 
+
         return $return;
     }
 
     private function GetListOfPropsByIblock($IdIblock)
     {
         $rsProps = CIBlockProperty::GetList( array(
-                "SORT" => "ASC",
-                'ID' => 'ASC'
+            "SORT" => "ASC",
+            'ID' => 'ASC'
         ), array(
-                "IBLOCK_ID" => $IdIblock,
-                "ACTIVE" => "Y"
+            "IBLOCK_ID" => $IdIblock,
+            "ACTIVE" => "Y"
         ) );
         while ( $arProp = $rsProps->Fetch() )
         {
@@ -727,13 +787,13 @@ class CSeoMetaSitemap extends CCSeoMeta
                     $return["FILTER"][$IdProperty]['TYPE'][] = strtoupper($PriceType);
                     $return["FILTER"][$IdProperty]['ID'][] = $IdProperty;
                     $return["FILTER"][$IdProperty]['VALUE'][] = $ConditionValue;
-                    
+
                     self::$AllPropsForSortByIblock["FILTER"]['filter'.$IdProperty][] = $return["FILTER"][$IdProperty];
                 }
                 else
                 {
                     $resProperty = CIBlockProperty::GetByID( $IdProperty, $IdIblock, false );
-                    
+
                     if ($arProperty = $resProperty->GetNext())
                     {
                         if ($arProperty['PROPERTY_TYPE'] == 'L') // list
@@ -758,9 +818,9 @@ class CSeoMetaSitemap extends CCSeoMeta
             elseif (($PriceType == 'Min' || $PriceType == 'Max') && $PriceCode != "")
             {
                 $res = CCatalogGroup::GetListEx( array(), array(
-                        '=NAME' => $PriceCode
+                    '=NAME' => $PriceCode
                 ), false, false, array(
-                        'ID'
+                    'ID'
                 ) );
                 if ($group = $res->Fetch())
                 {
@@ -807,10 +867,10 @@ class CSeoMetaSitemap extends CCSeoMeta
                 // Get all values of property - need for xml_id
                 $AllProps = array();
                 $property_enums = CIBlockPropertyEnum::GetList( Array(
-                        "SORT" => "ASC"
+                    "SORT" => "ASC"
                 ), Array(
-                        "IBLOCK_ID" => $IdIblock,
-                        "PROPERTY_ID" => $IdProperty
+                    "IBLOCK_ID" => $IdIblock,
+                    "PROPERTY_ID" => $IdProperty
                 ) );
                 while ( $enum_fields = $property_enums->GetNext() )
                 {
@@ -883,20 +943,25 @@ class CSeoMetaSitemap extends CCSeoMeta
         else
         {
             $property_enums = CIBlockPropertyEnum::GetList(Array(
-                    "SORT" => "ASC"
+                "SORT" => "ASC"
             ), Array(
-                    "IBLOCK_ID" => $IdIblock,
-                    "PROPERTY_ID" => $IdProperty,
-                    "ID" => $ConditionValue
+                "IBLOCK_ID" => $IdIblock,
+                "PROPERTY_ID" => $IdProperty,
+                "ID" => $ConditionValue
             ));
 
-            if($enum_fields = $property_enums->GetNext())
-            {
-                //$return[$IdProperty]['MISSSHOP'][1][] = \CUtil::translit( $enum_fields['VALUE'], 'ru', array("replace_space" => "-", "replace_other" => "-"));
-                $return[$IdProperty]['MISSSHOP'][1][] = \CUtil::translit( $enum_fields['VALUE'], 'ru');
+            if ($enum_fields = $property_enums->GetNext()) {
+                $code_prop = \CUtil::translit($enum_fields['VALUE'], 'ru', [ "replace_space" => "-", "replace_other" => "-" ]);
+                $xml_prop = str_replace(' ', '%20', toLower($enum_fields['XML_ID']));
+
+                $return[$IdProperty]['MISSSHOP'][1][] = $code_prop;
+                //$return[$IdProperty]['MISSSHOP'][1][] = \CUtil::translit( $enum_fields['VALUE'], 'ru');
                 $return[$IdProperty]['MISSSHOP'][0][] = "";
-                $return[$IdProperty]['BITRIX'][0][] = abs( crc32( htmlspecialcharsbx( $enum_fields['ID'] ) ) );
-                $return[$IdProperty]['BITRIX'][1][] = str_replace(' ', '%20', toLower($enum_fields['XML_ID']));
+                $return[$IdProperty]['BITRIX'][0][] = abs(crc32(htmlspecialcharsbx($enum_fields['ID'])));
+                $return[$IdProperty]['BITRIX'][1][] = $xml_prop;
+
+                $return[$IdProperty]['SORT_XML'] = [ "code" => $xml_prop, "sort" => $enum_fields['SORT'] ];
+                $return[$IdProperty]['SORT_CODE'] = [ "code" => $code_prop, "sort" => $enum_fields['SORT'] ];
                 $return[$IdProperty]['ORIGIN_VALUE'] = $enum_fields['VALUE'];
             }
             else
@@ -940,12 +1005,12 @@ class CSeoMetaSitemap extends CCSeoMeta
                 $return[$IdProperty]['BITRIX'][1][] = rawurlencode(strtolower($GLOBALS['APPLICATION']->ConvertCharset($ar_res['NAME'], SITE_CHARSET, 'UTF-8')));
                 $return[$IdProperty]['ORIGIN_VALUE'] = $ar_res['NAME'];
             }
-            
+
             $return[$IdProperty]['MISSSHOP'][1] = self::GetArray( $return[$IdProperty]['MISSSHOP'][1] );
             $return[$IdProperty]['MISSSHOP'][0] = self::GetArray( $return[$IdProperty]['MISSSHOP'][0] );
             $return[$IdProperty]['BITRIX'][0] = self::GetArray( $return[$IdProperty]['BITRIX'][0] );
             $return[$IdProperty]['BITRIX'][1] = self::GetArray( $return[$IdProperty]['BITRIX'][1] );
-            
+
             if (count( $return[$IdProperty]['MISSSHOP'][1] ) > 0){
                 foreach ( $return[$IdProperty]['MISSSHOP'][1] as $AllVal )
                 {
@@ -1012,10 +1077,10 @@ class CSeoMetaSitemap extends CCSeoMeta
                     $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity( $HLBlock );
                     $main_query = new Entity\Query( $entity );
                     $main_query->setSelect( array(
-                            "*"
+                        "*"
                     ) );
                     $main_query->setFilter( array(
-                            //'=UF_XML_ID' => $ListVals
+                        //'=UF_XML_ID' => $ListVals
                     ) );
                     $result = $main_query->exec();
                     $result = new CDBResult( $result );
@@ -1042,7 +1107,7 @@ class CSeoMetaSitemap extends CCSeoMeta
                     $AllVals['BITRIX'][0] = parent::AllCombinationsOfArrayElements( $arAllProps['BITRIX'][0] );
                     $AllVals['BITRIX'][1] = parent::AllCombinationsOfArrayElements( $arAllProps['BITRIX'][1] );
                 }
-                
+
                 if (count( $AllVals['MISSSHOP'][1] ) > 0)
                     foreach ( $AllVals['MISSSHOP'][1] as $AllVal )
                     {
@@ -1080,7 +1145,7 @@ class CSeoMetaSitemap extends CCSeoMeta
                     $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity( $HLBlock );
                     $main_query = new Entity\Query( $entity );
                     $main_query->setSelect( array(
-                            "*"
+                        "*"
                     ) );
                     //    $filter =  array(
                     //        //                        array("LOGIC" => "OR"),

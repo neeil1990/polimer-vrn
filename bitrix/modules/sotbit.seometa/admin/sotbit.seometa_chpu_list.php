@@ -81,7 +81,7 @@ if(CheckFilter())
 }
 
 if($lAdmin->EditAction())
-{   
+{
     foreach($FIELDS as $ID=>$arFields)
     {
         $TYPE = substr($ID, 0, 1);
@@ -96,13 +96,13 @@ if($lAdmin->EditAction())
             if($TYPE == "P")
             {
                 foreach($arFields as $key=>$value)
-                    $arData[$key]=$value;                                                     
+                    $arData[$key]=$value;
                 $result = SeometaUrlTable::update($ID,$arData);
                 if (!$result->isSuccess())
                 {
                     $lAdmin->AddGroupError(Loc::getMessage("SEO_META_SAVE_ERROR")." ".Loc::getMessage("SEO_META_NO_ZAPIS"), $ID);
                 }
-            }          
+            }
             else
             {
                 foreach($arFields as $key=>$value)
@@ -129,7 +129,7 @@ if($arID = $lAdmin->GroupAction())
         $rsData=SeometaUrlTable::getList(array(
             'select' => array('ID','NAME','ACTIVE','REAL_URL','NEW_URL','DATE_CHANGE'),
             'filter' =>$arFilter,
-            'order' => array($by => $order),
+            'order' => array('ID' => $order),
         ));
 
         while($arRes = $rsData->Fetch())
@@ -152,17 +152,17 @@ if($arID = $lAdmin->GroupAction())
             $arSection["T"]="S";
             $arSection['ID']="S".$arSection['ID'];
             $arID[]=$arSection;
-        } 
+        }
     }
 
     foreach($arID as $ID)
-    {    
+    {
         $TYPE = substr($ID, 0, 1);
         $ID = intval(substr($ID,1));
 
         if(strlen($ID)<=0)
         continue;
-        $ID = IntVal($ID);  
+        $ID = IntVal($ID);
 
         switch($_REQUEST['action'])
         {
@@ -204,7 +204,7 @@ if($arID = $lAdmin->GroupAction())
                         $lAdmin->AddGroupError(Loc::getMessage("SEO_META_SAVE_ERROR")." ".Loc::getMessage("SEO_META_NO_ZAPIS"), $ID);
                 }
                 break;
-            case "copy": 
+            case "copy":
                 if($TYPE == "P")
                 {
                     $conditionRes = SeometaUrlTable::getById($ID);
@@ -248,7 +248,7 @@ if($arID = $lAdmin->GroupAction())
             break;
         }
     }
-}   
+}
 
 $show = "all";
 if(isset($_REQUEST["show_sp"]) && $_REQUEST["show_sp"]=="all")
@@ -260,7 +260,7 @@ elseif(isset($_REQUEST["show_sp"]) && $_REQUEST["show_sp"]=="section")
 {
     $show = "section";
     unset($arFilter["CATEGORY_ID"]);
-} 
+}
 
 $filter = $arFilter;
 if($show == "all" || $show == "section")
@@ -292,12 +292,10 @@ if($show == "all" || $show == "section")
 if(!isset($arFilter['CATEGORY_ID']))
     $arFilter['CATEGORY_ID'] = 0;
 
-
-
 $rsData = SeometaUrlTable::getList(array(
     'select' => array('ID', 'NAME', 'CONDITION_ID', 'ACTIVE', 'REAL_URL', 'NEW_URL', 'IN_SITEMAP', 'iblock_id', 'section_id', 'PRODUCT_COUNT', 'DATE_CHANGE', 'PROPERTIES'),
     'filter' => $arFilter,
-    'order' => array($by => $order),
+    'order' => array('ID' => $order),
 ));
 
 if(isset($rsData))
@@ -403,9 +401,9 @@ while($arRes = $rsData->NavNext(true, "f_"))
     }
     else
     {
-        $iblock = CIBlock::GetByID($arRes['iblock_id'])->fetch(); 
+        $iblock = CIBlock::GetByID($arRes['iblock_id'])->fetch();
         $section = CIBlockSection::GetByID($arRes['section_id'])->fetch();
-        
+
         $props = unserialize($arRes['PROPERTIES']);
         $pr = '';
         if(is_array(($props)))
@@ -430,7 +428,7 @@ while($arRes = $rsData->NavNext(true, "f_"))
         $row->AddViewField("DATE_CHANGE", $arRes['DATE_CHANGE']);
     }
 
-    $arActions = Array();                      
+    $arActions = Array();
     if($f_T=='P')
     {
         $arActions[] = array(
@@ -448,20 +446,20 @@ while($arRes = $rsData->NavNext(true, "f_"))
             "TEXT"=>Loc::getMessage("SEO_META_EDIT"),
             "ACTION"=>$lAdmin->ActionRedirect("sotbit.seometa_section_chpu_edit.php?ID=".$f_ID)
         );
-    }                                          
+    }
     $arActions[] = array(
             "ICON"=>"copy",
             "DEFAULT"=>true,
             "TEXT"=>Loc::getMessage("SEO_META_COPY"),
             "ACTION"=>$lAdmin->ActionDoGroup($f_T.$f_ID, "copy",'parent='.$parent)
-    );                                         
+    );
     if ($POST_RIGHT>="W"){
         $arActions[] = array(
             "ICON"=>"delete",
             "TEXT"=>Loc::getMessage("SEO_META_DEL"),
             "ACTION"=>"if(confirm('".Loc::getMessage('SEO_META_DEL_CONF')."')) ".$lAdmin->ActionDoGroup($f_T.$f_ID, "delete")
-        );                
-    }                                          
+        );
+    }
     $arActions[] = array("SEPARATOR"=>true);
     if(is_set($arActions[count($arActions)-1], "SEPARATOR"))
         unset($arActions[count($arActions)-1]);

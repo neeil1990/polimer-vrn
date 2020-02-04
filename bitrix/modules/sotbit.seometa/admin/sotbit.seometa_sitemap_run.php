@@ -8,7 +8,8 @@ use Sotbit\Seometa\SitemapTable;
 use Sotbit\Seometa\ConditionTable;
 use Sotbit\Seometa\SeometaUrlTable;
 use Bitrix\Main\Loader;
-
+use Bitrix\Seo\SitemapRuntime;
+set_time_limit(10800);
 Loc::loadMessages(__FILE__);
 
 if(!$USER->CanDoOperation('sotbit.seometa'))
@@ -88,27 +89,12 @@ $mainSitemapUrl = $arSite['ABS_DOC_ROOT'] . $arSite['DIR'] . $mainSitemapName;
 
 if(file_exists($mainSitemapUrl))
 {
-    $FoundSeoMetaSitemap = false;
-    $xml = simplexml_load_file($mainSitemapUrl);
-
-    for($i = 0; $i < count($xml->sitemap); $i++)
-    {
-        if(isset($xml->sitemap[$i]->loc) && $xml->sitemap[$i]->loc == $SiteUrl . '/sitemap_seometa_' . $ID . '.xml')
-        {
-            $FoundSeoMetaSitemap = true;
-            $xml->sitemap[$i]->lastmod = date('Y-m-d\TH:i:sP');
-        }
+    if(isset($action) && ($action == 'get_section_list')){
+        file_put_contents($_SERVER['DOCUMENT_ROOT']. '/seometa_link_count.txt', '0');
+        $link = \Sotbit\Seometa\Helper\Link::getInstance();
+        echo json_encode($link->getSectionList($ID));
+        exit;
     }
-
-    if(!$FoundSeoMetaSitemap) // if sitemap_seometa is not found then add it to main sitemap
-    {
-        $NewSitemap = $xml->addChild("sitemap");
-        $NewSitemap->addChild("loc", $SiteUrl . '/sitemap_seometa_' . $ID . '.xml');
-        $NewSitemap->addChild("lastmod", date('Y-m-d\TH:i:sP'));
-//        $NewSitemap->addChild("lastmod", (isset($arSitemap['DATE_RUN']) && !empty($arSitemap['DATE_RUN'])) ? str_replace(' ', 'T', date('Y-m-d H:i:sP', strtotime($arSitemap['DATE_RUN']))) : str_replace(' ', 'T', date('Y-m-d H:i:sP', strtotime($arSitemap['TIMESTAMP_CHANGE']))));
-    }
-
-    file_put_contents($mainSitemapUrl, $xml->asXML());
 
     // START GENERATE XML ARRAY
     $rsCondition = ConditionTable::getList(array(
@@ -134,20 +120,17 @@ if(file_exists($mainSitemapUrl))
     ));
 
     $connection = Application::getConnection();
-    $writer = \Sotbit\Seometa\Link\XmlWriter::getInstance($ID, $arSite['ABS_DOC_ROOT'] . $arSite['DIR'], $SiteUrl);
+    $writer = \Sotbit\Seometa\Link\XmlWriter::getInstance($ID, $arSite['ABS_DOC_ROOT'] . $arSite['DIR'], $SiteUrl, $iteration);
 
-    //$start = microtime(true);
-
+    $i = 0;
     while($arCondition = $rsCondition->Fetch())
     {
-        // if condition belongs to the site for which sitemap is generated
         if(in_array($arSitemap['SITE_ID'], unserialize($arCondition['SITES'])))
         {
             $rule = unserialize($arCondition['RULE']);
             if(empty($rule['CHILDREN']))
                 continue;
 
-            // reset all 'IN_SITEMAP' statuses before new generation of sitemap
             $arrIds = SeometaUrlTable::getArrIdsByConditionId($arCondition['ID']);
             if($arrIds)
             {
@@ -156,24 +139,20 @@ if(file_exists($mainSitemapUrl))
             }
 
             $link = \Sotbit\Seometa\Helper\Link::getInstance();
-            $link->Generate($arCondition['ID'], $writer);
-
-            // if regeneration option is enabled
-            //$writerForRegenerate = \Sotbit\Seometa\Link\ChpuWriter::getWriterForSitemap($arCondition['ID']);
-            //$link->Generate($arCondition['ID'], $writerForRegenerate);
+            if (isset($currentSection) && is_array($currentSection)) {
+                foreach ($currentSection as $section) {
+                    $link->Generate($arCondition['ID'], $writer, array($section));
+                }
+            } else {
+                $link->Generate($arCondition['ID'], $writer);
+            }
         }
     }
 
-    //echo 'Execution Time: ' . round(microtime(true) - $start, 4) . ' sec.';
-
     $writer->WriteEnd();
+    $writer->writeMainSiteMap();
 
     SitemapTable::update($ID, array('DATE_RUN' => new Bitrix\Main\Type\DateTime()));
-    ?>
-    <script>
-        top.BX.finishSitemap();
-    </script>
-    <?
 }
 else
 {

@@ -30,7 +30,7 @@ class Link
         return $this->transliteRules[$IblockID];
     }
 
-    public function Generate($id = false, \Sotbit\Seometa\Link\AbstractWriter $writer)
+    public function Generate($id = false, \Sotbit\Seometa\Link\AbstractWriter $writer, $sectionList = false)
     {
         if($id === false)
             return;
@@ -51,7 +51,12 @@ class Link
         $writer->SetCondition($arCondition);
 
         \Bitrix\Main\Loader::includeModule('iblock');
-        $ConditionSections = unserialize($arCondition['SECTIONS']);
+
+        if (is_array($sectionList) && count($sectionList) > 0){
+            $ConditionSections = $sectionList;
+        } else {
+            $ConditionSections = unserialize($arCondition['SECTIONS']);
+        }
 
         if(!is_array($ConditionSections) || count($ConditionSections) < 1) // If dont check sections
         {
@@ -208,22 +213,22 @@ class Link
                             $prop = self::$arrayProps[$CondValProps['IBLOCK_ID']][$CondValProps['CODE']];
                         else
                             self::$arrayProps[$CondValProps['IBLOCK_ID']][$CondValProps['CODE']] =
-                                $prop = \CIBlockProperty::GetList(
-                                    array(
-                                        "SORT" => "ASC",
-                                        'ID' => 'ASC'
-                                    ),
-                                    array(
-                                        "IBLOCK_ID" => $CondValProps['IBLOCK_ID'],
-                                        "CODE" => $CondValProps['CODE'],
-                                        "ACTIVE" => "Y"
-                                    )
-                                )->fetch();
+                            $prop = \CIBlockProperty::GetList(
+                                array(
+                                    "SORT" => "ASC",
+                                    'ID' => 'ASC'
+                                ),
+                                array(
+                                    "IBLOCK_ID" => $CondValProps['IBLOCK_ID'],
+                                    "CODE" => $CondValProps['CODE'],
+                                    "ACTIVE" => "Y"
+                                )
+                            )->fetch();
                         if(isset($CondValProps['VALUE']) && !is_null($CondValProps['VALUE']))
                         {
                             if($prop_string_values[$prop['ID']] == NULL)
                                 $prop_string_values[$prop['ID']] = array();
-                                
+
                             if(is_array($CondValProps['VALUE']))
                                 $prop_string_values[$prop['ID']] = array_merge($prop_string_values[$prop['ID']], $CondValProps['VALUE']);
                             else
@@ -318,7 +323,7 @@ class Link
                 $writerType = get_class($writer);
                 $count = $obFilter->ProductCount($writerType);
 
-				if($count < 1)
+                if($count < 1)
                     continue;
 
                 $res1['properties'] = array();
@@ -334,6 +339,7 @@ class Link
                     }
 
                 $res1['real_url'] = $LOC;
+                $res1['active'] = \Bitrix\Main\Config\Option::get("sotbit.seometa", "IS_SET_ACTIVE");
                 $res1['new_url'] = strtolower($newMask->GetMask());
                 $res1['section_id'] = $section['ID'];
                 $res1['name'] = $name;
@@ -343,8 +349,53 @@ class Link
                 $res1['strict_relinking'] = $arCondition['STRICT_RELINKING'];
                 $writer->Write($res1);
             }
-            
+
         }
+    }
+
+    public function getSectionList($id = false, $mode = false){
+        if($id === false)
+            return false;
+
+        if($mode) {
+            $arCondition = \Sotbit\Seometa\ConditionTable::getById($id)->fetch();
+            $ConditionSections = unserialize($arCondition['SECTIONS']);
+        } else {
+            $ConditionSections = array();
+            $resCondition = \Sotbit\Seometa\ConditionTable::getList();
+            while ($condition = $resCondition->fetch()) {
+                $result = unserialize($condition['SECTIONS']);
+                if (is_array($result)) {
+                    $ConditionSections = array_merge($ConditionSections, $result);
+                }
+            }
+        }
+
+//        $ConditionSections = unserialize($arCondition['SECTIONS']);
+
+        if(count($ConditionSections) < 1) // If dont check sections
+        {
+            $ConditionSections = array();
+            $rsSections = \CIBlockSection::GetList(
+                array(
+                    'SORT' => 'ASC'
+                ),
+                array(
+                    'ACTIVE' => 'Y',
+                    'IBLOCK_ID' => ($mode ? $arCondition : $condition['INFOBLOCK'])
+                ),
+                false,
+                array(
+                    'ID'
+                )
+            );
+            while($arSection = $rsSections->GetNext())
+            {
+                $ConditionSections[] = $arSection['ID'];
+            }
+        }
+
+        return $ConditionSections;
     }
 }
 ?>

@@ -13,10 +13,4 @@ $MESS["SEO_META_TABLE_URL_TO"] = "Куда совершен переход";
 $MESS["SEO_META_TABLE_PAGES_COUNT"] = "Просмотрено страниц";                                        
 $MESS["SEO_META_TABLE_DATE_CREATE"] = "Время перехода";                                        
 $MESS["SEO_META_TABLE_SUMMARY"] = "Общая сумма заказов:";                                        
-$MESS[""] = "";                                        
-$MESS[""] = "";                      
-$MESS[""] = "";                      
-$MESS[""] = "";                      
-$MESS[""] = "";                      
-$MESS[""] = "";
 ?>

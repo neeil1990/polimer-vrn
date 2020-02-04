@@ -29,8 +29,9 @@ echo "<link rel='stylesheet' href='/bitrix/panel/catalog/catalog_cond.css'>";
 $id_module = 'sotbit.seometa';
 Loader::includeModule('iblock');
 
-if (!Loader::includeModule( 'iblock' ) || !Loader::includeModule( $id_module ))
-	die();
+if (!Loader::includeModule('iblock') || !Loader::includeModule($id_module)) {
+    die();
+}
 
 //$CCSeoMeta = new CCSeoMeta();
 //if (!$CCSeoMeta->getDemo())
@@ -112,10 +113,6 @@ if($ID > 0)
 	$condition = $conditionRes->fetch();
 }
 
-//print_r($condition);
-
-//printr(unserialize($condition["RULE"]));
-
 if (isset( $_REQUEST["NAME"] ) && $_REQUEST["NAME"])
 	$condition["NAME"] = $_REQUEST["NAME"];
 if (isset( $_REQUEST["ACTIVE"] ) && $_REQUEST["ACTIVE"])
@@ -158,6 +155,10 @@ if (isset( $_REQUEST["CONDITION_TAG"] ) && $_REQUEST["CONDITION_TAG"])
 	$condition["CONDITION_TAG"] = $_REQUEST["CONDITION_TAG"];
 if (isset( $_REQUEST["STRICT_RELINKING"] ) && $_REQUEST["STRICT_RELINKING"])
 	$condition["STRICT_RELINKING"] = $_REQUEST["STRICT_RELINKING"];
+if (isset( $_REQUEST["GENERATE_AJAX"] ) && $_REQUEST["GENERATE_AJAX"])
+	$condition["GENERATE_AJAX"] = $_REQUEST["GENERATE_AJAX"];
+
+
 
 $message = null;
 // ACTION
@@ -200,11 +201,35 @@ if (isset( $_REQUEST['action'] ))
 	}
 	elseif ($_REQUEST['action'] == "generate_chpu")
 	{
+	    $sectionId = false;
+	    $isProgress = false;
+	    $isError = false;
+
+	    if (isset($_REQUEST['currentSection']) && ($_REQUEST['currentSection'] != ''))
+            $sectionId = array($_REQUEST['currentSection']);
+	    if (isset($_REQUEST['isProgress']) && ($_REQUEST['isProgress'] > 0))
+            $isProgress = true;
+	    if (isset($_REQUEST['isError']) && $_REQUEST['isError'] !== 'false')
+            $isError = true;
 		if ($ID > 0) {
 			//\Bitrix\Main\Loader::includeModule('sotbit.seometa');
-			$chpu = ConditionTable::generateUrlForCondition($ID);
+			$chpu = ConditionTable::generateUrlForCondition($ID, $sectionId, $isProgress, $isError);
 		}
 	}
+	elseif ($_REQUEST['action'] == "get_section_list")
+	{
+        $sectionList = ConditionTable::getSectionList($ID, true);
+        echo json_encode($sectionList);
+        die;
+	}
+	elseif ($_REQUEST['action'] == "delete_last_chpu"){
+        if (isset($_REQUEST['currentSection']) && ($_REQUEST['currentSection'] != '')){
+            $sectionId = array($_REQUEST['currentSection']);
+            if (is_array($sectionId))
+                \Sotbit\Seometa\SeometaUrlTable::deleteBySectionId($sectionId[0]);
+        }
+        die;
+    }
 }
 
 // POST
@@ -224,7 +249,7 @@ if ($REQUEST_METHOD == "POST" && ($save != "" || $apply != "") && $POST_RIGHT ==
         $arELEMENT_FILE = \CIBlock::makeFileArray($ELEMENT_FILE);
         $fid = CFile::SaveFile($arELEMENT_FILE, "seometa");
     }
-    
+
 	$META_TEMPLATE['ELEMENT_TOP_DESC'] = $ELEMENT_TOP_DESC;
 	$META_TEMPLATE['ELEMENT_BOTTOM_DESC'] = $ELEMENT_BOTTOM_DESC;
 	$META_TEMPLATE['ELEMENT_ADD_DESC'] = $ELEMENT_ADD_DESC;
@@ -232,13 +257,23 @@ if ($REQUEST_METHOD == "POST" && ($save != "" || $apply != "") && $POST_RIGHT ==
 	$META_TEMPLATE['ELEMENT_BOTTOM_DESC_TYPE'] = $ELEMENT_BOTTOM_DESC_TYPE;
     $META_TEMPLATE['ELEMENT_ADD_DESC_TYPE'] = $ELEMENT_ADD_DESC_TYPE;
     $META_TEMPLATE['ELEMENT_FILE'] = $fid;
-    
+
     if(isset($ELEMENT_FILE_del) && $ELEMENT_FILE_del == 'Y')
         unset($META_TEMPLATE['ELEMENT_FILE']);
-   
-	$CONDITIONS = '';
-	$obCond3 = new SMCondTree();
-	$boolCond = $obCond3->Init( BT_COND_MODE_PARSE, BT_COND_BUILD_CATALOG, array() );
+
+
+    foreach ($META_TEMPLATE as $key => $value) {
+
+        if ($key == 'ELEMENT_FILE') {
+            continue;
+        }
+
+        $META_TEMPLATE[$key] = \Bitrix\Main\Text\Emoji::encode($value);
+
+    }
+    $CONDITIONS = '';
+    $obCond3 = new SMCondTree();
+    $boolCond = $obCond3->Init(BT_COND_MODE_PARSE, BT_COND_BUILD_CATALOG, []);
 
 	$CONDITIONS = $obCond3->Parse( $rule );
 	if (!isset( $SITES ))
@@ -264,9 +299,10 @@ if ($REQUEST_METHOD == "POST" && ($save != "" || $apply != "") && $POST_RIGHT ==
 		"STRICT_RELINKING" => ($STRICT_RELINKING != "Y" ? "N" : "Y"),
 		"PRIORITY" => $PRIORITY,
 		"CHANGEFREQ" => $CHANGEFREQ,
-		"FILTER_TYPE" => $FILTER_TYPE
+		"FILTER_TYPE" => $FILTER_TYPE,
+        "GENERATE_AJAX" => ($GENERATE_AJAX == "Y" ? "Y" : "N")
 	);
-	
+
 	if ($ID > 0)
 	{
 		$result = ConditionTable::update( $ID, $arFields );
@@ -468,7 +504,7 @@ if ($condition["TYPE_OF_INFOBLOCK"])
 	{
 		array_push( $catalogs, $arIBlock['IBLOCK_ID'] );
 	}
-	
+
 	$rsIBlock = CIBlock::GetList(
 		array(
 			"sort" => "asc"
@@ -997,7 +1033,6 @@ $tabControl->BeginNextFormTab(); // Metatags ?>
 <?$tabControl->EndCustomField("ELEMENT_ADD_DESC");?>
 
 
-
 <?
 $tabControl->BeginCustomField("ELEMENT_FILE", GetMessage('SEO_META_EDIT_FILE'),false);
 ?>
@@ -1019,7 +1054,6 @@ $tabControl->BeginCustomField("ELEMENT_FILE", GetMessage('SEO_META_EDIT_FILE'),f
 <?
 $tabControl->EndCustomField("ELEMENT_FILE");
 ?>
-
 
 
 <?
@@ -1080,7 +1114,9 @@ $rs = \Sotbit\Seometa\ConditionTable::getList(array('select' => array('NAME','ID
 <?$tabControl->EndCustomField("CONDITION_TAG");
 
 
-$tabControl->BeginCustomField("META_NOTE", "");?>
+$tabControl->BeginCustomField("META_NOTE", "");
+\Bitrix\Main\UI\Extension::load("ui.hint");
+?>
 <tr>
 	<td colspan="3" align="center">
 		<div class="adm-info-message-wrap">
@@ -1090,6 +1126,11 @@ $tabControl->BeginCustomField("META_NOTE", "");?>
 		</div>
 	</td>
 </tr>
+<script type="text/javascript">
+    BX.ready(function() {
+        BX.UI.Hint.init(BX('my-container'));
+    })
+</script>
 <?$tabControl->EndCustomField("META_NOTE");
 
 
@@ -1122,15 +1163,17 @@ $tabControl->BeginCustomField( "TEMPLATE_NEW_URL", '', false );
 <?php
 $tabControl->EndCustomField("TEMPLATE_NEW_URL");
 
-
 $tabControl->BeginCustomField( "BUTTON_GENERATE", '', false );
 ?>
 <tr>
 	<td></td>
 	<td>
-		<a class="adm-btn" href="sotbit.seometa_edit.php?ID=<?php echo $ID?>&action=generate_chpu&lang=<?php echo LANG?>"><?php echo GetMessage('SEO_META_GENERATE_CHPU')?></a>
+		<a class="adm-btn" id="generate_button" href="sotbit.seometa_edit.php?ID=<?php echo $ID?>&action=generate_chpu&lang=<?php echo LANG?>"><?php echo GetMessage('SEO_META_GENERATE_CHPU')?></a>
 	</td>
 </tr>
+<?php
+    $tabControl->AddCheckBoxField( "GENERATE_AJAX", GetMessage( "SEO_META_GENERATE_AJAX" ), false, "Y", ($condition['GENERATE_AJAX'] == "Y") );
+?>
 <tr>
 	<td></td>
 	<td>
@@ -1139,8 +1182,126 @@ $tabControl->BeginCustomField( "BUTTON_GENERATE", '', false );
 		<?=EndNote();?>
 	</td>
 </tr>
+<script type="text/javascript">
+    BX.ready(function() {
+        $('#generate_button').click(function (e) {
+            if ($( "input[name*='GENERATE_AJAX']" ).attr("checked") !== "checked"){
+                var originHref = document.getElementById("generate_button").href;
+                originHref = originHref + "&tabControl_active_tab=" + getActiveTab();
+                document.getElementById("generate_button").href = originHref;
+                return;
+            }
+            var sefQuantity = 0, sectionArray = [];
+            e.preventDefault();
+            $.ajax({
+                url: 'sotbit.seometa_edit.php?ID=' + <?= CUtil::PhpToJSObject($ID, false, true) ?> + '&action=get_section_list&lang=' + <?= CUtil::PhpToJSObject(LANG, false, true) ?>,
+                method: 'POST',
+                dataType: 'html',
+                timeout: 5000,
+                success: function (result) {
+                    if (typeof result === 'string'){
+                        sectionArray = JSON.parse(result.replace(new RegExp("<.{1,}>",'g'), ''));
+                        if (Array.isArray(sectionArray)){
+                            sefQuantity = sectionArray.length;
+                            $('.ui-progressbar-text-after').text('0' + '<?=Loc::getMessage("SEO_META_SEF_FROM")?>' + sefQuantity);
+                            $('.ui-progressbar').css('display', 'flex');
+                            generateSef(sefQuantity, 0, sectionArray);
+                        } else {
+                        }
+                    }
+                },
+                error: function (result) {
+                    $('.ui-progressbar-bar').addClass('ui-progressbar-danger');
+                }
+            });
+        });
+
+        function generateSef(sefQuantity, start, sectionArray, timeOut, errorCount) {
+            var step = 1, isProgress = false, isError = false;
+            if (typeof(timeOut) == 'undefined'){
+                timeOut = 5000;
+            } else {
+                isError = true;
+                if (typeof (errorCount) == 'number'){
+                    errorCount++;
+                } else {
+                    errorCount = 0;
+                }
+            }
+
+            if (start >= sefQuantity){
+                $('.ui-progressbar-bar').css('width', 100 + '%');
+                $('.ui-progressbar-bar').addClass('ui-progressbar-success');
+                $('.ui-progressbar-text-after').text(sefQuantity + '<?=Loc::getMessage("SEO_META_SEF_FROM")?>' + sefQuantity);
+                location.assign( 'sotbit.seometa_edit.php?ID=' + <?= CUtil::PhpToJSObject($ID, false, true) ?> + '&tabControl_active_tab=' + getActiveTab() + '&lang=' + <?= CUtil::PhpToJSObject(LANG, false, true) ?>);
+                return;
+
+            }
+
+            $.ajax({
+                url: 'sotbit.seometa_edit.php?ID=' + <?= CUtil::PhpToJSObject($ID, false, true) ?> + '&action=generate_chpu&lang=' + <?= CUtil::PhpToJSObject(LANG, false, true) ?>,
+                method: 'POST',
+                dataType: 'html',
+                timeout: timeOut,
+                data: { currentSection: sectionArray[start],
+                        isProgress: start,
+                        isError: isError
+                        },
+                success: function (result) {
+                    start++;
+                    $('.ui-progressbar-bar').removeClass('ui-progressbar-danger');
+                    $('.ui-progressbar-bar').css('width', start*100/sefQuantity + '%');
+                    $('.ui-progressbar-text-after').text(start + '<?=Loc::getMessage("SEO_META_SEF_FROM")?>' + sefQuantity);
+                    generateSef(sefQuantity, start, sectionArray);
+                },
+                error: function (result) {
+                    $('.ui-progressbar-bar').addClass('ui-progressbar-danger');
+                    if (errorCount >= 1){
+                        $.ajax({
+                            url: 'sotbit.seometa_edit.php?ID=' + <?= CUtil::PhpToJSObject($ID, false, true) ?> + '&action=delete_last_chpu&lang=' + <?= CUtil::PhpToJSObject(LANG, false, true) ?>,
+                            method: 'POST',
+                            dataType: 'html',
+                            data: { currentSection: sectionArray[start] },
+                            success: function (result) {
+                            },
+                            error: function (result) {
+                                return;
+                            }
+                        });
+                    }
+                    else
+                    {
+                        generateSef(sefQuantity, start, sectionArray, timeOut*1.5, errorCount);
+                    }
+                }
+            });
+        }
+        function getActiveTab() {
+            var activeTabId = '';
+            activeTabId = $('.adm-detail-tab-active').attr('id');
+            activeTabId = activeTabId.replace('tab_cont_','');
+            return activeTabId;
+        }
+    })
+</script>
 <?php
 $tabControl->EndCustomField("BUTTON_GENERATE");
+
+
+\Bitrix\Main\UI\Extension::load("ui.progressbar");
+$tabControl->BeginCustomField( "PROGRESSBAR", '', false );
+?>
+    <!-- .ui-progressbar > .ui-progressbar-text-before + (.ui-progressbar-track > .ui-progressbar-bar) + .ui-progressbar-text-after -->
+    <div class="ui-progressbar ui-progressbar-lg" style="display: none;">
+        <div class="ui-progressbar-text-before"><?=Loc::getMessage("SEO_META_SEF_GENERATION")?></div>
+        <div class="ui-progressbar-track">
+            <div class="ui-progressbar-bar" style="width: 0%"></div>
+        </div>
+        <div class="ui-progressbar-text-after"></div>
+    </div>
+<?php
+$tabControl->EndCustomField("PROGRESSBAR");
+
 
 
 $tabControl->BeginCustomField("CHPU_LIST", '',false);

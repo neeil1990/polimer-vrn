@@ -76,7 +76,7 @@ $filter = $arFilter;
 $rsData = SeometaUrlTable::getList(array(
     'select' => array('ID', 'NAME', 'ACTIVE', 'REAL_URL', 'NEW_URL', 'STATUS', 'DESCRIPTION', 'KEYWORDS', 'TITLE', 'DATE_SCAN'),
     'filter' => $arFilter,
-    'order' => array($by => $order),
+    'order' => array("ID" => $order),
 ));
 
     while($arRes = $rsData->Fetch())

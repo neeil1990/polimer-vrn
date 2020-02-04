@@ -2,43 +2,37 @@
 use Bitrix\Main\Loader;
 use Sotbit\Seometa\SeometaUrlTable;
 use Sotbit\Seometa\SectionUrlTable;
+use Bitrix\Main\Entity\Query;
+use Bitrix\Main\Entity\ExpressionField;
 
 Loader::includeModule('iblock');
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
-    die(); 
-global $APPLICATION, $DB;   
+    die();
+global $APPLICATION, $DB;
 if ((false == defined('B_ADMIN_SUBCHPU')) || (1 != B_ADMIN_SUBCHPU))
     return '';
 if (false == defined('B_ADMIN_SUBCHPU_LIST'))
-    return '';     
+    return '';
 $POST_RIGHT = $APPLICATION->GetGroupRight("sotbit.seometa");
 if($POST_RIGHT=="D")
-    $APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));    
+    $APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
 
 $CCSeoMeta= new CCSeoMeta();
 if(!$CCSeoMeta->getDemo())
-    return '';                                  
+    return '';
 $id_module='sotbit.seometa';
 Loader::includeModule($id_module);
 if ($_REQUEST['mode']=='list' || $_REQUEST['mode']=='frame')
     CFile::DisableJSFunction(true);
 $strSubElementAjaxPath = '/bitrix/admin/seometa_subchpu_admin.php?lang='.LANGUAGE_ID.'&ID='.intval($_REQUEST['ID']);
+//$strSubElementAjaxPath = '/bitrix/admin/seometa_subchpu_admin.php';
 $strSubElementAjaxPath = trim($strSubElementAjaxPath);
 IncludeModuleLangFile(__FILE__);
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/iblock/classes/general/subelement.php');
 $sTableID = "b_sotbit_seometa_chpu";
-$arHideFields = array('ID');   
+$arHideFields = array('ID');
 $lAdmin = new CAdminSubList($sTableID, false, $strSubElementAjaxPath, false);
-
-/*
-function CheckFilter()
-{
-    global $FilterArr, $lAdmin;
-    foreach ($FilterArr as $f) global $$f;
-    return count($lAdmin->arFilterErrors)==0;
-}
-*/
 
 $parentID = 0;
 if(isset($_REQUEST["parent"]) && $_REQUEST["parent"])
@@ -49,23 +43,10 @@ if(isset($_REQUEST["parent"]) && $_REQUEST["parent"])
 if(isset($parentID) && $parentID>0)
     $ParentUrl='&section='.$parentID;
 else
-    $ParentUrl='';                             
+    $ParentUrl='';
 
 $arFilterChpu["CATEGORY_ID"] = intval($parentID);
 $arFilterChpu['CONDITION_ID'] = $ID;
-
-$rsSection = SectionUrlTable::getList(array(
-            'limit' =>null,
-            'offset' => null,
-            'select' => array("*"),
-            "filter" => array("PARENT_CATEGORY_ID" => $arFilterChpu["CATEGORY_ID"]),
-));
-while($arSection = $rsSection->Fetch())
-{
-    $arSection["T"]="S";
-    $arResult[]=$arSection;
-}
-unset($rsSection);
 
 if ($lAdmin->EditAction())
 {
@@ -73,7 +54,7 @@ if ($lAdmin->EditAction())
     {
         $TYPE = substr($ID, 0, 1);
         $ID = intval(substr($ID,1));
-        
+
         if ($ID <= 0 || !$lAdmin->IsUpdated($ID))
             continue;
         if($TYPE=="P"){
@@ -87,8 +68,8 @@ if ($lAdmin->EditAction())
             } else {
                 $DB->Commit();
             }
-        } else {             
-            $DB->StartTransaction();        
+        } else {
+            $DB->StartTransaction();
             if (!SectionUrlTable::Update($ID, $arFields)){
                 if ($ex = $APPLICATION->GetException())
                     $lAdmin->AddUpdateError($ex->GetString(), $ID);
@@ -102,21 +83,21 @@ if ($lAdmin->EditAction())
     }
 }
 if ($arID = $lAdmin->GroupAction())
-{                    
+{
     if ($_REQUEST['action_target']=='selected')
-    { 
+    {
         $arID = array();
         $dbResultList = SeometaUrlTable::GetList(
-            array($by => $order),
+            array("ID" => $order),
             array(),
             false,
             false,
             array("ID")
         );
-        while ($arResult = $dbResultList->Fetch()){ 
-            $arID[] = "P".$arResult['ID'];             
+        while ($arResult = $dbResultList->Fetch()){
+            $arID[] = "P".$arResult['ID'];
         }
-            
+
         $rsSection = SectionUrlTable::getList(array(
             'limit' =>null,
             'offset' => null,
@@ -124,8 +105,8 @@ if ($arID = $lAdmin->GroupAction())
             "filter" => $filter
         ));
         while($arSection = $rsSection->Fetch())
-        {    
-            $arSection["T"]="S";                  
+        {
+            $arSection["T"]="S";
             $arSection['ID']="S".$arSection['ID'];
             $arID[]=$arSection;
         }
@@ -191,88 +172,195 @@ if ($arID = $lAdmin->GroupAction())
 }
 
 $lAdmin->AddHeaders(array(
-        array(  
+        array(
             "id"    =>"ID",
             "content"  =>GetMessage("SEO_META_TABLE_ID"),
-            //"sort"    =>"ID",
             "align"    =>"right",
             "default"  =>true,
         ),
-        array(  
+        array(
             "id"    =>"NAME",
             "content"  =>GetMessage("SEO_META_TABLE_TITLE"),
-            //"sort"    =>"NAME",
             "default"  =>true,
-        ),  
-        array(  
+        ),
+        array(
             "id"    =>"ACTIVE",
-            "content"  =>GetMessage("SEO_META_TABLE_ACTIVE"),   
+            "content"  =>GetMessage("SEO_META_TABLE_ACTIVE"),
             "default"  =>true,
         ),
-        array(  
+        array(
             "id"    =>"DATE_CHANGE",
-            "content"  =>GetMessage("SEO_META_TABLE_DATE_CHANGE"),   
+            "content"  =>GetMessage("SEO_META_TABLE_DATE_CHANGE"),
             "default"  =>true,
         ),
-        array(  
+        array(
             "id"    =>"REAL_URL",
-            "content"  =>GetMessage("SEO_META_TABLE_REAL_URL"), 
+            "content"  =>GetMessage("SEO_META_TABLE_REAL_URL"),
             "default"  =>true,
         ),
-        array(  
+        array(
             "id"    =>"NEW_URL",
-            "content"  =>GetMessage("SEO_META_TABLE_NEW_URL"),    
-            "default"  =>true,     
+            "content"  =>GetMessage("SEO_META_TABLE_NEW_URL"),
+            "default"  =>true,
         ),
-        array(  
+        array(
             "id"    =>"iblock_id",
             "content"  =>GetMessage("SEO_META_TABLE_IBLOCK_ID"),
             "sort"    =>"iblock_id",
             "default"  =>true,
-        ),    
-        array(  
+        ),
+        array(
             "id"    =>"section_id",
             "content"  =>GetMessage("SEO_META_TABLE_SECTION_ID"),
             "sort"    =>"section_id",
             "default"  =>true,
-        ),    
-        array(  
+        ),
+        array(
             "id"    =>"PRODUCT_COUNT",
             "content"  =>GetMessage("SEO_META_TABLE_PRODUCT_COUNT"),
             "sort"    =>"PRODUCT_COUNT",
             "default"  =>true,
         ),
-        array(  
+        array(
             "id"    =>"PROPERTIES",
             "content"  =>GetMessage("SEO_META_TABLE_PROPERTIES"),
             "default"  =>true,
         ),
 ));
-$rsData = SeometaUrlTable::getList(array(
-    'select' => array('ID','NAME','ACTIVE','DATE_CHANGE','REAL_URL','NEW_URL', 'iblock_id', 'section_id', 'PRODUCT_COUNT', 'PROPERTIES'),
-    'filter' =>array(
-        $arFilterChpu,
-    ),
-    'order' => array(),
-));
+
+$filterValues = array();
+
+$usePageNavigation = true;
+if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'excel')
+{
+    $usePageNavigation = false;
+}
+else
+{
+    $navyParams = CDBResult::GetNavParams(
+        CAdminResult::GetNavSize(
+            $sTableID,
+            array(
+                'nPageSize' => 10,
+                'sNavID' => $APPLICATION->GetCurPage() . '?ENTITY_ID=' . $ENTITY_ID)
+        )
+    );
+
+    if ($navyParams['SHOW_ALL'])
+    {
+        $usePageNavigation = false;
+        $navyParams['SIZEN'] = 0;
+    }
+    else
+    {
+        $navyParams['PAGEN'] = (int)$navyParams['PAGEN'];
+        $navyParams['SIZEN'] = (int)$navyParams['SIZEN'];
+    }
+}
+$selectFields = $lAdmin->GetVisibleHeaderColumns();
+
+foreach($selectFields as $k => $field)
+{
+    if(!in_array($field,array('ID','NAME','ACTIVE','DATE_CHANGE','REAL_URL','NEW_URL', 'iblock_id', 'section_id', 'PRODUCT_COUNT', 'PROPERTIES')))
+    {
+        unset($selectFields[$k]);
+    }
+}
+
+$sort = $by;
+
+if(!in_array($by,array('ID','NAME','ACTIVE','DATE_CHANGE','REAL_URL','NEW_URL', 'iblock_id', 'section_id', 'PRODUCT_COUNT', 'PROPERTIES')))
+{
+    $by = 'ID';
+}
+
+$order = strtoupper($order);
+
+if($filterValues['SITE_ID'])
+{
+    $filterValues['%SITE_ID'] = $filterValues['SITE_ID'];
+    unset($filterValues['SITE_ID']);
+}
+
+if (!in_array('ID', $selectFields))
+{
+    $selectFields[] = 'ID';
+}
+
+$filterValues['CONDITION_ID'] = $ID;
+
+$getListParams = array(
+    'select' => $selectFields,
+    'filter' => $filterValues,
+    'order' => array("ID" => $order)
+);
+
+unset($filterValues, $selectFields);
+
+if ($usePageNavigation)
+{
+    $getListParams['limit'] = $navyParams['SIZEN'];
+    $getListParams['offset'] = $navyParams['SIZEN'] * ($navyParams['PAGEN'] - 1);
+}
+
+$totalCount = 0;
+$countQuery = new Query(SeometaUrlTable::getEntity());
+$countQuery->addSelect(new ExpressionField('CNT', 'COUNT(1)'));
+$countQuery->setFilter($getListParams['filter']);
+$totalCount = $countQuery->setLimit(null)->setOffset(null)->exec()->fetch();
+unset($countQuery);
+$totalCount = (int)$totalCount['CNT'];
+
+if ($totalCount > 0)
+{
+    $totalPages = ceil($totalCount / $navyParams['SIZEN']);
+    if ($navyParams['PAGEN'] > $totalPages)
+    {
+        $navyParams['PAGEN'] = $totalPages;
+    }
+    $getListParams['limit'] = $navyParams['SIZEN'];
+    $getListParams['offset'] = $navyParams['SIZEN']*($navyParams['PAGEN']-1);
+}
+else
+{
+    $navyParams['PAGEN'] = 1;
+    $getListParams['limit'] = $navyParams['SIZEN'];
+    $getListParams['offset'] = 0;
+}
+
+$ids = array();
+
+$rsData = SeometaUrlTable::getList($getListParams);
 
 while($arRes = $rsData->Fetch())
 {
     $arRes["T"] = "P";
-    //$arRes['REAL_URL'] = str_replace(' ', '+', urldecode($arRes['REAL_URL']));
-    //$arRes['REAL_URL'] = urldecode($arRes['REAL_URL']);
     $arRes['REAL_URL'] = str_replace(' ', '%20', rawurldecode($arRes['REAL_URL']));
     $arResult[] = $arRes;
 }
 
 $rsData = new CAdminSubResult($arResult, $sTableID, $lAdmin->GetListUrl(true));
-$rsData->NavStart();
+
+if ($usePageNavigation)
+{
+    $rsData->NavStart($navyParams['SIZEN'], $navyParams['SHOW_ALL'], $navyParams['PAGEN']);
+    $rsData->NavRecordCount = $totalCount;
+    $rsData->NavPageCount = $totalPages;
+    $rsData->NavPageNomer = $navyParams['PAGEN'];
+}
+else
+{
+    $rsData->NavPageCount = 1;
+    $rsData->NavPageNomer = $navyParams['PAGEN'];
+    $rsData->NavRecordCount = $totalCount;
+    $rsData->NavStart();
+}
 
 $lAdmin->NavText($rsData->GetNavPrint(GetMessage("SEO_META_NAV")));
 while($arRes = $rsData->NavNext(true, ""))
 {
     $row =& $lAdmin->AddRow($arRes['T'].$arRes['ID'], $arRes);
-    $row->AddInputField("NAME", array("size"=>20));    
+    $row->AddInputField("NAME", array("size"=>20));
     $row->AddCheckField("ACTIVE");
     $arActions = Array();
 
@@ -281,18 +369,18 @@ while($arRes = $rsData->NavNext(true, ""))
         $props = unserialize($arRes['PROPERTIES']);
         $pr = '';
         if(is_array($props))
-        foreach($props as $code => $value){        
-        $lastCode = ''; 
-        if($code == 'FILTER')
+        foreach($props as $code => $value) {
+            $lastCode = '';
+            if($code == 'FILTER')
             {
                 $lastCode = $code;
                 $keys = array_keys($value);
                 $code = $keys[0];
                 unset($keys);
             }
-            
+
             $name = CIBlockProperty::GetByID($code)->fetch();
-            
+
             if(empty($name['NAME']))
             {
                 $pr .= $code.' - '.implode(', ', $value).'; ';
@@ -300,23 +388,23 @@ while($arRes = $rsData->NavNext(true, ""))
             else
                 if($lastCode == 'FILTER')
                 {
-                    $keys = array_keys(current($value));                
+                    $keys = array_keys(current($value));
                     $pr .= 'FILTER_'.$name['NAME'].' - '.((in_array('FROM', $keys))?'FROM':$keys[0]).'-'.implode(', ', current($value)).'; ';
                 }
                 else
                     $pr .= $name['NAME'].' - '.implode(', ', $value).'; ';
         }
-        $row->AddViewField("PROPERTIES", $pr);   
-        $iblock = CIBlock::GetByID($arRes['iblock_id'])->fetch();      
+        $row->AddViewField("PROPERTIES", $pr);
+        $iblock = CIBlock::GetByID($arRes['iblock_id'])->fetch();
         $section = CIBlockSection::GetByID($arRes['section_id'])->fetch();
         $row->AddViewField("iblock_id", '<a target="_blank" href="iblock_edit.php?type='.$iblock['IBLOCK_TYPE_ID'].'&lang='.LANG.'&ID='.$arRes['iblock_id'].'&admin=Y">'.$iblock['NAME'].'</a>');
-        $row->AddViewField("section_id", '<a target="_blank" href="iblock_section_edit.php?IBLOCK_ID='.$arRes['iblock_id'].'&type='.$iblock['IBLOCK_TYPE_ID'].'&ID='.$arRes['section_id'].'&lang='.LANG.'&find_section_section='.$section['IBLOCK_SECTION_ID'].'">'.$section['NAME'].'</a>');                          
-        $row->AddViewField("NAME", '<a href=\'sotbit.seometa_chpu_edit.php?ID='.$arRes['ID'].'&lang='.LANG.$ParentUrl.'\'>'.$arRes['NAME'].'</a>');   
+        $row->AddViewField("section_id", '<a target="_blank" href="iblock_section_edit.php?IBLOCK_ID='.$arRes['iblock_id'].'&type='.$iblock['IBLOCK_TYPE_ID'].'&ID='.$arRes['section_id'].'&lang='.LANG.'&find_section_section='.$section['IBLOCK_SECTION_ID'].'">'.$section['NAME'].'</a>');
+        $row->AddViewField("NAME", '<a href=\'sotbit.seometa_chpu_edit.php?ID='.$arRes['ID'].'&lang='.LANG.$ParentUrl.'\'>'.$arRes['NAME'].'</a>');
         $arActions[] = array(
                 "ICON"=>"edit",
                 "DEFAULT"=>true,
                 "TEXT"=>GetMessage("SEO_META_EDIT"),
-                "ACTION"=>$lAdmin->ActionRedirect('sotbit.seometa_chpu_edit.php?ID='.$arRes['ID'].'&lang='.LANG.$ParentUrl.'">'.$arRes['NAME'].'</a>'),  
+                "ACTION"=>$lAdmin->ActionRedirect('sotbit.seometa_chpu_edit.php?ID='.$arRes['ID'].'&lang='.LANG.$ParentUrl.'">'.$arRes['NAME'].'</a>'),
         );
     }
     else
@@ -343,20 +431,20 @@ if (isset($row))
 $lAdmin->AddFooter(array(
     array("title"=>GetMessage("SEO_META_LIST_SELECTED"), "value"=>$rsData->SelectedRowsCount()),
     array("counter"=>true, "title"=>GetMessage("SEO_META_LIST_CHECKED"), "value"=>"0"),
-));   
+));
 $lAdmin->AddGroupActionTable(Array(
     "delete"=>GetMessage("SEO_META_LIST_DELETE"),
     //"copy"=>GetMessage("SEO_META_LIST_COPY"),
     "activate"=>GetMessage("SEO_META_LIST_ACTIVATE"),
     "deactivate"=>GetMessage("SEO_META_LIST_DEACTIVATE"),
-));                                                                      
+));
 $aContext = array(array(
     "TEXT"=>GetMessage("SEO_META_POST_ADD_TEXT"),
     "LINK"=>"sotbit.seometa_chpu_edit.php?&lang=".LANG.$ParentUrl,
     "TITLE"=>GetMessage("SEO_META_POST_ADD_TITLE"),
     "ICON"=>"btn_new",
-));               
-   
+));
+
 $lAdmin->AddAdminContextMenu($aContext);
 $lAdmin->CheckListMode();
 $lAdmin->DisplayList();

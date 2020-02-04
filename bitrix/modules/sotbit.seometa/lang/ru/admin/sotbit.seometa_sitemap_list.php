@@ -17,6 +17,8 @@ $MESS["SEO_META_SEO_ADD_SITEMAP"] = "Добавить";
 $MESS["SEO_META_SEO_ADD_SITEMAP_TITLE"] = "Добавить настройку генерации sitemap";
 $MESS["SEO_META_SITEMAP_RUN_INIT"] = "Инициализация...";
 $MESS["SEO_META_SITEMAP_RUN_TITLE"] = "Генерация карты сайта";
+$MESS["SEOMETA_SITEMAP_LINK_WORKED"] = "Ссылок обработано:";
+
 $MESS["SEO_META_DEMO"] = 'Модуль работает в демо-режиме. Приобрести полнофункциональную версию вы можете по адресу: <a href="http://marketplace.1c-bitrix.ru/solutions/sotbit.seometa/" target="_blank">http://marketplace.1c-bitrix.ru/solutions/sotbit.seometa</a>';
 $MESS["SEO_META_DEMO_END"] = 'Демо-режим закончен. Приобрести полнофункциональную версию вы можете по адресу: <a href="http://marketplace.1c-bitrix.ru/solutions/sotbit.seometa/" target="_blank">http://marketplace.1c-bitrix.ru/solutions/sotbit.seometa</a>';
 ?> 

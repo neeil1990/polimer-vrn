@@ -7246,6 +7246,13 @@ a.product-unavailable:hover{
 /*Menu icon*/
 #sonet_menu_icon {background-image:url(icons/socialnetwork/mnu_socialnetwork.gif);}
 #sonet_page_icon {background-image:url(icons/socialnetwork/page_socialnetwork.gif);}
+#global_menu_sotbit .adm-main-menu-item-icon{
+    background: url("icons/sotbit/icon.png") no-repeat 50% 55%;
+}
+
+.seometa_menu_icon{
+    background: url("icons/sotbit.seometa/icon.png") no-repeat center;
+}
 .stat_attention {color:#f00;}
 a.stat_attention {color:#f00;}
 .stat_notauth {color:#136C1C;}

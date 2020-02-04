@@ -39,7 +39,6 @@ $MESS["IB_COMPLIB_POPUP_PRICE_MAX"] = "Максимальная цена";
 $MESS["IB_COMPLIB_POPUP_PRICE_MIN_FILTER"] = "Минимальное значение фильтра";
 $MESS["IB_COMPLIB_POPUP_PRICE_MAX_FILTER"] = "Максимальное значение фильтра";
 
-
 $MESS["BT_MOD_CATALOG_COND_CMP_IBLOCK_CONTROLGROUP_LABEL"] = "Дополнительные поля";
 $MESS["BT_MOD_CATALOG_COND_CMP_IBLOCK_ELEMENT_ID_LABEL"] = "Товар";
 $MESS["BT_MOD_CATALOG_COND_CMP_IBLOCK_ELEMENT_ID_PREFIX"] = "поле Товар";

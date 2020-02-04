@@ -1,5 +1,6 @@
 <?php
 namespace Sotbit\Seometa\Link;
+use Sotbit\Seometa\SeoMetaMorphy;
 
 class ReindexWriter extends AbstractWriter
 {
@@ -27,6 +28,8 @@ class ReindexWriter extends AbstractWriter
 
     public function Write(array $arFields)
     {
+        $morphyObject = SeoMetaMorphy::morphyLibInit();
+
         if(empty($this->oCallback) || empty($this->callback_method))
             return;
 
@@ -39,7 +42,8 @@ class ReindexWriter extends AbstractWriter
         $sku = new \Bitrix\Iblock\Template\Entity\Section( $arFields['section_id'] );
 
         \CSeoMetaTagsProperty::$params = $arFields['properties'];
-        $Title = \Bitrix\Iblock\Template\Engine::process( $sku, $meta['ELEMENT_TITLE']);
+        $Title = \Bitrix\Iblock\Template\Engine::process( $sku , SeoMetaMorphy::prepareForMorphy($meta['ELEMENT_TITLE']));
+        $Title = SeoMetaMorphy::convertMorphy($Title, $morphyObject);
         $body = trim($meta['ELEMENT_TOP_DESC'].' '.$meta['ELEMENT_BOTTOM_DESC'].' '.$meta['ELEMENT_ADD_DESC']);
         $sites = unserialize($this->arCondition['SITES']);
 

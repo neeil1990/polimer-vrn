@@ -18,6 +18,10 @@ class Mask
 
         $sectionMask = self::GetSectionMask($IblockId, $fullMask);
 
+        $filterSef = \Bitrix\Main\Config\Option::get('sotbit.seometa', 'FILTER_SEF');
+        if(!empty($filterSef))
+            $ChpuType = 'custom';
+
         switch ($ChpuType)
         {
             case 'bitrix_chpu':
@@ -38,6 +42,10 @@ class Mask
 
             case 'combox_not_chpu':
                 $MASK = $sectionMask."/?#FILTER_PARAMS#";
+                break;
+
+            case 'custom':
+                $MASK = $sectionMask.$filterSef;
                 break;
 
             default:

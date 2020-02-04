@@ -18,4 +18,5 @@ $MESS["SEOMETA_CATEGORY_ID"] = "ID раздела";
 $MESS["SEOMETA_TAG"] = "Тэги для раздела";
 $MESS["SEOMETA_CONDITION_TAG"] = "Тэги для условия";
 $MESS["SEOMETA_STRICT_RELINKING"] = "Строгая перелинковка";
+$MESS["SEOMETA_GENERATE_AJAX"] = "Генерировать условия в режиме AJAX";
 ?>

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `b_sotbit_seometa`
     `TAG` text,
     `CONDITION_TAG` text,
     `STRICT_RELINKING` char(1) DEFAULT 'N',
+    `GENERATE_AJAX` char(1) DEFAULT 'Y',
     PRIMARY KEY (`ID`)
 );
 CREATE TABLE IF NOT EXISTS `b_sotbit_seometa_sitemaps`

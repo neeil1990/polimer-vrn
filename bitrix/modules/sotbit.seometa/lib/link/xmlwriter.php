@@ -2,6 +2,9 @@
 
 namespace Sotbit\Seometa\Link;
 
+use Sotbit\Seometa\SitemapTable;
+use \Bitrix\Main\Config\Option;
+
 class XmlWriter extends AbstractWriter
 {
     private static $Writer = false;
@@ -10,8 +13,14 @@ class XmlWriter extends AbstractWriter
     private $xmlAttr = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
     private $chpuAll = array();
     private $sitemapSettings = array();
+    private $index = 0;
+    private $countWrited = 0;
+    private $allCountWrited = 0;
+    private $fileName = '';
+    private $siteUrl = '';
+    private $siteMapStatus = array();
 
-    private function __construct($id, $dir, $SiteUrl)
+    private function __construct($id, $dir, $SiteUrl, $isProgress = false)
     {
         if(!is_string($dir))
             throw new \Exception('DIR must be an string, ' . gettype($dir) . ' given');
@@ -26,14 +35,139 @@ class XmlWriter extends AbstractWriter
 
         $sitemap = \Sotbit\Seometa\SitemapTable::getById($this->id)->fetch();
         $this->sitemapSettings = unserialize($sitemap['SETTINGS']);
-
-        file_put_contents($dir . 'sitemap_seometa_' . $id . '.xml', '<?xml version="' . $this->xmlVersion . '" encoding="utf-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+        if (!$isProgress) {
+            $this->setFileName();
+            if(
+                $this->getCountWrited() >= Option::get('sotbit.seometa', 'SEOMETA_SITEMAP_COUNT_LINKS', '50000') ||
+                round($this->getFileSize()) >= Option::get('sotbit.seometa', 'SEOMETA_SITEMAP_FILE_SIZE', '50')
+            ) {
+                $this->incIndex();
+                $this->setCountWrited(false);
+                $this->WriteEnd();
+                $this->setFileName();
+            }
+        }
     }
 
-    public static function getInstance($id, $dir, $SiteUrl)
+    private function incIndex() {
+        $this->index++;
+    }
+
+    private function setCountWrited($reset = true) {
+        if($reset == false)
+            $this->countWrited = 0;
+        else
+            $this->countWrited++;
+
+        $this->allCountWrited++;
+        file_put_contents($_SERVER['DOCUMENT_ROOT']. '/seometa_link_count.txt', $this->allCountWrited);
+    }
+
+    private function getCountWrited() {
+        return $this->countWrited;
+    }
+
+    private function getFileSize() {
+        $fSize = false;
+        if(strlen($this->getFileName()) > 0) {
+            clearstatcache(true, $this->getFileName());
+            $fSize = filesize($this->getFileName());
+        }
+
+        return ( $fSize !== false ? ($fSize / 1024) / 1024 : $fSize );
+    }
+
+    private function setFileName() {
+        $this->fileName = $this->dir . 'sitemap_seometa_' . $this->id . '_'. $this->index . '.xml';
+        file_put_contents($this->fileName, '<?xml version="' . $this->xmlVersion . '" encoding="utf-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    }
+
+    private function getFileName() {
+        return $this->fileName;
+    }
+
+    public function getSiteMapLink($id) {
+        if($id > 0)
+        {
+            $dbSitemap = SitemapTable::getById($id);
+            $arSitemap = $dbSitemap->fetch();
+        }
+
+        if(is_array($arSitemap))
+        {
+            $arSitemap['SETTINGS'] = unserialize($arSitemap['SETTINGS']);
+        }
+        else
+        {
+            return false;
+        }
+
+        $arSites = array();
+        $rsSites = \CSite::GetById($arSitemap['SITE_ID']);
+
+        $arSite = $rsSites->Fetch();
+        $SiteUrl = "";
+
+        if(isset($arSitemap['SETTINGS']['PROTO']) && $arSitemap['SETTINGS']['PROTO'] == 1)
+        {
+            $SiteUrl .= 'https://';
+        }
+        elseif(isset($arSitemap['SETTINGS']['PROTO']) && $arSitemap['SETTINGS']['PROTO'] == 0)
+        {
+            $SiteUrl .= 'http://';
+        }
+        else
+        {
+            return false;
+        }
+
+        if(isset($arSitemap['SETTINGS']['DOMAIN']) && !empty($arSitemap['SETTINGS']['DOMAIN']))
+        {
+            $SiteUrl .= $arSitemap['SETTINGS']['DOMAIN'] . substr($arSite['DIR'], 0, -1);
+            $this->siteUrl = $SiteUrl;
+        }
+        else
+        {
+            return false;
+        }
+
+        if(isset($arSitemap['SETTINGS']['FILENAME_INDEX']) && !empty($arSitemap['SETTINGS']['FILENAME_INDEX']))
+        {
+            $mainSitemapName = $arSitemap['SETTINGS']['FILENAME_INDEX'];
+        }
+        else
+        {
+            return false;
+        }
+
+        if(isset($arSitemap['SETTINGS']['FILTER_TYPE']) && !is_null($arSitemap['SETTINGS']['FILTER_TYPE']))
+        {
+            $FilterTypeKey = key($arSitemap['SETTINGS']['FILTER_TYPE']);
+            $FilterCHPU = $arSitemap['SETTINGS']['FILTER_TYPE'][$FilterTypeKey];
+
+            $FilterType = strtolower($FilterTypeKey . ((!$FilterCHPU) ? '_not' : '') . '_chpu');
+        }
+        else
+        {
+            return false;
+        }
+
+        $mainSitemapUrl = $arSite['ABS_DOC_ROOT'] . $arSite['DIR'] . $mainSitemapName;
+
+        if(isset($arSitemap['DATE_RUN']) && !empty($arSitemap['DATE_RUN'])) {
+            $this->siteMapStatus['DATE_RUN'] = $arSitemap['DATE_RUN'];
+        }
+
+        if(isset($arSitemap['TIMESTAMP_CHANGE']) && !empty($arSitemap['TIMESTAMP_CHANGE'])) {
+            $this->siteMapStatus['TIMESTAMP_CHANGE'] = $arSitemap['TIMESTAMP_CHANGE'];
+        }
+        return $mainSitemapUrl;
+    }
+
+    public static function getInstance($id, $dir, $SiteUrl, $isProgress = false)
     {
         if(self::$Writer === false)
-            self::$Writer = new XmlWriter($id, $dir, $SiteUrl);
+            self::$Writer = new XmlWriter($id, $dir, $SiteUrl, $isProgress);
 
         self::$Writer->setDir($dir);
         return self::$Writer;
@@ -138,15 +272,70 @@ class XmlWriter extends AbstractWriter
             $url .= "<priority>" . $this->arCondition['PRIORITY'] . "</priority>";
 
         $url .= "</url>";
-        file_put_contents($this->dir . 'sitemap_seometa_' . $this->id . '.xml', $url, FILE_APPEND);
+
+        if(
+            $this->getCountWrited() >= Option::get('sotbit.seometa', 'SEOMETA_SITEMAP_COUNT_LINKS', '50000') ||
+            round($this->getFileSize()) >= Option::get('sotbit.seometa', 'SEOMETA_SITEMAP_FILE_SIZE', '50')
+        ) {
+            $this->incIndex();
+            $this->setCountWrited(false);
+            $this->WriteEnd();
+            $this->setFileName();
+        }
+
+        file_put_contents($this->getFileName(), $url, FILE_APPEND);
+        $this->setCountWrited();
+
         unset($url);
+    }
+
+    public function writeMainSiteMap() {
+        $siteMapLink = $this->getSiteMapLink($this->id);
+
+        if($siteMapLink && file_exists($siteMapLink)) {
+            $xml = simplexml_load_file($siteMapLink);
+
+            $arrSeometaSitemapFiles = self::getSeometaFiles($_SERVER['DOCUMENT_ROOT']);
+
+            for($i = 0; $i < count($xml->sitemap); $i++)
+            {
+                if (isset($xml->sitemap[$i]->loc) && in_array($xml->sitemap[$i]->loc, $arrSeometaSitemapFiles)) {
+					if(count($xml->sitemap[$i]->lastmod) == 2) {
+                        unset($xml->sitemap[$i]->lastmod);
+                    }
+                    $xml->sitemap[$i]->lastmod = date('Y-m-d\TH:i:sP');
+                    $arKey = array_search($xml->sitemap[$i]->loc, $arrSeometaSitemapFiles);
+                    if($arKey !== false) {
+                        unset($arrSeometaSitemapFiles[$arKey]);
+                    }
+                }
+            }
+
+            if(count($arrSeometaSitemapFiles) > 0) // if sitemap_seometa is not found then add it to main sitemap
+            {
+                foreach ($arrSeometaSitemapFiles as $item) {
+                    $NewSitemap = $xml->addChild("sitemap");
+                    $NewSitemap->addChild("loc", $item);
+                    $NewSitemap->addChild("lastmod", date('Y-m-d\TH:i:sP'));
+//                    $NewSitemap->addChild(
+//                        "lastmod",
+//                        (isset($this->siteMapStatus['DATE_RUN']) && !empty($this->siteMapStatus['DATE_RUN'])) ?
+//                            str_replace(' ', 'T', date('Y-m-d H:i:sP', strtotime($this->siteMapStatus['DATE_RUN']))) :
+//                            str_replace(' ', 'T', date('Y-m-d H:i:sP', strtotime($this->siteMapStatus['TIMESTAMP_CHANGE'])))
+//                    );
+                }
+            }
+
+            file_put_contents($siteMapLink, $xml->asXML());
+
+            if(file_exists($_SERVER['DOCUMENT_ROOT']. '/seometa_link_count.txt')) {
+                unlink($_SERVER['DOCUMENT_ROOT']. '/seometa_link_count.txt');
+            }
+        }
     }
 
     public function WriteEnd()
     {
-        if(empty($this->dir) || empty($this->id))
-            return;
-
         /*foreach ($this->chpuAll as $chpu)
         {
             $LOC = $chpu['NEW_URL'];
@@ -164,8 +353,23 @@ class XmlWriter extends AbstractWriter
             file_put_contents($this->dir. 'sitemap_seometa_' . $this->id . '.xml', $url, FILE_APPEND);
             unset($url, $LOC);
         }*/
+        file_put_contents($this->getFileName(), '</urlset>', FILE_APPEND);
+    }
 
-        if(!empty($this->dir) && !empty($this->id))
-            file_put_contents($this->dir . 'sitemap_seometa_' . $this->id . '.xml', '</urlset>', FILE_APPEND);
+    private function getSeometaFiles($path) {
+        $result = array();
+        if(file_exists($path)) {
+            $arFiles = scandir($path);
+
+            if($arFiles) {
+                foreach ($arFiles as $arFile) {
+                    if(stripos($arFile, 'sitemap_seometa') !== false) {
+                        $result [] = $this->siteUrl .'/'. $arFile;
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 }

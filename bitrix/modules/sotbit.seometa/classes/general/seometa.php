@@ -18,6 +18,11 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
     
     public static function GetMask($IblockId = 0, $ChpuType = '', $fullMask = true) {
         $sectionMask = self::GetSectionMask($IblockId, $fullMask);
+
+        $filterSef = \Bitrix\Main\Config\Option::get('sotbit.seometa', 'FILTER_SEF');
+        if(!empty($filterSef))
+            $ChpuType = 'custom';
+
         switch($ChpuType) {
             case 'bitrix_chpu':
                 $MASK = $sectionMask."/filter/#FILTER_PARAMS#apply/";
@@ -33,6 +38,9 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
                 break;
             case 'combox_not_chpu':
                 $MASK = $sectionMask."/?#FILTER_PARAMS#";
+                break;
+            case 'custom':
+                $MASK = $sectionMask.$filterSef;
                 break;
             default:
                 $MASK = $sectionMask;
@@ -50,13 +58,17 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
     }
     
     public function SetFilterResult($FilterResult, $Section) {
-        foreach($FilterResult['ITEMS'] as $key => &$item)
-            if($item['PROPERTY_TYPE'] == 'S' && $item['USER_TYPE'] == 'directory')
-                foreach($item['VALUES'] as $key_property => &$property) {
-                    $property['PROPERTY_ID'] = $property['VALUE_ID'];
-                    $property['VALUE_ID'] = $key_property;
-                }
-        self::$FilterResult = $FilterResult;
+        if(!empty($FilterResult)) {
+            foreach($FilterResult['ITEMS'] as $key => &$item)
+                if($item['PROPERTY_TYPE'] == 'S' && $item['USER_TYPE'] == 'directory')
+                    foreach($item['VALUES'] as $key_property => &$property) {
+                        $property['PROPERTY_ID'] = $property['VALUE_ID'];
+                        $property['VALUE_ID'] = $key_property;
+                    }
+            self::$FilterResult = $FilterResult;
+        } else {
+            self::$FilterResult = [];
+        }
         self::$FilterResult['PARAMS_SECTION']['ID'] = $Section;
     }
     
@@ -354,15 +366,17 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
     }
     
     public function FilterCheck() {
-        $FilterResult = self::$FilterResult;
-        self::$Checker = array();
-        foreach($FilterResult['ITEMS'] as $key => $param) {
-            foreach($param['VALUES'] as $key_val => $param_val) {
-                if(isset($param_val['CHECKED']) && $param_val['CHECKED'] == 1) {
-                    if(isset($param['ID']) && !empty($param['ID']))
-                        self::$Checker[$param['ID']][$key_val] = 1;
-                    else if(!empty($key_val))
-                        self::$Checker[$key][$key_val] = 1;
+        if( !empty($FilterResult['ITEMS'])) {
+            $FilterResult = self::$FilterResult;
+            self::$Checker = array();
+            foreach($FilterResult['ITEMS'] as $key => $param) {
+                foreach($param['VALUES'] as $key_val => $param_val) {
+                    if(isset($param_val['CHECKED']) && $param_val['CHECKED'] == 1) {
+                        if(isset($param['ID']) && !empty($param['ID']))
+                            self::$Checker[$param['ID']][$key_val] = 1;
+                        else if(!empty($key_val))
+                            self::$Checker[$key][$key_val] = 1;
+                    }
                 }
             }
         }
@@ -458,19 +472,22 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
     private function PrepareConditions($conditions) {
         $MassCond = array();
         $return = 0;
+
         foreach($conditions as $condition) {
             $type = 0;
             if(isset($condition['CLASS_ID']) && $condition['CLASS_ID'] == 'CondGroup')
                 array_push($MassCond, self::ParseArray($condition));
+
             $idsSection = explode(':', $condition['CLASS_ID']);
             $idSections = $idsSection[count($idsSection) - 1];
             $idCondition = $condition['DATA']['value'];
             //Range for prices
             $Types = explode('Price', $condition['CLASS_ID']);
+
             if($Types[0] == 'CondIBMax')// MAX_PRICE
-                $type = 'MAX:VALUE:'.$Types[1];
+                $type = 'MAX:HTML_VALUE:'.$Types[1];
             if($Types[0] == 'CondIBMin')
-                $type = 'MIN:VALUE:'.$Types[1];
+                $type = 'MIN:HTML_VALUE:'.$Types[1];
             if($Types[0] == 'CondIBMaxFilter')// MAX_PRICE
             {
                 if(!isset(self::$FilterResult['ITEMS'][$Types[1]]['VALUES']['MAX']['HTML_VALUE']))
@@ -501,6 +518,7 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
                     self::$FilterResult['ITEMS'][$Types[1]]['VALUES']['MIN']['HTML_VALUE'] = self::$FilterResult['ITEMS'][$Types[1]]['VALUES']['MIN']['VALUE'];
                 $type = 'MIN:HTML_VALUE:'.$Types[1];
             }
+
             // end Range for properties
             //if [SORT] -> [ID]
             $FilterResult = self::$FilterResult;
@@ -536,12 +554,14 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
             else if($condition['DATA']['logic'] == 'EqLs')
                 array_push($MassCond, self::CheckElementsEqLs($idSection, $idCondition, $type));
         }
+
         return $MassCond;
     }
     
     private function CheckElementsEqual($idSection, $idCondition, $type = 0) {
         $return = 0;
         $FilterResult = self::$FilterResult;
+
         if($type === 0) {
             if($idCondition == '' && isset($FilterResult['ITEMS'][$idSection]['VALUES']) && is_array($FilterResult['ITEMS'][$idSection]['VALUES'])) {
                 foreach($FilterResult['ITEMS'][$idSection]['VALUES'] as $key => $param) {
@@ -575,6 +595,7 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
             }
         }
         else {
+
             $types = explode(':', $type);
             if($idCondition == '') {
                 if(isset($FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]]) && !empty($FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]]))
@@ -583,17 +604,40 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
                     $return = 0;
             }
             else {
-                if(isset($FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]]) && $FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]] == $idCondition)
+
+                switch ($types[0]) { // разбор больше/меньше цены
+                    case 'MIN':
+                        if(isset($FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]]) && $FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]]['HTML_VALUE'] >= $idCondition)
+                            $return = 1;
+                        else
+                            $return = 0;
+
+                        break;
+
+                    case 'MAX':
+                        if(isset($FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]]) && $FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]]['HTML_VALUE'] <= $idCondition)
+                            $return = 1;
+                        else
+                            $return = 0;
+
+                        break;
+
+                    default:
+                        $return = 0;
+                        break;
+                }
+
+                /*if(isset($FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]]) && $FilterResult['ITEMS'][$types[2]]['VALUES'][$types[0]][$types[1]] == $idCondition)
                     $return = 1;
                 else
-                    $return = 0;
+                    $return = 0;*/
             }
             if($return == 1) {
                 unset(self::$CheckerRule[$idSection][$idCondition]);
                 self::$CheckerRule[$idSection][$types[0]] = 0;
             }
         }
-        
+
         return $return;
     }
     
@@ -956,7 +1000,7 @@ class CSeoMeta extends Bitrix\Iblock\Template\Functions\FunctionBase {
                 if($res = $ar_result->GetNext()) {
 
                     foreach($NeedFields as $NeedField) {
-                        self::$UserFields['#'.$NeedField.'#'] = isset($res[$NeedField]) ? $res[$NeedField] : "";
+                        self::$UserFields['#'.$NeedField.'#'] = isset($res[$NeedField]) ? $res[$NeedField] : '#'.$NeedField.'#';
                     }
                 }
             }

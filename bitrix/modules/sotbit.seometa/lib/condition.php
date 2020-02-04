@@ -5,7 +5,7 @@ MODIFY COLUMN SECTIONS TEXT;
 */
 
 namespace Sotbit\Seometa;
- 
+
 use Bitrix\Main\Entity;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Loader;
@@ -34,90 +34,97 @@ class ConditionTable extends \DataManagerEx_SeoMeta
 		return array(
 			new Entity\IntegerField( 'ID', array (
 					'primary' => true,
-					'autocomplete' => true 
+					'autocomplete' => true
 			) ),
 			new Entity\StringField( 'NAME', array (
 					'required' => true,
-					'title' => Loc::getMessage( 'SEOMETA_NAME' ) 
+					'title' => Loc::getMessage( 'SEOMETA_NAME' )
 			) ),
 			new Entity\BooleanField( 'ACTIVE', array (
 					'values' => array (
 							'N',
-							'Y' 
+							'Y'
 					),
-					'title' => Loc::getMessage( 'SEOMETA_ACTIVE' ) 
+					'title' => Loc::getMessage( 'SEOMETA_ACTIVE' )
 			) ),
 			new Entity\BooleanField( 'SEARCH', array (
 					'values' => array (
 							'N',
-							'Y' 
+							'Y'
 					),
-					'title' => Loc::getMessage( 'SEOMETA_SEARCH' ) 
+					'title' => Loc::getMessage( 'SEOMETA_SEARCH' )
 			) ),
 			new Entity\IntegerField( 'SORT', array (
 					'required' => true,
-					'title' => Loc::getMessage( 'SEOMETA_SORT' ) 
+					'title' => Loc::getMessage( 'SEOMETA_SORT' )
 			) ),
 			new Entity\DatetimeField( 'DATE_CHANGE', array (
-					'title' => Loc::getMessage( 'SEOMETA_DATE_CHANGE' ) 
+					'title' => Loc::getMessage( 'SEOMETA_DATE_CHANGE' )
 			) ),
 			new Entity\TextField( 'SITES', array (
-					'title' => Loc::getMessage( 'SEOMETA_SITES' ) 
+					'title' => Loc::getMessage( 'SEOMETA_SITES' )
 			) ),
 			new Entity\StringField( 'TYPE_OF_CONDITION', array (
-					'title' => Loc::getMessage( 'SEOMETA_TYPE_OF_CONDITION' ) 
+					'title' => Loc::getMessage( 'SEOMETA_TYPE_OF_CONDITION' )
 			) ),
 			new Entity\StringField( 'FILTER_TYPE', array (
-					'title' => Loc::getMessage( 'SEOMETA_TYPE_OF_FILTER_TYPE' ) 
+					'title' => Loc::getMessage( 'SEOMETA_TYPE_OF_FILTER_TYPE' )
 			) ),
 			new Entity\StringField( 'TYPE_OF_INFOBLOCK', array (
-					'title' => Loc::getMessage( 'SEOMETA_TYPE_OF_INFOBLOCK' ) 
+					'title' => Loc::getMessage( 'SEOMETA_TYPE_OF_INFOBLOCK' )
 			) ),
 			new Entity\StringField( 'INFOBLOCK', array (
-					'title' => Loc::getMessage( 'SEOMETA_INFOBLOCK' ) 
+					'title' => Loc::getMessage( 'SEOMETA_INFOBLOCK' )
 			) ),
 			new Entity\TextField( 'SECTIONS', array (
-					'title' => Loc::getMessage( 'SEOMETA_SECTIONS' ) 
+					'title' => Loc::getMessage( 'SEOMETA_SECTIONS' )
 			) ),
 			new Entity\TextField( 'RULE', array (
-					'title' => Loc::getMessage( 'SEOMETA_RULE' ) 
+					'title' => Loc::getMessage( 'SEOMETA_RULE' )
 			) ),
 			new Entity\StringField( 'META', array (
-					'title' => Loc::getMessage( 'SEOMETA_META' ) 
+					'title' => Loc::getMessage( 'SEOMETA_META' )
 			) ),
 			new Entity\BooleanField( 'NO_INDEX', array (
 					'values' => array (
 							'N',
-							'Y' 
+							'Y'
 					),
-					'title' => Loc::getMessage( 'SEOMETA_NO_INDEX' ) 
+					'title' => Loc::getMessage( 'SEOMETA_NO_INDEX' )
 			) ),
 			new Entity\BooleanField( 'STRONG', array (
 					'values' => array (
 							'N',
-							'Y' 
+							'Y'
 					),
-					'title' => Loc::getMessage( 'SEOMETA_STRONG' ) 
+					'title' => Loc::getMessage( 'SEOMETA_STRONG' )
 			) ),
 			new Entity\FloatField( 'PRIORITY', array (
-					'title' => Loc::getMessage( 'SEOMETA_PRIORITY' ) 
+					'title' => Loc::getMessage( 'SEOMETA_PRIORITY' )
 			) ),
 			new Entity\FloatField( 'CHANGEFREQ', array (
-					'title' => Loc::getMessage( 'SEOMETA_CHANGEFREQ' ) 
+					'title' => Loc::getMessage( 'SEOMETA_CHANGEFREQ' )
 			) ),
 			new Entity\IntegerField( 'CATEGORY_ID', array (
 					'required' => true,
-					'title' => Loc::getMessage( 'SEOMETA_CATEGORY_ID' ) 
+					'title' => Loc::getMessage( 'SEOMETA_CATEGORY_ID' )
 			) ),
 			new Entity\TextField( 'TAG', array (
-					'title' => Loc::getMessage( 'SEOMETA_TAG' ) 
+					'title' => Loc::getMessage( 'SEOMETA_TAG' )
 			) ),
 			new Entity\TextField( 'CONDITION_TAG', array (
-					'title' => Loc::getMessage( 'SEOMETA_CONDITION_TAG' ) 
+					'title' => Loc::getMessage( 'SEOMETA_CONDITION_TAG' )
 			) ),
 			new Entity\TextField( 'STRICT_RELINKING', array (
-					'title' => Loc::getMessage( 'SEOMETA_STRICT_RELINKING' ) 
+					'title' => Loc::getMessage( 'SEOMETA_STRICT_RELINKING' )
 			) ),
+            new Entity\BooleanField( 'GENERATE_AJAX', array (
+                'values' => array (
+                    'N',
+                    'Y'
+                ),
+                'title' => Loc::getMessage( 'SEOMETA_GENERATE_AJAX' )
+            ) ),
 		);
 	}
 
@@ -180,18 +187,26 @@ class ConditionTable extends \DataManagerEx_SeoMeta
 		return $return;
 	}
 
-	public static function generateUrlForCondition($id)
+	public static function generateUrlForCondition($id, $sectionId = false, $isProgress = false, $isError = false)
 	{
         @set_time_limit(0);
 		if ($id == 0)
 			return array();
 
+        if ($isError && is_array($sectionId))
+            \Sotbit\Seometa\SeometaUrlTable::deleteBySectionId($sectionId[0]);
 
-        $writer = \Sotbit\Seometa\Link\ChpuWriter::getInstance($id);
+        $writer = \Sotbit\Seometa\Link\ChpuWriter::getInstance($id, $isProgress);
 		$link = \Sotbit\Seometa\Helper\Link::getInstance();
-		$link->Generate($id, $writer);
+        $link->Generate($id, $writer, $sectionId);
 		return $writer->getData();
 	}
+
+	public static function getSectionList($id, $mode = false){
+        $link = \Sotbit\Seometa\Helper\Link::getInstance();
+	    return $link->getSectionList($id, $mode);
+    }
+
 
 	/**
 	 * get linked conditions
@@ -216,7 +231,7 @@ class ConditionTable extends \DataManagerEx_SeoMeta
 					)
 			));
 			while($Condition = $Conditions->fetch())
-			{			   
+			{
 				if($Condition['CONDITION_TAG'])
 				{
 					$arCond = unserialize($Condition['CONDITION_TAG']);
@@ -226,11 +241,11 @@ class ConditionTable extends \DataManagerEx_SeoMeta
 					}
 				}
 			}
-			
+
 			if($idConditions)
 			{
 				$NeedSection = array();
-				
+
 				$Conditions = ConditionTable::getList(array(
 					'filter' => array(
 						'ID' => $idConditions
@@ -254,13 +269,13 @@ class ConditionTable extends \DataManagerEx_SeoMeta
 					{
 						continue;
 					}
-					
+
 					$Condition['SECTIONS'] = unserialize($Condition['SECTIONS']);
 					$return[$Condition['ID']] = $Condition;
 				}
 			}
 		}
-		
+
 		return $return;
 	}
 
@@ -278,7 +293,7 @@ class ConditionTable extends \DataManagerEx_SeoMeta
 			'order' => array('ID'),
 			'limit' => 1
 		));
-		
+
 		return $res->fetch();
 	}
 }

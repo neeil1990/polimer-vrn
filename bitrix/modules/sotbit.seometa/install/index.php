@@ -35,9 +35,11 @@ Class sotbit_seometa extends CModule
 		RegisterModuleDependences("iblock", "OnTemplateGetFunctionClass", self::MODULE_ID, "CSeoMetaTags", "Event");
 		RegisterModuleDependences("iblock", "OnTemplateGetFunctionClassHandler", self::MODULE_ID, "CSeoMetaTags", "EventHandler");
         RegisterModuleDependences("sale", "OnOrderAdd", self::MODULE_ID, "CSeoMetaEvents", "OrderAdd");
-        RegisterModuleDependences("main", "OnAdminIBlockSectionEdit", self::MODULE_ID, "CSeoMetaEvents", "OnInit"); 
+        RegisterModuleDependences("main", "OnAdminIBlockSectionEdit", self::MODULE_ID, "CSeoMetaEvents", "OnInit");
         RegisterModuleDependences("main", "OnPageStart", self::MODULE_ID, "CSeoMetaEvents", "PageStart");
 		RegisterModuleDependences("main", "OnBuildGlobalMenu", self::MODULE_ID, 'CSeoMetaEvents', 'OnBuildGlobalMenuHandler');
+		RegisterModuleDependences("search", "OnReindex", self::MODULE_ID, "CSeoMetaEvents", "OnReindexHandler");
+		RegisterModuleDependences("search", "OnAfterIndexAdd", self::MODULE_ID, "CSeoMetaEvents", "OnAfterIndexAddHandler");
 
 		$Sites = array();
 		$rsSites = CSite::GetList( $by = "sort", $order = "desc", Array(
@@ -47,7 +49,7 @@ Class sotbit_seometa extends CModule
 		while( $arSite = $rsSites->Fetch() )
 		{
 			COption::SetOptionString("sotbit.seometa","NO_INDEX_".$arSite['LID'],"N");
-		} 
+		}
 		return true;
 	}
 
@@ -59,9 +61,11 @@ Class sotbit_seometa extends CModule
 		UnRegisterModuleDependences("iblock", "OnTemplateGetFunctionClass", self::MODULE_ID, "CSeoMetaTags", "Event");
 		UnRegisterModuleDependences("iblock", "OnTemplateGetFunctionClassHandler", self::MODULE_ID, "CSeoMetaTags", "EventHandler");
         UnRegisterModuleDependences("sale", "OnOrderAdd", self::MODULE_ID, "CSeoMetaEvents", "OrderAdd");
-        UnRegisterModuleDependences("main", "OnAdminIBlockSectionEdit", self::MODULE_ID, "CSeoMetaEvents", "OnInit"); 
+        UnRegisterModuleDependences("main", "OnAdminIBlockSectionEdit", self::MODULE_ID, "CSeoMetaEvents", "OnInit");
         UnRegisterModuleDependences("main", "OnPageStart", self::MODULE_ID, "CSeoMetaEvents", "PageStart");
 		UnRegisterModuleDependences("main", "OnBuildGlobalMenu", self::MODULE_ID, 'CSeoMetaEvents', 'OnBuildGlobalMenuHandler');
+		UnRegisterModuleDependences("search", "OnReindex", self::MODULE_ID, "CSeoMetaEvents", "OnReindexHandler");
+		UnRegisterModuleDependences("search", "OnAfterIndexAdd", self::MODULE_ID, "CSeoMetaEvents", "OnAfterIndexAddHandler");
 		return true;
 	}
 
@@ -81,7 +85,7 @@ Class sotbit_seometa extends CModule
 				closedir($dir);
 			}
 		}
-                                                                                                                                                                                                                   
+  
 		CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/".self::MODULE_ID."/install/themes/", $_SERVER["DOCUMENT_ROOT"]."/bitrix/themes/", true, true);
 		return true;
 	}
@@ -110,7 +114,7 @@ Class sotbit_seometa extends CModule
 				}
 				closedir($dir);
 			}
-		}                                                                
+		}
 		return true;
 	}
 	function installDB()

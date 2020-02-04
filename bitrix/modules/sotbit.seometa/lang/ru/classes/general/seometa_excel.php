@@ -9,3 +9,4 @@ $MESS["ELEMENT_BREADCRUMB_TITLE"] = "Название страницы в хле
 $MESS["ELEMENT_TOP_DESC"] = "Верхнее описание";
 $MESS["ELEMENT_BOTTOM_DESC"] = "Нижнее описание";
 $MESS["ELEMENT_ADD_DESC"] = "Дополнительное описание";
+?>

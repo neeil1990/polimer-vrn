@@ -85,6 +85,15 @@ $arOptions = array(
 		'SORT' => '1',
 		'NOTES_ENUM' => GetMessage( $module_id.'_FILTER_TYPE_NOTE' ),
 	),
+	'FILTER_SEF' => array(
+		'GROUP' => 'GROUP_SETTINGS',
+		'TITLE' => GetMessage( $module_id.'_FILTER_SEF' ),
+		'TYPE' => 'STRING',
+		'DEFAULT' => '',
+		'REFRESH' => 'N',
+		'SORT' => '3',
+		'NOTES_ENUM' => GetMessage( $module_id.'_FILTER_SEF_NOTE' ),
+	),
 	'NO_INDEX_'.$site => array(
 		'GROUP' => 'GROUP_SETTINGS',
 		'TITLE' => GetMessage( $module_id.'_NO_INDEX' ),
@@ -152,6 +161,14 @@ $arOptions = array(
 		'SORT' => '25',
 		'DEFAULT' => 'N',
 	),
+	'IS_SET_ACTIVE' => array(
+		'GROUP' => 'GROUP_SETTINGS',
+		'TITLE' => GetMessage( $module_id.'_IS_SET_ACTIVE' ),
+		'TYPE' => 'CHECKBOX',
+		'REFRESH' => 'N',
+		'SORT' => '25',
+		'DEFAULT' => 'N',
+	),
     'FILTER_EXCEPTION_SETTINGS' => array(
         'GROUP' => 'GROUP_SETTINGS_FOR_PROG',
         'TITLE' => GetMessage( $module_id.'_FILTER_EXCEPTION_SETTINGS' ),
@@ -163,6 +180,30 @@ $arOptions = array(
         'DEFAULT' => "",
         'NOTES' => GetMessage( $module_id.'_FILTER_EXCEPTION_SETTINGS_NOTE' ),
     ),
+    'SEOMETA_SITEMAP_FILE_SIZE' => array(
+        'GROUP' => 'GROUP_SETTINGS_FOR_PROG',
+        'TITLE' => GetMessage( $module_id.'_SITEMAP_FILE_SIZE' ),
+        'TYPE' => 'STRING',
+        'REFRESH' => 'N',
+        'SORT' => '150',
+        'COLS' => 40,
+        'ROWS' => 1,
+        'DEFAULT' => "50",
+        'NOTES' => GetMessage( $module_id.'_SITEMAP_FILE_SIZE_NOTE' ),
+    ),
+    'SEOMETA_SITEMAP_COUNT_LINKS' => array(
+        'GROUP' => 'GROUP_SETTINGS_FOR_PROG',
+        'TITLE' => GetMessage( $module_id.'_SITEMAP_COUNT_LINKS' ),
+        'TYPE' => 'STRING',
+        'REFRESH' => 'N',
+        'SORT' => '150',
+        'COLS' => 40,
+        'ROWS' => 1,
+        'DEFAULT' => "50000",
+        'NOTES' => GetMessage( $module_id.'_SITEMAP_COUNT_LINKS_NOTE' ),
+    ),
+
+
 );
 if( CCSeoMeta::ReturnDemo() == 2){
     ?>
@@ -191,8 +232,14 @@ if( CCSeoMeta::ReturnDemo() == 3 || CCSeoMeta::ReturnDemo() == 0)
 $RIGHT = $APPLICATION->GetGroupRight( $module_id );
 if($RIGHT != "D")
 {
-//    if($CCSeoMeta->ReturnDemo() == 2) CAdminMessage::ShowMessage(array("MESSAGE" => GetMessage("SEO_META_DEMO"), 'HTML' => true));
-//    if($CCSeoMeta->ReturnDemo() == 3) CAdminMessage::ShowMessage(array("MESSAGE" => GetMessage("SEO_META_DEMO_END"), 'HTML' => true));
+    if(isset($_POST['SEOMETA_SITEMAP_FILE_SIZE']) && (intval($_POST['SEOMETA_SITEMAP_FILE_SIZE']) > 50 || intval($_POST['SEOMETA_SITEMAP_FILE_SIZE']) == 0)) {
+        $_POST['SEOMETA_SITEMAP_FILE_SIZE'] = 50;
+        $_REQUEST['SEOMETA_SITEMAP_FILE_SIZE'] = 50;
+    }
+    if(isset($_POST['SEOMETA_SITEMAP_COUNT_LINKS']) && (intval($_POST['SEOMETA_SITEMAP_COUNT_LINKS']) > 50000 || intval($_POST['SEOMETA_SITEMAP_COUNT_LINKS']) == 0)) {
+        $_POST['SEOMETA_SITEMAP_COUNT_LINKS'] = 50000;
+        $_REQUEST['SEOMETA_SITEMAP_COUNT_LINKS'] = 50000;
+    }
 
 	$showRightsTab = false;
 	$opt = new CModuleOptions( $module_id, $arTabs, $arGroups, $arOptions, $showRightsTab );

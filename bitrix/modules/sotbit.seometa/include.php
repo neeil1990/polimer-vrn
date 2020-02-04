@@ -3,6 +3,11 @@ use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Loader;
 use Sotbit\Seometa\ConditionTable;
 
+if(strtolower(LANG_CHARSET) !== strtolower(mb_internal_encoding())) {
+    mb_internal_encoding(LANG_CHARSET);
+    mb_regex_encoding(LANG_CHARSET);
+}
+
 \Bitrix\Main\Loader::registerAutoloadClasses('sotbit.seometa',
 	array(
 		'CSeoMeta' => '/classes/general/seometa.php',
@@ -320,7 +325,8 @@ class DataManagerEx_SeoMeta extends Bitrix\Main\Entity\DataManager {
 
     public static function getList(array $parameters = array())
     {
-        if(!CCSeoMeta::getDemo())
+        $module = new CCSeoMeta();
+        if(!$module->getDemo())
             return new Bitrix\Main\ORM\Query\Result(parent::query(), new \Bitrix\Main\DB\ArrayResult(array()));
         else
             return parent::getList($parameters);
@@ -328,7 +334,8 @@ class DataManagerEx_SeoMeta extends Bitrix\Main\Entity\DataManager {
 
     public static function getById($id = "")
     {
-        if(!CCSeoMeta::getDemo())
+        $module = new CCSeoMeta();
+        if(!$module->getDemo())
             return new \CDBResult;
         else
             return parent::getById($id);
@@ -336,7 +343,8 @@ class DataManagerEx_SeoMeta extends Bitrix\Main\Entity\DataManager {
 
     public static function add(array $arr = array())
     {
-        if(!CCSeoMeta::getDemo())
+        $module = new CCSeoMeta();
+        if(!$module->getDemo())
             return new \Bitrix\Main\Entity\AddResult();
         else
             return parent::add($arr);
@@ -344,7 +352,8 @@ class DataManagerEx_SeoMeta extends Bitrix\Main\Entity\DataManager {
 
     public static function update($id = "", array $arr = array())
     {
-        if(!CCSeoMeta::getDemo())
+        $module = new CCSeoMeta();
+        if(!$module->getDemo())
             return new \Bitrix\Main\Entity\UpdateResult();
         else
             return parent::update($id, $arr);

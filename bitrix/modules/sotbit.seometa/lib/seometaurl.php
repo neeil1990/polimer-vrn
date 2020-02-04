@@ -131,6 +131,16 @@ class SeometaUrlTable extends \DataManagerEx_SeoMeta
             }
     }
     
+    public static function deleteBySectionId($id){
+        $arr = self::getList(array(
+            'select' => array('ID'),
+            'filter' => array('section_id' => $id),
+            'order'  => array('ID'), ));
+            while($one = $arr->fetch()){
+                self::delete($one['ID']);
+            }
+    }
+
     public static function getByCondition($id){
        $res = self::getList(array(
             'select' => array('ID', 'REAL_URL', 'NEW_URL', 'DATE_CHANGE', 'NAME'),

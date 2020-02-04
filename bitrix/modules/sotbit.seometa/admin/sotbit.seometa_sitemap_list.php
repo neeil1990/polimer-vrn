@@ -18,10 +18,6 @@ $POST_RIGHT = $APPLICATION->GetGroupRight("sotbit.seometa");
 if($POST_RIGHT == "D")
     $APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
 
-//$CCSeoMeta = new CCSeoMeta();
-//if(!$CCSeoMeta->getDemo())
-//    return false;
-
 $sTableID = "b_sotbit_seometa_sitemaps";
 $oSort = new CAdminSorting($sTableID, "ID", "desc");
 $lAdmin = new CAdminList($sTableID, $oSort);
@@ -217,31 +213,55 @@ if( CCSeoMeta::ReturnDemo() == 3 || CCSeoMeta::ReturnDemo() == 0)
     return '';
 }
 
-//if($CCSeoMeta->ReturnDemo() == 2) CAdminMessage::ShowMessage(array("MESSAGE" => Loc::getMessage("SEO_META_DEMO"), 'HTML' => true));
-//if($CCSeoMeta->ReturnDemo() == 3) CAdminMessage::ShowMessage(array("MESSAGE" => Loc::getMessage("SEO_META_DEMO_END"), 'HTML' => true));
-
 $lAdmin->DisplayList();
 ?>
 
 <script>
     function generateSitemap(ID) {
         var node = BX('sitemap_run');
-        node.style.display = 'block';
         var windowPos = BX.GetWindowSize();
         var pos = BX.pos(node);
 
         if (pos.top > windowPos.scrollTop + windowPos.innerHeight) {
             window.scrollTo(windowPos.scrollLeft, pos.top + 150 - windowPos.innerHeight);
         }
-
-        BX.runSitemap(ID, 0, '', '');
+        BX.getSectionList(ID, function (response) {
+            BX.runSitemap(ID, 0, '', '', 0, response);
+        })
     }
 
-    BX.runSitemap = function (ID, value, pid, NS) {
+    BX.getSectionList = function (ID, callback){
+        var result = [];
+        var curID = ID;
+        BX.ajax.post('/bitrix/admin/sotbit.seometa_sitemap_run.php', {
+            lang: '<?=LANGUAGE_ID?>',
+            action: 'get_section_list',
+            ID: ID,
+            value: 0,
+            pid: '',
+            NS: '',
+            sessid: BX.bitrix_sessid()
+        }, function (data) {
+            BX.checkStatus(curID);
+            result = JSON.parse(data);
+            callback(result);
+        });
+    };
+
+    BX.runSitemap = function (ID, value, pid, NS, iteration = 0, sectionsArray = []) {
         BX.adminPanel.showWait(BX('sitemap_run_button_' + ID));
+        if (sectionsArray.length > 0){
+            if (iteration >= sectionsArray.length){
+                BX.adminPanel.closeWait(BX('sitemap_run_button_' + ID));
+                return;
+            }
+        }
         BX.ajax.post('/bitrix/admin/sotbit.seometa_sitemap_run.php', {
             lang: '<?=LANGUAGE_ID?>',
             action: 'sitemap_run',
+            currentSection: sectionsArray,
+            sectionCount: sectionsArray.length,
+            iteration: iteration,
             ID: ID,
             value: value,
             pid: pid,
@@ -249,18 +269,33 @@ $lAdmin->DisplayList();
             sessid: BX.bitrix_sessid()
         }, function (data) {
             BX.adminPanel.closeWait(BX('sitemap_run_button_' + ID));
-            BX('sitemap_progress').innerHTML = data;
         });
     };
-    BX.finishSitemap = function () {
-        window.<?=$sTableID?>.GetAdminList('/bitrix/admin/sotbit.seometa_sitemap_list.php?lang=<?=LANGUAGE_ID?>');
-    };
-</script>
 
-<div id="sitemap_run" style="display: none;">
-    <div id="sitemap_progress">
-        <?=SitemapRuntime::showProgress(Loc::getMessage('SEO_META_SITEMAP_RUN_INIT'), Loc::getMessage('SEO_META_SITEMAP_RUN_TITLE'), 0)?>
-    </div>
+    BX.checkStatus = function (ID) {
+        document.querySelector('.progress-bar').style.display = "inline-block";
+
+        BX.ajax.post('/bitrix/admin/sotbit.seometa_sitemap_progress.php', {
+            lang: '<?=LANGUAGE_ID?>',
+            action: 'check_status',
+            ID: ID,
+            sessid: BX.bitrix_sessid()
+        }, function (data) {
+            if(data.indexOf('stop') == -1 && data !== undefined) {
+                document.querySelector('.progress-bar p.links-count').innerHTML = data;
+                setTimeout(function(){BX.checkStatus(ID)}, 1000)
+            }
+            else
+            {
+                document.querySelector('.progress-bar').style.display = "none";
+            }
+        });
+    }
+
+</script>
+<div class="progress-bar adm-info-message" style="display: none; text-align: center;">
+    <p><?=Loc::getMessage('SEOMETA_SITEMAP_LINK_WORKED')?></p>
+    <p class="links-count">0</p>
 </div>
 
 <?

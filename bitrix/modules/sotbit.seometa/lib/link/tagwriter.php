@@ -1,6 +1,8 @@
 <?
 namespace Sotbit\Seometa\Link;
 
+use Sotbit\Seometa\SeoMetaMorphy;
+
 class TagWriter extends AbstractWriter
 {
     private static $Writer = false;
@@ -24,7 +26,9 @@ class TagWriter extends AbstractWriter
 
     public function Write(array $arFields)
     {
-        $filter = array('ITEMS' => array());
+        $morphyObject = SeoMetaMorphy::morphyLibInit();
+
+//        $filter = array('ITEMS' => array());
 
         //\CSeoMeta::SetFilterResult($filter, $Section);
         $sku = new \Bitrix\Iblock\Template\Entity\Section($arFields['section_id']);
@@ -32,10 +36,26 @@ class TagWriter extends AbstractWriter
 
         $conditionTag = unserialize($this->arCondition['CONDITION_TAG']);
 
-        if($arFields['strict_relinking'] != 'Y')
-            $Title = \Bitrix\Iblock\Template\Engine::process($sku, $this->arCondition['TAG']);
-        else if(in_array($this->arCondition['ID'], $this->WorkingConditions) && $conditionTag)
-            $Title = \Bitrix\Iblock\Template\Engine::process($sku, $this->arCondition['TAG']);
+//        if($arFields['strict_relinking'] != 'Y')
+//        {
+//            $Title = \Bitrix\Iblock\Template\Engine::process($sku, SeoMetaMorphy::prepareForMorphy($this->arCondition['TAG']));
+//            $Title = SeoMetaMorphy::convertMorphy($Title, $morphyObject);
+//
+//        }
+//        else if(in_array($this->arCondition['ID'], $this->WorkingConditions) && $conditionTag)
+//        {
+//            $Title = \Bitrix\Iblock\Template\Engine::process($sku, SeoMetaMorphy::prepareForMorphy($this->arCondition['TAG']));
+//            $Title = SeoMetaMorphy::convertMorphy($Title, $morphyObject);
+//        }
+
+        $itWorks = in_array($this->arCondition['ID'], $this->WorkingConditions);
+        if($itWorks && $arFields['strict_relinking'] != 'Y' && $conditionTag) {
+            $Title = \Bitrix\Iblock\Template\Engine::process($sku, SeoMetaMorphy::prepareForMorphy($conditionTag));
+            $Title = SeoMetaMorphy::convertMorphy($Title, $morphyObject);
+        } else {
+            $Title = \Bitrix\Iblock\Template\Engine::process($sku, SeoMetaMorphy::prepareForMorphy($this->arCondition['TAG']));
+            $Title = SeoMetaMorphy::convertMorphy($Title, $morphyObject);
+        }
 
         $this->data[] = array(
             'URL' => trim($arFields['real_url']),
