@@ -582,7 +582,8 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 	        </div><!--end::mp__banners-->
 	        <?}?>
          	<div class="wr">
-         		<?if(!$is_main && $pages[1] !== 'basket' && !($pages[1] == 'catalog' && $pages[3])){?>
+         		<?
+                if(!$is_main && $pages[1] !== 'basket' && $pages[1] == 'catalog'){?>
 	            <div class="page_content">
 	            	<?if(!$noh1){?>
 	               	

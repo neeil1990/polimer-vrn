@@ -1,4 +1,4 @@
-				<?if(!$is_main && $pages[1] !== 'basket' && !($pages[1] == 'catalog' && $pages[3])){?>
+				<?if(!$is_main && $pages[1] !== 'basket' && $pages[1] == 'catalog'){?>
 				</div><!--end::page_content-->
 				<?}?>
 				<footer>

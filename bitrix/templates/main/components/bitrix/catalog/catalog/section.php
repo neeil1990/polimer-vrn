@@ -285,7 +285,22 @@ if($ob = $res->GetNextElement()):?>
 					),
 					$component,
 					array('HIDE_ICONS' => 'Y')
-				);?>
+				);
+
+                $APPLICATION->IncludeComponent(
+                    "sotbit:seo.meta",
+                    ".default",
+                    Array(
+                        "FILTER_NAME" => $arParams["FILTER_NAME"],
+                        "SECTION_ID" => $arCurSection['ID'],
+                        "CACHE_TYPE" => $arParams["CACHE_TYPE"],
+                        "CACHE_TIME" => $arParams["CACHE_TIME"],
+                    )
+                );
+
+                global $sotbitSeoMetaTopDesc;//для установки верхнего описания
+                global $sotbitSeoMetaBottomDesc;//для установки нижнего описания
+				?>
 
 			<?endif;?>
 
@@ -331,7 +346,8 @@ if($ob = $res->GetNextElement()):?>
 
 	</div>
 
-	<?$intSectionID = $APPLICATION->IncludeComponent(
+	<?
+    $intSectionID = $APPLICATION->IncludeComponent(
 		"bitrix:catalog.section",
 		"",
 		array(
@@ -369,6 +385,8 @@ if($ob = $res->GetNextElement()):?>
 			"PRICE_CODE" => $arParams["PRICE_CODE"],
 			"USE_PRICE_COUNT" => $arParams["USE_PRICE_COUNT"],
 			"SHOW_PRICE_COUNT" => $arParams["SHOW_PRICE_COUNT"],
+			"SEO_TOP_DESC" => $sotbitSeoMetaTopDesc,
+			"SEO_BOTTOM_DESC" => $sotbitSeoMetaBottomDesc,
 			"PARENT_DESC" => $arSect['DESCRIPTION'],
 			"PRICE_VAT_INCLUDE" => $arParams["PRICE_VAT_INCLUDE"],
 			"USE_PRODUCT_QUANTITY" => $arParams['USE_PRODUCT_QUANTITY'],
@@ -434,17 +452,6 @@ if($ob = $res->GetNextElement()):?>
 		),
 		$component
 	);
-
-    $APPLICATION->IncludeComponent(
-        "sotbit:seo.meta",
-        ".default",
-        Array(
-            "FILTER_NAME" => $arParams["FILTER_NAME"],
-            "SECTION_ID" => $intSectionID,
-            "CACHE_TYPE" => $arParams["CACHE_TYPE"],
-            "CACHE_TIME" => $arParams["CACHE_TIME"],
-        )
-    );
 	?>
 
 	<div class="ct__mask">
@@ -613,11 +620,11 @@ if($ob = $res->GetNextElement()):?>
         $APPLICATION->SetPageProperty("description", $sotbitSeoMetaDescription); 
     }  
      
-    //Переопределение заголовка H1 
-    global $sotbitSeoMetaH1;   
-    if(!empty($sotbitSeoMetaH1)){ 
-             $APPLICATION->SetTitle($sotbitSeoMetaH1);  
-    } 
+    //Переопределение заголовка H1
+    global $sotbitSeoMetaH1;
+    if(!empty($sotbitSeoMetaH1)){
+             $APPLICATION->SetTitle($sotbitSeoMetaH1);
+    }
          
     //Добавление пункта хлебных крошек Breadcrumb 
     global $sotbitSeoMetaBreadcrumbTitle; 

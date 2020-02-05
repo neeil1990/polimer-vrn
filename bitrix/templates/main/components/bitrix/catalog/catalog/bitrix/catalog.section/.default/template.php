@@ -16,7 +16,11 @@ if (!empty($arResult['ITEMS']))
 ?>
 
 	<div class="ct__content">
-		<div class="h1"><?=$arResult['NAME']?></div>
+		<div class="h1"><? $APPLICATION->ShowTitle(false); ?></div>
+
+        <?if($arParams['SEO_TOP_DESC']):?>
+            <div class="top-seo-description"><?=$arParams['SEO_TOP_DESC']?></div>
+        <?endif;?>
 
         <div class="product_top">
             <? if(count($arResult['ITEM_SECTION_TOP']) > 0): ?>
@@ -354,7 +358,7 @@ if (!empty($arResult['ITEMS']))
 		<div class="related_articles cl">
 			<div class="col-txt">
 				<div class="catalog-sections-text-hidden">
-				<?=htmlspecialchars_decode($arParams['PARENT_DESC'])?>
+				<?=($arParams['SEO_BOTTOM_DESC']) ? $arParams['SEO_BOTTOM_DESC'] : htmlspecialchars_decode($arParams['PARENT_DESC'])?>
 				</div>
 			</div>
 			<div class="col-articles">
