@@ -583,7 +583,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 	        <?}?>
          	<div class="wr">
          		<?
-                if(!$is_main && $pages[1] !== 'basket' && $pages[1] == 'catalog'){?>
+                if(!$is_main && $pages[1] !== 'basket' && !($pages[1] == 'catalog' && $pages[3])){?>
 	            <div class="page_content">
 	            	<?if(!$noh1){?>
 	               	
