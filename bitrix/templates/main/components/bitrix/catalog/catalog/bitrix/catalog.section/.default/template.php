@@ -16,7 +16,7 @@ if (!empty($arResult['ITEMS']))
 ?>
 
 	<div class="ct__content">
-		<div class="h1"><? $APPLICATION->ShowTitle(false); ?></div>
+		<div class="h1"><? $APPLICATION->ShowTitle(false, false); ?></div>
 
         <?if($arParams['SEO_TOP_DESC']):?>
             <div class="top-seo-description"><?=$arParams['SEO_TOP_DESC']?></div>
