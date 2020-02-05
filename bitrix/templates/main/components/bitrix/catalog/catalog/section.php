@@ -591,3 +591,38 @@ if($ob = $res->GetNextElement()):?>
 		?>
 
 
+<? 
+//Переопределение метаинформации для модуля "Сотбит: SEO умного фильтра – мета-теги, заголовки, карта сайта" 
+//начало 
+
+    //Переопределение заголовка Title 
+    global $sotbitSeoMetaTitle; 
+    if(!empty($sotbitSeoMetaTitle)){ 
+        $APPLICATION->SetPageProperty("title", $sotbitSeoMetaTitle); 
+    } 
+     
+    //Переопределение ключевых слов Keywords 
+    global $sotbitSeoMetaKeywords; 
+    if(!empty($sotbitSeoMetaKeywords)){ 
+        $APPLICATION->SetPageProperty("keywords", $sotbitSeoMetaKeywords); 
+    } 
+     
+    //Переопределение описания страницы Description 
+    global $sotbitSeoMetaDescription; 
+    if(!empty($sotbitSeoMetaDescription)){ 
+        $APPLICATION->SetPageProperty("description", $sotbitSeoMetaDescription); 
+    }  
+     
+    //Переопределение заголовка H1 
+    global $sotbitSeoMetaH1;   
+    if(!empty($sotbitSeoMetaH1)){ 
+             $APPLICATION->SetTitle($sotbitSeoMetaH1);  
+    } 
+         
+    //Добавление пункта хлебных крошек Breadcrumb 
+    global $sotbitSeoMetaBreadcrumbTitle; 
+    if(!empty($sotbitSeoMetaBreadcrumbTitle)){ 
+        $APPLICATION->AddChainItem($sotbitSeoMetaBreadcrumbTitle  ); 
+    } 
+//конец 
+?>
