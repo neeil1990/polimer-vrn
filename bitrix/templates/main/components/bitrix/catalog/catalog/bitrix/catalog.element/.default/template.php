@@ -210,14 +210,12 @@ $this->setFrameMode(true);
                                        $property['CODE'] != "YANDEKS_MARKET_PREDOPLATA" AND
                                        ($property['PROPERTY_TYPE'] == "S" OR
                                            $property['PROPERTY_TYPE'] == "L")
-                                   ){
-                                       ?>
+                                   ){?>
                                        <div class="line cl">
                                            <div class="prop"><?=$property['NAME']?></div>
-                                           <div class="val"><?=$property['VALUE']?></div>
+                                           <div class="val"><?=($property['CODE'] == 'PROIZVODITEL') ? print_url('/brands/'.$arResult[BRAND][URL].'/', $property['VALUE']) : $property['VALUE']?></div>
                                        </div>
                                        <?
-
                                    }
                                }
                            }
