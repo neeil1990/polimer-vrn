@@ -1,20 +1,20 @@
-2020-Feb-04 21:39:59 Наличие необходимых модулей php (check_php_modules): Ok
+2020-Feb-05 21:39:59 Наличие необходимых модулей php (check_php_modules): Ok
 Все необходимые модули установлены
-2020-Feb-04 21:39:59 Обязательные параметры PHP (check_php_settings): Ok
+2020-Feb-05 21:39:59 Обязательные параметры PHP (check_php_settings): Ok
 Настройки правильные
-2020-Feb-04 21:39:59 Модули веб-сервера (check_security): Ok
+2020-Feb-05 21:39:59 Модули веб-сервера (check_security): Ok
 Конфликтов не выявлено
-2020-Feb-04 21:39:59 Значения переменных сервера (check_server_vars): Ok
+2020-Feb-05 21:39:59 Значения переменных сервера (check_server_vars): Ok
 Корректные
-2020-Feb-04 21:39:59 Сохранение сессии (check_session): Ok
+2020-Feb-05 21:39:59 Сохранение сессии (check_session): Ok
 50% done
-2020-Feb-04 21:39:59 Параметры настройки UTF (mbstring и константа BX_UTF) (check_mbstring): Ok
+2020-Feb-05 21:39:59 Параметры настройки UTF (mbstring и константа BX_UTF) (check_mbstring): Ok
 Правильные. Сайт работает в UTF кодировке
-2020-Feb-04 21:39:59 Служебные скрипты в корне сайта (check_install_scripts): Ok
+2020-Feb-05 21:39:59 Служебные скрипты в корне сайта (check_install_scripts): Ok
 Отсутствуют
-2020-Feb-04 21:39:59 Работа с сокетами (check_socket): Ok
+2020-Feb-05 21:39:59 Работа с сокетами (check_socket): Ok
 Connection to ssl://polimer-vrn.ru:443	Success
 
 Успешно
-2020-Feb-04 21:39:59 Выполнение агентов на cron (check_bx_crontab): Warning
+2020-Feb-05 21:39:59 Выполнение агентов на cron (check_bx_crontab): Warning
 Замечание. Агенты выполняются на хитах, рекомендуется перевести выполнение агентов на cron
