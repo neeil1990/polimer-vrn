@@ -57,7 +57,7 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 						?>
 
 
-						<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1473","1463","1721","1787","1452","1456","1457"])) ? "li-open" : null?>">
+						<li class="cat-li <?=(in_array($arResult['SECTION']['ID'], ["1472","1473","1463","1721","1787","1452","1456","1457"]) || ($arItem["VALUES"]["MIN"]["HTML_VALUE"] || $arItem["VALUES"]["MAX"]["HTML_VALUE"])) ? "li-open" : null?>">
 							<span class="bx-filter-container-modef"></span>
 							<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></span></a>
 							<div class="inner">
@@ -152,19 +152,6 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 					<?endif;
 				}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 				//not prices
 				foreach($arResult["ITEMS"] as $key=>$arItem)
 				{
@@ -185,7 +172,7 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
                     $config = \Bitrix\Main\Config\Configuration::getInstance()->get('section_filter');
 					?>
 
-					<li class="cat-li <?=(in_array($arItem['CODE'], $config['section_filter'][$arResult['SECTION']['ID']])) ? "li-open" : null?>">
+					<li class="cat-li <?=(in_array($arItem['CODE'], $config['section_filter'][$arResult['SECTION']['ID']]) || $arItem["DISPLAY_EXPANDED"] == "Y") ? "li-open" : null?>">
 						<span class="bx-filter-container-modef"></span>
 						<a href="#" class="title" onclick="return false"><?=$arItem["NAME"]?></a>
 

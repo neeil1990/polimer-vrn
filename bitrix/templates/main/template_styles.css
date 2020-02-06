@@ -4527,7 +4527,7 @@ header .header__bottom.fixed .header__account
     margin-bottom: 12px;
     font: 400 12px/14px 'Fira Sans', sans-serif;
     text-align: left;
-    color: blue;
+    color: #0464bb;
 }
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .list-item:before {
