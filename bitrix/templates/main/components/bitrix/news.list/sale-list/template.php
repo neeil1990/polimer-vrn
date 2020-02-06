@@ -18,7 +18,9 @@ $this->setFrameMode(true);
 		<?foreach($arResult["ITEMS"] as $arItem):?>
 		<div class="item">
             <div class="image">
-                <img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="<?echo $arItem["NAME"]?>">
+                <a href="<?=$arItem["DETAIL_PAGE_URL"]?>">
+                    <img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="<?echo $arItem["NAME"]?>">
+                </a>
             </div>
 			<div class="date">
 				<?if($arParams["DISPLAY_DATE"]!="N" && $arItem["DISPLAY_ACTIVE_FROM"]):?>
