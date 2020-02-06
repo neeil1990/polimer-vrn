@@ -17,6 +17,9 @@ $this->setFrameMode(true);
 
 
 <div class="cl">
+
+    <div class="h1" style="margin-top: 30px"><?=$arResult['PROPERTIES']['TOP_TITLE']['VALUE']?></div>
+
 	<div class="nd__content">
 
 		<?
