@@ -101,7 +101,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 				<div class="hmobile">
 					<div class="wr cl">
 						<a href="/" class="hmobile__logo">
-							<img src="<?=SITE_TEMPLATE_PATH?>/img/h_logo.png" alt="Полимер" width="165" />
+							<img src="<?=SITE_TEMPLATE_PATH?>/img/logo_svg.svg" alt="Полимер" width="165" />
 						</a>
 						<div class="hmobile__phone">+7 (473) 250-22-33</div>
 						<a href="/search/index.php" class="hmobile__search"></a>
@@ -232,7 +232,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 				<div class="header__main">
 					<div class="wr cl">
 						<a href="/" class="header__logo">
-							<img src="<?=SITE_TEMPLATE_PATH?>/img/h_logo.jpg" alt="Полимер" width="206">
+							<img src="<?=SITE_TEMPLATE_PATH?>/img/logo_svg.svg" alt="Полимер" width="206">
 						</a>
 						<div class="header__phone">
 							<table style="display: table;border-collapse: separate;border-spacing: 5px;line-height: 17px;text-align: left;">
@@ -274,7 +274,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
                     <div class="wr cl">
 
                         <a href="/" class="logo">
-                            <img src="<?=SITE_TEMPLATE_PATH?>/img/f_logo.jpg" alt="Полимер">
+                            <img src="<?=SITE_TEMPLATE_PATH?>/img/logo_svg.svg" alt="Полимер">
                         </a>
 
                         <div class="header__catalog cl">

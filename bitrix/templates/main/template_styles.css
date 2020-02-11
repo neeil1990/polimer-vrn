@@ -1404,6 +1404,8 @@ header .header__bottom.fixed .header__catalog .catalog__trigger span{
 header .header__bottom.fixed .logo{
     display: block;
     float: left;
+    margin-top: 12px;
+    margin-right: 30px;
 }
 header .header__bottom.fixed .f_phone{
     display: block;
