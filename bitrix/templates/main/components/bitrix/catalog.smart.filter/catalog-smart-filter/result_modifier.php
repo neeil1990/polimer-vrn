@@ -38,6 +38,13 @@ else
 $arParams["FILTER_VIEW_MODE"] = (isset($arParams["FILTER_VIEW_MODE"]) && toUpper($arParams["FILTER_VIEW_MODE"]) == "HORIZONTAL") ? "HORIZONTAL" : "VERTICAL";
 $arParams["POPUP_POSITION"] = (isset($arParams["POPUP_POSITION"]) && in_array($arParams["POPUP_POSITION"], array("left", "right"))) ? $arParams["POPUP_POSITION"] : "left";
 
+if($arParams['SMART_SEO_FIELD_ONLY'] && count($arParams['SMART_SEO_FIELD_ONLY']) > 0){
+    foreach ($arResult['ITEMS'] as $id => $arItem){
+        if (!in_array($arItem['CODE'], $arParams['SMART_SEO_FIELD_ONLY']))
+            unset($arResult['ITEMS'][$id]);
+    }
+}
+
 global $sotbitFilterResult;
 $sotbitFilterResult = $arResult;
 
