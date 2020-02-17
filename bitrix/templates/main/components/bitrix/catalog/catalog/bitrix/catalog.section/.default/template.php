@@ -28,9 +28,9 @@ if (!empty($arResult['ITEMS']))
                 <div class="item_c">
                     <a href="<?=$arItem['CODE']?>">
                         <div class="img_c">
-                            <img src="<?=$arItem['PREVIEW_PICTURE']?>" alt="<?=$arItem['NAME']?>">
+                            <img src="<?=$arItem['PREVIEW_PICTURE']?>" alt="<?=$arItem['PROP']['TITLE']['VALUE']?>">
                         </div>
-                        <div class="name_c"><?=$arItem['NAME']?></div>
+                        <div class="name_c"><?=$arItem['PROP']['TITLE']['VALUE']?></div>
                     </a>
                 </div>
                 <? endforeach; ?>
@@ -46,7 +46,7 @@ if (!empty($arResult['ITEMS']))
                 <div class="body_f">
                     <? foreach($arResult['ITEM_FILTER_CATALOG'] as $arItem):?>
                     <div class="item_f">
-                        <span class="name_f"><?=$arItem['NAME']?></span>
+                        <span class="name_f"><?=$arItem['PROP']['TITLE']['VALUE']?></span>
                         <? foreach ($arItem['PROP']['PARAM']['VALUE'] as $desc => $val):?>
                             <a href="<?=$arItem['PROP']['PARAM']['DESCRIPTION'][$desc]?>"><?=$val?></a>
                         <? endforeach; ?>
