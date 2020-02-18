@@ -151,6 +151,22 @@ $isSidebar = ($arParams["SIDEBAR_DETAIL_SHOW"] == "Y" && isset($arParams["SIDEBA
 	$component
 );?><?
 $GLOBALS["CATALOG_CURRENT_ELEMENT_ID"] = $ElementID;
+//////////////////////////////Компонент электронной комерции///////////////////////////////////////////////////////
+if(CModule::IncludeModule("arturgolubev.ecommerce")){
+	$APPLICATION->IncludeComponent(
+		"arturgolubev:ecommerce.detail", 
+		".default", 
+		array(
+			"COMPONENT_TEMPLATE" => ".default",
+			"OFFERS_CART_PROPERTIES" => $arParams['OFFERS_CART_PROPERTIES'],
+			"PRODUCT_ID" => $ElementId,
+			"CACHE_TYPE" => "A",
+			"CACHE_TIME" => "360000"
+		),
+		$component
+	);
+}
+/////////////////////////////////////////////////////////////////////////////////////
 unset($basketAction);
 if ($ElementID > 0)
 {

@@ -1,0 +1,1 @@
+<?define("arturgolubev_ecommerce_TEMPORARY_CACHE", "dmcGCXFkVgk8VHhiUGVXLFF2");?>
