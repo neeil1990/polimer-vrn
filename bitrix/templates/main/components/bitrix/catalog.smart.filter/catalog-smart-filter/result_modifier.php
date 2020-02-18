@@ -45,6 +45,18 @@ if($arParams['SMART_SEO_FIELD_ONLY'] && count($arParams['SMART_SEO_FIELD_ONLY'])
     }
 }
 
+foreach($arResult['ITEMS'] as &$arItem){
+    if($arItem['PROPERTY_TYPE'] == 'L' && $arItem['VALUES']){
+        uasort($arItem['VALUES'], function ($a, $b){
+            if ($a == $b) {
+                return 0;
+            }
+            return ($a['VALUE'] < $b['VALUE']) ? -1 : 1;
+        });
+    }
+}
+
+
 global $sotbitFilterResult;
 $sotbitFilterResult = $arResult;
 
