@@ -162,8 +162,8 @@ $(function(){
     $('.catalog-sections-text').readmore({
         speed: 75,
         maxHeight: 100,
-        moreLink: '<a href="#" style="border-bottom:snow">Подробнее...</a>',
-        lessLink: '<a href="#" style="border-bottom:snow">Скрыть</a>'
+        moreLink: '<a href="#" style="border-bottom:snow;padding: 0 10px;">Подробнее...</a>',
+        lessLink: '<a href="#" style="border-bottom:snow;padding: 0 10px;">Скрыть</a>'
     });
     $('.col-txt > .catalog-sections-text-hidden').readmore({
         speed: 75,
@@ -203,7 +203,7 @@ $(function(){
           alertify.error("Произошла ошибка. Попробуйте повторить запрос позже");
         });
         //отмена действия по умолчанию для кнопки submit
-        e.preventDefault(); 
+        e.preventDefault();
       });
 
 });

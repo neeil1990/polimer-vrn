@@ -4748,6 +4748,11 @@ header .header__bottom.fixed .header__account
 
 /* header catalog END */
 
+.catalog-sections-text{
+    padding: 0 10px;
+    margin: 10px auto;
+}
+
 
 .products_roll .pr_header {
     position: relative;

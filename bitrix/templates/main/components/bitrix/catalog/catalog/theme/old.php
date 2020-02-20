@@ -21,3 +21,10 @@ $sectionID = $APPLICATION->IncludeComponent(
     $component,
     array("HIDE_ICONS" => "Y")
 );
+?>
+
+<? if($arSect['DESCRIPTION']): ?>
+<div class="catalog-sections-text"><?=$arSect['DESCRIPTION']?></div>
+<?endif;?>
+
+
