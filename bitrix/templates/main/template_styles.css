@@ -4669,22 +4669,33 @@ header .header__bottom.fixed .header__account
     text-align: center;
     width: 140px;
     height: 200px;
-    border: 1px solid #ced5d9;
     margin-left: 14px;
     margin-bottom: 10px;
-    padding: 5px 0;
-    overflow: hidden;
+    position: relative;
 }
+.product_top .catalog_top .item_c a{
+    display: block;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #ced5d9;
+    padding: 5px 0px;
+    background: #FFF;
+    width: inherit;
+    height: inherit;
+}
+.product_top .catalog_top .item_c:hover a{
+    border-color: #0464bb;
+    position: absolute;
+    min-height: 200px;
+    height: auto;
+    box-shadow: 0px 0px 12px 1px rgba(0, 0, 0, 0.20);
+    z-index: 1;
+}
+
 .product_top .catalog_top .item_c:nth-child(6n+1) {
     margin-left: 0;
 }
-.product_top .catalog_top .item_c:hover{
-    border-color: #0464bb;
-    overflow: visible;
-}
-.product_top .catalog_top .item_c:hover .name_c{
-    background: #ffffffbf;
-}
+
 .product_top .catalog_top .item_c a .img_c{
     width: auto;
     height: 135px;
