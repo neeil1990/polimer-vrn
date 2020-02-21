@@ -12978,7 +12978,8 @@ a.pickup-stores__item .desc {
 .sh__cities {
     position: absolute;
     top: 36px;
-    left: 240px
+    left: 240px;
+    z-index: 2;
 }
 
 .sh__cities .city {
