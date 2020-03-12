@@ -39,9 +39,9 @@ if(count($siteList))
 $arOptions["main"][] = GetMessage($MODULE_NAME . "_WORKING_WITH_STYLE");
 
 $arOptions["main"][] = array("inline_max_weight", GetMessage($MODULE_NAME . "_INLINE_MAX_WEIGHT"), "512", array("text"));
+$arOptions["main"][] = array("use_compress", GetMessage($MODULE_NAME . "_USE_COMPRESS"), "N", array("checkbox"));
 $arOptions["main"][] = array("google_fonts_inline", GetMessage($MODULE_NAME . "_GOOGLE_FONTS_INLINE"), "N", array("checkbox"));
 $arOptions["main"][] = array("outer_style_inline", GetMessage($MODULE_NAME . "_OUTER_STYLE_INLINE"), "N", array("checkbox"));
-$arOptions["main"][] = array("use_compress", GetMessage($MODULE_NAME . "_USE_COMPRESS"), "N", array("checkbox"));
 
 
 $move_js_to_body = COption::GetOptionString("main", "move_js_to_body");
@@ -49,6 +49,7 @@ if($move_js_to_body != 'Y')
 	$arOptions["main"][] = array("note" => GetMessage($MODULE_NAME . "_NOTE_MAIN_JS"));
 
 $arOptions["main"][] = GetMessage($MODULE_NAME . "_SYSTEM_TITLE");
+$arOptions["main"][] = array("exceptions", GetMessage($MODULE_NAME . "_EXCEPTIONS"), "", array("textarea",5,40));
 $arOptions["main"][] = array("admin_debug", GetMessage($MODULE_NAME . "_ADMIN_DEBUG"), "N", array("checkbox"));
 
 $arOptions["help"][] = array("help_card", GetMessage($MODULE_NAME . "_CARD_TEXT"), GetMessage($MODULE_NAME . "_CARD_TEXT_VALUE"), array("statictext"));
@@ -147,3 +148,29 @@ $allow_url_fopen = ini_get("allow_url_fopen");
 <?= BeginNote();?>
 <?=GetMessage($MODULE_NAME . "_MAIN_NOTE")?>
 <?= EndNote();?>
+
+
+
+<?
+if (class_exists('\Bitrix\Main\UI\Extension')) {
+   \Bitrix\Main\UI\Extension::load("ui.hint");
+   ?>
+	<script>
+	BX.ready(function() {
+		BX.UI.Hint.init(BX('adm-workarea')); 
+	});
+	</script>
+	<?
+}
+?>
+
+<style>
+	#bx-admin-prefix form .adm-info-message {
+		color:#111;
+		background:#fff;
+		border: 1px solid #bbb;
+		padding: 10px 15px;
+		margin-top: 0;
+		text-align: left;
+	}
+</style>

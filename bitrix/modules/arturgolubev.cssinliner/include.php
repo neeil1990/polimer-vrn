@@ -1,57 +1,29 @@
 <?
+use \Arturgolubev\Cssinliner\Unitools as UTools;
+
 IncludeModuleLangFile(__FILE__);
 
 Class CArturgolubevCssinliner 
 {
 	const MODULE_ID = 'arturgolubev.cssinliner';
-	var $MODULE_ID = 'arturgolubev.cssinliner'; 
-	
-	function checkStatus(){
-		return (!defined('LOCK_CSSINLINER') && !defined('ADMIN_SECTION') && $_SERVER['REQUEST_METHOD'] != 'POST' && strpos($_SERVER['PHP_SELF'], BX_ROOT.'/admin') !== 0);
-	}
-	
-	function checkAdmin(){
-		global $USER;
-		if(!is_object($USER)) $USER = new CUser();
-		
-		return $USER->IsAdmin();
-	}
-	
-	function getSetting($name){
-		return COption::GetOptionString(self::MODULE_ID, $name);
-	}
+	var $MODULE_ID = 'arturgolubev.cssinliner';
 	
 	function onBufferContent(&$bufferContent){
-		if(self::checkStatus() && CModule::IncludeModule(self::MODULE_ID))
+		if(!UTools::checkStatus() || !CModule::IncludeModule(self::MODULE_ID) || defined('LOCK_CSSINLINER')) return false;
+
+		if(UTools::getSetting('disable') == 'Y' || UTools::getSetting('disabled_'.SITE_ID) == 'Y') return false;
+		
+		if(!$stop && stripos($bufferContent, '<!DOCTYPE') === false) return false;
+			
+		$admin_debug = (UTools::getSetting('admin_debug') == "Y");
+		if($admin_debug)
 		{
-			$stop = 0;
-			
-			if(self::getSetting('disable') == 'Y' || self::getSetting('disabled_'.SITE_ID) == 'Y')
-				$stop = 1;
-			
-			if(!$stop && stripos($bufferContent, '<!DOCTYPE') === false)
-				$stop = 1;
-			
-			/* $context = \Bitrix\Main\Application::getInstance()->getContext();
-			$request = $context->getRequest();
-			if ($request->isAjaxRequest()) {
-				$stop = 1;
-			} */
-			
-			if(!$stop)
-			{
-				$admin_debug = self::getSetting('admin_debug');
-				
-				if($admin_debug == 'Y')
-				{
-					$bufferContent = self::showDebug($bufferContent);
-				}
-				
-				if(!self::checkAdmin())
-				{
-					$bufferContent = self::replace($bufferContent);
-				}
-			}
+			$bufferContent = self::showDebug($bufferContent);
+		}
+		
+		if(!UTools::isAdmin())
+		{
+			$bufferContent = self::replace($bufferContent);
 		}
 	}
 	
@@ -84,12 +56,25 @@ Class CArturgolubevCssinliner
 		if($useOptimize == 'Y')
 		{
 			$arOptiSearch[] = '/\/\*.*?\*\//si';
-			$arOptiSearch[] = '/(\s)+/s';
-			$arOptiSearch[] = "/\n/";
+			$arOptiReplace[] = "";
 			
-			$arOptiReplace[] = "";
+			$arOptiSearch[] = '/(\s)+/s';
 			$arOptiReplace[] = '\\1';
+			
+			$arOptiSearch[] = "/\n/";
 			$arOptiReplace[] = "";
+			
+			$arOptiSearch[] = '/;\s+/';
+			$arOptiReplace[] = ';';
+			
+			$arOptiSearch[] = '/:\s+/';
+			$arOptiReplace[] = ':';
+			
+			$arOptiSearch[] = '/\s+\{\s+/';
+			$arOptiReplace[] = '{';
+			
+			$arOptiSearch[] = '/;*\}/';
+			$arOptiReplace[] = '}';
 		}
 		
 		$mergedSearch = array_merge($arOptiSearch, $arDopSearch);
@@ -173,18 +158,27 @@ Class CArturgolubevCssinliner
 		if(!empty($arLinks[0]))
 		{
 			/* get setting */
-			$use_compress = self::getSetting('use_compress');
-			$inline_max_weight = IntVal(self::getSetting('inline_max_weight'));
-			$google_fonts_inline = self::getSetting('google_fonts_inline');
-			$outer_style_inline = self::getSetting('outer_style_inline');
+			$use_compress = UTools::getSetting('use_compress');
+			$inline_max_weight = IntVal(UTools::getSetting('inline_max_weight'));
+			$google_fonts_inline = UTools::getSetting('google_fonts_inline');
+			$outer_style_inline = UTools::getSetting('outer_style_inline');
+			$exceptions = UTools::getSetting('exceptions');
 			
 			/* set default setting */
 			if($inline_max_weight <= 0) $inline_max_weight = 128;
-		
+			if($exceptions) $exceptions = explode("\n",$exceptions);
+			
 			$arLinksWork = array();
 			foreach($arLinks[0] as $link)
 			{
 				if(strstr($link, 'media="print"') || strstr($link, "media='print'")) continue;
+				
+				if(is_array($exceptions) && count($exceptions)>0){
+					foreach($exceptions as $eLink){
+						$eLink = trim($eLink);
+						if($eLink && strstr($link, $eLink)) continue(2);
+					}
+				}
 				
 				if($google_fonts_inline == 'Y' && strstr($link, '//fonts.googleapis.com/css'))
 				{					

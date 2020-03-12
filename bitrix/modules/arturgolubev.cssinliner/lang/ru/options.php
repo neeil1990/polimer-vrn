@@ -7,9 +7,10 @@ $MESS["ARTURGOLUBEV_CSSINLINER_DISABLED_SITE"] = "Отключить для са
 $MESS["ARTURGOLUBEV_CSSINLINER_WORKING_WITH_STYLE"] = "Настройки работы с таблицами стилей";
 $MESS["ARTURGOLUBEV_CSSINLINER_GOOGLE_FONTS_INLINE"] = "Подключать Google Fonts в inline-виде";
 $MESS["ARTURGOLUBEV_CSSINLINER_OUTER_STYLE_INLINE"] = "Подключать внешние стили в inline-виде";
-$MESS["ARTURGOLUBEV_CSSINLINER_INLINE_MAX_WEIGHT"] = "Не обрабатывать css-файлы весом более (кб)";
-$MESS["ARTURGOLUBEV_CSSINLINER_USE_COMPRESS"] = "Оптимизировать обрабатываемый css";
+$MESS["ARTURGOLUBEV_CSSINLINER_INLINE_MAX_WEIGHT"] = "<span data-hint='Позволяет установить максимальный вес файла, подключаемого по технологии Inline'></span>Не обрабатывать css-файлы весом более (кб)";
+$MESS["ARTURGOLUBEV_CSSINLINER_USE_COMPRESS"] = "<span data-hint='Оптимизация стилей происходит за счёт удаления символов табуляции, переносов, комментариев и т.п.'></span>Оптимизировать обрабатываемый css";
 $MESS["ARTURGOLUBEV_CSSINLINER_ONLY_HEADER_STYLE"] = "Работать только со стилями в контейнере &lt;head&gt;";
+$MESS["ARTURGOLUBEV_CSSINLINER_EXCEPTIONS"] = "<span data-hint='В данной опции можно указать стили, которые не требуется обрабатывать формат /bitrix/js/tests.banner/scripts.js'></span>Стили исключения:<br>Каждый с новой строки";
 $MESS["ARTURGOLUBEV_CSSINLINER_ADMIN_DEBUG"] = "Включить отладку";
 
 $MESS["ARTURGOLUBEV_CSSINLINER_ALLOW_URL_FOPEN_NOT_FOUND"] = "Отключен параметр PHP allow_url_fopen";
@@ -31,18 +32,18 @@ $MESS["ARTURGOLUBEV_CSSINLINER_USE_INLINE"] = "Подключить таблиц
 $MESS["ARTURGOLUBEV_CSSINLINER_HELP_TAB_NAME"] = "Информация";
 $MESS["ARTURGOLUBEV_CSSINLINER_HELP_TAB_TITLE"] = "Полезная информация";
 
-$MESS["ARTURGOLUBEV_CSSINLINER_CARD_TEXT"] = "Карточка решения на Marketplace:";
+$MESS["ARTURGOLUBEV_CSSINLINER_CARD_TEXT"] = "Карточка решения на Marketplace -";
 $MESS["ARTURGOLUBEV_CSSINLINER_CARD_TEXT_VALUE"] = "<a href='https://marketplace.1c-bitrix.ru/solutions/arturgolubev.cssinliner/#tab-about-link' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_CSSINLINER_INSTALL_TEXT"] = "Информация по установке:";
+$MESS["ARTURGOLUBEV_CSSINLINER_INSTALL_TEXT"] = "Информация по установке -";
 $MESS["ARTURGOLUBEV_CSSINLINER_INSTALL_TEXT_VALUE"] = "<a href='https://marketplace.1c-bitrix.ru/solutions/arturgolubev.cssinliner/#tab-install-link' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_CSSINLINER_INSTALL_VIDEO_TEXT"] = "Видео-инструкция:";
+$MESS["ARTURGOLUBEV_CSSINLINER_INSTALL_VIDEO_TEXT"] = "Видео-инструкция -";
 $MESS["ARTURGOLUBEV_CSSINLINER_INSTALL_VIDEO_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/index.php?COURSE_ID=7&INDEX=Y' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_CSSINLINER_FAQ_TEXT"] = "Часто задаваемые вопросы по данному модулю:";
+$MESS["ARTURGOLUBEV_CSSINLINER_FAQ_TEXT"] = "Часто задаваемые вопросы по данному модулю -";
 $MESS["ARTURGOLUBEV_CSSINLINER_FAQ_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/index.php?COURSE_ID=7&INDEX=Y' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_CSSINLINER_FAQ_MAIN_TEXT"] = "Общие часто задаваемые вопросы:";
+$MESS["ARTURGOLUBEV_CSSINLINER_FAQ_MAIN_TEXT"] = "Вопросы по покупке, оплате, активации модуля и т.п. -";
 $MESS["ARTURGOLUBEV_CSSINLINER_FAQ_MAIN_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/?COURSE_ID=1&INDEX=Y' target='_blank'>ссылка</a>";
 ?>

@@ -58,7 +58,6 @@ Class arturgolubev_cssinliner extends CModule
 
 	function DoInstall()
 	{
-		global $APPLICATION;
 		$this->InstallFiles();
 		$this->InstallDB();
 		RegisterModule(self::MODULE_ID);
@@ -66,7 +65,6 @@ Class arturgolubev_cssinliner extends CModule
 
 	function DoUninstall()
 	{
-		global $APPLICATION;
 		UnRegisterModule(self::MODULE_ID);
 		$this->UnInstallDB();
 		$this->UnInstallFiles();

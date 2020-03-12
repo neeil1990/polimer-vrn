@@ -28,45 +28,45 @@ $MESS["ARTURGOLUBEV_LAZYLOAD_SETTING_DOP_INFO"] = "
 ";
 
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_MAIN_TAB_SET"] = 'Настройки';
-$MESS["ARTURGOLUBEV_LAZYLOAD_MAIN_TAB_TITLE_SET"] = 'Общие настройки';
+$MESS["ARTURGOLUBEV_LAZYLOAD_MAIN_TAB_SET"] = "Настройки";
+$MESS["ARTURGOLUBEV_LAZYLOAD_MAIN_TAB_TITLE_SET"] = "Общие настройки";
 
 
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_VISUAL_TAB_SET"] = 'Визуальные настройки';
+$MESS["ARTURGOLUBEV_LAZYLOAD_VISUAL_TAB_SET"] = "Визуальные настройки";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_IMAGE_VIEW_EFFECT"] = 'Отображение картинки после загрузки';
-$MESS["ARTURGOLUBEV_LAZYLOAD_EFFECT_TYPE"] = 'Плавное появление картинки:';
-$MESS["ARTURGOLUBEV_LAZYLOAD_FADE_IN_ENABLE"] = 'Включено';
-$MESS["ARTURGOLUBEV_LAZYLOAD_FADE_IN_DISABLED"] = 'Отключено';
-$MESS["ARTURGOLUBEV_LAZYLOAD_EFFECT_SPEED"] = 'Скорость анимации появления:';
-
-
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADER_SETTING"] = 'Анимация загрузки (прелоадер)';
-$MESS["ARTURGOLUBEV_LAZYLOAD_DISABLE_PRELOADER"] = 'Отключить анимацию загрузки:';
-$MESS["ARTURGOLUBEV_LAZYLOAD_SHOW_PRELOADER_FOR_ALL"] = 'Показывать анимацию загрузки у картинок<br> без размера (только для &lt;img /&gt;):';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADER_IMAGE"] = 'Анимация загрузки:';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADER_IMAGE_SIZE"] = 'Размер анимации загрузки:';
+$MESS["ARTURGOLUBEV_LAZYLOAD_IMAGE_VIEW_EFFECT"] = "Отображение картинки после загрузки";
+$MESS["ARTURGOLUBEV_LAZYLOAD_EFFECT_TYPE"] = "Плавное появление картинки:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_FADE_IN_ENABLE"] = "Включено";
+$MESS["ARTURGOLUBEV_LAZYLOAD_FADE_IN_DISABLED"] = "Отключено";
+$MESS["ARTURGOLUBEV_LAZYLOAD_EFFECT_SPEED"] = "Скорость анимации появления:";
 
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_ADDITIONAL_FEATURES"] = 'Дополнительные возможности';
-$MESS["ARTURGOLUBEV_LAZYLOAD_AUTO_LOADING"] = 'Загрузить картинки сразу после загрузки страницы:';
-$MESS["ARTURGOLUBEV_LAZYLOAD_SIMPLE_DISABLE"] = 'Отключено';
-$MESS["ARTURGOLUBEV_LAZYLOAD_SIMPLE_ENABLE"] = 'Включено';
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADER_SETTING"] = "Анимация загрузки (прелоадер)";
+$MESS["ARTURGOLUBEV_LAZYLOAD_DISABLE_PRELOADER"] = "Не показывать анимацию загрузки:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_SHOW_PRELOADER_FOR_ALL"] = "Показывать анимацию загрузки у картинок без размера<br> (только для &lt;img /&gt;):";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADER_IMAGE"] = "Выбор анимации загрузки:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADER_IMAGE_SIZE"] = "Размер анимации загрузки:";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING"] = 'Предзагрузка картинок на Х пикселей вперёд:';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_1"] = 'Отключено';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_100"] = '100px';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_200"] = '200px';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_300"] = '300px';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_400"] = '400px';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_500"] = '500px';
-$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_NOTE"] = '<b>Предзагрузка картинок</b> помогает сделать отложенную загрузку менее заметной для обычного пользователя. При включенной опции загрузка картинок будет происходить чуть раньше, чем они попадут в зону видимости пользователя. Рекомендуемое значение 300px';
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_SYSTEM_SETTINGS"] = 'Системные настройки';
-$MESS["ARTURGOLUBEV_LAZYLOAD_DEBUG"] = 'Отладка';
+$MESS["ARTURGOLUBEV_LAZYLOAD_ADDITIONAL_FEATURES"] = "Дополнительные возможности";
+$MESS["ARTURGOLUBEV_LAZYLOAD_AUTO_LOADING"] = "Загрузить картинки сразу после загрузки страницы:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_SIMPLE_DISABLE"] = "Отключено";
+$MESS["ARTURGOLUBEV_LAZYLOAD_SIMPLE_ENABLE"] = "Включено";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_SITE_SETTING"] = 'Настройки сайта';
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING"] = "Предзагрузка картинок на Х пикселей вперёд:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_1"] = "Отключено";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_100"] = "100px";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_200"] = "200px";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_300"] = "300px";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_400"] = "400px";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_500"] = "500px";
+$MESS["ARTURGOLUBEV_LAZYLOAD_PRELOADING_NOTE"] = "<b>Предзагрузка картинок</b> помогает сделать отложенную загрузку менее заметной для обычного пользователя. При включенной опции загрузка картинок будет происходить чуть раньше, чем они попадут в зону видимости пользователя. Рекомендуемое значение 300px";
+
+$MESS["ARTURGOLUBEV_LAZYLOAD_SYSTEM_SETTINGS"] = "Системные настройки";
+$MESS["ARTURGOLUBEV_LAZYLOAD_DEBUG"] = "Отладка";
+
+$MESS["ARTURGOLUBEV_LAZYLOAD_SITE_SETTING"] = "Настройки сайта";
 
 
 
@@ -74,18 +74,18 @@ $MESS["ARTURGOLUBEV_LAZYLOAD_SITE_SETTING"] = 'Настройки сайта';
 $MESS["ARTURGOLUBEV_LAZYLOAD_HELP_TAB_NAME"] = "Информация";
 $MESS["ARTURGOLUBEV_LAZYLOAD_HELP_TAB_TITLE"] = "Полезная информация";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_CARD_TEXT"] = "Карточка решения на Marketplace:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_CARD_TEXT"] = "Карточка решения на Marketplace -";
 $MESS["ARTURGOLUBEV_LAZYLOAD_CARD_TEXT_VALUE"] = "<a href='https://marketplace.1c-bitrix.ru/solutions/arturgolubev.lazyload/#tab-about-link' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_INSTALL_TEXT"] = "Информация по установке:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_INSTALL_TEXT"] = "Информация по установке -";
 $MESS["ARTURGOLUBEV_LAZYLOAD_INSTALL_TEXT_VALUE"] = "<a href='https://marketplace.1c-bitrix.ru/solutions/arturgolubev.lazyload/#tab-install-link' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_INSTALL_VIDEO_TEXT"] = "Видео-инструкция:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_INSTALL_VIDEO_TEXT"] = "Видео-инструкция -";
 $MESS["ARTURGOLUBEV_LAZYLOAD_INSTALL_VIDEO_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/index.php?COURSE_ID=5&INDEX=Y' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_FAQ_TEXT"] = "Часто задаваемые вопросы по данному модулю:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_FAQ_TEXT"] = "Часто задаваемые вопросы по данному модулю -";
 $MESS["ARTURGOLUBEV_LAZYLOAD_FAQ_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/index.php?COURSE_ID=5&INDEX=Y' target='_blank'>ссылка</a>";
 
-$MESS["ARTURGOLUBEV_LAZYLOAD_FAQ_MAIN_TEXT"] = "Общие часто задаваемые вопросы:";
+$MESS["ARTURGOLUBEV_LAZYLOAD_FAQ_MAIN_TEXT"] = "Вопросы по оплате, активации модуля и т.п. -";
 $MESS["ARTURGOLUBEV_LAZYLOAD_FAQ_MAIN_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/?COURSE_ID=1&INDEX=Y' target='_blank'>ссылка</a>";
 ?>

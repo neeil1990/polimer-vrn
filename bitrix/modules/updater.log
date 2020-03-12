@@ -4041,3 +4041,4 @@ g=18.5.0&bitm_forum=18.0.4&bitm_statistic=18.5.0&bitm_compression=16.0.0&bitm_mo
 2020-02-03 17:19:22 -  - exec CUpdateClient::GetHTTPPage
 2020-02-03 17:19:22 -  - TIME GetUpdatesList(request) 0.176 sec
 2020-02-03 17:19:22 -  - exec CUpdateClient::ParseServerData
+2020-02-21 19:21:03 - CRUPDCDF1 - Run updater '/bitrix/updates/update_m1582302063/arturgolubev.lazyload/updater2.2.3.php': CopyDirFiles(install/images, /bitrix/images/)

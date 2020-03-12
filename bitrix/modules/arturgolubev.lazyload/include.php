@@ -1,5 +1,6 @@
 <?
 use \Arturgolubev\Lazyload\Tools as Tools;
+use \Arturgolubev\Lazyload\Unitools as UTools;
 
 if (!class_exists('phpQuery') && class_exists('DOMDocument')){
 	require('lib/phpQuery-onefile.php'); 
@@ -10,25 +11,21 @@ Class CArturgolubevLazyload
 	const MODULE_ID = 'arturgolubev.lazyload';
 	var $MODULE_ID = 'arturgolubev.lazyload';
 	
-	function textOneLine($text){
-		return str_replace(array("\r\n", "\r", "\n"), '',  $text);
-	}
-	
 	function chechEnable(){
-		return (Tools::getSetting('enable') == 'Y' && Tools::getSiteSetting('disabled') != 'Y' && class_exists('DOMDocument')) ? 1 : 0;
+		return (UTools::getSetting('enable') == 'Y' && UTools::getSiteSetting('disabled') != 'Y' && class_exists('DOMDocument')) ? 1 : 0;
 	}
 	
 	function getBackgroundClass(){
 		$class = 'agll0708';
-		$disable_preloader = (Tools::getSetting('disable_preloader') == "Y");
+		$disable_preloader = (UTools::getSetting('disable_preloader') == "Y");
 		
 		if(!$disable_preloader)
 		{
 			$class .= ' agll0708bg';
-			$class .= ' ag-'.Tools::getSetting('preloader_image', 'loading');
-			$class .= ' ag-'.Tools::getSetting('preloader_image_size', 'pw64');
+			$class .= ' ag-'.UTools::getSetting('preloader_image', 'loading');
+			$class .= ' ag-'.UTools::getSetting('preloader_image_size', 'pw64');
 			
-			if(Tools::getSetting('preloader_for_all', 'N') == 'Y')
+			if(UTools::getSetting('preloader_for_all', 'N') == 'Y')
 				$class .= ' ag-sts';
 		}
 		
@@ -38,7 +35,7 @@ Class CArturgolubevLazyload
 	function onBufferContent(&$bufferContent){
 		global $APPLICATION;
 		
-		if(Tools::checkStatus() && Tools::checkAjax() && CModule::IncludeModule(self::MODULE_ID))
+		if(UTools::checkStatus() && UTools::checkAjax() && CModule::IncludeModule(self::MODULE_ID))
 		{
 			$stop = 0;
 			
@@ -53,7 +50,7 @@ Class CArturgolubevLazyload
 				$cur = $APPLICATION->GetCurPage(false);
 				$curParams = $APPLICATION->GetCurPageParam();
 				
-				$page_exceptions = Tools::getSiteSettingEx('page_exceptions');
+				$page_exceptions = UTools::getSiteSettingEx('page_exceptions');
 				if($page_exceptions)
 				{
 					$ar_page_exceptions = explode("\n",$page_exceptions);
@@ -76,13 +73,13 @@ Class CArturgolubevLazyload
 			{
 				$option = array(
 					'default_image_path' => '/bitrix/images/arturgolubev.lazyload/pixel.gif',
-					'default_iframe_path' => '/bitrix/images/arturgolubev.lazyload/pixel.php',
-					'iframe' => (Tools::getSiteSetting('enable_iframe') == 'Y' ? 1 : 0),
-					'auto_loading' => Tools::getSetting('auto_loading', "disable"),
-					'effect_type' => Tools::getSetting('effect_type', "fadeIn"),
-					'effect_speed' => Tools::getSetting('effect_speed', "500"),
-					'preloading' => IntVal(Tools::getSetting('preloading', "1")),
-					'selectors_setting' => Tools::getSiteSettingEx('selectors'),
+					'default_iframe_path' => '/bitrix/images/arturgolubev.lazyload/pixel.html',
+					'iframe' => (UTools::getSiteSetting('enable_iframe') == 'Y' ? 1 : 0),
+					'auto_loading' => UTools::getSetting('auto_loading', "disable"),
+					'effect_type' => UTools::getSetting('effect_type', "fadeIn"),
+					'effect_speed' => UTools::getSetting('effect_speed', "500"),
+					'preloading' => IntVal(UTools::getSetting('preloading', "1")),
+					'selectors_setting' => UTools::getSiteSettingEx('selectors'),
 					'preload_background_class' => self::getBackgroundClass(),
 				);
 				
@@ -91,7 +88,7 @@ Class CArturgolubevLazyload
 				
 				$option['selectors'] = ($option["selectors_setting"]) ? '.agllimage, '.$option["selectors_setting"] : '.agllimage';
 												
-				$debug_mode = (Tools::getSetting('debug', "N") == 'Y');
+				$debug_mode = (UTools::getSetting('debug', "N") == 'Y');
 				
 				$arSearch = array(); $arReplace = array();
 				$arSearch2 = array(); $arReplace2 = array();
@@ -263,7 +260,7 @@ Class CArturgolubevLazyload
 					
 				$s .= '</script>'.$n;
 				
-				$bufferContent = preg_replace('/<\/body>/', $s.'</body>', $bufferContent, 1);
+				$bufferContent = UTools::addBodyScript($s, $bufferContent);
 				
 				unset($arSearch2);unset($arReplace2);
 				unset($s);unset($option);
@@ -272,18 +269,17 @@ Class CArturgolubevLazyload
 	}
 	
 	function onEpilog(){
-		if(Tools::checkStatus() && Tools::checkAjax() && CModule::IncludeModule(self::MODULE_ID))
+		if(UTools::checkStatus() && UTools::checkAjax() && CModule::IncludeModule(self::MODULE_ID))
 		{
 			if(self::chechEnable())
 			{
-				$jquery = (Tools::getSiteSetting('jquery') == 'Y' || Tools::getSetting('jquery') == 'Y');
+				$jquery = (UTools::getSiteSetting('jquery') == 'Y' || UTools::getSetting('jquery') == 'Y');
 				if($jquery)
 					CJSCore::Init(array("jquery"));
 				
-				if(Tools::getSetting('disable_preloader') != 'Y')
+				if(UTools::getSetting('disable_preloader') != 'Y')
 				{
-					global $APPLICATION;
-					$APPLICATION->SetAdditionalCSS("/bitrix/css/".self::MODULE_ID."/style.css", true);
+					UTools::addCss("/bitrix/css/".self::MODULE_ID."/style.css");
 				}
 			}
 		}

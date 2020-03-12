@@ -70,10 +70,13 @@ Class arturgolubev_lazyload extends CModule
 
 	function DoInstall()
 	{
-		global $APPLICATION;
+		global $APPLICATION, $DOCUMENT_ROOT;
+		
 		$this->InstallFiles();
 		$this->InstallDB();
 		RegisterModule(self::MODULE_ID);
+		
+		$APPLICATION->IncludeAdminFile(GetMessage("MOD_INST_OK"), $DOCUMENT_ROOT."/bitrix/modules/arturgolubev.lazyload/install/success_install.php");
 	}
 
 	function DoUninstall()

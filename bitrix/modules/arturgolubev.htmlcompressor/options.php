@@ -125,3 +125,29 @@ if($REQUEST_METHOD=="POST" && strlen($Update.$Apply)>0 && check_bitrix_sessid())
 		<?=bitrix_sessid_post();?>
 	<?$tabControl->End();?>
 </form>
+
+
+
+<?
+if (class_exists('\Bitrix\Main\UI\Extension')) {
+   \Bitrix\Main\UI\Extension::load("ui.hint");
+   ?>
+	<script>
+	BX.ready(function() {
+		BX.UI.Hint.init(BX('adm-workarea')); 
+	});
+	</script>
+	<?
+}
+?>
+
+<style>
+	#bx-admin-prefix form .adm-info-message {
+		color:#111;
+		background:#fff;
+		border: 1px solid #bbb;
+		padding: 10px 15px;
+		margin-top: 0;
+		text-align: left;
+	}
+</style>

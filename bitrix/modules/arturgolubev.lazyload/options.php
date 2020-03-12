@@ -56,19 +56,8 @@ $arPreloaderImageSize = array(
 
 $arOptions = array(
     "main" => array(),
-	"visual" => array(
-		GetMessage($MODULE_NAME . "_IMAGE_VIEW_EFFECT"),
-		array("effect_type", GetMessage($MODULE_NAME . "_EFFECT_TYPE"), "", array("selectbox", $arEffects)),
-		array("effect_speed", GetMessage($MODULE_NAME . "_EFFECT_SPEED"), "500", array("text")),
-		
-		GetMessage($MODULE_NAME . "_PRELOADER_SETTING"),
-        array("disable_preloader", GetMessage($MODULE_NAME . "_DISABLE_PRELOADER"), "N", array("checkbox")),
-        array("preloader_for_all", GetMessage($MODULE_NAME . "_SHOW_PRELOADER_FOR_ALL"), "N", array("checkbox")),
-        array("preloader_image_size", GetMessage($MODULE_NAME . "_PRELOADER_IMAGE_SIZE"), "pw32", array("selectbox", $arPreloaderImageSize)),
-        array("preloader_image", GetMessage($MODULE_NAME . "_PRELOADER_IMAGE"), "loading", array("selectbox", $arPreloaderImage)),
-		
-	),
-	"system" => array(),
+	// "visual" => array(),
+	// "system" => array(),
 );
 
 $arOptions["main"][] = array("enable", GetMessage($MODULE_NAME . "_ENABLE"), "N", array("checkbox"));
@@ -83,15 +72,28 @@ if(COption::GetOptionString($module_id, "page_exceptions"))
 	$arOptions["main"][] = array("page_exceptions", GetMessage($MODULE_NAME . "_PAGE_EXCEPTION"), "", array("textarea", 5, 40));
 
 
+$arOptions["main"][] = GetMessage($MODULE_NAME . "_IMAGE_VIEW_EFFECT");
+$arOptions["main"][] = array("effect_type", GetMessage($MODULE_NAME . "_EFFECT_TYPE"), "", array("selectbox", $arEffects));
+$arOptions["main"][] = array("effect_speed", GetMessage($MODULE_NAME . "_EFFECT_SPEED"), "500", array("text"));
+		
+$arOptions["main"][] = GetMessage($MODULE_NAME . "_PRELOADER_SETTING");
+$arOptions["main"][] = array("disable_preloader", GetMessage($MODULE_NAME . "_DISABLE_PRELOADER"), "N", array("checkbox"));
+$arOptions["main"][] = array("preloader_for_all", GetMessage($MODULE_NAME . "_SHOW_PRELOADER_FOR_ALL"), "N", array("checkbox"));
+$arOptions["main"][] = array("preloader_image", GetMessage($MODULE_NAME . "_PRELOADER_IMAGE"), "loading", array("selectbox", $arPreloaderImage));
+$arOptions["main"][] = array("preloader_image_size", GetMessage($MODULE_NAME . "_PRELOADER_IMAGE_SIZE"), "pw32", array("selectbox", $arPreloaderImageSize));
+
+$arOptions["main"][] = GetMessage($MODULE_NAME . "_ADDITIONAL_FEATURES");
+$arOptions["main"][] = array("auto_loading", GetMessage($MODULE_NAME . "_AUTO_LOADING"), "disabled", array("selectbox", $arAutoLoading));
+$arOptions["main"][] = array("preloading", GetMessage($MODULE_NAME . "_PRELOADING"), "300", array("selectbox", $arPreLoading));
+$arOptions["main"][] = array("note" => GetMessage($MODULE_NAME . "_PRELOADING_NOTE"));
+
+$arOptions["main"][] = GetMessage($MODULE_NAME . "_SYSTEM_SETTINGS");
+$arOptions["main"][] = array("debug", GetMessage($MODULE_NAME . "_DEBUG"), "N", array("checkbox"));
 
 
-$arOptions["system"][] = GetMessage($MODULE_NAME . "_ADDITIONAL_FEATURES");
-$arOptions["system"][] = array("auto_loading", GetMessage($MODULE_NAME . "_AUTO_LOADING"), "disabled", array("selectbox", $arAutoLoading));
-$arOptions["system"][] = array("preloading", GetMessage($MODULE_NAME . "_PRELOADING"), "300", array("selectbox", $arPreLoading));
-$arOptions["system"][] = array("note" => GetMessage($MODULE_NAME . "_PRELOADING_NOTE"));
 
-$arOptions["system"][] = GetMessage($MODULE_NAME . "_SYSTEM_SETTINGS");
-$arOptions["system"][] = array("debug", GetMessage($MODULE_NAME . "_DEBUG"), "N", array("checkbox"));
+
+
 
 $arOptions["help"][] = array("help_card", GetMessage($MODULE_NAME . "_CARD_TEXT"), GetMessage($MODULE_NAME . "_CARD_TEXT_VALUE"), array("statictext"));
 $arOptions["help"][] = array("help_install", GetMessage($MODULE_NAME . "_INSTALL_TEXT"), GetMessage($MODULE_NAME . "_INSTALL_TEXT_VALUE"), array("statictext"));
@@ -117,8 +119,8 @@ foreach($siteList as $arSite){
 	$arOptions[$optionKey][] = array("page_exceptions_".$arSite["ID"], GetMessage($MODULE_NAME . "_PAGE_EXCEPTION"), "", array("textarea", 5, 40));
 }
 
-$arTabs[] = array("DIV" => "edit_visual", "TAB" => GetMessage($MODULE_NAME."_VISUAL_TAB_SET"), "TITLE" => GetMessage($MODULE_NAME."_VISUAL_TAB_SET"), "OPTIONS"=>"visual");
-$arTabs[] = array("DIV" => "edit_system", "TAB" => GetMessage($MODULE_NAME."_ADDITIONAL_FEATURES"), "TITLE" => GetMessage($MODULE_NAME."_ADDITIONAL_FEATURES"), "OPTIONS"=>"system");
+// $arTabs[] = array("DIV" => "edit_visual", "TAB" => GetMessage($MODULE_NAME."_VISUAL_TAB_SET"), "TITLE" => GetMessage($MODULE_NAME."_VISUAL_TAB_SET"), "OPTIONS"=>"visual");
+// $arTabs[] = array("DIV" => "edit_system", "TAB" => GetMessage($MODULE_NAME."_ADDITIONAL_FEATURES"), "TITLE" => GetMessage($MODULE_NAME."_ADDITIONAL_FEATURES"), "OPTIONS"=>"system");
 
 $arTabs[] = array("DIV" => "edit_system_help", "TAB" => GetMessage($MODULE_NAME."_HELP_TAB_NAME"), "TITLE" => GetMessage($MODULE_NAME."_HELP_TAB_TITLE"), "OPTIONS"=>"help");
 
@@ -220,16 +222,30 @@ if($REQUEST_METHOD=="POST" && strlen($Update.$Apply)>0 && check_bitrix_sessid())
 	<?$tabControl->End();?>
 </form>
 
-<style>
-.lazy-setting-form .adm-info-message {
-	padding: 4px 10px !important;
-	color: #333 !important;
-	text-align: left !important;
-	margin-top: 5px !important;
-	box-shadow: none !important;
-}
-</style>
-
 <?=BeginNote();?>
 	<?=GetMessage($MODULE_NAME."_SETTING_DOP_INFO");?>
 <?=EndNote();?>
+
+<?
+if (class_exists('\Bitrix\Main\UI\Extension')) {
+   \Bitrix\Main\UI\Extension::load("ui.hint");
+   ?>
+	<script>
+	BX.ready(function() {
+		BX.UI.Hint.init(BX('adm-workarea')); 
+	});
+	</script>
+	<?
+}
+?>
+
+<style>
+	#bx-admin-prefix form .adm-info-message {
+		color:#111;
+		background:#fff;
+		border: 1px solid #bbb;
+		padding: 10px 15px;
+		margin-top: 0;
+		text-align: left;
+	}
+</style>
