@@ -5023,11 +5023,17 @@ header .header__bottom.fixed .header__account
     border: 0;
     font: 400 14px/20px 'Fira Sans', sans-serif;
     text-align: left;
-    color: #0464bb
+    color: #0464bb;
+    height: 60px;
+    overflow: hidden;
+    background: #FFF;
 }
 
 .products_roll .pr_box .item .hover .inner .title:hover {
-    color: #00a1f2
+    color: #00a1f2;
+    position: relative;
+    height: auto;
+    z-index: 2;
 }
 
 .products_roll .pr_box .item .hover .inner .cost {
