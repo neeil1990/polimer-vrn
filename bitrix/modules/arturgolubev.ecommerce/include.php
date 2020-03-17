@@ -1,1 +1,814 @@
-<? $GLOBALS['____105994952']= array(base64_decode('ZG'.'VmaW'.'5l'),base64_decode('c3RycmV2'),base64_decode('c3'.'RydG91cH'.'Blc'.'g=='),base64_decode(''.'c3Bya'.'W50'.'Z'.'g=='),base64_decode(''.'c3ByaW50Zg=='),base64_decode('c3Vic'.'3R'.'y'),base64_decode('c3RycmV2'),base64_decode('Ym'.'FzZTY0X2RlY29kZQ'.'=='),base64_decode('c3Vic3'.'Ry'),base64_decode('c3RybGVu'),base64_decode('c3RybGVu'),base64_decode('Y2hy'),base64_decode('b3Jk'),base64_decode('b3J'.'k'),base64_decode('bWt0aW1l'),base64_decode('aW5'.'0d'.'mFs'),base64_decode(''.'aW50dmFs'),base64_decode('aW50dmFs'),base64_decode('a3'.'Nv'.'cnQ'.'='),base64_decode('c3Vi'.'c3R'.'y'),base64_decode('a'.'W'.'1wbG9'.'kZQ='.'='),base64_decode('ZGVmaW5lZA=='),base64_decode('YmFzZTY0'.'X2Rl'.'Y29'.'kZQ=='),base64_decode('Y29uc'.'3RhbnQ='),base64_decode('c3RycmV2'),base64_decode('c3Bya'.'W50Zg=='),base64_decode('c3RybGV'.'u'),base64_decode('c3R'.'yb'.'GV'.'u'),base64_decode('Y2hy'),base64_decode('b'.'3Jk'),base64_decode('b3'.'Jk'),base64_decode(''.'bWt'.'0'.'a'.'W'.'1'.'l'),base64_decode('aW'.'50dmFs'),base64_decode('aW5'.'0dmF'.'s'),base64_decode('aW'.'5'.'0dmFs'),base64_decode('c3Vic3'.'Ry'),base64_decode('c3Vi'.'c3R'.'y'),base64_decode('dG'.'lt'.'ZQ=='),base64_decode('b'.'Wt0aW1l'),base64_decode('b'.'Wt0'.'aW1l'),base64_decode('ZGF0'.'ZQ=='),base64_decode('ZGF0Z'.'Q'.'=='),base64_decode('ZGVma'.'W5l'),base64_decode('ZGVmaW5l'),base64_decode('a'.'XNfYXJ'.'y'.'YXk'.'='),base64_decode('cm91'.'bmQ='),base64_decode('aXN'.'fYXJyYXk='),base64_decode('c3RyaX'.'Bfd'.'G'.'Fnc'.'w='.'='),base64_decode('aW1'.'wbG9kZQ=='),base64_decode('c'.'3RyaXBf'.'d'.'GFncw='.'='),base64_decode('c2V0Y29'.'va2ll'),base64_decode('dGltZQ=='),base64_decode('cm91bmQ='),base64_decode('cm91bmQ='),base64_decode(''.'cm91'.'bmQ='),base64_decode('aW1wb'.'G9kZQ=='),base64_decode('aW'.'1wbG9kZQ'.'=='),base64_decode('c3RyX3'.'J'.'lcGxh'.'Y2U='),base64_decode('YXJyY'.'X'.'l'.'fa2V5cw=='),base64_decode('aW'.'1'.'wbG9kZQ=='),base64_decode('aW1'.'w'.'bG9kZQ=='),base64_decode('aW1wbG9k'.'ZQ=='),base64_decode(''.'aW'.'1wbG'.'9kZQ=='),base64_decode('c3R'.'yX'.'3JlcG'.'xhY2U'.'='),base64_decode('aW1'.'wbG9kZQ'.'=='),base64_decode('ZGVmaW5lZA=='),base64_decode('c3Ryb'.'G'.'Vu'));if(!function_exists(__NAMESPACE__.'\\___65071755')){function ___65071755($_1245885936){static $_1553828637= false; if($_1553828637 == false) $_1553828637=array('ZXhwaXJ'.'lX21l'.'c3NfY3Vz'.'dG9tM'.'g='.'=','YX'.'J0dXJnb2'.'x'.'1YmV2X2Vjb'.'21'.'tZ'.'XJjZV'.'8=','b2'.'1lZA==','W'.'Q==','ZHJ'.'t'.'X3'.'N0ZXJnb2t'.'j','JTAxMHMK','dXJnb2x1','YXJ0dXJnb2x1Ym'.'V2LmV'.'jb'.'21tZXJjZQ==',''.'JXMl'.'cw==','fmJz','ZXR'.'hZF9wbw==','YWRt'.'a'.'W4'.'=','bW9kdWxlcw'.'==',''.'dXNlcl9'.'kYXRl'.'X2JzbS'.'5waHA'.'=','Y'.'XJ0dXJ'.'nb'.'2x1Y'.'mV2LmVjb21tZX'.'Jj'.'ZQ==','Yml0cml4','U'.'kh1'.'cm'.'dvbHU=','MTY'.'2MT'.'g5'.'YzU1M2No'.'eXRvcw==','','YTIz','NG'.'FjOTN'.'mNWE0OWRh'.'OGUwO'.'TM'.'w','N2Y5'.'ZGYx'.'MA==',''.'aHR0'.'cDo'.'vL'.'2Jpd'.'H'.'Jp'.'eHNvZnQuY29t'.'L2JpdHJpeC'.'9icy5waHA'.'=','Y'.'XJ'.'0','YmV2X2Vjb21tZ'.'XJjZV9PT'.'ERTSVRFRVhQSVJFRE'.'FURV'.'M=','RE9DVU1F'.'T'.'lRfUk9P'.'VA==','L'.'w'.'='.'=','Lw==','YX'.'J0dXJnb2x1YmV2X2Vjb21t'.'ZXJj'.'Z'.'V9URU1'.'QT'.'1'.'JB'.'U'.'ll'.'f'.'Q0'.'FDSEU=','YXJ0dXJnb'.'2x1Y'.'m'.'V'.'2X2'.'Vj'.'b'.'21tZXJ'.'jZV'.'9'.'URU1QT'.'1'.'JBUllfQ0'.'FDS'.'EU'.'=','','ODk'.'xMzM=','J'.'XMlcw='.'=','Yj'.'FlZW'.'M0Mzcw'.'M'.'zk4'.'NTM1NTV'.'lZTk=','YXJ0','Y'.'mV2X'.'2V'.'jb21t'.'Z'.'X'.'JjZV9TSV'.'RFR'.'VhQSVJFRE'.'FURU'.'1BUEVS','bQ==','ZA==',''.'W'.'Q'.'==','U2l0ZUV4'.'cGl'.'yZUR'.'hdGVf'.'YX'.'J0dXJn'.'b2x1Y'.'mV'.'2X'.'2Vjb21t'.'ZXJjZQ'.'='.'=',''.'Y29udmVyd'.'F9jdXJyZW5j'.'eQ'.'==','Y3Vy'.'cmVuY3k'.'=','Q1'.'VSUkV'.'OQ1k=','U'.'FJJQ'.'0U=','UF'.'JJQ0'.'U=','Q1V'.'SUkVOQ1'.'k=',''.'Q1VS'.'Uk'.'VO'.'Q1k=','b2ZmX'.'2F'.'qYXhfb3JkZXI=','WQ='.'=','b2ZmX'.'2FqYX'.'g=','W'.'Q='.'=','Y'.'WpheA='.'=','L2JpdHJpeC'.'9q'.'cy9'.'hcnR1cmdv'.'bHViZXYu'.'Z'.'WN'.'v'.'b'.'W1lcmN'.'l'.'L3Njcml'.'w'.'dF92Mi'.'5qc'.'w==','PHNjc'.'mlwdD'.'4=','P'.'C9'.'zY3JpcHQ+','Z'.'GVidWc=','WQ==','b3'.'J'.'kZXJJZCA9IA='.'=','Q'.'WcgRWM'.'gb25Pc'.'m'.'Rlc'.'kFkZA==',''.'QUd'.'fRU'.'NPTU1'.'FUkN'.'F',''.'T'.'1'.'J'.'ERVJTX'.'1RP'.'X1N'.'F'.'TkQ=','ZGVidWc=','WQ'.'==','YmFza2V0SUQgPSA=','QWcgRWMgb'.'2'.'5CY'.'XNrZXRB'.'ZGQ=','QUdfRUNPTU'.'1FUkNF','QUREX'.'1R'.'PX0JBU0tFV'.'A==','Z'.'GVidWc=',''.'W'.'Q'.'==',''.'SUQgP'.'SA'.'=','QWcg'.'R'.'W'.'Mgb'.'25CY'.'X'.'NrZXR'.'EZ'.'WxldGU'.'=','QUd'.'fRUNPTU1FUkNF','R'.'EVMRVRFX'.'0'.'ZS'.'T01fQkF'.'TS0V'.'U','aWJs'.'b2Nr','SUQ=','SUQ'.'=','blB'.'h'.'Z'.'2VTaXpl','SUQ=',''.'TkFNRQ==','SUJ'.'MT0NLX0'.'lE','U0VDVEl'.'PTl9JRA==','SUJ'.'MT0NLX1NFQ1RJ'.'T05fSUQ=',''.'UFJ'.'PU'.'EVSV'.'E'.'lFUw'.'==','S'.'UJ'.'MT0NLX1NFQ1RJ'.'T05fSUQ=',''.'SUJMT0NLX'.'1NFQ1RJT05f'.'S'.'UQ=','TkF'.'NRQ'.'==','TkFN'.'RQ'.'='.'=','SUJ'.'MT0NLX'.'1NFQ1RJT05fSUQ=','SUJM'.'T'.'0NL'.'X1N'.'F'.'Q1R'.'JT05fSUQ=','QlJ'.'BTkR'.'fUFJPU'.'E'.'VSVFl'.'f','SUJMT0N'.'LX0lE','UFJPUEVSVElFU'.'w'.'==','S'.'UQ=','ZX'.'Z0MQ='.'=','RE'.'l'.'TU'.'ExBW'.'V9W'.'Q'.'U'.'xVRQ==','REl'.'T'.'UExBWV9WQUxVRQ==','QlJ'.'B'.'T'.'kQ=','Lw==',''.'RElTUExBWV9WQUx'.'VR'.'Q==','Q'.'lJBTkQ=','RElTUExBWV9WQUxV'.'RQ==',''.'QlJBT'.'kQ=','QlJBT'.'kQ=','U0V'.'D'.'V'.'El'.'PT'.'l9OQU1F','U'.'0VDVE'.'l'.'PTl9O'.'QU'.'1F','','IC8g','','U0VDVElPTl'.'9OQU'.'1F','TkFNRQ==','U0V'.'DV'.'ElPTl9OQU1F','U0VDVEl'.'PTl9OQU'.'1F','aWJs'.'b2Nr',''.'Y2'.'F0YWx'.'vZw'.'==','c2FsZQ==','U'.'FJPRF'.'VDVF9JRA==','SUQ=','UFJPRFVDVF9J'.'RA='.'=','SUQ'.'=',''.'SUQ'.'=',''.'Tk'.'FN'.'RQ='.'=','TkFNR'.'Q='.'=','UF'.'JP'.'RFV'.'DV'.'F9JRA==','T1JER'.'VJfSUQ=','U'.'FJPRF'.'V'.'DVF9J'.'RA==',''.'Q1VSU'.'kVOQ1k'.'=','UkV'.'TV'.'UxUX1BSSUN'.'F','Q'.'1VSUkVOQ1k=','Uk'.'VT'.'VUx'.'UX1BSSUNF','Q1V'.'SUkVOQ1k=',''.'UFJJ'.'Q0U=','Q1VSUkV'.'OQ1k=',''.'UFJJQ0U=','UkV'.'TVUxU'.'X1BSSU'.'NF','RElTQ09VTlRf'.'UFJJQ0U'.'=','UkVT'.'V'.'UxUX1BSS'.'UNF','RElTQ'.'09V'.'TlR'.'fU'.'FJ'.'JQ0U=','UFJJ'.'Q0U=','U'.'FJJQ0U=','UFJJQ0U'.'=','UF'.'J'.'JQ'.'0U'.'=',''.'Q'.'1VS'.'UkV'.'OQ'.'1k=',''.'Q1VSU'.'kVOQ1k=','U'.'VV'.'BT'.'lRJVFk=','UVVBTlRJVFk'.'=','U'.'VVBT'.'lR'.'J'.'V'.'Fk=',''.'MQ==','UFJPUF'.'M=',''.'QkF'.'TS'.'0V'.'UX0lE','U'.'FJPU'.'FM=','UFJPUFM'.'=','UFJPUFM=','Q09E'.'R'.'Q'.'==',''.'Q'.'0FUQ'.'Ux'.'P'.'Ry'.'5YTU'.'xfSUQ=','Q09ERQ==','UF'.'JP'.'R'.'FVDV'.'C5'.'Y'.'TUxfSUQ=','UFJPUFNfVk'.'F'.'MVU'.'U=',''.'VkFMVUU=','TkFNRQ==',''.'TkFNRQ==',''.'U0VT'.'U'.'0l'.'PTl9QQVJBTQ='.'=','QURE'.'X1RPX0JBU0tFVA'.'==','Q'.'09PS0lF'.'X1BBUkFN','R'.'UNfQUREX0ZPUl'.'8=','U'.'0V'.'TU0lP'.'Tl9QQVJBTQ==','REVMRVRFX0'.'ZST01fQkF'.'TS'.'0VU','Q09PS0l'.'F'.'X1BB'.'UkF'.'N','RUNfUk1'.'f'.'Rk9SXw==','U0VTU'.'0lPTl9'.'QQ'.'VJBTQ='.'=','T1JERVJT'.'X1R'.'PX1NFTk'.'Q=','Q09PS0'.'l'.'FX1BBUkFN',''.'R'.'UN'.'fU0hPV1'.'9GT1Jf','QUdfRUNP'.'TU1FUkNF',''.'U0VTU'.'0lPTl9QQ'.'V'.'J'.'BTQ==','QUdf'.'RUNPT'.'U1FUkNF',''.'U0VTU0l'.'PT'.'l9QQ'.'VJ'.'BTQ='.'=',''.'Q'.'09PS0lFX1BBUkFN','WQ==','','Lw==','QUdfRU'.'NPTU1FUkNF',''.'U0VTU0lPTl'.'9QQVJBTQ==','c'.'2'.'Ny'.'aXB0c'.'w==','bW92ZV9mb'.'290ZXI=','',''.'QUdf'.'RUNPTU1FUkN'.'F','T1'.'JE'.'RVJTX'.'1RPX1NFTk'.'Q=',''.'QUdfRUNPTU1FU'.'kNF','QUR'.'EX1'.'RPX0JBU0tFV'.'A==','YW'.'Rk',''.'QU'.'dfRUNP'.'TU1F'.'U'.'kNF','RE'.'VMRVRFX0ZST01fQk'.'FTS'.'0VU','cmVt'.'b'.'3'.'Z'.'l','a'.'WJsb2'.'Nr',''.'Y2F0YWxvZw='.'=',''.'c'.'2FsZQ==','RU'.'NfU0hPV19GT1Jf','Y29u'.'dGFpb'.'mV'.'y','ZGF0'.'YU'.'xheWVy','Z2'.'V0'.'X29yZGV'.'yX2lkX2Zyb'.'20=','S'.'U'.'Q=','','','',''.'S'.'U'.'Q=','S'.'UQ=','S'.'U'.'Q'.'=','QkF'.'T'.'S0VUX0R'.'J'.'U'.'0NPVU5U'.'X0NPVVBPTg='.'=','K'.'g'.'==','Rkl'.'F'.'TER'.'T','Rk'.'lFTE'.'R'.'T','RklFTE'.'RT','SUQ'.'=','QVND',''.'T1J'.'ERVJf'.'SU'.'Q=','R'.'klFTERT','S'.'UQ=','Kg==',''.'S'.'UQ=','T1'.'JERVJfQkFTS0V'.'U','T1'.'JERVJfQk'.'F'.'T'.'S0VU','T1JER'.'V'.'J'.'f'.'Q'.'kFTS'.'0VU',''.'T1JERVJfQkFTS0VU','Q'.'1VSUkVOQ1k=','RklFTE'.'RT','Q1VS'.'UkVO'.'Q1k=','Rkl'.'FTERT','U'.'FJJQ0'.'U'.'=','RklFTERT','UFJ'.'J'.'Q'.'0U=','RklFTER'.'T','Q'.'1VSUkVOQ1k'.'=','R'.'klFT'.'ERT',''.'V'.'EF'.'Y'.'X1ZBTFV'.'F','RklFT'.'ERT','VEFYX1Z'.'B'.'TFVF','Rkl'.'F'.'TERT','Q1VS'.'UkVOQ1k=','Rkl'.'FTERT','UFJJQ'.'0VfRE'.'V'.'MS'.'VZF'.'U'.'lk=','RklFT'.'ERT','UFJJQ0VfREV'.'M'.'SVZFUlk'.'=','RklFTERT','Q'.'1VSUk'.'V'.'OQ1'.'k=','R'.'klFTE'.'RT',''.'Q1V'.'SUkVOQ1k=','','T1JERVJfQkFTS'.'0VU','LCA=','ew==','I'.'mlkIjo'.'gIg==','SUQ=','Ii'.'w=',''.'Im'.'5hbWUi'.'OiAi','TkFNRQ==','Iiw=','I'.'nBya'.'WN'.'lIjog','UFJJQ0'.'U=','L'.'A==','ImN'.'hdG'.'Vnb'.'3J5Ijog'.'Ig==','U'.'0VD'.'VElPTl9OQU1F','I'.'iw=','InF1Y'.'W50aXR5IjogIg==',''.'U'.'V'.'VBTlRJV'.'F'.'k=','Iiw=','ImJyYW'.'5kIjo'.'gIg='.'=','QlJBT'.'kQ=',''.'Iiw=','InZhc'.'mlhbn'.'Qi'.'Oi'.'Ai','UFJPUFNfVkF'.'MVUU=','Lw==',''.'UFJPU'.'F'.'NfVkFM'.'V'.'UU=','','I'.'iw'.'=','fQ='.'=','ZG'.'9'.'jdW1lbn'.'Q'.'uYW'.'RkRXZ'.'lbn'.'RMaXN0'.'Z'.'W5lcigiRE9NQ29u'.'dG'.'Vu'.'d'.'E'.'xvYWRlZ'.'CIsIG'.'Z1b'.'m'.'N0'.'a'.'W9'.'uKCl7','','dm'.'FyIGV4'.'c'.'G'.'lyZX'.'MgP'.'SBuZXcgRG'.'F0ZSgobmV3IERhdGUpLmdld'.'FR'.'pbWUoKSAr'.'ICg2ICogM'.'zAgKi'.'AyN'.'CAqI'.'DYwICogNj'.'AgKi'.'A0M'.'DA'.'wK'.'Sk7IA==','dmF'.'y'.'IGN'.'vb2tpZV'.'9z'.'dHJp'.'bmcgPSAi',''.'IiArICI9IiA'.'rIGVzY2F'.'wZ'.'Sgi'.'WSIpO'.'yA=','Y29va'.'2l'.'lX3N0cmluZyArPSAiO'.'y'.'Ble'.'HBp'.'cmV'.'zPSIgKy'.'BleHBpcmV'.'zLnRv'.'VVRD'.'U3'.'RyaW5'.'nKCk'.'7I'.'A==','Y29va2llX3N0'.'c'.'mluZy'.'ArP'.'SAi'.'O'.'yB'.'wYXRoPSIgK'.'yB'.'lc2N'.'hcGUgK'.'CIvIik7IA==','Z'.'G9jdW1lbn'.'QuY2'.'9va2'.'llID'.'0gY2'.'9va'.'2llX3N'.'0cmluZzsg','Z'.'G'.'Vi'.'dWc=',''.'WQ==',''.'Y29uc29sZS5sb'.'2coInNl'.'dENvb'.'2tp'.'ZTogIiArIGNvb2tpZV9zd'.'H'.'J'.'pbmcp'.'OyA=','f'.'Sk7','',''.'eWF'.'fb2'.'Zm','WQ'.'==','d2l'.'uZG'.'9'.'3Lg'.'==',''.'ID0gd2luZG'.'93Lg==','IH'.'x8IF'.'tdO'.'w='.'=','dmFy'.'IHNlbmRU'.'b01ldHJ'.'pYyA9IH'.'s=','ImVjb21tZ'.'XJjZS'.'I6IHs'.'=','ImN'.'1cnJl'.'b'.'mN5Q29kZSI'.'6ICI=','RklF'.'TER'.'T',''.'Q'.'1V'.'S'.'UkVOQ1k=','Iiw=','I'.'n'.'B1cm'.'NoYXNl'.'Ijoge'.'w==',''.'ImFjdG'.'lvb'.'k'.'Zp'.'ZW'.'xk'.'I'.'jo'.'gew'.'==','I'.'ml'.'kI'.'iA6I'.'CI'.'=','Ii'.'w=','In'.'Jld'.'mVudWUi'.'IDogI'.'g'.'==',''.'RklFT'.'ERT','UFJJQ'.'0'.'U=','I'.'i'.'w=','I'.'mNv'.'d'.'XBvbiIgOi'.'Ai','RklFTERT','Qk'.'FTS'.'0VUX0RJU0NPVU5UX0NP'.'VVBPTg='.'=','Ii'.'w=','eW'.'FuZGV'.'4X'.'3RhcmdldF9'.'vcmRlcg==','Imdv'.'YW'.'xfaW'.'QiID'.'ogIg==','eWFuZG'.'V4'.'X'.'3Rhcmd'.'ld'.'F9vcmRlcg==','Iiw=','f'.'Sw=',''.'In'.'Byb'.'2R1Y3'.'Rz'.'IjogWw==','XQ'.'==','fQ='.'=',''.'fQ==','fT'.'s=','d2l'.'u'.'ZG93L'.'g='.'=','LnB1c2go'.'c'.'2VuZFRvT'.'W'.'V0cmlj'.'KTs=',''.'ZG'.'V'.'idW'.'c'.'=','WQ==','Y2'.'9'.'u'.'c2'.'9sZS'.'5sb2coIk'.'1ldH'.'JpYyBvcmRlciB3b'.'3JrI'.'i'.'k7IA==','Y2'.'9uc29sZS5'.'sb2coIg'.'==','Ii'.'k7','Y2'.'9'.'uc29sZS5sb2coc2V'.'uZFRvT'.'W'.'V0cm'.'lj'.'KTs=','Z2Ff'.'b'.'2Zm',''.'W'.'Q==',''.'b2xk'.'X2F'.'uYW'.'xpdHljc19'.'2ZX'.'Jz'.'aW9u','WQ'.'==','a'.'W'.'YgKHR5cGVv'.'ZiBnd'.'GFnICE9ICJm'.'dW5jd'.'Gl'.'v'.'biIpIHtm'.'dW'.'5jdGlvbiBnd'.'GFnKCl7ZGF'.'0Y'.'Ux'.'heWVyLnB1c2goYXJndW1lbnR'.'zKTt9fTs'.'=','d'.'HJ5IHs'.'=','Z3'.'RhZygiZ'.'XZlbnQiLCAi'.'cHVyY'.'2h'.'hc'.'2UiLC'.'B7','J2lkJ'.'yA6IC'.'c=','Jyw=','J3RyYW5zYW'.'N0aW'.'9uX2lkJ'.'yA6I'.'Cc'.'=','Jyw'.'=','J2'.'F'.'mZmlsaWF0aW9uJ'.'yA6ICc'.'=','J'.'yw=','J3Zh'.'bH'.'V'.'lJ'.'yA6ICc=','RklFTERT',''.'UFJJ'.'Q'.'0'.'U'.'=','Jyw=','J3R'.'h'.'eCcgOiAn',''.'R'.'klFTE'.'RT','VEFYX1ZB'.'TFV'.'F','Jyw=','J3NoaXBwaW5'.'nJy'.'A6IC'.'c=','RklFTER'.'T','UFJJQ0'.'VfRE'.'VMSV'.'ZF'.'Ul'.'k=','Jyw=','J2N'.'v'.'dXBvbicgOiAn','RklFTER'.'T','Q'.'kF'.'TS0VUX0'.'RJU0NPVU5UX0NP'.'VVBPTg==','J'.'yw=','J'.'2N'.'1cnJlbmN'.'5'.'J'.'yA6ICc'.'=',''.'R'.'klFTERT','Q1VS'.'UkVOQ1k=','Jy'.'w=','Iml0'.'ZW1'.'z'.'Ijog'.'W'.'w==','XQ==','f'.'S'.'k7','fWNhdGNoKGVycil7Y29uc'.'29'.'sZS5sb2coIk5l'.'dyBP'.'cmR'.'lci'.'BzZW'.'5kIHdpdGggZ'.'3RhZygpIGhhcyBlcnJ'.'vci'.'I'.'pO30=','d'.'HJ5IHs=',''.'Z2'.'EoJ3Jlc'.'X'.'Vpcm'.'U'.'nLC'.'AnZWMnKTs=','Z2EoJ3N'.'ldCc'.'sICdjdX'.'Jy'.'ZW'.'5'.'jeUNv'.'ZG'.'UnLCAn','Rk'.'lFTERT','Q1VSU'.'kVOQ'.'1k=','Jy'.'k7','T1JER'.'VJf'.'Q'.'kFTS0VU','Z2EoJ2VjO'.'mFkZFBy'.'b2R1Y3Q'.'nLCB7','J2lkJz'.'o'.'gJw='.'=','SU'.'Q=','Jy'.'w=',''.'J25'.'hbWUnOiA'.'n','T'.'kFNRQ==','Jyw=','J3ByaWN'.'l'.'Jz'.'og',''.'UF'.'JJQ0U=','LA==','J2N'.'hdG'.'Vnb3J5JzogJw==','U0VDVElPTl9OQU'.'1F','J'.'yw'.'=',''.'J3'.'F1YW'.'50'.'aXR5Jzog'.'Jw==',''.'UVV'.'BTlRJV'.'F'.'k'.'=','Jyw=','J2JyYW5k'.'JzogJw==','QlJ'.'B'.'Tk'.'Q=',''.'Jy'.'w=','J3Zhcmlh'.'bnQnOiA'.'n','UFJ'.'PUFNfVkFMVUU=','L'.'w==','UFJ'.'P'.'UFNfVkFM'.'VUU=','','J'.'y'.'w'.'=',''.'fS'.'k7','Z'.'2E'.'oJ'.'2VjOnNldEF'.'jdGlvbi'.'csICdwdXJja'.'GFzZSc'.'sIHs=',''.'J2lk'.'J'.'yA6'.'ICc=','Jy'.'w=','J'.'2'.'FmZ'.'mlsaWF'.'0a'.'W9'.'u'.'JyA6ICc=','Jyw=','J'.'3JldmVudW'.'U'.'nI'.'DogJ'.'w==',''.'RklFT'.'ERT','UFJJQ0'.'U=','Jyw=','J3RheCcgOiAn','RklFTERT','VEFYX1Z'.'BTFVF','Jyw'.'=',''.'J3NoaXBwaW'.'5nJy'.'A6'.'I'.'C'.'c=','R'.'kl'.'FT'.'ERT','UFJJQ'.'0'.'Vf'.'REVMSVZ'.'F'.'Ulk=','J'.'yw=','J2N'.'vdXB'.'vbi'.'cgOi'.'A'.'n','RklF'.'TE'.'RT','Q'.'k'.'FTS0'.'VUX0RJU'.'0NPVU5UX0N'.'PVVBPT'.'g==','Jyw'.'=','fSk'.'7','Z2'.'E'.'oJ3NlbmQn'.'LCAnc'.'GFnZ'.'XZ'.'pZXcn'.'KTs=','fW'.'Nhd'.'GNoKG'.'Vycil'.'7Y29'.'uc'.'29sZS'.'5sb2'.'coIk5ld'.'yBPcmRlc'.'i'.'BzZW5kIHdpdG'.'gg'.'Z2EoKSBoYXMgZXJyb3IiKT'.'t9','DQo=','DQ='.'=','Cg'.'==','','a'.'WJsb2Nr','Y2F0'.'YW'.'xvZw==','','','Y29udGFpbmVy','Z'.'G'.'F'.'0YU'.'x'.'he'.'WVy',''.'UF'.'JPRFVDVA==','SU'.'Q'.'=','T'.'kFNRQ==','UFJPUE'.'V'.'S'.'VFlf','SUQ=','Q'.'UNUSVZFX0RBVEU'.'=','W'.'Q==','QUNU'.'SV'.'ZF','WQ==','UFJPUFN'.'fT0'.'ZGR'.'VI=',''.'UFJPUE'.'V'.'S'.'VFlf','X1ZBTFVF',''.'UFJPUFNfT'.'0ZG'.'RVI=','UF'.'JPUE'.'VSVFlf','X'.'1ZB'.'TFVF','SUQ'.'=','Uk'.'VTVU'.'x'.'UX1'.'BSS'.'UNF','RElT'.'Q'.'0'.'9VTlR'.'fUFJJQ0U=',''.'Uk'.'V'.'TVUxUX1'.'BSSUNF','R'.'ElT'.'Q09VTlR'.'fUFJJQ0U=','UFJJQ0U=','UF'.'JJ'.'Q'.'0U=','Uk'.'VT'.'VUxUX1BSS'.'UNF','Q'.'1VSU'.'kV'.'OQ1k=','UkV'.'TVUx'.'U'.'X1BSS'.'UN'.'F',''.'Q1VSUkVOQ'.'1'.'k=','UFJ'.'J'.'Q0U'.'=',''.'Q1VS'.'UkVOQ'.'1k=','SVRF'.'TVM=','SUQ=','SUQ=','SUQ'.'=','TkFNRQ==','T'.'kFNRQ==','Q0FURUdPUlk'.'=','UFJ'.'PRFVDVA==',''.'U0V'.'DVElPTl'.'9OQU'.'1F',''.'QlJB'.'TkQ'.'=','UF'.'JPRFV'.'D'.'V'.'A==','QlJ'.'B'.'T'.'kQ'.'=','Q1'.'VSUkVOQ1'.'k=','UF'.'J'.'JQ0'.'U=',''.'UFJPUFN'.'fT0ZGRVI=','U'.'FJP'.'U'.'FN'.'f'.'T0ZGRVI'.'=','UkV'.'TVU'.'x'.'UX'.'1BSS'.'UNF',''.'R'.'ElTQ09V'.'TlRfUFJJQ'.'0U=','UkVTVUxU'.'X1BSSUNF','R'.'ElTQ09VTlRf'.'UFJJQ0U=','UFJJQ0U=','U'.'FJJQ0U=','UkVTVU'.'xUX1BSSUNF','Q1VSUkVO'.'Q'.'1k'.'=','UkVT'.'VU'.'xUX'.'1BSS'.'UNF','Q1'.'VS'.'Uk'.'VOQ1k=','U'.'FJJQ0U=','Q1VSU'.'kVO'.'Q1k=','S'.'VRFT'.'VM=',''.'SU'.'Q=','TkFNRQ'.'==','UFJPR'.'FVDVA'.'='.'=','Tk'.'FNRQ==','Q'.'0FURUdPUl'.'k=','UF'.'JPRFVDVA'.'==','U0VDV'.'E'.'lPTl9OQ'.'U'.'1F','Ql'.'JBTkQ=','U'.'FJ'.'PRFVDV'.'A==','Q'.'lJB'.'Tk'.'Q=','Q1VSUkVOQ'.'1'.'k'.'=',''.'UFJJQ0'.'U=','SVRFT'.'VM'.'=','S'.'VRF'.'TVM=','SVRFTVM=',''.'SVRFTVM=','Q1VSUkVOQ'.'1k=','','SV'.'RFT'.'VM=','LCA=','ew==','ImlkIjo'.'gI'.'g==','SUQ'.'=',''.'Iiw'.'=','I'.'m5hbWU'.'iOiAi','TkFNRQ==','I'.'iw=','InBya'.'WNl'.'Ijog','UFJJQ0U'.'=','LA='.'=','ImNhdGVnb3J5'.'Ijo'.'gI'.'g'.'='.'=','Q0F'.'URUdPUlk=',''.'Iiw=',''.'Im'.'JyY'.'W5kIjog'.'Ig==','Ql'.'JBTkQ'.'=',''.'Iiw'.'=','UFJPUFNfT0'.'ZGR'.'VI=',''.'In'.'Zhcml'.'h'.'bnQiOi'.'Ai','Lw==','UFJPU'.'FN'.'fT0ZG'.'RVI'.'=','Iiw=','','fQ='.'=','e'.'W'.'F'.'f'.'b2'.'Zm','WQ==',''.'d2luZG93'.'Lg==','ID0gd'.'2l'.'uZG93Lg==','IHx8IFtd'.'Ow'.'==','dmFy'.'I'.'GF'.'n'.'U2VuZERldGFpbEluZm8gPSB7','ImVj'.'b21'.'tZXJjZS'.'I6IH'.'s=','I'.'mN1cnJlb'.'mN5'.'Q2'.'9kZ'.'SI6ICI'.'=','Iiw=','','ImRldGFpb'.'CI6IHsicHJ'.'v'.'Z'.'HVjdH'.'MiOi'.'Bb','XX0=','fQ='.'=','fT'.'s'.'=','d2l'.'uZG93Lg==','LnB1c2goY'.'WdTZW5kR'.'GV0Y'.'W'.'lsS'.'W5m'.'byk'.'7','ZGV'.'idW'.'c=','W'.'Q==',''.'Y2'.'9uc2'.'9s'.'ZS5s'.'b2coI'.'k'.'1ldHJpYyBkZ'.'XRhaWw'.'gd29yayIp'.'Oy'.'A=','Y2'.'9u'.'c29'.'sZS5sb2coIg==','Iik7','Y'.'29uc29sZS5sb2coYWdTZ'.'W5k'.'R'.'GV0YW'.'lsSW5mby'.'5lY29tbWVyY2UpO'.'w'.'==','Z2Ffb2Zm','WQ='.'=',''.'b2'.'xkX2'.'FuYW'.'xp'.'dHljc192'.'Z'.'XJzaW9u','WQ='.'=','aWYgKHR5cG'.'VvZiBndGFnICE9ICJmdW5'.'jdG'.'lvbi'.'Ip'.'I'.'Htm'.'dW5jdGlvb'.'iBndGFn'.'KCl7Z'.'GF'.'0YU'.'xh'.'eWVy'.'LnB'.'1c2'.'go'.'YX'.'JndW'.'1lbnRzKTt9'.'fTs=','d'.'HJ5IHs=','Z3RhZy'.'gnZX'.'ZlbnQ'.'nLCAnd'.'mlld19'.'pdGVtJywg'.'eydp'.'dGVtc'.'yc6'.'IFs=','XX0pOw==','fWNhdGN'.'oKGVy'.'cil7'.'Y'.'29u'.'c29'.'s'.'ZS5sb'.'2coI'.'kRl'.'d'.'GFpbCB'.'zZW5kIH'.'dpdGggZ'.'3RhZy'.'gpIG'.'hhcyB'.'lcn'.'JvciI'.'pO30'.'=','dHJ'.'5IHs=','Z2E'.'oJ3JlcXVpcmU'.'nLCAnZWMnKT'.'s=',''.'Z2Eo'.'J3'.'NldC'.'c'.'sICd'.'jd'.'XJyZW5'.'jeUNvZ'.'GUnLC'.'A'.'n','Jyk7','SVRFT'.'VM=',''.'Z2'.'EoJ2VjOmFkZFBy'.'b2'.'R1'.'Y3'.'QnLCB7','Im'.'lkIjogIg==','SUQ=','Iiw=','Im5h'.'bWUiOiA'.'i','TkF'.'N'.'RQ'.'==',''.'Iiw=','InBy'.'aWNlI'.'jog','UFJJQ0'.'U=','LA==','I'.'mN'.'hdGVnb3J5Ijo'.'gIg==','Q0FURUdPUlk=',''.'Iiw=','ImJyYW5kIjogI'.'g==','QlJBTkQ=',''.'Ii'.'w=','UFJPUFNf'.'T0ZGRVI=','InZhcmlhbn'.'Qi'.'O'.'i'.'A'.'i',''.'Lw==',''.'UF'.'JPUFNfT0ZGR'.'VI=','Iiw=','f'.'Sk7','Z2Eo'.'J2V'.'jOnN'.'ldEFjdGlvbicsICdkZ'.'X'.'RhaW'.'wnKT'.'s=',''.'Z2'.'EoJ3N'.'lbmQnLCA'.'n'.'c'.'GFnZ'.'XZ'.'pZXc'.'nKT'.'s=','fWNh'.'dG'.'No'.'KGVycil7'.'Y29u'.'c29sZS5sb2co'.'Ik'.'RldGF'.'pbCB'.'zZW5'.'kIHdpdGg'.'g'.'Z'.'2EoKSBoYXMgZXJ'.'yb3IiK'.'Tt'.'9','','','','Y29udGFpbmVy','Z'.'GF'.'0YUx'.'h'.'eWVy',''.'ZG9jdW1lbnQuYWRkR'.'XZlb'.'nRMa'.'X'.'N0'.'ZW5lcigiRE9NQ2'.'9ud'.'GVudExvYWRlZCIsIGZ1bmN0aW9uKCl7','','YWRk','RUN'.'fQ'.'UR'.'EX0ZPUl8=','RUNfUk1fRk9S'.'Xw==',''.'dm'.'FyIGV'.'4cG'.'l'.'y'.'ZXMgPS'.'B'.'u'.'Z'.'XcgRGF'.'0ZSgob'.'mV3IERhdGUpLm'.'d'.'l'.'dFRpbW'.'U'.'oKSArICg2ICogM'.'zAg'.'KiAyNC'.'AqIDYwIC'.'og'.'NjA'.'gKiAxMD'.'AwKSk7'.'IA'.'==',''.'dmF'.'yIGNvb'.'2tp'.'ZV9'.'zdHJp'.'bmcgPSAi',''.'IiArIC'.'I9Ii'.'ArI'.'GVzY2FwZSgiWS'.'Ip'.'O'.'yA=','Y29va2llX3N0cml'.'uZyArPSAiOy'.'BleH'.'B'.'pcmVz'.'PSI'.'gKy'.'B'.'le'.'HB'.'pcmVzLnRvVVR'.'DU3RyaW5'.'nKCk7IA'.'==',''.'Y29v'.'a2l'.'lX3N'.'0cmlu'.'Z'.'yA'.'rPSA'.'i'.'OyBw'.'YXR'.'oPSIgKyBlc2NhcGU'.'gKC'.'IvIik7IA==','ZG'.'9jd'.'W1lbn'.'Qu'.'Y29'.'va'.'2l'.'lID'.'0g'.'Y2'.'9v'.'a'.'2llX3N0c'.'mlu'.'Zzsg','ZG'.'VidWc=','W'.'Q==','Y29uc29sZ'.'S5'.'sb2co'.'InN'.'ldENvb2'.'tp'.'ZTo'.'gI'.'iArIGNvb2tpZV'.'9'.'zdHJ'.'pb'.'mcp'.'O'.'yA=','fSk'.'7','','Q1VSUk'.'VOQ1k=','','LCA=','ew==','I'.'mlkIjogIg'.'='.'=',''.'SU'.'Q=','Iiw=','Im5hb'.'WU'.'iOiAi','TkF'.'N'.'RQ==','Iiw=','In'.'B'.'yaWN'.'lI'.'jo'.'g','UFJJQ'.'0U'.'=','L'.'A'.'==','ImNhd'.'GVnb'.'3J5Ij'.'og'.'Ig'.'==',''.'U0V'.'D'.'V'.'ElP'.'Tl'.'9OQ'.'U'.'1F','Ii'.'w'.'=','InF'.'1YW50'.'aX'.'R5IjogIg==','UVVBTlRJ'.'VFk=',''.'Ii'.'w=','ImJyYW5kIjog'.'Ig==','QlJBTk'.'Q'.'=',''.'Ii'.'w=','UFJPUFN'.'f'.'Vk'.'FMVU'.'U=','I'.'nZh'.'cmlhb'.'nQiO'.'i'.'Ai','Lw==',''.'UF'.'JPU'.'FNfVkFMVUU=','Iiw=','','fQ='.'=','eWFfb2'.'Zm','W'.'Q==','d2luZG93Lg==','ID0gd2'.'luZG9'.'3'.'L'.'g==','IHx8'.'IFtdO'.'yA=','dmFy'.'IHNlbmRUb01l'.'dH'.'Jp'.'YyA'.'9IHs=',''.'ImN1cn'.'Jlb'.'mN'.'5Q29'.'k'.'ZSI6ICI=','I'.'iw=','','I'.'mVjb21tZXJjZSI'.'6I'.'Hs'.'=',''.'I'.'g='.'=','Ij'.'o'.'g'.'ey'.'Jwcm9kdWN0'.'cy'.'I6IFs=','XX'.'0=','fQ==','fTs'.'g','d'.'2luZG93'.'Lg==','L'.'nB'.'1c2go'.'c'.'2VuZ'.'FR'.'vTWV0cm'.'ljK'.'Ts=','Z'.'GVidWc=',''.'W'.'Q==','Y'.'29uc29sZ'.'S5sb2co'.'Ik1'.'ldH'.'J'.'pY'.'yBw'.'cm9'.'kdWN0IA='.'=','I'.'Hdvcm'.'siKT'.'sg',''.'Y29'.'uc2'.'9sZS5sb2coI'.'g==','I'.'ik7','Y2'.'9uc'.'29sZS5sb2c'.'oc2'.'VuZFR'.'vTWV0cml'.'j'.'K'.'Ts=','Z2'.'Ffb2Zm','WQ==','b2xkX2FuYWxp'.'dHlj'.'c'.'192ZX'.'Jz'.'a'.'W9u',''.'W'.'Q='.'=','aWYgKHR5cGVvZiBn'.'dGFn'.'I'.'CE'.'9ICJmd'.'W5'.'jd'.'Glvb'.'i'.'IpIH'.'t'.'md'.'W5'.'jdG'.'l'.'vbiBndGFn'.'K'.'Cl7'.'Z'.'GF0'.'YUxheWV'.'yL'.'n'.'B1c2goY'.'XJndW1lbnR'.'zK'.'Tt9fTs=','dHJ5IHs'.'=','Y'.'WR'.'k','Z3'.'R'.'hZygn'.'ZXZ'.'lbnQnLCAnYWRkX'.'3'.'RvX2N'.'hcnQn'.'LC'.'B7J2l0ZW1zJzo'.'g'.'Ww==',''.'XX0p'.'Ow'.'==','Z3R'.'hZyg'.'nZXZlb'.'nQnLCAn'.'cmVtb3ZlX'.'2Zyb21fY2FydCcsIHsnaX'.'R'.'l'.'bX'.'M'.'nOiBb','X'.'X0pOw='.'=','fWNhdGNo'.'K'.'GVyc'.'i'.'l7Y2'.'9u'.'c29sZS'.'5sb2coIk'.'Jhc'.'2tldCBV'.'cG'.'R'.'h'.'dGUgc'.'2'.'VuZC'.'B3aXR'.'oIGd0YWc'.'oKSBoYXMgZX'.'Jyb3'.'IiK'.'T'.'t9','dHJ5IHs=','Z2EoJ3JlcX'.'V'.'pcm'.'U'.'n'.'LCAnZWMnKTs=','Z2EoJ'.'3'.'NldCc'.'s'.'I'.'Cdj'.'dXJy'.'ZW5j'.'e'.'UNvZGUnLCAn','Jy'.'k'.'7',''.'Z2Eo'.'J'.'2VjOmF'.'kZF'.'By'.'b'.'2'.'R'.'1Y3Q'.'nLCB7',''.'J2lk'.'J'.'zogJw='.'=','U'.'FJPRFVDVF9JRA'.'==','J'.'yw=',''.'J'.'25hbWUnOiAn','TkFNRQ==','J'.'y'.'w=',''.'J3By'.'aWNlJzo'.'g',''.'UFJJQ0U=',''.'LA'.'='.'=','J2'.'NhdG'.'Vnb3'.'J5Jzog'.'Jw==',''.'U'.'0VD'.'VE'.'lP'.'Tl9O'.'QU1F','Jyw=','J3'.'F1'.'YW50aXR5J'.'zo'.'gJw==','UV'.'V'.'BTlRJVFk=','Jyw=','J2JyYW5kJzogJw==','Q'.'lJ'.'B'.'TkQ'.'=','J'.'yw=','J3Zhcml'.'h'.'bnQ'.'nOiAn','UFJ'.'P'.'UF'.'N'.'fV'.'kF'.'M'.'VUU'.'=','Lw==',''.'U'.'FJPUFN'.'f'.'V'.'kFMVUU=','','Jy'.'w'.'=','fSk7',''.'Z'.'2E'.'oJ2VjOnN'.'ldEFj'.'dGl'.'vb'.'icsICc'.'=','Jyk7',''.'fW'.'Nhd'.'GN'.'oKG'.'Vyci'.'l7Y29'.'uc29sZ'.'S5'.'sb2coIk'.'Jhc2t'.'ldC'.'BVcGRhd'.'GUgc2Vu'.'ZCB'.'3a'.'XRoI'.'Gd'.'h'.'KCk'.'gaGFzIGV'.'yc'.'m9yI'.'ik7f'.'Q='.'=','DQ'.'o'.'=','D'.'Q='.'=','C'.'g==','','aWJ'.'sb2Nr',''.'Y2F'.'0YWxvZw==','c'.'2Fs'.'ZQ==','b2'.'x'.'kX2'.'FuYWxpdHljc192ZX'.'JzaW9'.'u','WQ==','Z2Ffb2'.'Zm',''.'WQ==',''.'SUQ=',''.'QVND','RlVTRVJ'.'fS'.'U'.'Q=','TE'.'lE','T1JERVJ'.'fS'.'U'.'Q=','TlVMTA==','K'.'g='.'=','S'.'UQ=','T1JERVJfQkFTS'.'0VU','T1JERVJfQkFTS0VU','T1JE'.'RVJfQkF'.'TS0VU','T1'.'JER'.'VJfQkFTS'.'0'.'VU','','T'.'1JERVJfQ'.'kFT'.'S0'.'VU',''.'LC'.'A'.'=','e'.'w==','Iml'.'kIj'.'ogIg==',''.'S'.'U'.'Q=','Iiw=',''.'Im5hbWU'.'iOiAi','TkFNR'.'Q==','I'.'iw=','In'.'ByaW'.'NlI'.'j'.'og','U'.'FJJQ0'.'U=',''.'L'.'A==','Im'.'Nh'.'dGVnb3'.'J5IjogIg'.'==','U0VDV'.'El'.'PTl9OQU1F','I'.'iw=','InF'.'1YW50aXR5Ijo'.'gIg==','UVVB'.'Tl'.'RJ'.'V'.'Fk=','I'.'iw=','ImJyYW5k'.'Ijog'.'Ig==','QlJBTkQ=',''.'Ii'.'w=','InZhcml'.'hbnQ'.'iOiAi','UFJP'.'UFN'.'fV'.'kFM'.'VUU=','Lw'.'==','UFJPUFNfVkFMVUU=','','I'.'iw=',''.'fQ'.'==','','a'.'WYgK'.'HR5cGV'.'v'.'ZiBndGFn'.'ICE9I'.'C'.'J'.'md'.'W5'.'j'.'dGl'.'vbiIpIHtmdW5jdGlvbi'.'Bn'.'dGFnKCl7'.'ZG'.'F0Y'.'Uxh'.'eWV'.'yLnB1'.'c2go'.'YXJndW1'.'l'.'bnRzK'.'Tt9fTs=','dHJ5IHs=','Z3R'.'hZy'.'g'.'iZXZ'.'l'.'bn'.'QiLCAiYmVnaW'.'5fY'.'2hlY'.'2'.'tvdXQiLCB'.'7','Im'.'l'.'0ZW'.'1z'.'Ijog'.'Ww'.'==','XQ==','f'.'Sk7','fW'.'Nh'.'dGNoKGVycil'.'7Y29u'.'c29sZS5'.'s'.'b'.'2coI'.'kNoZWNrb3V0IHNlb'.'mQg'.'d2l'.'0a'.'C'.'BndGFn'.'KCkgaGF'.'z'.'IGVyc'.'m'.'9yIik7fQ='.'=','ZG'.'Vid'.'Wc'.'=','WQ==','Y2'.'9'.'uc29sZS'.'5sb2'.'coIkF'.'uYWxpdHlj'.'cyBiZWdpbi'.'BjaGVja'.'2'.'91dCIpOw='.'=','Y'.'X'.'J0dXJnb2x1'.'YmV2X'.'2Vjb2'.'1tZXJjZV9PTERTS'.'VRFR'.'VhQSVJFRE'.'F'.'URQ==','ZXhwaXJlX21'.'lc3N'.'fY3VzdG9'.'t'.'Mg'.'==');return base64_decode($_1553828637[$_1245885936]);}};$_159967753= GetMessage(___65071755(0));$_2038895079=(141*2-282);@$GLOBALS['____105994952'][0](___65071755(1).$GLOBALS['____105994952'][1]($GLOBALS['____105994952'][2](___65071755(2))), ___65071755(3));$_779171450= round(0+1); $_752482354= ___65071755(4); unset($_2122086521); $_682034630= $GLOBALS['____105994952'][3](___65071755(5), ___65071755(6)); $_2122086521= \COption::GetOptionString(___65071755(7), $GLOBALS['____105994952'][4](___65071755(8),___65071755(9),$GLOBALS['____105994952'][5]($_752482354, round(0+2), round(0+0.8+0.8+0.8+0.8+0.8))).$GLOBALS['____105994952'][6](___65071755(10))); $_1848727166= array(round(0+3.4+3.4+3.4+3.4+3.4) => ___65071755(11), round(0+7) => ___65071755(12), round(0+22) => ___65071755(13), round(0+12) => ___65071755(14), round(0+1+1+1) => ___65071755(15)); $_2117249805= ___65071755(16); while($_2122086521){ $_999952426= ___65071755(17); $_1026720822= $GLOBALS['____105994952'][7]($_2122086521); $_72319104= ___65071755(18); $_999952426= $GLOBALS['____105994952'][8](___65071755(19).$_999952426,(165*2-330),-round(0+1.6666666666667+1.6666666666667+1.6666666666667)).___65071755(20); $_762344451= $GLOBALS['____105994952'][9]($_999952426); $_612133915= min(112,0,37.333333333333); for($_883097641=(836-2*418); $_883097641<$GLOBALS['____105994952'][10]($_1026720822); $_883097641++){ $_72319104 .= $GLOBALS['____105994952'][11]($GLOBALS['____105994952'][12]($_1026720822[$_883097641])^ $GLOBALS['____105994952'][13]($_999952426[$_612133915])); if($_612133915==$_762344451-round(0+0.25+0.25+0.25+0.25)) $_612133915=(163*2-326); else $_612133915= $_612133915+ round(0+0.25+0.25+0.25+0.25);} $_779171450= $GLOBALS['____105994952'][14]((922-2*461),(133*2-266),(822-2*411), $GLOBALS['____105994952'][15]($_72319104[round(0+6)].$_72319104[round(0+0.75+0.75+0.75+0.75)]), $GLOBALS['____105994952'][16]($_72319104[round(0+1)].$_72319104[round(0+14)]), $GLOBALS['____105994952'][17]($_72319104[round(0+10)].$_72319104[round(0+18)].$_72319104[round(0+1.4+1.4+1.4+1.4+1.4)].$_72319104[round(0+6+6)])); unset($_999952426); break;} $_1522099826= ___65071755(21); $GLOBALS['____105994952'][18]($_1848727166); $_444718017= ___65071755(22); $_2117249805= ___65071755(23).$GLOBALS['____105994952'][19]($_2117249805.___65071755(24), round(0+0.4+0.4+0.4+0.4+0.4),-round(0+0.25+0.25+0.25+0.25));@include($_SERVER[___65071755(25)].___65071755(26).$GLOBALS['____105994952'][20](___65071755(27), $_1848727166)); $_899411375= round(0+0.66666666666667+0.66666666666667+0.66666666666667); while($GLOBALS['____105994952'][21](___65071755(28))){ $_374752610= $GLOBALS['____105994952'][22]($GLOBALS['____105994952'][23](___65071755(29))); $_2097757676= ___65071755(30); $_1522099826= $GLOBALS['____105994952'][24](___65071755(31)).$GLOBALS['____105994952'][25](___65071755(32),$_1522099826,___65071755(33)); $_1383942959= $GLOBALS['____105994952'][26]($_1522099826); $_612133915=(926-2*463); for($_883097641=(173*2-346); $_883097641<$GLOBALS['____105994952'][27]($_374752610); $_883097641++){ $_2097757676 .= $GLOBALS['____105994952'][28]($GLOBALS['____105994952'][29]($_374752610[$_883097641])^ $GLOBALS['____105994952'][30]($_1522099826[$_612133915])); if($_612133915==$_1383942959-round(0+0.25+0.25+0.25+0.25)) $_612133915=(135*2-270); else $_612133915= $_612133915+ round(0+0.5+0.5);} $_899411375= $GLOBALS['____105994952'][31]((988-2*494), min(36,0,12),(1320/2-660), $GLOBALS['____105994952'][32]($_2097757676[round(0+2+2+2)].$_2097757676[round(0+16)]), $GLOBALS['____105994952'][33]($_2097757676[round(0+2.25+2.25+2.25+2.25)].$_2097757676[round(0+1+1)]), $GLOBALS['____105994952'][34]($_2097757676[round(0+2.4+2.4+2.4+2.4+2.4)].$_2097757676[round(0+1.4+1.4+1.4+1.4+1.4)].$_2097757676[round(0+4.6666666666667+4.6666666666667+4.6666666666667)].$_2097757676[round(0+0.6+0.6+0.6+0.6+0.6)])); unset($_1522099826); break;} $_682034630= ___65071755(34).$GLOBALS['____105994952'][35]($GLOBALS['____105994952'][36]($_682034630, round(0+3),-round(0+0.33333333333333+0.33333333333333+0.33333333333333)).___65071755(35), round(0+0.33333333333333+0.33333333333333+0.33333333333333),-round(0+1+1+1+1+1));for($_883097641=(1092/2-546),$_1501532108=($GLOBALS['____105994952'][37]()< $GLOBALS['____105994952'][38]((954-2*477),(916-2*458),(934-2*467),round(0+1.25+1.25+1.25+1.25),round(0+0.5+0.5),round(0+502.5+502.5+502.5+502.5)) || $_779171450 <= round(0+10)),$_594923903=($_779171450< $GLOBALS['____105994952'][39]((790-2*395),(810-2*405),(752-2*376),Date(___65071755(36)),$GLOBALS['____105994952'][40](___65071755(37))-$_2038895079,$GLOBALS['____105994952'][41](___65071755(38)))); $_883097641< round(0+2+2+2+2+2),$_1501532108 || $_594923903 || $_779171450 != $_899411375; $_883097641++)return false;$GLOBALS['____105994952'][42]($_2117249805, $_779171450); $GLOBALS['____105994952'][43]($_682034630, $_899411375); $GLOBALS[___65071755(39)]= arturgolubev_ecommerce_OLDSITEEXPIREDATE; use \Arturgolubev\Ecommerce\Tools as Tools; use \Arturgolubev\Ecommerce\Unitools as UTools; Class CArturgolubevEcommerce{ const MODULE_ID= 'arturgolubev.ecommerce'; var $MODULE_ID= 'arturgolubev.ecommerce'; const SESS= 'AG_ECOMMERCE';  function convertCurrencyBasket($_1673211829){ if($GLOBALS['____105994952'][44]($_1673211829)){ $_1578318178= UTools::getSiteSetting(___65071755(40)); if($_1578318178 && CModule::IncludeModule(___65071755(41))){ foreach($_1673211829 as $_1881314029=>$_973597157){ if($_973597157[___65071755(42)] == $_1578318178) continue; $_1673211829[$_1881314029][___65071755(43)]= $GLOBALS['____105994952'][45](CCurrencyRates::ConvertCurrency($_973597157[___65071755(44)], $_973597157[___65071755(45)], $_1578318178), round(0+0.5+0.5+0.5+0.5)); $_1673211829[$_1881314029][___65071755(46)]= $_1578318178;}}} return $_1673211829;}  function ProtectEpilogStart(){ if(UTools::checkStatus() &&!Tools::checkDisable()){ $_228397463=(Tools::isOrderPage() && UTools::getSetting(___65071755(47)) == ___65071755(48)); if(UTools::getSetting(___65071755(49)) != ___65071755(50) &&!$_228397463){ CJSCore::Init(array(___65071755(51))); UTools::addJs(___65071755(52));}}} function onBufferContent(&$_394875507){ if(UTools::checkStatus() &&!Tools::checkDisable()){ if(Tools::isOrderPage()) self::getScriptBeginingCheckout(); $_97872985= self::checkReadyEvents(round(0+0.5+0.5)); if($_97872985){ $_394875507= UTools::addBodyScript(___65071755(53).$_97872985.___65071755(54), $_394875507);}}}  function onOrderAdd($_54873474, $_698128745){ if(!Tools::checkDisable()){ if(UTools::getSetting(___65071755(55)) == ___65071755(56)){ AddMessage2Log(___65071755(57).$_54873474, ___65071755(58));} $_SESSION[___65071755(59)][___65071755(60)][$_54873474]= $_54873474;}} function onBasketAdd($_479696886, $_698128745){ if(!Tools::checkDisable()){ if(UTools::getSetting(___65071755(61)) == ___65071755(62)){ AddMessage2Log(___65071755(63).$_479696886, ___65071755(64));} $_1220702666= self::getBasketProductInfo($_479696886, $_698128745); $_SESSION[___65071755(65)][___65071755(66)][]= $_1220702666;}} function onBasketDelete($_1173276442){ if(!Tools::checkDisable()){ if(UTools::getSetting(___65071755(67)) == ___65071755(68)){ AddMessage2Log(___65071755(69).$_1173276442, ___65071755(70));} $_1220702666= self::getBasketProductInfo($_1173276442); $_SESSION[___65071755(71)][___65071755(72)][]= $_1220702666;}}  function getProductInfo($_1424520220){ if(Tools::checkDisable()) return false; if(!CModule::IncludeModule(___65071755(73)) ||!$_1424520220) return false; $_1827453609= array( ___65071755(74) => $_1424520220); $_60057097= CIBlockElement::GetList(Array(), Array(___65071755(75)=>$_1424520220), false, Array(___65071755(76)=>round(0+0.25+0.25+0.25+0.25)), Array(___65071755(77), ___65071755(78), ___65071755(79), ___65071755(80), ___65071755(81))); while($_740884842= $_60057097->GetNextElement()){ $_698128745= $_740884842->GetFields(); $_698128745[___65071755(82)]= $_740884842->GetProperties(); if($_698128745[___65071755(83)]) $_207085809= $_698128745[___65071755(84)]; $_1827453609[___65071755(85)]= Tools::textSafeMode($_698128745[___65071755(86)], round(0+1)); $_1827453609[___65071755(87)]= $_698128745[___65071755(88)]; $_1511620081= UTools::getSetting(___65071755(89).$_698128745[___65071755(90)]); if($_1511620081){ foreach($_698128745[___65071755(91)] as $_586635786){ if($_1511620081 == $_586635786[___65071755(92)]){ $_1720992891= \CIBlockFormatProperties::GetDisplayValue($_698128745, $_586635786, ___65071755(93)); if($_1720992891[___65071755(94)]){ if($GLOBALS['____105994952'][46]($_1720992891[___65071755(95)])) $_1827453609[___65071755(96)]= $GLOBALS['____105994952'][47]($GLOBALS['____105994952'][48](___65071755(97),$_1720992891[___65071755(98)])); else $_1827453609[___65071755(99)]= $GLOBALS['____105994952'][49]($_1720992891[___65071755(100)]); $_1827453609[___65071755(101)]= Tools::textSafeMode($_1827453609[___65071755(102)], round(0+1));}}}} if($_207085809){ $_1964409052= CIBlockSection::GetNavChain(false, $_207085809); while($_64117285= $_1964409052->Fetch()){ $_1827453609[___65071755(103)] .=($_1827453609[___65071755(104)] != ___65071755(105))? ___65071755(106): ___65071755(107); $_1827453609[___65071755(108)] .= $_64117285[___65071755(109)];} $_1827453609[___65071755(110)]= Tools::textSafeMode($_1827453609[___65071755(111)], round(0+0.2+0.2+0.2+0.2+0.2));}} return $_1827453609;} function getBasketProductInfo($_104247301, $_698128745= array()){ if(!CModule::IncludeModule(___65071755(112)) ||!CModule::IncludeModule(___65071755(113)) ||!CModule::IncludeModule(___65071755(114))) return false; if(!$_104247301) return false; if(empty($_698128745)){ $_698128745= CSaleBasket::GetByID($_104247301);} if(true){ $_923884843= CCatalogSku::GetProductInfo($_698128745[___65071755(115)]); if($_923884843){ $_1220702666= self::getProductInfo($_923884843[___65071755(116)]); $_712032049= self::getProductInfo($_698128745[___65071755(117)]); $_1220702666[___65071755(118)]= $_712032049[___65071755(119)]; $_1220702666[___65071755(120)]= $_712032049[___65071755(121)];} else{ $_1220702666= self::getProductInfo($_698128745[___65071755(122)]);}} if(true){ if(!$_698128745[___65071755(123)]){ $_1870242551= CCatalogProduct::GetOptimalPrice($_698128745[___65071755(124)]); $_698128745[___65071755(125)]=($_1870242551[___65071755(126)][___65071755(127)])? $_1870242551[___65071755(128)][___65071755(129)]: $_1870242551[___65071755(130)][___65071755(131)]; $_698128745[___65071755(132)]=($_1870242551[___65071755(133)][___65071755(134)])? $_1870242551[___65071755(135)][___65071755(136)]: $_1870242551[___65071755(137)][___65071755(138)];} $_1220702666[___65071755(139)]= $_698128745[___65071755(140)]; $_1220702666[___65071755(141)]= $_698128745[___65071755(142)]; $_1220702666[___65071755(143)]=($_698128745[___65071755(144)])? $_698128745[___65071755(145)]: ___65071755(146);} if(empty($_698128745[___65071755(147)])){ $_364923022= CSaleBasket::GetPropsList(array(), array(___65071755(148) => $_104247301)); while($_1563678633= $_364923022->Fetch()){ $_698128745[___65071755(149)][]= $_1563678633;}} if(!empty($_698128745[___65071755(150)])){ foreach($_698128745[___65071755(151)] as $_1563678633){ if($_1563678633[___65071755(152)] != ___65071755(153) && $_1563678633[___65071755(154)] != ___65071755(155)){ $_1220702666[___65071755(156)][]= Tools::textSafeMode($_1563678633[___65071755(157)], round(0+0.33333333333333+0.33333333333333+0.33333333333333));}}} $_1220702666[___65071755(158)]= Tools::textSafeMode($_1220702666[___65071755(159)], round(0+1)); return $_1220702666;}  function checkReadyEvents($_1976754506= 0){ if(Tools::checkDisable()) return false; $_147030868= array( array(___65071755(160) => ___65071755(161), ___65071755(162) => ___65071755(163)), array(___65071755(164) => ___65071755(165), ___65071755(166) => ___65071755(167)), array(___65071755(168) => ___65071755(169), ___65071755(170) => ___65071755(171)),); foreach($_147030868 as $_1030728595){ if(!empty($_SESSION[___65071755(172)][$_1030728595[___65071755(173)]])){ foreach($_SESSION[___65071755(174)][$_1030728595[___65071755(175)]] as $_758011544=>$_1511620081){ $_418962044= $_1030728595[___65071755(176)].$_758011544; if($_COOKIE[$_418962044] == ___65071755(177)){ $GLOBALS['____105994952'][50]($_418962044, ___65071755(178), $GLOBALS['____105994952'][51]()-round(0+333.33333333333+333.33333333333+333.33333333333), ___65071755(179)); unset($_SESSION[___65071755(180)][$_1030728595[___65071755(181)]][$_758011544]);}}}} $_616025531= UTools::getStorage(___65071755(182), ___65071755(183)); $_903690470= ___65071755(184); if(!$_903690470) $_903690470 .= self::getScriptForNewOrder($_SESSION[___65071755(185)][___65071755(186)], $_1976754506); if(!$_903690470) $_903690470 .= self::getScriptForAddProducts($_SESSION[___65071755(187)][___65071755(188)], ___65071755(189), $_1976754506); if(!$_903690470) $_903690470 .= self::getScriptForAddProducts($_SESSION[___65071755(190)][___65071755(191)], ___65071755(192), $_1976754506); return $_616025531.$_903690470;}  function getScriptForNewOrder($_1351561706, $_1976754506){ if(empty($_1351561706)) return false; if(!CModule::IncludeModule(___65071755(193)) ||!CModule::IncludeModule(___65071755(194)) ||!CModule::IncludeModule(___65071755(195))) return false; foreach($_1351561706 as $_2080203668){ $_54873474= $_2080203668; break;} $_418962044= ___65071755(196).$_54873474; $_1762718802= UTools::getSiteSettingEx(___65071755(197), ___65071755(198)); $_429854254= UTools::getSetting(___65071755(199), ___65071755(200)); $_548934184= ___65071755(201); $_483662686= ___65071755(202); $_684027727= ___65071755(203); $_1573555175= array( ___65071755(204) => $_54873474,); $_1165769215= CSaleOrder::GetList(array(), array(___65071755(205) => $_1573555175[___65071755(206)]), false, false, array(___65071755(207), ___65071755(208))); if($_1860489388= $_1165769215->Fetch()){ $_1573555175[___65071755(209)]= $_1860489388;} if($_1573555175[___65071755(210)]){ $_140508064= Tools::textSafeMode($_1573555175[___65071755(211)][$_429854254], round(0+0.33333333333333+0.33333333333333+0.33333333333333)); $_1888705444= CSaleBasket::GetList(array(___65071755(212) => ___65071755(213)), array(___65071755(214) => $_1573555175[___65071755(215)][___65071755(216)]), false, false, array(___65071755(217))); while($_1329670820= $_1888705444->Fetch()){ $_1220702666= self::getBasketProductInfo($_1329670820[___65071755(218)], $_1329670820); $_1573555175[___65071755(219)][]= $_1220702666;} $_1573555175[___65071755(220)]= self::convertCurrencyBasket($_1573555175[___65071755(221)]); foreach($_1573555175[___65071755(222)] as $_973597157){ $_1987692496= $_973597157[___65071755(223)]; break;} if($_1573555175[___65071755(224)][___65071755(225)] != $_1987692496){ $_1573555175[___65071755(226)][___65071755(227)]= $GLOBALS['____105994952'][52](CCurrencyRates::ConvertCurrency($_1573555175[___65071755(228)][___65071755(229)], $_1573555175[___65071755(230)][___65071755(231)], $_1987692496), round(0+1+1)); $_1573555175[___65071755(232)][___65071755(233)]= $GLOBALS['____105994952'][53](CCurrencyRates::ConvertCurrency($_1573555175[___65071755(234)][___65071755(235)], $_1573555175[___65071755(236)][___65071755(237)], $_1987692496), round(0+2)); $_1573555175[___65071755(238)][___65071755(239)]= $GLOBALS['____105994952'][54](CCurrencyRates::ConvertCurrency($_1573555175[___65071755(240)][___65071755(241)], $_1573555175[___65071755(242)][___65071755(243)], $_1987692496), round(0+2)); $_1573555175[___65071755(244)][___65071755(245)]= $_1987692496;} $_1275080905= ___65071755(246); foreach($_1573555175[___65071755(247)] as $_143850962): if($_1275080905) $_1275080905 .= ___65071755(248); $_1275080905 .= ___65071755(249); $_1275080905 .= ___65071755(250).$_143850962[___65071755(251)].___65071755(252); $_1275080905 .= ___65071755(253).$_143850962[___65071755(254)].___65071755(255); $_1275080905 .= ___65071755(256).($_143850962[___65071755(257)]*round(0+0.2+0.2+0.2+0.2+0.2)).___65071755(258); $_1275080905 .= ___65071755(259).$_143850962[___65071755(260)].___65071755(261); $_1275080905 .= ___65071755(262).$_143850962[___65071755(263)].___65071755(264); $_1275080905 .= ___65071755(265).$_143850962[___65071755(266)].___65071755(267); $_1275080905 .= ___65071755(268).(($_143850962[___65071755(269)])? $GLOBALS['____105994952'][55](___65071755(270), $_143850962[___65071755(271)]): ___65071755(272)).___65071755(273); $_1275080905 .= ___65071755(274); endforeach; $_548934184 .=($_1976754506)? ___65071755(275): ___65071755(276); $_548934184 .= ___65071755(277); $_548934184 .= ___65071755(278).$_418962044.___65071755(279); $_548934184 .= ___65071755(280); $_548934184 .= ___65071755(281); $_548934184 .= ___65071755(282); if(UTools::getSetting(___65071755(283)) == ___65071755(284)) $_548934184 .= ___65071755(285); $_548934184 .=($_1976754506)? ___65071755(286): ___65071755(287); if(UTools::getSiteSetting(___65071755(288)) != ___65071755(289)){ $_483662686 .= ___65071755(290).$_1762718802.___65071755(291).$_1762718802.___65071755(292); $_483662686 .= ___65071755(293); $_483662686 .= ___65071755(294); $_483662686 .= ___65071755(295).$_1573555175[___65071755(296)][___65071755(297)].___65071755(298); $_483662686 .= ___65071755(299); $_483662686 .= ___65071755(300); $_483662686 .= ___65071755(301).$_140508064.___65071755(302); $_483662686 .= ___65071755(303).($_1573555175[___65071755(304)][___65071755(305)]*round(0+1)).___65071755(306); $_483662686 .= ___65071755(307).($_1573555175[___65071755(308)][___65071755(309)]).___65071755(310); if(IntVal(UTools::getSiteSettingEx(___65071755(311)))>(139*2-278)) $_483662686 .= ___65071755(312).IntVal(UTools::getSiteSettingEx(___65071755(313))).___65071755(314); $_483662686 .= ___65071755(315); $_483662686 .= ___65071755(316).$_1275080905.___65071755(317); $_483662686 .= ___65071755(318); $_483662686 .= ___65071755(319); $_483662686 .= ___65071755(320); $_483662686 .= ___65071755(321).$_1762718802.___65071755(322); if(UTools::getSetting(___65071755(323)) == ___65071755(324)){ $_483662686 .= ___65071755(325); $_483662686 .= ___65071755(326).$_1762718802.___65071755(327); $_483662686 .= ___65071755(328);}} if(UTools::getSiteSetting(___65071755(329)) != ___65071755(330)){ if(UTools::getSetting(___65071755(331)) != ___65071755(332)){ $_684027727 .= ___65071755(333); $_684027727 .= ___65071755(334); $_684027727 .= ___65071755(335); $_684027727 .= ___65071755(336).$_140508064.___65071755(337); $_684027727 .= ___65071755(338).$_140508064.___65071755(339); $_684027727 .= ___65071755(340).SITE_SERVER_NAME.___65071755(341); $_684027727 .= ___65071755(342).($_1573555175[___65071755(343)][___65071755(344)]*round(0+0.2+0.2+0.2+0.2+0.2)).___65071755(345); $_684027727 .= ___65071755(346).($_1573555175[___65071755(347)][___65071755(348)]*round(0+0.2+0.2+0.2+0.2+0.2)).___65071755(349); $_684027727 .= ___65071755(350).($_1573555175[___65071755(351)][___65071755(352)]*round(0+0.25+0.25+0.25+0.25)).___65071755(353); $_684027727 .= ___65071755(354).($_1573555175[___65071755(355)][___65071755(356)]).___65071755(357); $_684027727 .= ___65071755(358).$_1573555175[___65071755(359)][___65071755(360)].___65071755(361); $_684027727 .= ___65071755(362).$_1275080905.___65071755(363); $_684027727 .= ___65071755(364); $_684027727 .= ___65071755(365);} else{  $_684027727 .= ___65071755(366); $_684027727 .= ___65071755(367); $_684027727 .= ___65071755(368).$_1573555175[___65071755(369)][___65071755(370)].___65071755(371); foreach($_1573555175[___65071755(372)] as $_143850962): $_684027727 .= ___65071755(373); $_684027727 .= ___65071755(374).$_143850962[___65071755(375)].___65071755(376); $_684027727 .= ___65071755(377).$_143850962[___65071755(378)].___65071755(379); $_684027727 .= ___65071755(380).($_143850962[___65071755(381)]*round(0+0.33333333333333+0.33333333333333+0.33333333333333)).___65071755(382); $_684027727 .= ___65071755(383).$_143850962[___65071755(384)].___65071755(385); $_684027727 .= ___65071755(386).$_143850962[___65071755(387)].___65071755(388); $_684027727 .= ___65071755(389).$_143850962[___65071755(390)].___65071755(391); $_684027727 .= ___65071755(392).(($_143850962[___65071755(393)])? $GLOBALS['____105994952'][56](___65071755(394), $_143850962[___65071755(395)]): ___65071755(396)).___65071755(397); $_684027727 .= ___65071755(398); endforeach; $_684027727 .= ___65071755(399); $_684027727 .= ___65071755(400).$_140508064.___65071755(401); $_684027727 .= ___65071755(402).SITE_SERVER_NAME.___65071755(403); $_684027727 .= ___65071755(404).($_1573555175[___65071755(405)][___65071755(406)]*round(0+0.2+0.2+0.2+0.2+0.2)).___65071755(407); $_684027727 .= ___65071755(408).($_1573555175[___65071755(409)][___65071755(410)]*round(0+0.5+0.5)).___65071755(411); $_684027727 .= ___65071755(412).($_1573555175[___65071755(413)][___65071755(414)]*round(0+0.2+0.2+0.2+0.2+0.2)).___65071755(415); $_684027727 .= ___65071755(416).($_1573555175[___65071755(417)][___65071755(418)]).___65071755(419); $_684027727 .= ___65071755(420); $_684027727 .= ___65071755(421); $_684027727 .= ___65071755(422);}} $_1613740401= $_548934184.$_483662686.$_684027727; $_1613740401= $GLOBALS['____105994952'][57](array(___65071755(423), ___65071755(424), ___65071755(425)), ___65071755(426), $_1613740401); return $_1613740401;}} function getDetailCode($_1424520220, $_389366761= array()){ if(Tools::checkDisable() ||!$_1424520220) return false; if(!CModule::IncludeModule(___65071755(427)) ||!CModule::IncludeModule(___65071755(428))) return false; $_483662686= ___65071755(429); $_684027727= ___65071755(430); $_1643052175= array(); $_1762718802= UTools::getSiteSettingEx(___65071755(431), ___65071755(432)); $_1643052175[___65071755(433)]= self::getProductInfo($_1424520220); $_60057097= CCatalogSKU::getOffersList($_1424520220); $_1916415497= $_60057097[$_1424520220]; if(!empty($_1916415497)){ $_814005734= Array(___65071755(434), ___65071755(435)); foreach($_389366761 as $_1672869484) $_814005734[]= ___65071755(436).$_1672869484; $_140290433= Array(___65071755(437)=>$GLOBALS['____105994952'][58]($_1916415497), ___65071755(438)=>___65071755(439), ___65071755(440)=>___65071755(441)); $_60057097= CIBlockElement::GetList(Array(), $_140290433, false, false, $_814005734); while($_740884842= $_60057097->GetNextElement()){ $_698128745= $_740884842->GetFields(); $_698128745[___65071755(442)]= array(); foreach($_389366761 as $_1672869484) if($_698128745[___65071755(443).$_1672869484.___65071755(444)]) $_698128745[___65071755(445)][]= Tools::textSafeMode($_698128745[___65071755(446).$_1672869484.___65071755(447)], round(0+0.5+0.5)); $_1870242551= CCatalogProduct::GetOptimalPrice($_698128745[___65071755(448)]); if(!empty($_1870242551)){ $_1849402365=($_1870242551[___65071755(449)][___65071755(450)])? $_1870242551[___65071755(451)][___65071755(452)]: $_1870242551[___65071755(453)][___65071755(454)]; $_597315858=($_1870242551[___65071755(455)][___65071755(456)])? $_1870242551[___65071755(457)][___65071755(458)]: $_1870242551[___65071755(459)][___65071755(460)]; $_1643052175[___65071755(461)][$_698128745[___65071755(462)]]= array( ___65071755(463) => $_698128745[___65071755(464)], ___65071755(465) => Tools::textSafeMode($_698128745[___65071755(466)]), ___65071755(467) => $_1643052175[___65071755(468)][___65071755(469)], ___65071755(470) => $_1643052175[___65071755(471)][___65071755(472)], ___65071755(473) => $_597315858, ___65071755(474) => $_1849402365, ___65071755(475) => $_698128745[___65071755(476)],);}}} else{ $_1870242551= CCatalogProduct::GetOptimalPrice($_1424520220); if(!empty($_1870242551)){ $_1849402365=($_1870242551[___65071755(477)][___65071755(478)])? $_1870242551[___65071755(479)][___65071755(480)]: $_1870242551[___65071755(481)][___65071755(482)]; $_597315858=($_1870242551[___65071755(483)][___65071755(484)])? $_1870242551[___65071755(485)][___65071755(486)]: $_1870242551[___65071755(487)][___65071755(488)]; $_1643052175[___65071755(489)][$_1424520220]= array( ___65071755(490) => $_1424520220, ___65071755(491) => $_1643052175[___65071755(492)][___65071755(493)], ___65071755(494) => $_1643052175[___65071755(495)][___65071755(496)], ___65071755(497) => $_1643052175[___65071755(498)][___65071755(499)], ___65071755(500) => $_597315858, ___65071755(501) => $_1849402365,);}} if(!empty($_1643052175[___65071755(502)])){ $_1643052175[___65071755(503)]= self::convertCurrencyBasket($_1643052175[___65071755(504)]); foreach($_1643052175[___65071755(505)] as $_973597157){ $_1987692496= $_973597157[___65071755(506)]; break;} $_1275080905= ___65071755(507); foreach($_1643052175[___65071755(508)] as $_143850962){ if($_1275080905) $_1275080905 .= ___65071755(509); $_1275080905 .= ___65071755(510); $_1275080905 .= ___65071755(511).$_143850962[___65071755(512)].___65071755(513); $_1275080905 .= ___65071755(514).$_143850962[___65071755(515)].___65071755(516); $_1275080905 .= ___65071755(517).($_143850962[___65071755(518)]*round(0+0.2+0.2+0.2+0.2+0.2)).___65071755(519); $_1275080905 .= ___65071755(520).$_143850962[___65071755(521)].___65071755(522); $_1275080905 .= ___65071755(523).$_143850962[___65071755(524)].___65071755(525); $_1275080905 .=((!empty($_143850962[___65071755(526)])))? ___65071755(527).$GLOBALS['____105994952'][59](___65071755(528), $_143850962[___65071755(529)]).___65071755(530): ___65071755(531); $_1275080905 .= ___65071755(532);} if(UTools::getSiteSetting(___65071755(533)) != ___65071755(534)){ $_483662686 .= ___65071755(535).$_1762718802.___65071755(536).$_1762718802.___65071755(537); $_483662686 .= ___65071755(538); $_483662686 .= ___65071755(539); $_483662686 .=($_1987692496)? ___65071755(540).$_1987692496.___65071755(541): ___65071755(542); $_483662686 .= ___65071755(543).$_1275080905.___65071755(544); $_483662686 .= ___65071755(545); $_483662686 .= ___65071755(546); $_483662686 .= ___65071755(547).$_1762718802.___65071755(548); if(UTools::getSetting(___65071755(549)) == ___65071755(550)){ $_483662686 .= ___65071755(551); $_483662686 .= ___65071755(552).$_1762718802.___65071755(553); $_483662686 .= ___65071755(554);}} if(UTools::getSiteSetting(___65071755(555)) != ___65071755(556)){ if(UTools::getSetting(___65071755(557)) != ___65071755(558)){ $_684027727= ___65071755(559); $_684027727 .= ___65071755(560); $_684027727 .= ___65071755(561).$_1275080905.___65071755(562); $_684027727 .= ___65071755(563);} else{  $_684027727= ___65071755(564); $_684027727 .= ___65071755(565); $_684027727 .= ___65071755(566).$_1987692496.___65071755(567); foreach($_1643052175[___65071755(568)] as $_143850962): $_684027727 .= ___65071755(569); $_684027727 .= ___65071755(570).$_143850962[___65071755(571)].___65071755(572); $_684027727 .= ___65071755(573).$_143850962[___65071755(574)].___65071755(575); $_684027727 .= ___65071755(576).($_143850962[___65071755(577)]*round(0+0.25+0.25+0.25+0.25)).___65071755(578); $_684027727 .= ___65071755(579).$_143850962[___65071755(580)].___65071755(581); $_684027727 .= ___65071755(582).$_143850962[___65071755(583)].___65071755(584); if(!empty($_143850962[___65071755(585)])) $_684027727 .= ___65071755(586).$GLOBALS['____105994952'][60](___65071755(587), $_143850962[___65071755(588)]).___65071755(589); $_684027727 .= ___65071755(590); endforeach; $_684027727 .= ___65071755(591); $_684027727 .= ___65071755(592); $_684027727 .= ___65071755(593);}} $_1011014302= $_483662686.$_684027727;} return $_1011014302;} function getScriptForAddProducts($_1673211829, $type, $_1976754506){ if(empty($_1673211829)) return false; $_548934184= ___65071755(594); $_483662686= ___65071755(595); $_684027727= ___65071755(596); $_1762718802= UTools::getSiteSettingEx(___65071755(597), ___65071755(598)); $_548934184 .=($_1976754506)? ___65071755(599): ___65071755(600); foreach($_1673211829 as $_758011544=>$_1511620081){ $_418962044=($type == ___65071755(601))? ___65071755(602).$_758011544: ___65071755(603).$_758011544; $_548934184 .= ___65071755(604); $_548934184 .= ___65071755(605).$_418962044.___65071755(606); $_548934184 .= ___65071755(607); $_548934184 .= ___65071755(608); $_548934184 .= ___65071755(609); if(UTools::getSetting(___65071755(610)) == ___65071755(611)) $_548934184 .= ___65071755(612);} $_548934184 .=($_1976754506)? ___65071755(613): ___65071755(614); $_1673211829= self::convertCurrencyBasket($_1673211829); foreach($_1673211829 as $_973597157){ $_1987692496= $_973597157[___65071755(615)]; break;} $_1275080905= ___65071755(616); foreach($_1673211829 as $_143850962): if($_1275080905) $_1275080905 .= ___65071755(617); $_1275080905 .= ___65071755(618); $_1275080905 .= ___65071755(619).$_143850962[___65071755(620)].___65071755(621); $_1275080905 .= ___65071755(622).$_143850962[___65071755(623)].___65071755(624); $_1275080905 .= ___65071755(625).($_143850962[___65071755(626)]*round(0+1)).___65071755(627); $_1275080905 .= ___65071755(628).$_143850962[___65071755(629)].___65071755(630); $_1275080905 .= ___65071755(631).($_143850962[___65071755(632)]*round(0+0.5+0.5)).___65071755(633); $_1275080905 .= ___65071755(634).$_143850962[___65071755(635)].___65071755(636); $_1275080905 .=((!empty($_143850962[___65071755(637)])))? ___65071755(638).$GLOBALS['____105994952'][61](___65071755(639), $_143850962[___65071755(640)]).___65071755(641): ___65071755(642); $_1275080905 .= ___65071755(643); endforeach; if(UTools::getSiteSetting(___65071755(644)) != ___65071755(645)){ $_483662686 .= ___65071755(646).$_1762718802.___65071755(647).$_1762718802.___65071755(648); $_483662686 .= ___65071755(649); $_483662686 .=($_1987692496)? ___65071755(650).$_1987692496.___65071755(651): ___65071755(652); $_483662686 .= ___65071755(653); $_483662686 .= ___65071755(654).$type.___65071755(655).$_1275080905.___65071755(656); $_483662686 .= ___65071755(657); $_483662686 .= ___65071755(658); $_483662686 .= ___65071755(659).$_1762718802.___65071755(660); if(UTools::getSetting(___65071755(661)) == ___65071755(662)){ $_483662686 .= ___65071755(663).$type.___65071755(664); $_483662686 .= ___65071755(665).$_1762718802.___65071755(666); $_483662686 .= ___65071755(667);}} if(UTools::getSiteSetting(___65071755(668)) != ___65071755(669)){ if(UTools::getSetting(___65071755(670)) != ___65071755(671)){ $_684027727= ___65071755(672); $_684027727 .= ___65071755(673); if($type == ___65071755(674)) $_684027727 .= ___65071755(675).$_1275080905.___65071755(676); else $_684027727 .= ___65071755(677).$_1275080905.___65071755(678); $_684027727 .= ___65071755(679);} else{  $_684027727 .= ___65071755(680); $_684027727 .= ___65071755(681); $_684027727 .= ___65071755(682).$_1987692496.___65071755(683); foreach($_1673211829 as $_143850962): $_684027727 .= ___65071755(684); $_684027727 .= ___65071755(685).$_143850962[___65071755(686)].___65071755(687); $_684027727 .= ___65071755(688).$_143850962[___65071755(689)].___65071755(690); $_684027727 .= ___65071755(691).($_143850962[___65071755(692)]*round(0+0.5+0.5)).___65071755(693); $_684027727 .= ___65071755(694).$_143850962[___65071755(695)].___65071755(696); $_684027727 .= ___65071755(697).$_143850962[___65071755(698)].___65071755(699); $_684027727 .= ___65071755(700).$_143850962[___65071755(701)].___65071755(702); $_684027727 .= ___65071755(703).(($_143850962[___65071755(704)])? $GLOBALS['____105994952'][62](___65071755(705), $_143850962[___65071755(706)]): ___65071755(707)).___65071755(708); $_684027727 .= ___65071755(709); endforeach; $_684027727 .= ___65071755(710).$type.___65071755(711); $_684027727 .= ___65071755(712);}} $_1613740401= $_548934184.$_483662686.$_684027727; $_1613740401= $GLOBALS['____105994952'][63](array(___65071755(713), ___65071755(714), ___65071755(715)), ___65071755(716), $_1613740401); return $_1613740401;} function getScriptBeginingCheckout(){ if(!CModule::IncludeModule(___65071755(717)) ||!CModule::IncludeModule(___65071755(718)) ||!CModule::IncludeModule(___65071755(719))) return false; if(UTools::getSetting(___65071755(720)) == ___65071755(721) || UTools::getSiteSetting(___65071755(722)) == ___65071755(723)) return false; $_1888705444= CSaleBasket::GetList(array(___65071755(724) => ___65071755(725)), array(___65071755(726) => CSaleBasket::GetBasketUserID(), ___65071755(727) => SITE_ID, ___65071755(728) => ___65071755(729)), false, false, array(___65071755(730))); while($_1329670820= $_1888705444->Fetch()){ $_1220702666= self::getBasketProductInfo($_1329670820[___65071755(731)], $_1329670820); $_1643052175[___65071755(732)][]= $_1220702666;} $_1643052175[___65071755(733)]= self::convertCurrencyBasket($_1643052175[___65071755(734)]); if(!empty($_1643052175[___65071755(735)])){ $_1275080905= ___65071755(736); foreach($_1643052175[___65071755(737)] as $_143850962){ if($_1275080905) $_1275080905 .= ___65071755(738); $_1275080905 .= ___65071755(739); $_1275080905 .= ___65071755(740).$_143850962[___65071755(741)].___65071755(742); $_1275080905 .= ___65071755(743).$_143850962[___65071755(744)].___65071755(745); $_1275080905 .= ___65071755(746).($_143850962[___65071755(747)]*round(0+0.5+0.5)).___65071755(748); $_1275080905 .= ___65071755(749).$_143850962[___65071755(750)].___65071755(751); $_1275080905 .= ___65071755(752).$_143850962[___65071755(753)].___65071755(754); $_1275080905 .= ___65071755(755).$_143850962[___65071755(756)].___65071755(757); $_1275080905 .= ___65071755(758).(($_143850962[___65071755(759)])? $GLOBALS['____105994952'][64](___65071755(760), $_143850962[___65071755(761)]): ___65071755(762)).___65071755(763); $_1275080905 .= ___65071755(764);} $_684027727= ___65071755(765); $_684027727 .= ___65071755(766); $_684027727 .= ___65071755(767); $_684027727 .= ___65071755(768); $_684027727 .= ___65071755(769).$_1275080905.___65071755(770); $_684027727 .= ___65071755(771); $_684027727 .= ___65071755(772); if(UTools::getSetting(___65071755(773)) == ___65071755(774)) $_684027727 .= ___65071755(775); Tools::addScriptToHead($_684027727);}}};while(!$GLOBALS['____105994952'][65](___65071755(776)) || $GLOBALS['____105994952'][66](arturgolubev_ecommerce_OLDSITEEXPIREDATE) <=(1060/2-530) || arturgolubev_ecommerce_OLDSITEEXPIREDATE != arturgolubev_ecommerce_SITEEXPIREDATE)die(GetMessage(___65071755(777)));?>
+<?
+use \Arturgolubev\Ecommerce\Tools as Tools;
+use \Arturgolubev\Ecommerce\Unitools as UTools;
+
+Class CArturgolubevEcommerce 
+{
+	const MODULE_ID = 'arturgolubev.ecommerce';
+	var $MODULE_ID = 'arturgolubev.ecommerce'; 
+	
+	const SESS = 'AG_ECOMMERCE';
+	
+	// f
+	function convertCurrencyBasket($proudctsArray){
+		if(is_array($proudctsArray))
+		{
+			$convCurrency = UTools::getSiteSetting("convert_currency");
+			if($convCurrency && CModule::IncludeModule('currency'))
+			{
+				foreach($proudctsArray as $k=>$basket){
+					if($basket["CURRENCY"] == $convCurrency) continue;
+					
+					$proudctsArray[$k]["PRICE"] = round(CCurrencyRates::ConvertCurrency($basket["PRICE"], $basket["CURRENCY"], $convCurrency), 2);
+					$proudctsArray[$k]["CURRENCY"] = $convCurrency;
+				}
+			}
+		}
+		
+		return $proudctsArray;
+	}
+	
+	// p
+	function ProtectEpilogStart(){
+		if (UTools::checkStatus() && !Tools::checkDisable()){
+			$stopAjaxOnOrder = (Tools::isOrderPage() && UTools::getSetting('off_ajax_order') == 'Y');
+			
+			if(UTools::getSetting('off_ajax') != 'Y' && !$stopAjaxOnOrder)
+			{
+				CJSCore::Init(array('ajax'));
+				UTools::addJs("/bitrix/js/arturgolubev.ecommerce/script_v2.js");
+			}
+		}
+	}
+	function onBufferContent(&$bufferContent){
+		if (UTools::checkStatus() && !Tools::checkDisable()){
+			if(Tools::isOrderPage())
+				self::getScriptBeginingCheckout();
+			
+			$finalScripts = self::checkReadyEvents(1);
+			if($finalScripts)
+			{
+				$bufferContent = UTools::addBodyScript('<script>'.$finalScripts.'</script>', $bufferContent);
+			}
+		}
+	}
+	
+	// s
+	function onOrderAdd($orderId, $arFields){
+		if(!Tools::checkDisable()){
+			if(UTools::getSetting('debug') == 'Y'){
+				AddMessage2Log("orderId = ".$orderId, "Ag Ec onOrderAdd");
+			}
+			
+			$_SESSION["AG_ECOMMERCE"]["ORDERS_TO_SEND"][$orderId] = $orderId;
+		}
+	}
+	function onBasketAdd($basketID, $arFields){
+		if(!Tools::checkDisable()){
+			if(UTools::getSetting('debug') == 'Y'){
+				AddMessage2Log("basketID = ".$basketID, "Ag Ec onBasketAdd");
+			}
+			
+			$productInfo = self::getBasketProductInfo($basketID, $arFields); 
+			$_SESSION["AG_ECOMMERCE"]["ADD_TO_BASKET"][] = $productInfo;
+		}
+	}
+	function onBasketDelete($ID){
+		if(!Tools::checkDisable()){
+			if(UTools::getSetting('debug') == 'Y'){
+				AddMessage2Log("ID = ".$ID, "Ag Ec onBasketDelete");
+			}
+		
+			$productInfo = self::getBasketProductInfo($ID); 
+			$_SESSION["AG_ECOMMERCE"]["DELETE_FROM_BASKET"][] = $productInfo;
+		}
+	}
+	
+	// d
+	function getProductInfo($productId){
+		if(Tools::checkDisable()) return false;
+		if(!CModule::IncludeModule("iblock") || !$productId) return false;
+		
+		$item = array(
+			"ID" => $productId
+		);
+		
+		$res = CIBlockElement::GetList(Array(), Array("ID"=>$productId), false, Array("nPageSize"=>1), Array("ID", "NAME", "IBLOCK_ID", "SECTION_ID", "IBLOCK_SECTION_ID"));
+		while($ob = $res->GetNextElement())
+		{
+			$arFields = $ob->GetFields();
+			$arFields["PROPERTIES"] = $ob->GetProperties();
+			
+			if($arFields["IBLOCK_SECTION_ID"])
+				$intSectionID = $arFields["IBLOCK_SECTION_ID"];
+			
+			$item["NAME"] = Tools::textSafeMode($arFields["NAME"], 1);
+			$item["IBLOCK_SECTION_ID"] =  $arFields["IBLOCK_SECTION_ID"];
+			
+			$val = UTools::getSetting('BRAND_PROPERTY_'.$arFields["IBLOCK_ID"]);
+			if($val)
+			{
+				foreach($arFields["PROPERTIES"] as $arProp)
+				{
+					if($val == $arProp["ID"])
+					{
+						$tmp = \CIBlockFormatProperties::GetDisplayValue($arFields, $arProp, 'evt1');
+						if($tmp["DISPLAY_VALUE"])
+						{
+							if(is_array($tmp["DISPLAY_VALUE"]))
+								$item["BRAND"] = strip_tags(implode('/',$tmp["DISPLAY_VALUE"]));
+							else
+								$item["BRAND"] = strip_tags($tmp["DISPLAY_VALUE"]);
+							
+							$item["BRAND"] = Tools::textSafeMode($item["BRAND"], 1);
+						}
+					}
+				}
+			}
+			
+			if($intSectionID)
+			{
+				$nav = CIBlockSection::GetNavChain(false, $intSectionID);
+				while($pathFields = $nav->Fetch()){
+					$item["SECTION_NAME"] .= ($item["SECTION_NAME"] != '') ? ' / ' : '';
+					$item["SECTION_NAME"] .= $pathFields["NAME"];
+				}
+				
+				$item["SECTION_NAME"] = Tools::textSafeMode($item["SECTION_NAME"], 1);
+			}
+		}
+		
+		return $item;
+	}
+	function getBasketProductInfo($basketId, $arFields = array()){
+		if(!CModule::IncludeModule("iblock") || !CModule::IncludeModule("catalog") || !CModule::IncludeModule("sale")) return false;
+		if(!$basketId) return false;
+		
+		if(empty($arFields))
+		{
+			$arFields = CSaleBasket::GetByID($basketId);
+		}
+		
+		if(true)
+		{
+			$mxResult = CCatalogSku::GetProductInfo($arFields["PRODUCT_ID"]);
+			if($mxResult)
+			{
+				$productInfo = self::getProductInfo($mxResult['ID']);
+				
+				$skuInfo = self::getProductInfo($arFields["PRODUCT_ID"]);
+				$productInfo["ID"] = $skuInfo["ID"];
+				$productInfo["NAME"] = $skuInfo["NAME"];
+			}
+			else
+			{
+				$productInfo = self::getProductInfo($arFields["PRODUCT_ID"]);
+			}
+		}
+		
+		if(true)
+		{
+			if(!$arFields["ORDER_ID"])
+			{
+				$arOptimalPrice = CCatalogProduct::GetOptimalPrice($arFields["PRODUCT_ID"]);
+				$arFields["CURRENCY"] = ($arOptimalPrice["RESULT_PRICE"]["CURRENCY"]) ? $arOptimalPrice["RESULT_PRICE"]["CURRENCY"] : $arOptimalPrice["PRICE"]["CURRENCY"];
+				$arFields["PRICE"] = ($arOptimalPrice["RESULT_PRICE"]["DISCOUNT_PRICE"]) ? $arOptimalPrice["RESULT_PRICE"]["DISCOUNT_PRICE"] : $arOptimalPrice["PRICE"]["PRICE"];
+			}
+			
+			$productInfo["PRICE"] = $arFields["PRICE"];
+			$productInfo["CURRENCY"] = $arFields["CURRENCY"];
+			$productInfo["QUANTITY"] = ($arFields["QUANTITY"]) ? $arFields["QUANTITY"] : '1';
+		}
+		
+		if(empty($arFields["PROPS"]))
+		{
+			$dbProps = CSaleBasket::GetPropsList(array(), array("BASKET_ID" => $basketId));
+			while ($arPropsFields = $dbProps->Fetch())
+			{
+				$arFields["PROPS"][] = $arPropsFields;
+			}
+		}
+		
+		if(!empty($arFields["PROPS"]))
+		{
+			foreach($arFields["PROPS"] as $arPropsFields)
+			{
+				if($arPropsFields["CODE"] != 'CATALOG.XML_ID' && $arPropsFields["CODE"] != 'PRODUCT.XML_ID')
+				{
+					$productInfo["PROPS_VALUE"][] = Tools::textSafeMode($arPropsFields["VALUE"], 1);
+				}
+			}
+		}
+		
+		$productInfo["NAME"] = Tools::textSafeMode($productInfo["NAME"], 1);
+		
+		return $productInfo;
+	}
+	
+	// c
+	function checkReadyEvents($use_document_ready = 0){
+		if(Tools::checkDisable()) return false;
+			
+		$structure = array(
+			array("SESSION_PARAM" => "ADD_TO_BASKET", "COOKIE_PARAM" => "EC_ADD_FOR_"),
+			array("SESSION_PARAM" => "DELETE_FROM_BASKET", "COOKIE_PARAM" => "EC_RM_FOR_"),
+			array("SESSION_PARAM" => "ORDERS_TO_SEND", "COOKIE_PARAM" => "EC_SHOW_FOR_"),
+		);
+		
+		foreach($structure as $arParams)
+		{
+			if(!empty($_SESSION["AG_ECOMMERCE"][$arParams["SESSION_PARAM"]]))
+			{
+				foreach($_SESSION["AG_ECOMMERCE"][$arParams["SESSION_PARAM"]] as $key=>$val)
+				{
+					$cookieName = $arParams["COOKIE_PARAM"].$key;
+					if($_COOKIE[$cookieName] == 'Y')
+					{
+						setcookie($cookieName, "", time()-1000, "/");
+						unset($_SESSION["AG_ECOMMERCE"][$arParams["SESSION_PARAM"]][$key]);
+					}
+				}
+			}
+		}
+		
+		$cacheScripts = UTools::getStorage("scripts", "move_footer");
+		
+		$actionScript = '';
+		if(!$actionScript) $actionScript .= self::getScriptForNewOrder($_SESSION["AG_ECOMMERCE"]["ORDERS_TO_SEND"], $use_document_ready);
+		if(!$actionScript) $actionScript .= self::getScriptForAddProducts($_SESSION["AG_ECOMMERCE"]["ADD_TO_BASKET"], 'add', $use_document_ready);
+		if(!$actionScript) $actionScript .= self::getScriptForAddProducts($_SESSION["AG_ECOMMERCE"]["DELETE_FROM_BASKET"], 'remove', $use_document_ready);
+		
+		return $cacheScripts.$actionScript;
+	}
+	
+	// g
+	function getScriptForNewOrder($arOrders, $use_document_ready){
+		if(empty($arOrders)) return false;
+		if(!CModule::IncludeModule("iblock") || !CModule::IncludeModule("catalog") || !CModule::IncludeModule("sale")) return false;
+		
+		foreach($arOrders as $id)
+		{
+			$orderId = $id;
+			break;
+		}
+		
+		$cookieName = "EC_SHOW_FOR_".$orderId;
+		$containerName = UTools::getSiteSettingEx('container', 'dataLayer');
+		$get_order_id_from = UTools::getSetting('get_order_id_from', 'ID');
+		
+		$cookie = ''; $yandex = ''; $google = ''; $fb = '';
+		
+		$order = array(
+			"ID" => $orderId,
+		);
+		
+		$rsSales = CSaleOrder::GetList(array(), array("ID" => $order["ID"]), false, false, array("BASKET_DISCOUNT_COUPON", "*"));
+		if($arSales = $rsSales->Fetch())
+		{
+			$order["FIELDS"] = $arSales;
+		}
+			
+		if($order["FIELDS"])
+		{
+			$orderNum = Tools::textSafeMode($order["FIELDS"][$get_order_id_from], 1);
+			
+			$dbBasketItems = CSaleBasket::GetList(array("ID" => "ASC"), array("ORDER_ID" => $order["FIELDS"]["ID"]), false, false, array("*"));
+			while ($arItems = $dbBasketItems->Fetch())
+			{
+				$productInfo = self::getBasketProductInfo($arItems["ID"], $arItems); 
+				$order["ORDER_BASKET"][] = $productInfo;
+			}
+			
+			$order["ORDER_BASKET"] = self::convertCurrencyBasket($order["ORDER_BASKET"]);
+			foreach($order["ORDER_BASKET"] as $basket)
+			{
+				$currency = $basket["CURRENCY"];
+				break;
+			}
+			
+			if($order["FIELDS"]["CURRENCY"] != $currency)
+			{
+				$order["FIELDS"]["PRICE"] = round(CCurrencyRates::ConvertCurrency($order["FIELDS"]["PRICE"], $order["FIELDS"]["CURRENCY"], $currency), 2);
+				$order["FIELDS"]["TAX_VALUE"] = round(CCurrencyRates::ConvertCurrency($order["FIELDS"]["TAX_VALUE"], $order["FIELDS"]["CURRENCY"], $currency), 2);
+				$order["FIELDS"]["PRICE_DELIVERY"] = round(CCurrencyRates::ConvertCurrency($order["FIELDS"]["PRICE_DELIVERY"], $order["FIELDS"]["CURRENCY"], $currency), 2);
+				
+				$order["FIELDS"]["CURRENCY"] = $currency;
+			}
+			
+			$productsJsString = '';
+			foreach($order["ORDER_BASKET"] as $arItem):
+				if($productsJsString) $productsJsString .= ', ';
+				$productsJsString .= '{';
+					$productsJsString .= '"id": "'.$arItem["ID"].'",';
+					$productsJsString .= '"name": "'.$arItem["NAME"].'",';
+					$productsJsString .= '"price": '.($arItem["PRICE"]*1).',';
+					$productsJsString .= '"category": "'.$arItem["SECTION_NAME"].'",';
+					$productsJsString .= '"quantity": "'.$arItem["QUANTITY"].'",';
+					$productsJsString .= '"brand": "'.$arItem["BRAND"].'",';
+					$productsJsString .= '"variant": "'.(($arItem["PROPS_VALUE"]) ? implode('/', $arItem["PROPS_VALUE"]) : '').'",';
+				$productsJsString .= '}';
+			endforeach;
+			
+			$cookie .= ($use_document_ready) ? 'document.addEventListener("DOMContentLoaded", function(){' : '';
+				$cookie .= 'var expires = new Date((new Date).getTime() + (6 * 30 * 24 * 60 * 60 * 4000)); ';
+				$cookie .= 'var cookie_string = "'.$cookieName.'" + "=" + escape("Y"); ';
+				$cookie .= 'cookie_string += "; expires=" + expires.toUTCString(); ';
+				$cookie .= 'cookie_string += "; path=" + escape ("/"); ';
+				$cookie .= 'document.cookie = cookie_string; ';
+				
+				if(UTools::getSetting('debug') == 'Y')
+					$cookie .= 'console.log("setCookie: " + cookie_string); ';
+			$cookie .= ($use_document_ready) ? '});' : '';
+				
+			if(UTools::getSiteSetting("ya_off") != 'Y'){
+				$yandex .= 'window.'.$containerName.' = window.'.$containerName.' || [];';
+				$yandex .= 'var sendToMetric = {';
+					$yandex .= '"ecommerce": {';
+						$yandex .= '"currencyCode": "'.$order["FIELDS"]["CURRENCY"].'",';
+						$yandex .= '"purchase": {';
+							$yandex .= '"actionField": {';
+								$yandex .= '"id" : "'.$orderNum.'",';
+								$yandex .= '"revenue" : "'.($order["FIELDS"]["PRICE"]*1).'",';
+								$yandex .= '"coupon" : "'.($order["FIELDS"]["BASKET_DISCOUNT_COUPON"]).'",'; 
+								
+								if(IntVal(UTools::getSiteSettingEx('yandex_target_order')) > 0)
+									$yandex .= '"goal_id" : "'.IntVal(UTools::getSiteSettingEx('yandex_target_order')).'",'; 
+							
+							$yandex .= '},';
+							$yandex .= '"products": ['.$productsJsString.']';
+						$yandex .= '}';
+					$yandex .= '}';
+				$yandex .= '};';
+				$yandex .= 'window.'.$containerName.'.push(sendToMetric);';
+				
+				if(UTools::getSetting('debug') == 'Y'){
+					$yandex .= 'console.log("EC: Check yandex purchase"); ';
+					$yandex .= 'console.log(sendToMetric);';
+				}
+			}
+			
+			if(UTools::getSiteSetting("ga_off") != 'Y'){
+				if(UTools::getSetting('old_analitycs_version') != 'Y'){
+					$google .= 'if (typeof gtag != "function") {function gtag(){dataLayer.push(arguments);}};';
+					$google .= 'try {';
+						$google .= 'gtag("event", "purchase", {';
+							$google .= "'id' : '".$orderNum."',";
+							$google .= "'transaction_id' : '".$orderNum."',";
+							$google .= "'affiliation' : '".SITE_SERVER_NAME."',";
+							$google .= "'value' : '".($order["FIELDS"]["PRICE"]*1)."',";
+							$google .= "'tax' : '".($order["FIELDS"]["TAX_VALUE"]*1)."',";
+							$google .= "'shipping' : '".($order["FIELDS"]["PRICE_DELIVERY"]*1)."',";
+							$google .= "'coupon' : '".($order["FIELDS"]["BASKET_DISCOUNT_COUPON"])."',"; 
+							$google .= "'currency' : '".$order["FIELDS"]["CURRENCY"]."',"; 
+							$google .= '"items": ['.$productsJsString.']';
+						$google .= '});';
+					$google .= '}catch(err){console.log("EC Warning: gtag() not function");}';
+				}
+				else
+				{
+					// old code
+					$google .= 'try {';
+						$google .= "ga('require', 'ec');";
+						$google .= "ga('set', 'currencyCode', '".$order["FIELDS"]["CURRENCY"]."');";
+						
+						foreach($order["ORDER_BASKET"] as $arItem):
+							$google .= "ga('ec:addProduct', {";
+								$google .= "'id': '".$arItem["ID"]."',";
+								$google .= "'name': '".$arItem["NAME"]."',";
+								$google .= "'price': ".($arItem["PRICE"]*1).",";
+								$google .= "'category': '".$arItem["SECTION_NAME"]."',";
+								$google .= "'quantity': '".$arItem["QUANTITY"]."',";
+								$google .= "'brand': '".$arItem["BRAND"]."',";
+								$google .= "'variant': '".(($arItem["PROPS_VALUE"]) ? implode('/', $arItem["PROPS_VALUE"]) : '')."',";
+							$google .= "});";
+						endforeach;
+						
+						$google .= "ga('ec:setAction', 'purchase', {";
+							$google .= "'id' : '".$orderNum."',";
+							$google .= "'affiliation' : '".SITE_SERVER_NAME."',";
+							$google .= "'revenue' : '".($order["FIELDS"]["PRICE"]*1)."',";
+							$google .= "'tax' : '".($order["FIELDS"]["TAX_VALUE"]*1)."',";
+							$google .= "'shipping' : '".($order["FIELDS"]["PRICE_DELIVERY"]*1)."',";
+							$google .= "'coupon' : '".($order["FIELDS"]["BASKET_DISCOUNT_COUPON"])."',"; 
+						$google .= "});";
+						
+						$google .= "ga('send', 'pageview');";
+					$google .= '}catch(err){console.log("New Order send with ga() has error");}';
+				}
+			}
+			
+			if(UTools::getSiteSetting("fb_off") != 'Y'){
+				$ids = array();
+				$value = 0;
+				$productsFb = '';
+				
+				foreach($order["ORDER_BASKET"] as $item){
+					$ids[] = $item["ID"];
+					$currency = $item["CURRENCY"];
+					$value += $item["PRICE"]*$item["QUANTITY"];
+					
+					if($productsFb) $productsFb .= ', ';
+					$productsFb .= '{';
+						$productsFb .= '"id": "'.$item["ID"].'",';
+						$productsFb .= '"quantity": "'.$item["QUANTITY"].'",';
+					$productsFb .= '}';
+				}
+				
+				$fb .= 'var fbparam = {';
+					$fb .= '"content_ids": '.'['.'"'.implode('","', $ids).'"'.']'.',';
+					$fb .= '"content_type": "product",';
+					$fb .= '"currency": "'.$currency.'",';
+					$fb .= '"value": "'.$value.'",';
+					$fb .= '"contents": ['.$productsFb.'],';
+					$fb .= '"num_items": "'.count($ids).'",';
+				$fb .= '};';
+				
+				if(UTools::getSetting('debug') == 'Y')
+				{
+					$fb .= 'console.log("EC: Check facebook Purchase");';
+					$fb .= 'console.log(fbparam);';
+				}
+				
+				$fb .= 'if (typeof fbq == "function"){ fbq("track", "Purchase", fbparam); } else { console.log("EC Warning: fbq() not function"); };';
+			}
+			
+			$fullScript = $cookie.$yandex.$google.$fb;
+			$fullScript = str_replace(array("\r\n", "\r", "\n"), '',  $fullScript);
+			
+			return $fullScript;
+		}
+	}
+	
+	function getDetailCode($productId, $offersProps = array()){
+		if(Tools::checkDisable() || !$productId) return false;
+		if(!CModule::IncludeModule("iblock") || !CModule::IncludeModule("catalog")) return false;
+		
+		$yandex = ''; $google = ''; $fb = '';
+		
+		$arData = array();
+		$containerName = UTools::getSiteSettingEx('container', 'dataLayer');
+		
+		$arData["PRODUCT"] = self::getProductInfo($productId);
+		
+		$res = CCatalogSKU::getOffersList($productId);
+		$arOfferIDs = $res[$productId];
+		if(!empty($arOfferIDs))
+		{
+			$arSelect = Array("ID", "NAME");
+			
+			foreach($offersProps as $prop)
+				$arSelect[] = "PROPERTY_".$prop;;
+			
+			$arFilter = Array("ID"=>array_keys($arOfferIDs), "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
+			$res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
+			while($ob = $res->GetNextElement())
+			{
+				$arFields = $ob->GetFields();
+				
+				$arFields["PROPS_OFFER"] = array();
+				foreach($offersProps as $prop)
+					if($arFields["PROPERTY_".$prop."_VALUE"])
+						$arFields["PROPS_OFFER"][] = Tools::textSafeMode($arFields["PROPERTY_".$prop."_VALUE"], 1);
+				
+				$arOptimalPrice = CCatalogProduct::GetOptimalPrice($arFields["ID"]);
+				if(!empty($arOptimalPrice))
+				{
+					$tp = ($arOptimalPrice["RESULT_PRICE"]["DISCOUNT_PRICE"]) ? $arOptimalPrice["RESULT_PRICE"]["DISCOUNT_PRICE"] : $arOptimalPrice["PRICE"]["PRICE"];
+					$tc = ($arOptimalPrice["RESULT_PRICE"]["CURRENCY"]) ? $arOptimalPrice["RESULT_PRICE"]["CURRENCY"] : $arOptimalPrice["PRICE"]["CURRENCY"];
+					
+					$arData["ITEMS"][$arFields["ID"]] = array(
+						"ID" => $arFields["ID"],
+						"NAME" => Tools::textSafeMode($arFields["NAME"]),
+						"CATEGORY" => $arData["PRODUCT"]["SECTION_NAME"],
+						"BRAND" => $arData["PRODUCT"]["BRAND"],
+						"CURRENCY" => $tc,
+						"PRICE" => $tp,
+						"PROPS_OFFER" => $arFields["PROPS_OFFER"],
+					);
+				}
+			}
+		}
+		else
+		{
+			$arOptimalPrice = CCatalogProduct::GetOptimalPrice($productId);
+			if(!empty($arOptimalPrice))
+			{
+				$tp = ($arOptimalPrice["RESULT_PRICE"]["DISCOUNT_PRICE"]) ? $arOptimalPrice["RESULT_PRICE"]["DISCOUNT_PRICE"] : $arOptimalPrice["PRICE"]["PRICE"];
+				$tc = ($arOptimalPrice["RESULT_PRICE"]["CURRENCY"]) ? $arOptimalPrice["RESULT_PRICE"]["CURRENCY"] : $arOptimalPrice["PRICE"]["CURRENCY"];
+				
+				$arData["ITEMS"][$productId] = array(
+					"ID" => $productId,
+					"NAME" => $arData["PRODUCT"]["NAME"],
+					"CATEGORY" => $arData["PRODUCT"]["SECTION_NAME"],
+					"BRAND" => $arData["PRODUCT"]["BRAND"],
+					"CURRENCY" => $tc,
+					"PRICE" => $tp,
+				);
+			}
+		}
+		
+		if(!empty($arData["ITEMS"]))
+		{
+			$arData["ITEMS"] = self::convertCurrencyBasket($arData["ITEMS"]);
+			foreach($arData["ITEMS"] as $basket)
+			{
+				$currency = $basket["CURRENCY"];
+				break;
+			}
+			
+			
+			$productsJsString = '';
+			foreach($arData["ITEMS"] as $arItem){
+				if($productsJsString) $productsJsString .= ', ';
+				$productsJsString .= '{';
+					$productsJsString .= '"id": "'.$arItem["ID"].'",';
+					$productsJsString .= '"name": "'.$arItem["NAME"].'",';
+					$productsJsString .= '"price": '.($arItem["PRICE"]*1).',';
+					$productsJsString .= '"category": "'.$arItem["CATEGORY"].'",';
+					$productsJsString .= '"brand": "'.$arItem["BRAND"].'",';
+					$productsJsString .= ((!empty($arItem["PROPS_OFFER"]))) ? '"variant": "'.implode('/', $arItem["PROPS_OFFER"]).'",' : '';
+				$productsJsString .= '}';
+			}
+			
+			if(UTools::getSiteSetting("ya_off") != 'Y'){
+				$yandex .= 'window.'.$containerName.' = window.'.$containerName.' || [];';
+				$yandex .= 'var agSendDetailInfo = {';
+					$yandex .= '"ecommerce": {';
+						$yandex .= ($currency) ? '"currencyCode": "'.$currency.'",' : '';
+						$yandex .= '"detail": {"products": ['.$productsJsString.']}';
+					$yandex .= '}';
+				$yandex .= '};';
+				$yandex .= 'window.'.$containerName.'.push(agSendDetailInfo);';
+				
+				if(UTools::getSetting('debug') == 'Y')
+				{
+					$yandex .= 'console.log("EC: Check yandex detail"); ';
+					$yandex .= 'console.log(agSendDetailInfo.ecommerce);';
+				}
+			}
+			
+			if(UTools::getSiteSetting("ga_off") != 'Y'){
+				if(UTools::getSetting('old_analitycs_version') != 'Y')
+				{
+					$google = 'if (typeof gtag != "function") {function gtag(){dataLayer.push(arguments);}};';
+					$google .= 'try {';
+						$google .= "gtag('event', 'view_item', {'items': [".$productsJsString."]});";
+					$google .= '}catch(err){console.log("EC Warning: gtag() not function");}';
+				}
+				else
+				{
+					// old code
+					$google = 'try {';
+						$google .= "ga('require', 'ec');";
+						$google .= "ga('set', 'currencyCode', '".$currency."');";
+						foreach($arData["ITEMS"] as $arItem):
+							$google .= "ga('ec:addProduct', {";
+								$google .= '"id": "'.$arItem["ID"].'",';
+								$google .= '"name": "'.$arItem["NAME"].'",';
+								$google .= '"price": '.($arItem["PRICE"]*1).',';
+								$google .= '"category": "'.$arItem["CATEGORY"].'",';
+								$google .= '"brand": "'.$arItem["BRAND"].'",';
+								if(!empty($arItem["PROPS_OFFER"]))
+								$google .= '"variant": "'.implode('/', $arItem["PROPS_OFFER"]).'",';
+							$google .= "});";
+						endforeach;
+						$google .= "ga('ec:setAction', 'detail');";
+						$google .= "ga('send', 'pageview');";
+					$google .= '}catch(err){console.log("Detail send with ga() has error");}';
+				}
+			}
+			
+			
+			if(UTools::getSiteSetting("fb_off") != 'Y'){
+				$cItem = current($arData["ITEMS"]);
+				
+				$fb .= 'var fbparam = {';
+					$fb .= '"content_ids": '.'['.'"'.implode('","', array_keys($arData["ITEMS"])).'"'.']'.',';
+					$fb .= '"content_category": "'.$cItem["CATEGORY"].'",';
+					$fb .= '"content_name": "'.$cItem["NAME"].'",';
+					$fb .= '"content_type": "product",';
+					$fb .= '"currency": "'.$cItem["CURRENCY"].'",';
+					$fb .= '"value": "'.$cItem["PRICE"].'",';
+				$fb .= '};';
+				
+				if(UTools::getSetting('debug') == 'Y')
+				{
+					$fb .= 'console.log("EC: Check facebook ViewContent");';
+					$fb .= 'console.log(fbparam);';
+				}
+				
+				$fb .= 'if (typeof fbq == "function"){ fbq("track", "ViewContent", fbparam); } else { console.log("EC Warning: fbq() not function"); };';
+			}
+			
+			$result = $yandex.$google.$fb;
+		}
+		
+		return $result;
+	}
+	
+	function getScriptForAddProducts($proudctsArray, $type, $use_document_ready){		
+		if(empty($proudctsArray)) return false;
+		
+		$cookie = ''; $yandex = ''; $google = ''; $fb = '';
+		$containerName = UTools::getSiteSettingEx('container', 'dataLayer');
+		
+		$cookie .= ($use_document_ready) ? 'document.addEventListener("DOMContentLoaded", function(){' : '';
+			foreach($proudctsArray as $key=>$val)
+			{
+				$cookieName = ($type == 'add') ? "EC_ADD_FOR_".$key : "EC_RM_FOR_".$key;
+				
+				$cookie .= 'var expires = new Date((new Date).getTime() + (6 * 30 * 24 * 60 * 60 * 1000)); ';
+				$cookie .= 'var cookie_string = "'.$cookieName.'" + "=" + escape("Y"); ';
+				$cookie .= 'cookie_string += "; expires=" + expires.toUTCString(); ';
+				$cookie .= 'cookie_string += "; path=" + escape ("/"); ';
+				$cookie .= 'document.cookie = cookie_string; ';
+				
+				if(UTools::getSetting('debug') == 'Y')
+					$cookie .= 'console.log("setCookie: " + cookie_string); ';
+			}
+		$cookie .= ($use_document_ready) ? '});' : '';
+		
+		$proudctsArray = self::convertCurrencyBasket($proudctsArray);
+		foreach($proudctsArray as $basket)
+		{
+			$currency = $basket["CURRENCY"];
+			break;
+		}
+		
+		$productsJsString = '';
+		foreach($proudctsArray as $arItem):
+			if($productsJsString) $productsJsString .= ', ';
+			$productsJsString .= '{';
+				$productsJsString .= '"id": "'.$arItem["ID"].'",';
+				$productsJsString .= '"name": "'.$arItem["NAME"].'",';
+				$productsJsString .= '"price": '.($arItem["PRICE"]*1).',';
+				$productsJsString .= '"category": "'.$arItem["SECTION_NAME"].'",';
+				$productsJsString .= '"quantity": "'.($arItem["QUANTITY"]*1).'",';
+				$productsJsString .= '"brand": "'.$arItem["BRAND"].'",';
+				$productsJsString .= ((!empty($arItem["PROPS_VALUE"]))) ? '"variant": "'.implode('/', $arItem["PROPS_VALUE"]).'",' : '';
+			$productsJsString .= '}';
+		endforeach;
+		
+		
+		if(UTools::getSiteSetting("ya_off") != 'Y'){
+			$yandex .= 'window.'.$containerName.' = window.'.$containerName.' || []; ';
+			$yandex .= 'var sendToMetric = {';
+				$yandex .= ($currency) ? '"currencyCode": "'.$currency.'",' : '';
+				$yandex .= '"ecommerce": {';
+					$yandex .= '"'.$type.'": {"products": ['.$productsJsString.']}';
+				$yandex .= '}';
+			$yandex .= '}; ';
+			$yandex .= 'window.'.$containerName.'.push(sendToMetric);';
+			
+			if(UTools::getSetting('debug') == 'Y')
+			{
+				$yandex .= 'console.log("EC: Check yandex '.$type.'"); ';
+				$yandex .= 'console.log(sendToMetric);';
+			}
+		}
+		
+		if(UTools::getSiteSetting("ga_off") != 'Y'){
+			if(UTools::getSetting('old_analitycs_version') != 'Y'){
+				$google = 'if (typeof gtag != "function") {function gtag(){dataLayer.push(arguments);}};';
+				$google .= 'try {';
+					if($type == 'add')
+						$google .= "gtag('event', 'add_to_cart', {'items': [".$productsJsString."]});";
+					else
+						$google .= "gtag('event', 'remove_from_cart', {'items': [".$productsJsString."]});";
+				$google .= '}catch(err){console.log("EC Warning: gtag() not function");}';
+			}
+			else
+			{
+				//old code
+				$google .= 'try {';
+					$google .= "ga('require', 'ec');";
+					$google .= "ga('set', 'currencyCode', '".$currency."');";
+					foreach($proudctsArray as $arItem):
+						$google .= "ga('ec:addProduct', {";
+							$google .= "'id': '".$arItem["ID"]."',";
+							$google .= "'name': '".$arItem["NAME"]."',";
+							$google .= "'price': ".($arItem["PRICE"]*1).",";
+							$google .= "'category': '".$arItem["SECTION_NAME"]."',";
+							$google .= "'quantity': '".$arItem["QUANTITY"]."',";
+							$google .= "'brand': '".$arItem["BRAND"]."',";
+							$google .= "'variant': '".(($arItem["PROPS_VALUE"]) ? implode('/', $arItem["PROPS_VALUE"]) : '')."',";
+						$google .= "});";
+					endforeach;
+					
+					$google .= "ga('ec:setAction', '".$type."');";
+				$google .= '}catch(err){console.log("Basket Update send with ga() has error");}';
+			}
+		}
+		
+		if(UTools::getSiteSetting("fb_off") != 'Y' && $type == 'add'){
+			foreach($proudctsArray as $arItem){
+				$fb .= 'var fbparam = {';
+					$fb .= '"content_name": "'.$arItem["NAME"].'",';
+					$fb .= '"content_ids": ["'.$arItem["ID"].'"],';
+					$fb .= '"content_type": "product",';
+					$fb .= '"currency": "'.$arItem["CURRENCY"].'",';
+					$fb .= '"value": "'.$arItem["PRICE"].'",'; 
+					$fb .= '"contents": [{"id": "'.$arItem["ID"].'", "quantity": "'.$arItem["QUANTITY"].'"}],';
+				$fb .= '};';
+				
+				if(UTools::getSetting('debug') == 'Y'){
+					$fb .= 'console.log("EC: Check facebook AddToCart");';
+					$fb .= 'console.log(fbparam);';
+				}
+				
+				$fb .= 'if (typeof fbq == "function"){ fbq("track", "AddToCart", fbparam); } else { console.log("EC Warning: fbq() not function"); };';
+			}
+		}
+		
+		$fullScript = $cookie.$yandex.$google.$fb;
+		$fullScript = str_replace(array("\r\n", "\r", "\n"), '',  $fullScript);
+		
+		return $fullScript;
+	}
+	
+	function getScriptBeginingCheckout(){
+		if(!CModule::IncludeModule("iblock") || !CModule::IncludeModule("catalog") || !CModule::IncludeModule("sale")) return false;
+		
+		$dbBasketItems = CSaleBasket::GetList(array("ID" => "ASC"), array("FUSER_ID" => CSaleBasket::GetBasketUserID(), "LID" => SITE_ID, "ORDER_ID" => "NULL"), false, false, array("*"));
+		while ($arItems = $dbBasketItems->Fetch())
+		{
+			$productInfo = self::getBasketProductInfo($arItems["ID"], $arItems); 
+			$arData["ORDER_BASKET"][] = $productInfo;
+		}
+		
+		$arData["ORDER_BASKET"] = self::convertCurrencyBasket($arData["ORDER_BASKET"]);
+		
+		if(!empty($arData["ORDER_BASKET"]))
+		{
+			$google = ''; $fb = '';
+			
+			if(UTools::getSetting('old_analitycs_version') != 'Y' && UTools::getSiteSetting("ga_off") != 'Y'){
+				
+				$productsJsString = '';
+				foreach($arData["ORDER_BASKET"] as $arItem){
+					if($productsJsString) $productsJsString .= ', ';
+					$productsJsString .= '{';
+						$productsJsString .= '"id": "'.$arItem["ID"].'",';
+						$productsJsString .= '"name": "'.$arItem["NAME"].'",';
+						$productsJsString .= '"price": '.($arItem["PRICE"]*1).',';
+						$productsJsString .= '"category": "'.$arItem["SECTION_NAME"].'",';
+						$productsJsString .= '"quantity": "'.$arItem["QUANTITY"].'",';
+						$productsJsString .= '"brand": "'.$arItem["BRAND"].'",';
+						$productsJsString .= '"variant": "'.(($arItem["PROPS_VALUE"]) ? implode('/', $arItem["PROPS_VALUE"]) : '').'",';
+					$productsJsString .= '}';
+				}
+				
+				$google .= 'var gaparam = {';
+					$google .= '"items": ['.$productsJsString.'],';
+				$google .= '};';
+				
+				
+				$google .= 'if (typeof gtag != "function") {function gtag(){dataLayer.push(arguments);}};';
+				$google .= 'try { gtag("event", "begin_checkout", gaparam); } catch(err) { console.log("EC Warning: gtag() not function"); };';
+				
+				if(UTools::getSetting('debug') == 'Y'){
+					$google .= 'console.log("EC: Check analitycs begin_checkout");';
+					$google .= 'console.log(gaparam);';
+				}
+			}
+			
+			if(UTools::getSiteSetting("fb_off") != 'Y'){
+				$ids = array();
+				$value = 0;
+				$productsFb = '';
+				
+				foreach($arData["ORDER_BASKET"] as $item){
+					$ids[] = $item["ID"];
+					$currency = $item["CURRENCY"];
+					$value += $item["PRICE"]*$item["QUANTITY"];
+					
+					if($productsFb) $productsFb .= ', ';
+					$productsFb .= '{';
+						$productsFb .= '"id": "'.$item["ID"].'",';
+						$productsFb .= '"quantity": "'.$item["QUANTITY"].'",';
+					$productsFb .= '}';
+				}
+				
+				$fb .= 'var fbparam = {';
+					$fb .= '"content_ids": '.'['.'"'.implode('","', $ids).'"'.']'.',';
+					$fb .= '"currency": "'.$currency.'",';
+					$fb .= '"content_type": "product",';
+					$fb .= '"value": "'.$value.'",';
+					$fb .= '"num_items": "'.count($ids).'",';
+					$fb .= '"contents": ['.$productsFb.'],';
+				$fb .= '};';
+				
+				if(UTools::getSetting('debug') == 'Y'){
+					$fb .= 'console.log("EC: Check facebook InitiateCheckout");';
+					$fb .= 'console.log(fbparam);';
+				}
+				
+				$fb .= 'if (typeof fbq == "function"){ fbq("track", "InitiateCheckout", fbparam); } else { console.log("EC Warning: fbq() not function"); };';
+			}
+			
+			
+			Tools::addScriptToHead($google.$fb);
+		}
+	}
+}
+?>

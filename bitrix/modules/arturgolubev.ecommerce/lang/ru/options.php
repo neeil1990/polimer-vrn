@@ -22,16 +22,24 @@ $MESS["ARTURGOLUBEV_EC_OFF_AJAX_ORDER"] = "<span data-hint=\"В связи со 
 
 $MESS["ARTURGOLUBEV_EC_SITE_SETTING"] = 'Настройки для сайта';
 $MESS["ARTURGOLUBEV_EC_DISABLED_SITE"] = "Отключить для сайта";
+
+$MESS["ARTURGOLUBEV_EC_OPTIONS_ALL_SETTING"] = "Общие настройки";
+$MESS["ARTURGOLUBEV_EC_ORDER_PAGE"] = '<span data-hint="Используется для Google Analitycs и Facebook"></span> Страница оформления заказа';
+$MESS["ARTURGOLUBEV_EC_ORDER_PAGE_NOTE"] = "Адрес страницы необходимо указывать в формате <b>/personal/order/make/</b> без <b>?ORDER_ID</b>, get параметров и домена";
+
 $MESS["ARTURGOLUBEV_EC_OPTIONS_YANDEX_SETTING_TAB"] = "Яндекс.Метрика";
-$MESS["ARTURGOLUBEV_EC_OPTIONS_YANDEX_SETTING"] = "Дополнительные настройки Яндекс.Метрики";
+$MESS["ARTURGOLUBEV_EC_OPTIONS_YANDEX_SETTING"] = "Яндекс.Метрика";
 $MESS["ARTURGOLUBEV_EC_YA_OFF"] = "Отключить передачу данных в Яндекс.Метрику";
 $MESS["ARTURGOLUBEV_EC_CONTAINER_NAME"] = "<span data-hint=\"Имя контейнера данных должно совпадать с указанным в настройках метрики. Если нет необходимости в другом названии переменной, рекоммендуется использовать стандартное - dataLayer\"></span> Имя контейнера данных яндекс";
 $MESS["ARTURGOLUBEV_EC_YA_TARGET_ORDER"] = "<span data-hint=\"Для данной настройки используйте цель типа Javascript-событие. В настройку нужно вписать цифровой ID цели.\"></span> Номер цели срабатывающей при оформлении заказа";
+
 $MESS["ARTURGOLUBEV_EC_OPTIONS_GOOGLE_SETTING_TAB"] = "Google Analitycs";
 $MESS["ARTURGOLUBEV_EC_GA_OFF"] = "Отключить передачу данных в Google Analitycs";
-$MESS["ARTURGOLUBEV_EC_OPTIONS_GOOGLE_SETTING"] = "Дополнительные настройки Google Analitycs";
-$MESS["ARTURGOLUBEV_EC_ORDER_PAGE"] = "Страница полного оформления заказа";
-$MESS["ARTURGOLUBEV_EC_ORDER_PAGE_NOTE"] = "Адрес страницы необходимо указывать в формате <b>/personal/order/make/</b> без <b>?ORDER_ID</b>, get параметров и домена";
+$MESS["ARTURGOLUBEV_EC_OPTIONS_GOOGLE_SETTING"] = "Google Analitycs";
+
+$MESS["ARTURGOLUBEV_EC_OPTIONS_FACEBOOK_SETTING"] = "Facebook";
+$MESS["ARTURGOLUBEV_EC_FB_OFF"] = "Отключить передачу данных в Facebook";
+
 $MESS["ARTURGOLUBEV_EC_OPTIONS_CONVERT_CURRENCY"] = "Конвертация валют";
 $MESS["ARTURGOLUBEV_EC_CONVERT_CURRENCY"] = "Конвертация валюты:";
 $MESS["ARTURGOLUBEV_EC_CONVERT_CURRENCY_EMPTY"] = "Не конвертировать";
@@ -65,7 +73,7 @@ $MESS["ARTURGOLUBEV_ECOMMERCE_INSTALL_TEXT_VALUE"] = "<a href='https://marketpla
 $MESS["ARTURGOLUBEV_ECOMMERCE_INSTALL_PAGE_TEXT"] = "Текстовая инструкция (более информативная) -";
 $MESS["ARTURGOLUBEV_ECOMMERCE_INSTALL_PAGE_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/instructions/metrics/' target='_blank'>открыть</a>";
 
-$MESS["ARTURGOLUBEV_ECOMMERCE_INSTALL_VIDEO_TEXT"] = "Видео-инструкция:";
+$MESS["ARTURGOLUBEV_ECOMMERCE_INSTALL_VIDEO_TEXT"] = "Видео-инструкция -";
 $MESS["ARTURGOLUBEV_ECOMMERCE_INSTALL_VIDEO_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/index.php?COURSE_ID=3&INDEX=Y' target='_blank'>открыть</a>";
 
 $MESS["ARTURGOLUBEV_ECOMMERCE_FAQ_TEXT"] = "Часто задаваемые вопросы по данному модулю -";

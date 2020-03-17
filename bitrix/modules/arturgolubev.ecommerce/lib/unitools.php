@@ -1,6 +1,5 @@
 <?
-// v = 1.2
-namespace Arturgolubev\Ecommerce;
+namespace Arturgolubev\Ecommerce; //1.22
 
 class Unitools {
 	const MODULE_ID = 'arturgolubev.ecommerce';
@@ -79,6 +78,42 @@ class Unitools {
 		return $USER->IsAdmin();
 	}
 	
+	function addJs($script){
+		global $APPLICATION;
+		$APPLICATION->AddHeadScript($script);
+	}
+	function addCss($script){
+		global $APPLICATION;
+		$APPLICATION->SetAdditionalCSS($script, true);
+	}
+	
+	function textOneLine($text){
+		return str_replace(array("\r\n", "\r", "\n"), '',  $text);
+	}
+	function checkPageException($pages){
+		if($pages)
+		{
+			global $APPLICATION;
+			
+			$cur = $APPLICATION->GetCurPage(false);
+			$curParams = $APPLICATION->GetCurPageParam();
+			
+			$ar_pages = explode("\n",$pages);
+			foreach($ar_pages as $checkValue)
+			{
+				$checkValue = trim($checkValue);
+				if(!$checkValue) continue;
+				
+				$pattern = '/^'.str_replace(array('/', '*'), array('\/', '.*'), $checkValue).'$/sU';
+				
+				if(preg_match($pattern, $cur) || preg_match($pattern, $curParams))
+					return 0;
+			}
+		}
+		
+		return 1;
+	}
+	
 	function addBodyScript($script, $oldBuffer){
 		$search = '</body>';
 		$replace = $script. PHP_EOL .$search;
@@ -101,11 +136,6 @@ class Unitools {
 		return $bufferContent;
 	}
 	
-	function addJs($script){
-		global $APPLICATION;
-		$APPLICATION->AddHeadScript($script);
-	}
-	
 	public static function getLastPositionIgnoreCase($haystack, $needle, $offset = 0)
 	{
 		if (defined("BX_UTF"))
@@ -120,6 +150,4 @@ class Unitools {
 
 		return strripos($haystack, $needle, $offset);
 	}
-	
-	
 }

@@ -1,4 +1,6 @@
 <?
+use \Arturgolubev\Ecommerce\Settings as SET;
+
 $module_id = 'arturgolubev.ecommerce';
 
 $module_name = str_replace('.', '_', $module_id);
@@ -144,6 +146,11 @@ if(count($siteList))
 		
 		$arOptions[$key][] = array("off_mode_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_DISABLED_SITE")." <b>".$arSite["NAME"]." [".$arSite["ID"]."]</b>", "N", array("checkbox"));
 		
+		$arOptions[$key][] = GetMessage("ARTURGOLUBEV_EC_OPTIONS_ALL_SETTING");
+		$arOptions[$key][] = array("order_page_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_ORDER_PAGE"), "", array("text"));
+		$arOptions[$key][] = array("note" => GetMessage("ARTURGOLUBEV_EC_ORDER_PAGE_NOTE"));
+		
+		
 		$arOptions[$key][] = GetMessage("ARTURGOLUBEV_EC_OPTIONS_YANDEX_SETTING");
 		$arOptions[$key][] = array("ya_off_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_YA_OFF"), "N", array("checkbox"));
 		$arOptions[$key][] = array("container_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_CONTAINER_NAME"), "dataLayer", array("text"));
@@ -151,8 +158,9 @@ if(count($siteList))
 		
 		$arOptions[$key][] = GetMessage("ARTURGOLUBEV_EC_OPTIONS_GOOGLE_SETTING");
 		$arOptions[$key][] = array("ga_off_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_GA_OFF"), "N", array("checkbox"));
-		$arOptions[$key][] = array("order_page_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_ORDER_PAGE"), "", array("text"));
-		$arOptions[$key][] = array("note" => GetMessage("ARTURGOLUBEV_EC_ORDER_PAGE_NOTE"));
+
+		$arOptions[$key][] = GetMessage("ARTURGOLUBEV_EC_OPTIONS_FACEBOOK_SETTING");
+		$arOptions[$key][] = array("fb_off_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_FB_OFF"), "N", array("checkbox"));
 		
 		$arOptions[$key][] = GetMessage("ARTURGOLUBEV_EC_OPTIONS_CONVERT_CURRENCY");
 		$arOptions[$key][] = array("convert_currency_".$arSite["ID"], GetMessage("ARTURGOLUBEV_EC_CONVERT_CURRENCY"), "", array("selectbox", $arCurrencyList));
@@ -209,24 +217,7 @@ if($REQUEST_METHOD=="POST" && strlen($Update.$Apply)>0 && check_bitrix_sessid())
 	
 	<?foreach($arTabs as $key=>$tab):
 		$tabControl->BeginNextTab();
-			$settingList = $arOptions[$tab["OPTIONS"]];
-			
-			foreach ($settingList as $Option) {
-				if($tab["OPTIONS"] == 'help'){
-					?>
-					<tr>
-						<td class="adm-detail-valign-top adm-detail-content-cell-l" width="50%">
-							<?=$Option["1"]?>
-						</td>
-						<td class="adm-detail-content-cell-r" width="50%">
-							<?=htmlspecialchars_decode($Option["2"])?>
-						</td>
-					</tr>
-					<?
-				}else{
-					__AdmSettingsDrawRow($module_id, $Option);
-				}
-			}
+			SET::showSettingsList($module_id, $arOptions, $tab);
 	endforeach;?>
 	
 	<?$tabControl->Buttons();?>
@@ -246,25 +237,4 @@ if($REQUEST_METHOD=="POST" && strlen($Update.$Apply)>0 && check_bitrix_sessid())
 	<?=GetMessage("ARTURGOLUBEV_EC_OFF_AJAX_DESCRIPTION");?>
 <?=EndNote();?>
 
-<?
-if (class_exists('\Bitrix\Main\UI\Extension')) {
-   \Bitrix\Main\UI\Extension::load("ui.hint");
-   ?>
-	<script>
-	BX.ready(function() {
-		BX.UI.Hint.init(BX('adm-workarea')); 
-	});
-	</script>
-	<?
-}
-?>
-
-<style>
-	#bx-admin-prefix form .adm-info-message {
-		color:#111;
-		background:#fff;
-		border: 1px solid #bbb;
-		padding: 10px 15px;
-		margin-top: 0;
-	}
-</style>
+<?SET::showInitUI();?>

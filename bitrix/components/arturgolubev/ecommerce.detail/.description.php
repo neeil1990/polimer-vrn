@@ -3,7 +3,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 
 $arComponentDescription = array(
 	"NAME" => "Ecommerce Detail",
-	"DESCRIPTION" => "Êîä ýëåêòðîííîé êîììåðöèè äëÿ äåòàëüíîé ñòðàíèöû òîâàðà",
+	"DESCRIPTION" => "ÐšÐ¾Ð´ ÑÐ»ÐµÐºÑ‚Ñ€Ð¾Ð½Ð½Ð¾Ð¹ ÐºÐ¾Ð¼Ð¼ÐµÑ€Ñ†Ð¸Ð¸ Ð´Ð»Ñ Ð´ÐµÑ‚Ð°Ð»ÑŒÐ½Ð¾Ð¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹ Ñ‚Ð¾Ð²Ð°Ñ€Ð°",
 	"ICON" => "/images/icon.gif",
 	"SORT" => 10,
 	"CACHE_PATH" => "Y",
