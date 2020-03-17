@@ -4460,7 +4460,6 @@ header .header__bottom.fixed .header__account
 .ct__leftbar .cat .cat-ul .cat-li .inner .checkboxes .item {
     float: left;
     width: 100%;
-    height: 16px;
     margin-top: 15px
 }
 
