@@ -56,7 +56,10 @@ $this->setFrameMode(true);
                <span><a href="#" class="blue">Бесплатная доставка</a></span>
            </div>-->
            <? if($arResult['ITEM_PRICES']): ?>
-               <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
+               <? foreach($arResult['ITEM_PRICES'] as $name => $price):
+                   if(!$price['PERCENT'])
+                       continue;
+                   ?>
                    <div class="bb_col" >
                        <span><a href="#" class="red" title='<b>Скидка <?=$price['PERCENT']?>%</b> При заказе через интернет-магазин'>Скидка <?=$price['PERCENT']?>% онлайн</a></span>
                    </div>
@@ -105,9 +108,16 @@ $this->setFrameMode(true);
                    <div class="price">
                       <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
                           <div class="price-new"><span><?=str_replace("&#8381;","",$price['PRINT_PRICE'])?></span>  &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                        <?if($price['PERCENT']):?>
                           <div class="price-old"><span><?=$price['BASE_PRICE']?></span> &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                        <? endif; ?>
+
                       <? endforeach; ?>
-                       <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
+
+                       <? foreach($arResult['ITEM_PRICES'] as $name => $price):
+                           if(!$price['PERCENT'])
+                               continue;
+                           ?>
                        <div class="sale-y"><span>- <?=$price['PERCENT']?>%</span></div>
                        <? endforeach; ?>
                    </div>
@@ -405,8 +415,8 @@ $this->setFrameMode(true);
         );?>
 
         <?$APPLICATION->IncludeComponent(
-	"bitrix:catalog.products.viewed", 
-	"products-viewed", 
+	"bitrix:catalog.products.viewed",
+	"products-viewed",
 	array(
 		"ACTION_VARIABLE" => "action_cpv",
 		"ADDITIONAL_PICT_PROP_10" => "-",
