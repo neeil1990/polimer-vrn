@@ -4749,6 +4749,7 @@ header .header__bottom.fixed .header__account
     border-radius: 3px;
     color: #333;
     font-size: 12px;
+    margin-right: 4px;
 }
 
 .product_top .filter_top .body_f .item_f a:hover{
