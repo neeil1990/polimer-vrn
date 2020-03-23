@@ -4,22 +4,34 @@ $APPLICATION->SetTitle("Каталог инженерной сантехники
 ?>
 
 <?
+$SORT_FIELD = $_REQUEST['ELEMENT_SORT_FIELD'];
+$_REQUEST['ELEMENT_SORT_ORDER'] = "asc";
+
 if(empty($_REQUEST['PAGE_ELEMENT_COUNT'])){
 	$_REQUEST['PAGE_ELEMENT_COUNT'] = 20;
 }
 if(empty($_REQUEST['ELEMENT_SORT_FIELD'])){
-	$_REQUEST['ELEMENT_SORT_FIELD'] = "shows";
-	$_REQUEST['ELEMENT_SORT_ORDER'] = "desc";
+    $SORT_FIELD = "shows";
+    $_REQUEST['ELEMENT_SORT_ORDER'] = "desc";
 }
-if($_REQUEST['ELEMENT_SORT_FIELD'] == "CATALOG_AVAILABLE" OR $_REQUEST['ELEMENT_SORT_FIELD'] == "shows"){
+
+if(
+        $_REQUEST['ELEMENT_SORT_FIELD'] == "CATALOG_AVAILABLE" OR
+        $_REQUEST['ELEMENT_SORT_FIELD'] == "NAME_DESC" OR
+        $_REQUEST['ELEMENT_SORT_FIELD'] == "timestamp_x" OR
+        $_REQUEST['ELEMENT_SORT_FIELD'] == "shows"
+){
 	$_REQUEST['ELEMENT_SORT_ORDER'] = "desc";
+    if($_REQUEST['ELEMENT_SORT_FIELD'] == "NAME_DESC"){
+        $SORT_FIELD = "NAME";
+    }
 }
 
 ?>
 
 <?$APPLICATION->IncludeComponent(
-	"bitrix:catalog", 
-	"catalog", 
+	"bitrix:catalog",
+	"catalog",
 	array(
 		"ACTION_VARIABLE" => "action",
 		"ADD_ELEMENT_CHAIN" => "Y",
@@ -226,7 +238,7 @@ if($_REQUEST['ELEMENT_SORT_FIELD'] == "CATALOG_AVAILABLE" OR $_REQUEST['ELEMENT_
 		"DISABLE_INIT_JS_IN_COMPONENT" => "N",
 		"DISPLAY_BOTTOM_PAGER" => "Y",
 		"DISPLAY_TOP_PAGER" => "N",
-		"ELEMENT_SORT_FIELD" => $_REQUEST["ELEMENT_SORT_FIELD"],
+		"ELEMENT_SORT_FIELD" => $SORT_FIELD,
 		"ELEMENT_SORT_FIELD2" => "shows",
 		"ELEMENT_SORT_ORDER" => $_REQUEST["ELEMENT_SORT_ORDER"],
 		"ELEMENT_SORT_ORDER2" => "asc",

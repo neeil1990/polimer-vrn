@@ -69,7 +69,14 @@ if (!empty($arResult['ITEMS']))
 			<div class="pr_header cl">
 				<div class="sort">
 				<?
-				$arSort = array('Популярности' => 'shows','Наличию' => 'CATALOG_AVAILABLE','Цене' => 'catalog_PRICE_3',);
+				$arSort = array(
+                    'Популярности' => 'shows',
+                    'Название А-Я' => 'NAME',
+                    'Название Я-А' => 'NAME_DESC',
+                    'Дата добавления' => 'timestamp_x',
+                    'Наличию' => 'CATALOG_AVAILABLE',
+                    'Цене' => 'catalog_PRICE_3',
+                    );
 				?>
 					<label for="select_prh">Сортировать по:</label>
 					<select name="select_prh" id="select_prh">
