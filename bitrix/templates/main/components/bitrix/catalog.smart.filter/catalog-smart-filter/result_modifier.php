@@ -43,6 +43,19 @@ if($arParams['SMART_SEO_FIELD_ONLY'] && count($arParams['SMART_SEO_FIELD_ONLY'])
         if (!in_array($arItem['CODE'], $arParams['SMART_SEO_FIELD_ONLY']))
             unset($arResult['ITEMS'][$id]);
     }
+
+    foreach ($arResult['ITEMS'] as $id => $arItem){
+        $arResult['ITEMS'][$arItem['CODE']] = $arItem;
+
+        if(!$arItem['PRICE'])
+            unset($arResult['ITEMS'][$id]);
+    }
+
+    $arSort = [];
+    foreach($arParams['SMART_SEO_FIELD_ONLY'] as $arField){
+        $arSort[($arResult['ITEMS'][$arField]['PRICE']) ? $arResult['ITEMS'][$arField]['CODE'] : $arResult['ITEMS'][$arField]['ID']] = $arResult['ITEMS'][$arField];
+    }
+    $arResult['ITEMS'] = $arSort;
 }
 
 foreach($arResult['ITEMS'] as &$arItem){
