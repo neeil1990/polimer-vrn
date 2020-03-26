@@ -10,7 +10,7 @@ use Bitrix\Main\Application,
 
 if(defined("ERROR_404") && ERROR_404){ $error_404 = true; }
 
-$pages   = $APPLICATION -> GetCurDir();     
+$pages   = $APPLICATION -> GetCurDir();
 $pages   = explode('/', $pages);
 $is_main = (($APPLICATION -> GetCurDir() == '/') || ($APPLICATION -> GetCurDir() == SITE_DIR)) && !$error_404;
 $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'catalog' && $pages[2]);
@@ -405,16 +405,28 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 
                         </div>
 
-                        <?$APPLICATION->IncludeComponent(
-                            "bitrix:search.form",
-                            "search-form",
-                            array(
-                                "PAGE" => "#SITE_DIR#search/",
-                                "USE_SUGGEST" => "Y",
-                                "COMPONENT_TEMPLATE" => "search-form"
+                        <?$APPLICATION->IncludeComponent("prime:search.title", "search.title", Array(
+                            "CATEGORY_0" => array(	// Ограничение области поиска
+                                0 => "iblock_1c_catalog",
                             ),
+                            "CATEGORY_0_TITLE" => "Каталог",	// Название категории
+                            "CATEGORY_0_iblock_1c_catalog" => array(	// Искать в информационных блоках типа "iblock_1c_catalog"
+                                0 => "21",
+                            ),
+                            "CHECK_DATES" => "N",	// Искать только в активных по дате документах
+                            "CONTAINER_ID" => "title-search",	// ID контейнера, по ширине которого будут выводиться результаты
+                            "INPUT_ID" => "title-search-input",	// ID строки ввода поискового запроса
+                            "NUM_CATEGORIES" => "1",	// Количество категорий поиска
+                            "ORDER" => "date",	// Сортировка результатов
+                            "PAGE" => "#SITE_DIR#search/",	// Страница выдачи результатов поиска (доступен макрос #SITE_DIR#)
+                            "SHOW_INPUT" => "Y",	// Показывать форму ввода поискового запроса
+                            "SHOW_OTHERS" => "N",	// Показывать категорию "прочее"
+                            "TOP_COUNT" => "15",	// Количество результатов в каждой категории
+                            "USE_LANGUAGE_GUESS" => "N",	// Включить автоопределение раскладки клавиатуры
+                        ),
                             false
                         );?>
+
 
                         <a href="<?if ($USER->IsAuthorized()){?>/personal/orders-list.php<?}else{?>/personal/order/make/<?}?>" class="header__account">Личный кабинет</a>
 
@@ -455,8 +467,8 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 	        <div class="mp__banners cl">
 
 				<?$APPLICATION->IncludeComponent(
-	"bitrix:news.list", 
-	"slider-home", 
+	"bitrix:news.list",
+	"slider-home",
 	array(
 		"ACTIVE_DATE_FORMAT" => "d.m.Y",
 		"ADD_SECTIONS_CHAIN" => "Y",
@@ -524,8 +536,8 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 );?>
 
 				<?$APPLICATION->IncludeComponent(
-	"bitrix:news.list", 
-	"baners-home", 
+	"bitrix:news.list",
+	"baners-home",
 	array(
 		"ACTIVE_DATE_FORMAT" => "d.m.Y",
 		"ADD_SECTIONS_CHAIN" => "Y",
@@ -600,7 +612,7 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
                 if(!$is_main && $pages[1] !== 'basket' && !($pages[1] == 'catalog' && $pages[3])){?>
 	            <div class="page_content">
 	            	<?if(!$noh1){?>
-	               	
+
 	               	<?$APPLICATION->IncludeComponent("bitrix:menu", "section", Array(
 						"ALLOW_MULTI_SELECT" => "N",	// Разрешить несколько активных пунктов одновременно
 							"CHILD_MENU_TYPE" => "top",	// Тип меню для остальных уровней

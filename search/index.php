@@ -2,8 +2,6 @@
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetTitle("Поиск");
 ?>
-
-
 <?$APPLICATION->IncludeComponent(
 	"bitrix:search.page",
 	"search-new",
@@ -23,7 +21,7 @@ $APPLICATION->SetTitle("Поиск");
 		"PAGER_SHOW_ALWAYS" => "N",
 		"PAGER_TEMPLATE" => "",
 		"PAGER_TITLE" => "Результаты поиска",
-		"PAGE_RESULT_COUNT" => "50",
+		"PAGE_RESULT_COUNT" => "35",
 		"RESTART" => "Y",
 		"SHOW_WHEN" => "N",
 		"SHOW_WHERE" => "N",
@@ -34,5 +32,5 @@ $APPLICATION->SetTitle("Поиск");
 		"arrFILTER_iblock_1c_catalog" => array("21")
 	)
 );?>
-
+<br/>
 <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

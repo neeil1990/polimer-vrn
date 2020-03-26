@@ -62,3 +62,10 @@ div.search-page-params {
     color: #15c3e6;
     padding: 7px 26px 0 0;
 }
+
+.ct__content{
+    width: inherit!important;
+}
+.products_roll .pr_box .item:nth-child(4n+1){
+    margin-left: 10px!important;
+}

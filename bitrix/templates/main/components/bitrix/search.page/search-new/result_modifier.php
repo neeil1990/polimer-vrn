@@ -31,54 +31,13 @@ foreach($priceTypes as $type)
     $select[] = 'CATALOG_GROUP_' . $type;
 }
 
-
+$arResult['ROWS_COUNT'] = $arResult["NAV_RESULT"]->SelectedRowsCount();
 foreach($arResult['SEARCH'] as &$arItem)
 {
-    //var_dump(price($arItem['ITEM_ID']));
-
-    $arItem['TITLE_FORMATED'] = preg_replace('#(~(.*?)~)#is', '', $arItem['TITLE_FORMATED']);
-    $arItem['BODY_FORMATED'] = preg_replace('#(~(.*?)~)#is', '', $arItem['BODY_FORMATED']);
-
-    if (substr_count($arItem['ITEM_ID'],'S'))
-    {
-        $sectId = str_replace('S','',$arItem['ITEM_ID']);
-        $arSect = GetIblockSection($sectId);
-        if ($arSect['ID']>0)
-        {
-            $arItem['IS_SECTION'] = true;
-
-            $arChain = array();
-            while ($arSect['IBLOCK_SECTION_ID']>0)
-            {
-                $arChain[] = '<a href="'.$arSect['SECTION_PAGE_URL'].'">'.$arSect['NAME'].'</a>';
-                $arSect = GetIblockSection($arSect['IBLOCK_SECTION_ID']);
-            }
-            $arItem['CHAIN'] = $arChain;
-        }
-        continue;
-    }
-
-    $arItem['IS_PRODUCT'] = true;
-    $arItem['PRICE'] = price($arItem['ITEM_ID']);
-    $arItem['PRICE_NUMBER'] = price($arItem['ITEM_ID']);
-
-
-    $arSelect = Array("ID", "NAME", "DATE_ACTIVE_FROM", "PREVIEW_PICTURE");
-    $arFilter = Array("IBLOCK_ID" => 21,"ID" => $arItem['ITEM_ID'],"ACTIVE"=>"Y");
+    $arSelect = Array("ID", "NAME", "DATE_ACTIVE_FROM", "PREVIEW_PICTURE", "CATALOG_QUANTITY", "IBLOCK_SECTION_ID", "DETAIL_PAGE_URL", "PROPERTY_CML2_BASE_UNIT");
+    $arFilter = Array("IBLOCK_ID" => $arItem['PARAM2'],"ID" => $arItem['ITEM_ID']);
     $res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
     if($ob = $res->GetNextElement())
-    {
-        $arFields = $ob->GetFields();
-        $arItem['PICTURE'] = CFile::GetPath($arFields['PREVIEW_PICTURE']);
-    }
-    $element = CIBlockElement::GetByID($arItem['ITEM_ID'])->Fetch();
+        $arItem = $ob->GetFields();
 
-    $arChain = array();
-    $arSect['IBLOCK_SECTION_ID'] = $element['IBLOCK_SECTION_ID'];
-    while ($arSect['IBLOCK_SECTION_ID']>0)
-    {
-        $arSect = GetIblockSection($arSect['IBLOCK_SECTION_ID']);
-        $arChain[] = '<a href="'.$arSect['SECTION_PAGE_URL'].'">'.$arSect['NAME'].'</a>';
-    }
-    $arItem['CHAIN'] = $arChain;
 }
