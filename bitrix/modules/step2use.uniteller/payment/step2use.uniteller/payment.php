@@ -9,6 +9,9 @@ if (!class_exists('ps_uniteller')) {
 	include(dirname(__FILE__) . '/tools.php');
 }
 
+$app = \Bitrix\Main\Application::getInstance();
+$request = $app->getContext()->getRequest();
+
 $sOrderID = (strlen(CSalePaySystemAction::GetParamValue('ORDER_ID')) > 0) ? CSalePaySystemAction::GetParamValue('ORDER_ID') : $GLOBALS['SALE_INPUT_PARAMS']['ORDER']['ID'];
 
 $aCheckData = array();
@@ -29,8 +32,6 @@ if (!CSaleOrder::GetByID($sOrderID)) {
 	 $orderID = $sOrderID;
 
 }
-
-
 
 // Это для частичной оплаты - пока закомментим, т.к. со стороны Uniteller не готова реализация (см. переписку по email)
 /*
@@ -81,7 +82,6 @@ if ($arOrder['PAYED']=='Y'/*$aCheckData['response_code'] !== '' && $aCheckData['
 //		$signature = strtoupper(md5(ps_uniteller::$Shop_ID . $sOrderID . $sHouldPay . ps_uniteller::$Password));
 	}
 	
-	
 //	da(ps_uniteller::$Shop_ID);
 //	da($sOrderID);
 //	da($sHouldPay);
@@ -89,10 +89,8 @@ if ($arOrder['PAYED']=='Y'/*$aCheckData['response_code'] !== '' && $aCheckData['
 //	da(ps_uniteller::$Password);
 ?>
 
-<form action="<?= ps_uniteller::$url_uniteller_pay ?>" method="post" target="_blank">
+<form action="<?= ps_uniteller::$url_uniteller_pay ?>" method="post" <?/*target="_blank"*/?> id="s2u-uniteller-payment-form">
 	<font class="tablebodytext"><br><?= GetMessage('SUSP_ACCOUNT_NO') ?>
-	<?//var_dump($GLOBALS['SALE_INPUT_PARAMS']['ORDER']);?>
-	
 		<? /* ???? ???????????? ????? ?????? ? ????????????? */ ?>
 		<?
         $useFiskal = CSalePaySystemAction::GetParamValue('USE_FISKAL') == 'Y';
@@ -123,9 +121,12 @@ if ($arOrder['PAYED']=='Y'/*$aCheckData['response_code'] !== '' && $aCheckData['
         
         $ReceiptSignature = ps_uniteller::getReceiptSignature($Receipt, $sOrderID, $sHouldPay);	
         //echo gettype($sOrderID).'</br>'.$taxmode.'</br>'.$includeDelivery.'</br>'.$deliveryPrice.'</br>'.$deliveryId;die;
+        
+        
         ?>
 		
-		<?= $sOrderID . GetMessage('SUSP_ORDER_FROM') . $sDateInsert ?><br> <?= GetMessage('SUSP_ORDER_SUM') ?><b><?= SaleFormatCurrency($sHouldPay, $sCurrency) ?>
+		<?//var_dump($GLOBALS['SALE_INPUT_PARAMS']['ORDER']);?>
+		<?= $sOrderID . GetMessage('SUSP_ORDER_FROM') . date("d.m.Y H:i:s", strtotime($sDateInsert)) ?><br> <?= GetMessage('SUSP_ORDER_SUM') ?><b><?= SaleFormatCurrency($sHouldPay, $sCurrency) ?>
 		</b><br> <br>
 
 		<?if($useFiskal):?>
@@ -200,6 +201,14 @@ if ($arOrder['PAYED']=='Y'/*$aCheckData['response_code'] !== '' && $aCheckData['
 	<font class="tablebodytext"><?echo CSalePaySystemAction::GetParamValue('DESC') ?>
 	</font>
 </p>
+
+<? /* автоматическая отправка формы в случае, если в настройках платежной системы установлена галочка "Открывать в новом окне" */ ?>
+<? /* если передать get-параметр S2U_NO_AUTOSUBMIT, то автоматическая отправка формы проводится не будет (удобно для тестирования) */?>
+<?if($request->get('ORDER_ID') && $request->get('PAYMENT_ID') && !$request->get('S2U_NO_AUTOSUBMIT')):?>
+<script>
+document.getElementById("s2u-uniteller-payment-form").submit();
+</script>
+<?endif;?>
 <?php
 }
 ?>

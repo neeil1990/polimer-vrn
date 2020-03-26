@@ -4075,3 +4075,4 @@ g=18.5.0&bitm_forum=18.0.4&bitm_statistic=18.5.0&bitm_compression=16.0.0&bitm_mo
 2020-03-19 16:37:09 -  - exec CUpdateClient::GetHTTPPage
 2020-03-19 16:37:09 -  - TIME GetUpdatesList(request) 0.316 sec
 2020-03-19 16:37:09 -  - exec CUpdateClient::ParseServerData
+2020-03-25 12:44:07 - CRUPDCF1 - Run updater '/bitrix/updates/update_m1585129447/step2use.uniteller/updater1.2.7.php': CopyFiles(install/www/bitrix/php_interface/include/sale_payment/step2use.uniteller, php_interface/include/sale_payment/step2use.uniteller/)

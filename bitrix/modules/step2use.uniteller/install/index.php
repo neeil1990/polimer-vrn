@@ -208,6 +208,8 @@ class step2use_uniteller extends CModule {
 			global $DB;
 			//$DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/step2use.uniteller/install/db/' . strtolower($DB->type) . '/uninstall.sql');
 		}
+        
+        UnRegisterModuleDependences("main", "OnEpilog", self::MODULE_ID, "CStepUseUniteller", "onEpilog");
 
 		return true;
 	}
@@ -217,6 +219,9 @@ class step2use_uniteller extends CModule {
      * @see https://dev.1c-bitrix.ru/learning/course/?COURSE_ID=101&LESSON_ID=3217&LESSON_PATH=8781.4793.3217
      */
     public function InstallDB() {
+        
+        RegisterModuleDependences("main", "OnEpilog", self::MODULE_ID, "CStepUseUniteller", "onEpilog");
+        
         return true;
     }
 }

@@ -79,4 +79,18 @@ Class CUnitellerAgentRem {
 	}
 }
 
+class CStepUseUniteller {
+    public static function onEpilog(){//Отображение формы
+		if(
+			(
+				strpos($_SERVER['PHP_SELF'], "/bitrix/admin/sale_order_detail.php")!==false || 
+				strpos($_SERVER['PHP_SELF'], "/bitrix/admin/sale_order_view.php")!==false
+			) && 
+			cmodule::includeModule('sale')
+		) {
+            include_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/step2use.uniteller/admin/uniteller_include_order_detail.php");
+        }
+		//	return false;
+	}
+}
 ?>
