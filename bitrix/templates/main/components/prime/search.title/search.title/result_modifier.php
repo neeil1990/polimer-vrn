@@ -79,7 +79,7 @@ foreach($arResult["CATEGORIES"] as $category_id => &$arCategory)
 			if($pic = CIBlockElement::GetByID($arItem["ITEM_ID"])->GetNext()['PREVIEW_PICTURE'])
 				$arResult["CATEGORIES"][$category_id]["ITEMS"][$i]['PICTURE'] = CFile::ResizeImageGet(
 				$pic,
-				["width" => 20, "height" => 20],
+				["width" => 40, "height" => 40],
 				BX_RESIZE_IMAGE_EXACT,
 				true
 			)['src'];
@@ -100,6 +100,13 @@ foreach($arResult["CATEGORIES"] as $category_id => &$arCategory)
 		$arSectionIds = array_unique($arSectionIds);
 		$arSectionItems = array();
 		if($arSectionIds){
+			$arSectionItems[] = [
+				'NAME' => 'Категория',
+				'SEPARATOR' => true
+			];
+			$arSectionItems[] = [
+				'SEPARATOR' => true
+			];
 			$arFilter = Array('IBLOCK_ID' => $arFilterSection['IBLOCK_ID'], 'ID' => $arSectionIds);
 			$db_list = CIBlockSection::GetList(Array($by => $order), $arFilter, true);
 			while($ar_result = $db_list->GetNext())
@@ -113,13 +120,19 @@ foreach($arResult["CATEGORIES"] as $category_id => &$arCategory)
 					'ITEM_ID' => $ar_result['ID'],
 					'PICTURE' => CFile::ResizeImageGet(
 						$ar_result['PICTURE'],
-						["width" => 20, "height" => 20],
+						["width" => 40, "height" => 40],
 						BX_RESIZE_IMAGE_EXACT,
 						true
 					)['src'],
 					'FORMAT_INT' => $ar_result['ELEMENT_CNT'].' шт.',
 				];
 			}
+
+			$arSectionItems[] = [
+				'NAME' => 'Товары',
+				'SEPARATOR' => true
+			];
+
 			$arSectionItems[] = [
 				'SEPARATOR' => true
 			];

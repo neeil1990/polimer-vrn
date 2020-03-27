@@ -22,7 +22,11 @@ if(!empty($arResult["CATEGORIES"]) && $arResult['CATEGORIES_ITEMS_EXISTS']):?>
             <? else:?>
                 <tr>
                     <td class="title-search-separator">&nbsp</td>
-                    <td class="title-search-separator"><hr/></td>
+                    <? if($arItem["NAME"]):?>
+                        <td class="title-search-item">&nbsp&nbsp<?=$arItem["NAME"]?></td>
+                    <? else: ?>
+                        <td class="title-search-separator"><hr/></td>
+                    <? endif; ?>
                     <td class="title-search-separator">&nbsp</td>
                 </tr>
             <?endif;?>
