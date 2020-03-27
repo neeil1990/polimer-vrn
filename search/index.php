@@ -21,7 +21,7 @@ $APPLICATION->SetTitle("Поиск");
 		"PAGER_SHOW_ALWAYS" => "N",
 		"PAGER_TEMPLATE" => "",
 		"PAGER_TITLE" => "Результаты поиска",
-		"PAGE_RESULT_COUNT" => "35",
+		"PAGE_RESULT_COUNT" => "55",
 		"RESTART" => "Y",
 		"SHOW_WHEN" => "N",
 		"SHOW_WHERE" => "N",

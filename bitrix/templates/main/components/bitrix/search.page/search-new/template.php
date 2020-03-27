@@ -10,6 +10,31 @@
             <div class="h1"><? $APPLICATION->ShowTitle(false, false); ?></div>
         <?endif;?>
 
+
+        <?if($arResult['SECTIONS']):?>
+            <div class="h1">Категория</div>
+
+            <div class="product_top cl">
+
+                <div class="catalog_top cl">
+                    <? foreach($arResult['SECTIONS'] as &$arSection):?>
+                        <div class="item_c">
+                            <a href="<?=$arSection['SECTION_PAGE_URL']?>">
+                                <div class="img_c">
+                                    <img src="<?=resizeImage($arSection['PICTURE'], 140, 120);?>" alt="<?=$arSection['NAME']?>">
+                                </div>
+                                <div class="name_c"><?=$arSection['NAME']?></div>
+                            </a>
+                        </div>
+                    <? endforeach; ?>
+                </div>
+
+            </div>
+            <!--end::catalog-sections-->
+        <? endif; ?>
+
+        <div class="h1">Товары</div>
+
         <div class="products_roll">
             <?if(count($arResult["SEARCH"])>0):?>
 
