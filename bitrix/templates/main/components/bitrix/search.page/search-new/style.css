@@ -65,11 +65,10 @@ div.search-page-params {
 .product_top{
     margin-bottom: 30px;
 }
-.catalog_top{
-    padding: 0 10px;
-}
-.product_top .catalog_top .item_c:nth-child(6n+1){
-    margin-left: 14px!important;
+.product_top .catalog_top .item_c:nth-child(6n+1),
+.product_top .catalog_top .item_c
+{
+    margin-left: 10px!important;
 }
 .ct__content{
     width: inherit!important;
