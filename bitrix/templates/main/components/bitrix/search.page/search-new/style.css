@@ -68,6 +68,9 @@ div.search-page-params {
 .catalog_top{
     padding: 0 10px;
 }
+.product_top .catalog_top .item_c:nth-child(6n+1){
+    margin-left: 14px!important;
+}
 .ct__content{
     width: inherit!important;
 }
