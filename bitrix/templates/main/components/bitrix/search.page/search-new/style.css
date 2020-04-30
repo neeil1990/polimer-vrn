@@ -71,7 +71,7 @@ div.search-page-params {
     margin-left: 10px!important;
 }
 .ct__content{
-    width: inherit!important;
+    width: 100%!important;
 }
 .products_roll .pr_box .item:nth-child(4n+1){
     margin-left: 10px!important;
