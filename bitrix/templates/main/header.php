@@ -467,8 +467,8 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 	        <div class="mp__banners cl">
 
 				<?$APPLICATION->IncludeComponent(
-	"bitrix:news.list",
-	"slider-home",
+	"bitrix:news.list", 
+	"slider-home", 
 	array(
 		"ACTIVE_DATE_FORMAT" => "d.m.Y",
 		"ADD_SECTIONS_CHAIN" => "Y",
@@ -526,11 +526,12 @@ $noh1    = $pages[1] == 'personal' || $pages[1] == 'price' || ($pages[1] == 'cat
 		"SET_STATUS_404" => "N",
 		"SET_TITLE" => "N",
 		"SHOW_404" => "N",
-		"SORT_BY1" => "ACTIVE_FROM",
+		"SORT_BY1" => "SORT",
 		"SORT_BY2" => "SORT",
-		"SORT_ORDER1" => "DESC",
+		"SORT_ORDER1" => "ASC",
 		"SORT_ORDER2" => "ASC",
-		"COMPONENT_TEMPLATE" => "slider-home"
+		"COMPONENT_TEMPLATE" => "slider-home",
+		"STRICT_SECTION_CHECK" => "N"
 	),
 	false
 );?>
