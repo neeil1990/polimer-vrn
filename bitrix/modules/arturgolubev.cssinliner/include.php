@@ -8,43 +8,67 @@ Class CArturgolubevCssinliner
 	const MODULE_ID = 'arturgolubev.cssinliner';
 	var $MODULE_ID = 'arturgolubev.cssinliner';
 	
+	const CACHE_TIME = 86400;
+	
 	function onBufferContent(&$bufferContent){
+		
 		if(!UTools::checkStatus() || !CModule::IncludeModule(self::MODULE_ID) || defined('LOCK_CSSINLINER')) return false;
 
 		if(UTools::getSetting('disable') == 'Y' || UTools::getSetting('disabled_'.SITE_ID) == 'Y') return false;
 		
-		if(!$stop && stripos($bufferContent, '<!DOCTYPE') === false) return false;
-			
-		$admin_debug = (UTools::getSetting('admin_debug') == "Y");
-		if($admin_debug)
-		{
-			$bufferContent = self::showDebug($bufferContent);
-		}
+		if(!UTools::isHtmlPage($bufferContent)) return false;
 		
 		if(!UTools::isAdmin())
 		{
-			$bufferContent = self::replace($bufferContent);
+			$bufferContent = self::applyInlineCss($bufferContent);
+			$bufferContent = self::addPrelinks($bufferContent);
 		}
 	}
 	
-	function showDebug($bufferContent){
-		preg_match_all('/\<link.*\>/sU', $bufferContent, $arLinks);
-		$ds = '<script>';
-			$ds .= 'console.log("'.GetMessage("ARTURGOLUBEV_CSSINLINER_DEBUG_TITLE").'");';
-			foreach($arLinks[0] as $link){
-				if(!strstr($link, '.css'))
-					continue;
-				
-				preg_match_all('/href=[\"\'](.*\.css).*[\"\']/sU', $link, $tmphref);
-				$cssitem = $tmphref[1][0];
-				if($cssitem)
+	function addPrelinks($bufferContent){
+		$s = '';
+		$arPreconnect = explode(PHP_EOL, UTools::getSetting('preconnect'));
+		$arPreloading = explode(PHP_EOL, UTools::getSetting('preloading'));
+		
+		if(!empty($arPreconnect))
+		{
+			foreach($arPreconnect as $k=>$v)
+			{
+				$v = trim($v);
+				if($v != '')
 				{
-					$ds .= 'console.log("'.$cssitem.'");';
+					$s .= '<link rel="preconnect" href="'.$v.'" crossorigin />';
 				}
 			}
-		$ds .= '</script>';
+		}
 		
-		$bufferContent = str_replace('</body>', $ds.'</body>', $bufferContent);
+		if(!empty($arPreloading))
+		{
+			foreach($arPreloading as $k=>$v)
+			{
+				$v = trim($v);
+				if($v != '')
+				{
+					$type = '';
+					if(strstr($v, '.css'))
+						$type = 'style';
+					elseif(strstr($v, '.js'))
+						$type = 'script';
+					elseif(strstr($v, '.woff2') || strstr($v, '.ttf'))
+						$type = 'font';
+					
+					$s .= '<link rel="preload" href="'.$v.'" '.(($type)?'as="'.$type.'"':'').' crossorigin="anonymous" />';
+				}
+			}
+		}
+		
+		if($s)
+		{
+			$h = '<head>';
+			$pos = UTools::getFirstPositionIgnoreCase($bufferContent, $h);
+			if ($pos !== false)
+				$bufferContent = substr_replace($bufferContent, $h.PHP_EOL.$s, $pos, strlen($h));
+		}
 		
 		return $bufferContent;
 	}
@@ -83,7 +107,7 @@ Class CArturgolubevCssinliner
 		if(!empty($mergedSearch))
 			$style = preg_replace($mergedSearch, $mergedReplace, $style);
 		
-		return $style;
+		return trim($style);
 	}
 	
 	function _getOuterStyle($url){
@@ -109,13 +133,11 @@ Class CArturgolubevCssinliner
 	function getOuterCss($url, $useOptimize = 'N', $arDopSearch = array(), $arDopReplace = array()){
 		if(substr($url,0,2) == '//') $url = 'https:'.$url;
 		
-		$obCache = new CPHPCache();
-		
-		$timeSeconds = 86400;
 		$cacheId = md5($url.$useOptimize.serialize($arDopSearch).serialize($arDopReplace));
 		$cachePath = '/'.SITE_ID.'/arturgolubev.cssinliner/outer/';
 		
-		if($obCache->InitCache($timeSeconds, $cacheId, $cachePath))
+		$obCache = new CPHPCache();
+		if($obCache->InitCache(self::CACHE_TIME, $cacheId, $cachePath))
 		{
 			$vars = $obCache->GetVars();
 			$style = $vars['style'];
@@ -132,20 +154,20 @@ Class CArturgolubevCssinliner
 	}
 	
 	function getInnerCss($url, $useOptimize = 'N', $arDopSearch = array(), $arDopReplace = array()){
-		$obCache = new CPHPCache();
+		$tm = filemtime($_SERVER["DOCUMENT_ROOT"].$url);
 		
-		$timeSeconds = 3600;
-		$cacheId = md5($url.$useOptimize.serialize($arDopSearch).serialize($arDopReplace));
+		$cacheId = md5($url.$useOptimize.serialize($arDopSearch).serialize($arDopReplace).$tm);
 		$cachePath = '/'.SITE_ID.'/arturgolubev.cssinliner/'.basename($url);
 		
-		if($obCache->InitCache($timeSeconds, $cacheId, $cachePath))
+		$obCache = new CPHPCache();
+		if($obCache->InitCache(self::CACHE_TIME, $cacheId, $cachePath))
 		{
 			$vars = $obCache->GetVars();
 			$style = $vars['style'];
 		}
 		elseif($obCache->StartDataCache())
 		{
-			$style = trim(file_get_contents($_SERVER['DOCUMENT_ROOT'].$url));
+			$style = file_get_contents($_SERVER['DOCUMENT_ROOT'].$url);
 			$style = self::baseOptimize($style, $useOptimize, $arDopSearch, $arDopReplace);
 			$obCache->EndDataCache(array('style' => $style));
 		}
@@ -153,7 +175,7 @@ Class CArturgolubevCssinliner
 		return $style;
 	}
 	
-	function replace($bufferContent){
+	function applyInlineCss($bufferContent){
 		preg_match_all('/\<link.*\>/sU', $bufferContent, $arLinks);
 		if(!empty($arLinks[0]))
 		{
@@ -165,7 +187,7 @@ Class CArturgolubevCssinliner
 			$exceptions = UTools::getSetting('exceptions');
 			
 			/* set default setting */
-			if($inline_max_weight <= 0) $inline_max_weight = 128;
+			if($inline_max_weight <= 0) $inline_max_weight = 1512;
 			if($exceptions) $exceptions = explode("\n",$exceptions);
 			
 			$arLinksWork = array();
@@ -199,7 +221,7 @@ Class CArturgolubevCssinliner
 				
 				if($outer_style_inline != 'Y')
 				{
-					if(strstr($link, 'http://') || strstr($link, 'https://'))
+					if(strstr($link, '//'))
 						continue;
 				}
 				

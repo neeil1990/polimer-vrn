@@ -1,5 +1,5 @@
 <?
-namespace Arturgolubev\Cssinliner; //1.2
+namespace Arturgolubev\Cssinliner; //1.5.0
 
 class Unitools {
 	const MODULE_ID = 'arturgolubev.cssinliner';
@@ -48,19 +48,29 @@ class Unitools {
 		return $val;
 	}
 	
+	function isAdminPage(){
+		if(!isset(self::$storage["main"]["is_admin_page"]))
+		{
+			$r = IntVal(defined('ADMIN_SECTION'));
+			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/admin') === 0) $r = 1;
+			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/tools') === 0) $r = 1;
+			
+			self::setStorage("main", "is_admin_page", $r);
+		}
+		else
+			$r = self::getStorage("main", "is_admin_page");
+		
+		return $r;
+	}
+	
 	function checkStatus(){
 		if(!isset(self::$storage["main"]["status"]))
 		{
-			$r = IntVal(!defined('ADMIN_SECTION') && $_SERVER['REQUEST_METHOD'] != 'POST');
-			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/admin') === 0) $r = 0;
-			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/tools') === 0) $r = 0;
-			
+			$r = (self::isAdminPage() || $_SERVER['REQUEST_METHOD'] == 'POST') ? 0 : 1;
 			self::setStorage("main", "status", $r);
 		}
 		else
-		{
 			$r = self::getStorage("main", "status");
-		}
 		
 		return $r;
 	}
@@ -81,6 +91,37 @@ class Unitools {
 	function addJs($script){
 		global $APPLICATION;
 		$APPLICATION->AddHeadScript($script);
+	}
+	function addCss($script){
+		global $APPLICATION;
+		$APPLICATION->SetAdditionalCSS($script, true);
+	}
+	
+	function textOneLine($text){
+		return str_replace(array("\r\n", "\r", "\n"), '',  $text);
+	}
+	function checkPageException($pages){
+		if($pages)
+		{
+			global $APPLICATION;
+			
+			$cur = $APPLICATION->GetCurPage(false);
+			$curParams = $APPLICATION->GetCurPageParam();
+			
+			$ar_pages = explode("\n",$pages);
+			foreach($ar_pages as $checkValue)
+			{
+				$checkValue = trim($checkValue);
+				if(!$checkValue) continue;
+				
+				$pattern = '/^'.str_replace(array('/', '*'), array('\/', '.*'), $checkValue).'$/sU';
+				
+				if(preg_match($pattern, $cur) || preg_match($pattern, $curParams))
+					return 0;
+			}
+		}
+		
+		return 1;
 	}
 	
 	function addBodyScript($script, $oldBuffer){
@@ -105,6 +146,18 @@ class Unitools {
 		return $bufferContent;
 	}
 	
+	function isHtmlPage($page){
+		if(!defined("AG_CHECK_DOCTYPE"))
+		{
+			$t = (stripos(substr($page,0,512), '<!DOCTYPE') === false) ? 0 : 1;
+			define('AG_CHECK_DOCTYPE', $t);
+		}
+		
+		return AG_CHECK_DOCTYPE;
+	}
+	
+	
+	
 	public static function getLastPositionIgnoreCase($haystack, $needle, $offset = 0)
 	{
 		if (defined("BX_UTF"))
@@ -118,5 +171,20 @@ class Unitools {
 		}
 
 		return strripos($haystack, $needle, $offset);
+	}
+	
+	public static function getFirstPositionIgnoreCase($haystack, $needle, $offset = 0)
+	{
+		if (defined("BX_UTF"))
+		{
+			if (function_exists("mb_orig_stripos"))
+			{
+				return mb_orig_stripos($haystack, $needle, $offset);
+			}
+
+			return mb_stripos($haystack, $needle, $offset, "latin1");
+		}
+
+		return stripos($haystack, $needle, $offset);
 	}
 }

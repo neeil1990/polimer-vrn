@@ -58,9 +58,13 @@ Class arturgolubev_cssinliner extends CModule
 
 	function DoInstall()
 	{
+		global $APPLICATION, $DOCUMENT_ROOT;
+		
 		$this->InstallFiles();
 		$this->InstallDB();
 		RegisterModule(self::MODULE_ID);
+		
+		$APPLICATION->IncludeAdminFile(GetMessage("MOD_INST_OK"), $DOCUMENT_ROOT."/bitrix/modules/arturgolubev.cssinliner/install/success_install.php");
 	}
 
 	function DoUninstall()

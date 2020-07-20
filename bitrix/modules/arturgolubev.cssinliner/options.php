@@ -1,56 +1,59 @@
 <?
-$module_id = 'arturgolubev.cssinliner';
+use \Arturgolubev\Cssinliner\Settings as SET;
 
+$module_id = 'arturgolubev.cssinliner';
 $module_name = str_replace('.', '_', $module_id);
 $MODULE_NAME = strtoupper($module_name);
 
+CModule::IncludeModule($module_id);
 IncludeModuleLangFile($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/options.php");
 IncludeModuleLangFile($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/".$module_id."/options.php");
 
 global $USER, $APPLICATION;
 if (!$USER->IsAdmin()) return;
 
+$siteList = SET::getSites();
+
+
 $arOptions = array(
-    "main" => array(
-        array("disable", GetMessage($MODULE_NAME . "_ENABLE"), "N", array("checkbox")),
-    ),
+    "main" => array(),
 	"help" => array()
 );
 
-$siteList = array();
-$rsSites = CSite::GetList($by="sort", $order="asc", Array());
-while($arRes = $rsSites->Fetch())
-{
-	$siteList[] = array(
-		"ID" => $arRes["ID"],
-		"NAME" => $arRes["NAME"],
-	);
-}
+$move_js_to_body = COption::GetOptionString("main", "move_js_to_body");
+if($move_js_to_body != 'Y')
+	$arOptions["main"][] = array("note" => GetMessage($MODULE_NAME . "_NOTE_MAIN_JS"));
+
+
+
+$arOptions["main"][] = array("disable", GetMessage($MODULE_NAME . "_ENABLE"), "N", array("checkbox"));
 
 if(count($siteList))
 {
 	foreach($siteList as $arSite)
 	{
-		$arOptions["main"][] = array("disabled_".$arSite["ID"], GetMessage($MODULE_NAME . "_DISABLED_SITE")." <b>".$arSite["NAME"]." [".$arSite["ID"]."]</b>", "N", array("checkbox"));
+		$arOptions["main"][] = array("disabled_".$arSite["ID"], GetMessage($MODULE_NAME . "_DISABLED_SITE")." <b>".$arSite["NAME"]." [".$arSite["ID"]."]</b>:", "N", array("checkbox"));
 	}
 }
 
 
 $arOptions["main"][] = GetMessage($MODULE_NAME . "_WORKING_WITH_STYLE");
 
-$arOptions["main"][] = array("inline_max_weight", GetMessage($MODULE_NAME . "_INLINE_MAX_WEIGHT"), "512", array("text"));
 $arOptions["main"][] = array("use_compress", GetMessage($MODULE_NAME . "_USE_COMPRESS"), "N", array("checkbox"));
 $arOptions["main"][] = array("google_fonts_inline", GetMessage($MODULE_NAME . "_GOOGLE_FONTS_INLINE"), "N", array("checkbox"));
 $arOptions["main"][] = array("outer_style_inline", GetMessage($MODULE_NAME . "_OUTER_STYLE_INLINE"), "N", array("checkbox"));
 
-
-$move_js_to_body = COption::GetOptionString("main", "move_js_to_body");
-if($move_js_to_body != 'Y')
-	$arOptions["main"][] = array("note" => GetMessage($MODULE_NAME . "_NOTE_MAIN_JS"));
-
-$arOptions["main"][] = GetMessage($MODULE_NAME . "_SYSTEM_TITLE");
+$arOptions["main"][] = array("inline_max_weight", GetMessage($MODULE_NAME . "_INLINE_MAX_WEIGHT"), "1512", array("text"));
 $arOptions["main"][] = array("exceptions", GetMessage($MODULE_NAME . "_EXCEPTIONS"), "", array("textarea",5,40));
-$arOptions["main"][] = array("admin_debug", GetMessage($MODULE_NAME . "_ADMIN_DEBUG"), "N", array("checkbox"));
+
+
+$arOptions["main"][] = GetMessage($MODULE_NAME . "_WORKING_PRECONNECT");
+$arOptions["main"][] = array("preconnect", GetMessage($MODULE_NAME . "_PRECONNECT"), "", array("textarea",5,40));
+$arOptions["main"][] = array("note" => GetMessage($MODULE_NAME . "_PRECONNECT_NOTE"));
+
+$arOptions["main"][] = GetMessage($MODULE_NAME . "_WORKING_PRELOADING");
+$arOptions["main"][] = array("preloading", GetMessage($MODULE_NAME . "_PRELOADING"), "", array("textarea",5,40));
+$arOptions["main"][] = array("note" => GetMessage($MODULE_NAME . "_PRELOADING_NOTE"));
 
 $arOptions["help"][] = array("help_card", GetMessage($MODULE_NAME . "_CARD_TEXT"), GetMessage($MODULE_NAME . "_CARD_TEXT_VALUE"), array("statictext"));
 $arOptions["help"][] = array("help_install", GetMessage($MODULE_NAME . "_INSTALL_TEXT"), GetMessage($MODULE_NAME . "_INSTALL_TEXT_VALUE"), array("statictext"));
@@ -60,7 +63,7 @@ $arOptions["help"][] = array("help_faq_main", GetMessage($MODULE_NAME . "_FAQ_MA
 
 
 $arTabs = array();
-$arTabs[] = array("DIV" => "edit1", "TAB" => GetMessage("MAIN_TAB_SET"), "TITLE" => GetMessage("MAIN_TAB_TITLE_SET"), "OPTIONS"=>"main");
+$arTabs[] = array("DIV" => "inliner_tab", "TAB" => GetMessage($MODULE_NAME."_CSS_INLINE_TAB"), "TITLE" => GetMessage($MODULE_NAME."_CSS_INLINE_TAB"), "OPTIONS"=>"main");
 $arTabs[] = array("DIV" => "edit_system_help", "TAB" => GetMessage($MODULE_NAME."_HELP_TAB_NAME"), "TITLE" => GetMessage($MODULE_NAME."_HELP_TAB_TITLE"), "OPTIONS"=>"help");
 
 $tabControl = new CAdminTabControl("tabControl", $arTabs);
@@ -112,24 +115,7 @@ $allow_url_fopen = ini_get("allow_url_fopen");
 	
 	<?foreach($arTabs as $key=>$tab):
 		$tabControl->BeginNextTab();
-			$settingList = $arOptions[$tab["OPTIONS"]];
-			
-			foreach ($settingList as $Option) {
-				if($tab["OPTIONS"] == 'help'){
-					?>
-					<tr>
-						<td class="adm-detail-valign-top adm-detail-content-cell-l" width="50%">
-							<?=$Option["1"]?>
-						</td>
-						<td class="adm-detail-content-cell-r" width="50%">
-							<?=htmlspecialchars_decode($Option["2"])?>
-						</td>
-					</tr>
-					<?
-				}else{
-					__AdmSettingsDrawRow($module_id, $Option);
-				}
-			}
+			SET::showSettingsList($module_id, $arOptions, $tab);
 	endforeach;?>
 	
 	<?$tabControl->Buttons();?>
@@ -150,27 +136,4 @@ $allow_url_fopen = ini_get("allow_url_fopen");
 <?= EndNote();?>
 
 
-
-<?
-if (class_exists('\Bitrix\Main\UI\Extension')) {
-   \Bitrix\Main\UI\Extension::load("ui.hint");
-   ?>
-	<script>
-	BX.ready(function() {
-		BX.UI.Hint.init(BX('adm-workarea')); 
-	});
-	</script>
-	<?
-}
-?>
-
-<style>
-	#bx-admin-prefix form .adm-info-message {
-		color:#111;
-		background:#fff;
-		border: 1px solid #bbb;
-		padding: 10px 15px;
-		margin-top: 0;
-		text-align: left;
-	}
-</style>
+<?SET::showInitUI();?>

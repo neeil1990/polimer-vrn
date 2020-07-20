@@ -1,52 +1,33 @@
 <?
+use \Arturgolubev\Htmlcompressor\Unitools as UTools;
+
 Class CArturgolubevHtmlcompressor 
 {
 	const MODULE_ID = 'arturgolubev.htmlcompressor';
 	var $MODULE_ID = 'arturgolubev.htmlcompressor'; 
 	
 	function onBufferContent(&$bufferContent){
-		$statusCheck = (!defined('ADMIN_SECTION') && $_SERVER['REQUEST_METHOD'] != 'POST' && strpos($_SERVER['PHP_SELF'], BX_ROOT.'/admin') !== 0);
-		if($statusCheck && CModule::IncludeModule(self::MODULE_ID))
+		if(UTools::checkStatus() && CModule::IncludeModule(self::MODULE_ID))
 		{
-			
-			global $USER, $APPLICATION;
-			if(!is_object($USER)) $USER = new CUser();
+			global $APPLICATION;
 			
 			$stop = 0;
 			$cur = $APPLICATION->GetCurPage(false);
 			
-			if(COption::GetOptionString(self::MODULE_ID, 'compression_off') == 'Y' || COption::GetOptionString(self::MODULE_ID, 'compression_off_'.SITE_ID) == 'Y')
+			if(UTools::getSetting('compression_off') == 'Y' || UTools::getSiteSetting('compression_off') == 'Y')
 				$stop = 1;
 			
-			if($USER->IsAdmin() || $APPLICATION->GetUserRight("fileman") > "D")
+			if(UTools::isAdmin() || $APPLICATION->GetUserRight("fileman") > "D")
 				$stop = 1;
 			
-			$page_exceptions = trim(COption::GetOptionString(self::MODULE_ID, 'page_exceptions'));
-			if($page_exceptions)
-			{
-				$ar_page_exceptions = explode("\n",$page_exceptions);
-				foreach($ar_page_exceptions as $checkValue)
-				{
-					$checkValue = trim($checkValue);
-					if(!$checkValue) continue;
-					
-					$pattern = '/^'.str_replace(array('/', '*'), array('\/', '.*'), $checkValue).'$/sU';
-					if(preg_match($pattern, $cur))
-					{
-						$stop = 1;
-					}
-				}
-			}
-			
-			if(strstr($cur, '/bitrix/')){
+			if(!UTools::checkPageException(UTools::getSetting('page_exceptions')) || strstr($cur, '/bitrix/'))
 				$stop = 1;
-			}
 			
-			if(!$stop && stripos($bufferContent, '<!DOCTYPE') === false)
+			if(!$stop && stripos(substr($bufferContent,0,512), '<!DOCTYPE') === false)
 				$stop = 1;
 			
 			if (!$stop){
-				$bufferContent = CArturgolubevHtmlcompressor::sanitize_output($bufferContent);
+				$bufferContent = self::sanitize_output($bufferContent);
 			}
 		}
 	}
@@ -61,7 +42,7 @@ Class CArturgolubevHtmlcompressor
 		$search[] = '/\s+/';
 		$replace[] = ' ';
 		
-		$hide_script_type = COption::GetOptionString(self::MODULE_ID, 'hide_script_type');
+		$hide_script_type = UTools::getSetting('hide_script_type');
 		if($hide_script_type != 'Y')
 		{
 			$search[] = '/ type=[\'|\"]text\/javascript[\'|\"]/sU';
@@ -71,14 +52,14 @@ Class CArturgolubevHtmlcompressor
 			$replace[] = '';
 		}
 		
-		$hide_pre = COption::GetOptionString(self::MODULE_ID, 'hide_pre');
+		$hide_pre = UTools::getSetting('hide_pre');
 		if($hide_pre != 'Y')
 		{
 			$search[] = '/\<pre\>.*\<\/pre\>/sU';
 			$replace[] = '';
 		}
 		
-		$hide_html_comment = COption::GetOptionString(self::MODULE_ID, 'hide_html_comment');
+		$hide_html_comment = UTools::getSetting('hide_html_comment');
 		if($hide_html_comment != 'Y' && !file_exists($_SERVER["DOCUMENT_ROOT"].BX_PERSONAL_ROOT."/html_pages/.enabled"))
 		{
 			$search[] = '/\<\!--.*--\>/sU';
@@ -93,7 +74,7 @@ Class CArturgolubevHtmlcompressor
 	
 	function sanitize_output($buffer)
 	{
-		$javascript_compression_on = COption::GetOptionString(self::MODULE_ID, 'javascript_compression_on');
+		$javascript_compression_on = UTools::getSetting('javascript_compression_on');
 		$replaceParam = self::getMainReplaceParams();
 		
 		$replaceParamJs = array(

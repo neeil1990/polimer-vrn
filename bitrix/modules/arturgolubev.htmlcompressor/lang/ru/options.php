@@ -36,6 +36,9 @@ $MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_INSTALL_TEXT_VALUE"] = "<a href='https://mark
 $MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_INSTALL_VIDEO_TEXT"] = "Видео-инструкция -";
 $MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_INSTALL_VIDEO_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/index.php?COURSE_ID=8&INDEX=Y' target='_blank'>ссылка</a>";
 
+$MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_FAQ_TEXT"] = "Часто задаваемые вопросы по данному модулю -";
+$MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_FAQ_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/knowledge/course8/' target='_blank'>ссылка</a>";
+
 $MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_FAQ_MAIN_TEXT"] = "Вопросы по оплате, активации модуля и т.п. -";
 $MESS["ARTURGOLUBEV_HTMLCOMPRESSOR_FAQ_MAIN_TEXT_VALUE"] = "<a href='http://arturgolubev.ru/learning/course/?COURSE_ID=1&INDEX=Y' target='_blank'>ссылка</a>";
 ?>
