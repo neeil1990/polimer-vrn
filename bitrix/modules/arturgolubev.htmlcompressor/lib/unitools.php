@@ -1,5 +1,5 @@
 <?
-namespace Arturgolubev\Htmlcompressor; //1.22
+namespace Arturgolubev\Htmlcompressor; //1.5.1
 
 class Unitools {
 	const MODULE_ID = 'arturgolubev.htmlcompressor';
@@ -48,19 +48,31 @@ class Unitools {
 		return $val;
 	}
 	
+	function isAdminPage(){
+		if(!isset(self::$storage["main"]["is_admin_page"]))
+		{
+			$r = 0;
+			
+			if(defined("ADMIN_SECTION") && ADMIN_SECTION == true) $r = 1;
+			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/admin') === 0) $r = 1;
+			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/tools') === 0) $r = 1;
+			
+			self::setStorage("main", "is_admin_page", $r);
+		}
+		else
+			$r = self::getStorage("main", "is_admin_page");
+		
+		return $r;
+	}
+	
 	function checkStatus(){
 		if(!isset(self::$storage["main"]["status"]))
 		{
-			$r = IntVal(!defined('ADMIN_SECTION') && $_SERVER['REQUEST_METHOD'] != 'POST');
-			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/admin') === 0) $r = 0;
-			if(strpos($_SERVER['PHP_SELF'], BX_ROOT.'/tools') === 0) $r = 0;
-			
+			$r = (self::isAdminPage() || $_SERVER['REQUEST_METHOD'] == 'POST') ? 0 : 1;
 			self::setStorage("main", "status", $r);
 		}
 		else
-		{
 			$r = self::getStorage("main", "status");
-		}
 		
 		return $r;
 	}
@@ -90,6 +102,7 @@ class Unitools {
 	function textOneLine($text){
 		return str_replace(array("\r\n", "\r", "\n"), '',  $text);
 	}
+	
 	function checkPageException($pages){
 		if($pages)
 		{
@@ -136,6 +149,18 @@ class Unitools {
 		return $bufferContent;
 	}
 	
+	function isHtmlPage($page){
+		if(!defined("AG_CHECK_DOCTYPE"))
+		{
+			$t = (stripos(substr($page,0,512), '<!DOCTYPE') === false) ? 0 : 1;
+			define('AG_CHECK_DOCTYPE', $t);
+		}
+		
+		return AG_CHECK_DOCTYPE;
+	}
+	
+	
+	
 	public static function getLastPositionIgnoreCase($haystack, $needle, $offset = 0)
 	{
 		if (defined("BX_UTF"))
@@ -149,5 +174,20 @@ class Unitools {
 		}
 
 		return strripos($haystack, $needle, $offset);
+	}
+	
+	public static function getFirstPositionIgnoreCase($haystack, $needle, $offset = 0)
+	{
+		if (defined("BX_UTF"))
+		{
+			if (function_exists("mb_orig_stripos"))
+			{
+				return mb_orig_stripos($haystack, $needle, $offset);
+			}
+
+			return mb_stripos($haystack, $needle, $offset, "latin1");
+		}
+
+		return stripos($haystack, $needle, $offset);
 	}
 }

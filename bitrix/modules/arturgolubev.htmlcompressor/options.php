@@ -15,19 +15,20 @@ if (!$USER->IsAdmin()) return;
 $siteList = SET::getSites();
 
 $arOptions = array(
-    "main" => array(
-		array("compression_off", GetMessage("ARTURGOLUBEV_HTMLC_COMPRESSION_OFF"), "N", array("checkbox")),
-	),
+    "main" => array(),
 	"help" => array()
 );
 
+$arOptions["main"][] = array("compression_off", GetMessage("ARTURGOLUBEV_HTMLC_COMPRESSION_OFF"), "N", array("checkbox"));
+	
 if(count($siteList))
 {
 	foreach($siteList as $arSite)
 	{
-		$arOptions["main"][] = array("compression_off_".$arSite["ID"], GetMessage("ARTURGOLUBEV_HTMLC_COMPRESSION_OFF_SITE")." <b>".$arSite["NAME"]." [".$arSite["ID"]."]</b>", "N", array("checkbox"));
+		$arOptions["main"][] = array("compression_off_".$arSite["ID"], GetMessage("ARTURGOLUBEV_HTMLC_COMPRESSION_OFF_SITE")." <b>".$arSite["NAME"]." [".$arSite["ID"]."]</b>:", "N", array("checkbox"));
 	}
 }
+$arOptions["main"][] = array("page_exceptions", GetMessage("ARTURGOLUBEV_HTMLC_PAGE_EXCEPTIONS"), "", array("textarea",5,40));
 
 $arOptions["main"][] = GetMessage("ARTURGOLUBEV_HTMLC_REPLACE_PARAM");
 
@@ -35,8 +36,14 @@ $arOptions["main"][] = array("hide_pre", GetMessage("ARTURGOLUBEV_HTMLC_HIDE_PRE
 $arOptions["main"][] = array("hide_html_comment", GetMessage("ARTURGOLUBEV_HTMLC_HIDE_HTML_COMMENT"), "N", array("checkbox"));
 $arOptions["main"][] = array("hide_script_type", GetMessage("ARTURGOLUBEV_HTMLC_SCRIPT_TYPE"), "N", array("checkbox"));
 $arOptions["main"][] = array("javascript_compression_on", GetMessage("ARTURGOLUBEV_JAVASCRIPT_COMPRESSION_ON"), "N", array("checkbox"));
-$arOptions["main"][] = array("page_exceptions", GetMessage("ARTURGOLUBEV_HTMLC_PAGE_EXCEPTIONS"), "", array("textarea",5,40));
-$arOptions["main"][] = array("note" => GetMessage("ARTURGOLUBEV_HTMLC_PAGE_EXCEPTIONS_TEXT"));
+
+$arOptions["main"][] = GetMessage("ARTURGOLUBEV_HTMLC_LINK_CSS_PARAM");
+
+if(CModule::IncludeModule('arturgolubev.cssinliner'))
+	$arOptions["main"][] = array('note' => GetMessage("ARTURGOLUBEV_HTMLC_CSS_INLINER_CHECK"));
+
+$arOptions["main"][] = array("css_compress", GetMessage("ARTURGOLUBEV_HTMLC_LINK_CSS_ENABLE"), "N", array("checkbox"));
+$arOptions["main"][] = array("css_unite", GetMessage("ARTURGOLUBEV_HTMLC_LINK_CSS_UNITE"), "N", array("checkbox"));
 
 
 $arOptions["help"][] = array("help_card", GetMessage($MODULE_NAME . "_CARD_TEXT"), GetMessage($MODULE_NAME . "_CARD_TEXT_VALUE"), array("statictext"));
@@ -70,17 +77,17 @@ if($REQUEST_METHOD=="POST" && strlen($Update.$Apply)>0 && check_bitrix_sessid())
 }
 ?>
 
+<?
+$arSearchNoteSettings = array();
+if(COption::GetOptionString('main', "optimize_css_files") == "Y" && COption::GetOptionString($module_id, "css_compress") == "Y")
+	$arSearchNoteSettings[] = GetMessage($MODULE_NAME . "_MAINMODULE_OPTIMIZE_CSS");
 
-<?if(!CModule::IncludeModule($module_id)){?>
-	<div class="adm-info-message-wrap adm-info-message-red">
-		<div class="adm-info-message">
-			<div class="adm-info-message-title"><?//=GetMessage($MODULE_NAME . "_ALLOW_URL_FOPEN_NOT_FOUND")?></div>
-			<?=GetMessage($MODULE_NAME."_DEMO_IS_EXPIRED")?>
-			<div class="adm-info-message-icon"></div>
-		</div>
-	</div>
-<?}?>
+if(count($arSearchNoteSettings)>0){
+	CAdminMessage::ShowMessage(array("DETAILS"=>GetMessage($MODULE_NAME . "_ERROS_SETTING_MESSAGE_START").implode('<br>', $arSearchNoteSettings), "MESSAGE" => GetMessage($MODULE_NAME . "_ERROS_SETTING_TITLE"), "HTML"=>true));
+}
+?>
 
+<?SET::checkModuleDemo($module_id, GetMessage($MODULE_NAME."_DEMO_IS_EXPIRED"));?>
 
 <form method="post" action="<?echo $APPLICATION->GetCurPage()?>?mid=<?=urlencode($mid)?>&amp;lang=<?echo LANGUAGE_ID?>">
 	<?

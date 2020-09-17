@@ -1,5 +1,6 @@
 <?
 IncludeModuleLangFile(__FILE__);
+include_once $_SERVER["DOCUMENT_ROOT"].'/bitrix/modules/arturgolubev.htmlcompressor/lib/installation.php';
 Class arturgolubev_htmlcompressor extends CModule
 {
 	const MODULE_ID = 'arturgolubev.htmlcompressor';
@@ -58,18 +59,18 @@ Class arturgolubev_htmlcompressor extends CModule
 
 	function DoInstall()
 	{
-		global $APPLICATION, $DOCUMENT_ROOT;
-		
 		$this->InstallFiles();
 		$this->InstallDB();
 		RegisterModule(self::MODULE_ID);
 		
-		$APPLICATION->IncludeAdminFile(GetMessage("MOD_INST_OK"), $DOCUMENT_ROOT."/bitrix/modules/arturgolubev.htmlcompressor/install/success_install.php");
+		if (class_exists('agInstaHelper'))
+		{
+			agInstaHelper::IncludeAdminFile(GetMessage("MOD_INST_OK"), "/bitrix/modules/".self::MODULE_ID."/install/success_install.php");
+		}
 	}
 
 	function DoUninstall()
 	{
-		global $APPLICATION;
 		UnRegisterModule(self::MODULE_ID);
 		$this->UnInstallDB();
 		$this->UnInstallFiles();

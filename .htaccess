@@ -40,6 +40,71 @@ ErrorDocument 404 /404.php
   Redirect 301 /catalog/teplitsy_pod_sotovyy_polikarbonat/ /catalog/teplitsy_polikarbonat/
   Redirect 301 /catalog/dvukhkonturnye_nastennye_gazovye_kotly/ /catalog/nastennye_gazovye_kotly/
   Redirect 301 /catalog/svarochnye_apparaty_resanta/ /catalog/svarochnye_apparaty/
+
+# от 04.09.2020 - редиректы папок на фильтры
+# котлы на фильтры
+RewriteRule ^catalog/napolnye_kotly_/$ /catalog/kotly/napolnye/ [R=301,L]
+RewriteRule ^catalog/nastennye_kotly_/$ /catalog/kotly/nastennye/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_/$ /catalog/kotly/gazovye/nastennye/ [R=301,L]
+RewriteRule ^catalog/nastennye_elektricheskie_kotly_/$ /catalog/kotly/elektricheskie/nastennye/ [R=301,L]
+# подпапки котлов на раздел "котлы"
+RewriteRule ^catalog/kotly_eelektricheskie_rasprodazha_/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^kotly_elektricheskie_electrovel/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/kotly_elektricheskie_epo/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_elektricheskie_kotly_ferroli/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_elektricheskie_kotly_protherm/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_elektricheskie_kotly_stout/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_elektricheskie_kotly_reko/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_ariston/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_baxi/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_ferroli/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_protherm/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_vaillant/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_viessmann/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/nastennye_gazovye_kotly_rasprodazha_/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/napolnye_gazovye_kotly_ferroli_/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/napolnye_gazovye_kotly_protherm/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/napolnye_gazovye_kotly_rasprodazha_/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/napolnye_stalnye_gazovye_kotly_ferroli_torino_/$ /catalog/kotly/ [R=301,L]
+RewriteRule ^catalog/napolnye_stalnye_gazovye_kotly_lemaks_/$ /catalog/kotly/ [R=301,L]
+# от 08.09.2020 - редиректы папок на фильтры
+# насосы на фильтры
+RewriteRule ^catalog/nasosnye_stantsii/$ /catalog/nasosy_/nasosnye-stantsii/ [R=301,L]
+RewriteRule ^catalog/poverkhnostnye_nasosy/$ /catalog/nasosy_/poverkhnostnye/ [R=301,L]
+RewriteRule ^catalog/skvazhinnye_nasosy/$ /catalog/nasosy_/skvazhinnye/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy/$ /catalog/nasosy_/tsirkulyatsionnye/ [R=301,L]
+RewriteRule ^catalog/povysitelnye_nasosy_1/$ /catalog/nasosy_/povysitelnye/ [R=301,L]
+RewriteRule ^catalog/drenazhnye_nasosy/$ /catalog/nasosy_/drenazhnye/ [R=301,L]
+RewriteRule ^catalog/poverkhnostnye_nasosy_1/$ /catalog/nasosy_/fontannye/ [R=301,L]
+# подпапки насосов на раздел "насосы"  
+RewriteRule ^catalog/nasosnye_stantsii_vodosnabzheniya_aquario/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/nasosnye_stantsii_vodosnabzheniya_belamos/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/nasosnaya_stantsiya_vodosnabzheniya_grundfos/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/rasprodazha_1/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^/catalog/nasosnye_stantsii_vodosnabzheniya_unipump/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/poverkhnosnye_nasosy_unipump/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/poverkhnostnye_nasosy_aquario/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/poverkhnostnye_nasosy_espa/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/poverkhnostnye_nasosy_wilo/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/poverkhnostnye_nasosy_belamos/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/rasprodazha_2/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/aquario_1/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/grundfos_2/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/wilo_2/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/belamos_3/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/unipump/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/rasprodazha_3/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy_altstream/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy_dab/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy_grundfos/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy_tim_1/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy_wilo/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/tsirkulyatsionnye_nasosy_belamos/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/aquario/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/grundfos_1/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/wilo_1/$ /catalog/nasosy_/ [R=301,L]
+RewriteRule ^catalog/belamos_2/$ /catalog/nasosy_/ [R=301,L]
+
 <IfModule mod_rewrite.c>
   Options +FollowSymLinks
   RewriteEngine On

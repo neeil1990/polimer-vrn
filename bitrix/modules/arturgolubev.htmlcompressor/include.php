@@ -1,4 +1,5 @@
 <?
+use \Arturgolubev\Htmlcompressor\Tools as Tools;
 use \Arturgolubev\Htmlcompressor\Unitools as UTools;
 
 Class CArturgolubevHtmlcompressor 
@@ -8,29 +9,139 @@ Class CArturgolubevHtmlcompressor
 	
 	function onBufferContent(&$bufferContent){
 		if(UTools::checkStatus() && CModule::IncludeModule(self::MODULE_ID))
-		{
-			global $APPLICATION;
-			
+		{			
 			$stop = 0;
-			$cur = $APPLICATION->GetCurPage(false);
 			
 			if(UTools::getSetting('compression_off') == 'Y' || UTools::getSiteSetting('compression_off') == 'Y')
 				$stop = 1;
 			
-			if(UTools::isAdmin() || $APPLICATION->GetUserRight("fileman") > "D")
+			if(UTools::isAdmin() || Tools::GetUserRight() > "D")
 				$stop = 1;
 			
-			if(!UTools::checkPageException(UTools::getSetting('page_exceptions')) || strstr($cur, '/bitrix/'))
+			if(!UTools::checkPageException(UTools::getSetting('page_exceptions')) || strstr(Tools::getCurPage(), '/bitrix/'))
 				$stop = 1;
 			
-			if(!$stop && stripos(substr($bufferContent,0,512), '<!DOCTYPE') === false)
+			if(!$stop && !UTools::isHtmlPage($bufferContent))
 				$stop = 1;
 			
 			if (!$stop){
+				if(UTools::getSetting('css_compress') == 'Y'){
+					$bufferContent = self::compressCss($bufferContent);
+				}
+				
 				$bufferContent = self::sanitize_output($bufferContent);
 			}
 		}
 	}
+	
+	
+	private function compressCss($content){
+		preg_match_all('/\<link.*\>/sU', $content, $arLinks);
+		if(!empty($arLinks[0]))
+		{
+			$arPregUrl = array(
+				'/url\s?\([\"\']?((?!\'?\"?data:image)(?!http\:)(?!https\:)[\w\.]+.*)[\"\']?\)/sU'
+			);
+			
+			$arReplace = array(
+				"from" => array(),
+				"to" => array(),
+			);
+			
+			$css_unite = (UTools::getSetting('css_unite') == 'Y');
+			$unite_id = '';
+			$unite_ar_styles = array();
+			
+			foreach($arLinks[0] as $link){
+				if(strstr($link, 'media="print"') || strstr($link, "media='print'") || !strstr($link, '.css')) continue;
+				
+				preg_match_all('/href=[\"\'](.*\.css).*[\"\']/sU', $link, $tmphref);
+				$cssitem = $tmphref[1][0];
+				if($cssitem){
+					$path = dirname($cssitem).'/';
+					$arPregUrlR = array("url('".$path."$1')");
+					
+					if(strstr($link, 'http://') || strstr($link, 'https://') || substr($cssitem, 0, 2) == '//'){
+						continue;
+					}elseif(file_exists($_SERVER['DOCUMENT_ROOT'].$cssitem)){
+						$cssFileId = md5($cssitem.filemtime($_SERVER["DOCUMENT_ROOT"].$cssitem).'v1');
+						
+						if(!$css_unite)
+						{
+							$path = '/bitrix/cache/css/'.SITE_ID.'_arturgolubev.htmlcompressor/'.basename(str_replace('.css', '', $cssitem)).'/'.$cssFileId.'.css';
+							$file = new \Bitrix\Main\IO\File($_SERVER["DOCUMENT_ROOT"] . $path);
+							if(!$file->isExists()){
+								$style = file_get_contents($_SERVER['DOCUMENT_ROOT'].$cssitem);
+								$style = self::__cssOptimize($style, $arPregUrl, $arPregUrlR);
+								$file->putContents($style);
+							}
+							
+							$arReplace["from"][] = $link;
+							$arReplace["to"][] = '<link href="'.$path.'" type="text/css"  rel="stylesheet" />';
+						}
+						else
+						{
+							$unite_id .= $cssFileId;
+							$unite_ar_styles[] = array('css'=>$cssitem, 'ap'=>$arPregUrl, 'apr'=>$arPregUrlR);
+							
+							$arReplace["from"][] = $link;
+							$arReplace["to"][] = '';
+						}
+					}
+				}
+			}
+			
+			if($css_unite){
+				$unite_style = '';
+				$path = '/bitrix/cache/css/'.SITE_ID.'_arturgolubev.htmlcompressor/united/'.md5($unite_id).'.css';
+				$file = new \Bitrix\Main\IO\File($_SERVER["DOCUMENT_ROOT"] . $path);
+				if(!$file->isExists()){
+					foreach($unite_ar_styles as $item){
+						$style = file_get_contents($_SERVER['DOCUMENT_ROOT'].$item['css']);						
+						$unite_style .= '/* '.$item['css'].' */'.PHP_EOL;
+						$unite_style .= self::__cssOptimize($style, $item["ap"], $item["apr"]). PHP_EOL;
+					}
+					
+					$file->putContents($unite_style);
+				}
+				
+				$arReplace["from"][] = '</head>';
+				$arReplace["to"][] = '<link href="'.$path.'" type="text/css"  rel="stylesheet" />'. PHP_EOL .'</head>';
+			}
+			
+			
+			if(count($arReplace["from"]) > 0){
+				$content = str_replace($arReplace["from"], $arReplace["to"], $content);
+			}
+		}
+		
+		return $content;
+	}
+	
+	function __cssOptimize($style, $arDopSearch = array(), $arDopReplace = array()){
+		$arOptiSearch = array();
+		$arOptiReplace = array();
+
+		$arOptiSearch[] = '/\/\*.*?\*\//si'; $arOptiReplace[] = "";
+		$arOptiSearch[] = "/\n/"; $arOptiReplace[] = " ";
+		$arOptiSearch[] = "/\t/"; $arOptiReplace[] = " ";
+		$arOptiSearch[] = '/(\s)+/s'; $arOptiReplace[] = '\\1';
+		$arOptiSearch[] = '/;\s+/'; $arOptiReplace[] = ';';
+		$arOptiSearch[] = '/:\s+/'; $arOptiReplace[] = ':';
+		$arOptiSearch[] = '/\s+\{\s+/'; $arOptiReplace[] = '{';
+		$arOptiSearch[] = '/\{\s+/'; $arOptiReplace[] = '{';
+		$arOptiSearch[] = '/\,\s+/'; $arOptiReplace[] = ',';
+		$arOptiSearch[] = '/;*\}/'; $arOptiReplace[] = '}';
+		
+		$mergedSearch = array_merge($arOptiSearch, $arDopSearch);
+		$mergedReplace = array_merge($arOptiReplace, $arDopReplace);
+		
+		if(!empty($mergedSearch))
+			$style = preg_replace($mergedSearch, $mergedReplace, $style);
+		
+		return trim($style);
+	}
+	
 	
 	function getMainReplaceParams(){
 		$search = array();
