@@ -18,6 +18,6 @@ CModule::IncludeModule( 'sale' );
 if( Add2BasketByProductID( $id, $quantity ) )
     print 'Товар успешно добавлен в корзину';
 else
-    print 'Ошибка добавления товара в корзину';
+    print 'Товара нет в наличии, принимаем заказ на товар по телефону';
 
 ?>
