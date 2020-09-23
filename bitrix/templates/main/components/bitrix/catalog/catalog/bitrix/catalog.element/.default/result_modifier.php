@@ -640,6 +640,15 @@ foreach($arResult['PROPERTIES']['MORE_PHOTO']['VALUE'] as $key => $photo){
 		true
 	)['src'];
 
+	if(!$arResult['GALLERY'][$key]['SRC'])
+		$arResult['GALLERY'][$key]['SRC'] = CFile::GetPath($photo);
+
+	if(!$arResult['GALLERY'][$key]['DATA'])
+		$arResult['GALLERY'][$key]['DATA'] = CFile::GetPath($photo);
+
+	if(!$arResult['GALLERY'][$key]['THUMB'])
+		$arResult['GALLERY'][$key]['THUMB'] = CFile::GetPath($photo);
+
 }
 
 if(strlen($arResult['PROPERTIES']['PROIZVODITEL']['VALUE']) > 0){

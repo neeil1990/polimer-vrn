@@ -19,18 +19,42 @@ $templateData = array(
 );
 $arrPropertyCode = array();
 ?>
-
 <div class="compare-page cl">
 	<div class="inn">
 		<a href="?action=DELETE_FROM_COMPARE_LIST&id=0" class="delete-all">Удалить все товары из сравнения</a>
 		<div class="params-name">
+            <div class="action-btn">
+                <a class="sortbutton<? echo (!$arResult["DIFFERENT"] ? ' current' : ''); ?>" href="<? echo $arResult['COMPARE_URL_TEMPLATE'].'DIFFERENT=N'; ?>" rel="nofollow"><?=GetMessage("CATALOG_ALL_CHARACTERISTICS")?></a>
+                <a class="sortbutton<? echo ($arResult["DIFFERENT"] ? ' current' : ''); ?>" href="<? echo $arResult['COMPARE_URL_TEMPLATE'].'DIFFERENT=Y'; ?>" rel="nofollow"><?=GetMessage("CATALOG_ONLY_DIFFERENT")?></a>
+            </div>
 			<div class="values">
 				<div class="val">Цена</div>
 				<? if (!empty($arResult["SHOW_PROPERTIES"])):
 					foreach ($arResult["SHOW_PROPERTIES"] as $code => $arProperty):
+
+                        $showRow = true;
+                        if ($arResult['DIFFERENT'])
+                        {
+                            $arCompare = array();
+                            foreach($arResult["ITEMS"] as $arElement)
+                            {
+                                $arPropertyValue = $arElement["DISPLAY_PROPERTIES"][$code]["VALUE"];
+                                if (is_array($arPropertyValue))
+                                {
+                                    sort($arPropertyValue);
+                                    $arPropertyValue = implode(" / ", $arPropertyValue);
+                                }
+                                $arCompare[] = $arPropertyValue;
+                            }
+                            unset($arElement);
+                            $showRow = (count(array_unique($arCompare)) > 1);
+                        }
+
+                        if($showRow):
 						$arrPropertyCode[] = $code;
 						?>
-				<div class="val"><?=$arProperty["NAME"]?></div>
+				            <div class="val"><?=$arProperty["NAME"]?></div>
+                        <?endif;?>
 				<? 	endforeach;
 				endif;
 				?>
