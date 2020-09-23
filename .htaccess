@@ -104,6 +104,28 @@ RewriteRule ^catalog/aquario/$ /catalog/nasosy_/ [R=301,L]
 RewriteRule ^catalog/grundfos_1/$ /catalog/nasosy_/ [R=301,L]
 RewriteRule ^catalog/wilo_1/$ /catalog/nasosy_/ [R=301,L]
 RewriteRule ^catalog/belamos_2/$ /catalog/nasosy_/ [R=301,L]
+# от 21.09.2020 - редиректы папок на фильтры
+# водонагреватели на фильтры
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_1/elektricheskie/$ /catalog/vodonagrevateli_1/kruglye/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_ploskie/$ /catalog/vodonagrevateli_1/ploskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_protochnye/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_protochnye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_protochnye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_ploskie_zanussi/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye_zanussi/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_ferroli/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_edisson/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_haier/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli/$ /catalog/vodonagrevateli_1/gazovye/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli-gazovye/$ /catalog/vodonagrevateli_1/gazovye/ [R=301,L]
+RewriteRule ^/catalog/vodonagrevateli-elektricheskie/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^/catalog/boylery-kosvennogo-nagreva/$ /catalog/boylery/ [R=301,L]
 
 <IfModule mod_rewrite.c>
   Options +FollowSymLinks
