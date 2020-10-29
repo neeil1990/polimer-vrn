@@ -2998,7 +2998,7 @@ header .header__bottom.fixed .header__account
     }
 
     .mp__categories .maincategory__mobile .maincategory.maincategory--3 a .name {
-        padding-top: 40px
+        padding-top: 20px
     }
 
     .mp__categories .maincategory__mobile .maincategory.maincategory--3:hover a .img {
@@ -9736,7 +9736,7 @@ a.pickup-stores__item .desc {
 
 
 .ui-tooltip {
-    max-width: 140px;
+    max-width: 300px;
     padding: 10px 20px;
     font-size: 12px;
     border-radius: 0px;
@@ -9760,6 +9760,8 @@ a.pickup-stores__item .desc {
     margin-left: -35px;
     bottom: -16px;
 }
+
+.ui-tooltip .ui-tooltip-content ul { padding:0 15px; }
 
 .ui-tooltip .arrow.top {
     top: -16px;
@@ -11998,7 +12000,7 @@ a.pickup-stores__item .desc {
     height: 44px;
     top: 0;
     left: -60px;
-    background: url('img/category_3.png') no-repeat;
+    background: url('img/price_down.png') no-repeat;
     -webkit-background-size: 100%;
     -o-background-size: 100%;
     background-size: 100%
@@ -12060,6 +12062,16 @@ a.pickup-stores__item .desc {
     width: 89px;
     height: 59px;
     background: url('img/category_2.png') no-repeat;
+    -webkit-background-size: 100%;
+    -o-background-size: 100%;
+    background-size: 100%
+}
+
+.pl__content .block .col:nth-child(3) .title .name:before {
+    left: -105px;
+    width: 89px;
+    height: 59px;
+    background: url('img/category_3.png') no-repeat;
     -webkit-background-size: 100%;
     -o-background-size: 100%;
     background-size: 100%

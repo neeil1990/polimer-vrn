@@ -2,8 +2,7 @@
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetPageProperty("title", "Интернет-магазин инженерной сантехники и строительных материалов c доставкой — «Полимер»");
 $APPLICATION->SetTitle("«Полимер» — главная страница сайта");
-?>
-<div class="mp__categories">
+?><div class="mp__categories">
 
 	<?$APPLICATION->IncludeComponent("bitrix:menu", "mobile-cat-menu", Array(
 		"ALLOW_MULTI_SELECT" => "N",	// Р Р°Р·СЂРµС€РёС‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ Р°РєС‚РёРІРЅС‹С… РїСѓРЅРєС‚РѕРІ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ
@@ -42,10 +41,12 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 			$inc++;
 		}
 		?>
-		<li class="maincategory maincategory--3 cl">
+
+		<!--<li class="maincategory maincategory--3 cl">
 			<span class="img"></span>
 			<span class="name">Прайс-листы</span>
-		</li>
+		</li>-->
+
 	</ul>
    	<div class="tablist_content">
 
@@ -84,7 +85,9 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 			<a href="#" class="category__show">Показать ещё категории</a>
 		</div><!-- end: tabitem -->
 		<? endforeach; ?>
-      	<div class="tabitem"></div>
+      	
+		<!-- <div class="tabitem"></div> -->
+		
 		<!-- end: tabitem -->
    	</div><!-- end: tablist_content -->
 </div><!--end::mp__categories-->
@@ -236,9 +239,9 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 							<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
                             <div class="price">
                                 <?if(price($arFields['ID'])):?>
-                                    <span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?>
+                                    <span><?=price($arFields['ID']);?></span> ₽/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?>
                                 <?else:?>
-                                    <span>&nbsp;</span>
+                                    <span> </span>
                                 <? endif; ?>
                             </div>
 
@@ -270,9 +273,9 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 						<a href="<?=$arFields['DETAIL_PAGE_URL']?>" class="name"><?=$arFields['NAME']?></a>
                         <div class="price">
                             <?if(price($arFields['ID'])):?>
-                                <span><?=price($arFields['ID']);?></span> &#8381;/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?>
+                                <span><?=price($arFields['ID']);?></span> ₽/<?=$arProps['CML2_BASE_UNIT']['VALUE'];?>
                             <?else:?>
-                                <span>&nbsp;</span>
+                                <span> </span>
                             <? endif; ?>
                         </div>
 

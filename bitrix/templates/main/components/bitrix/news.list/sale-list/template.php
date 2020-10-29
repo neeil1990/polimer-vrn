@@ -17,11 +17,13 @@ $this->setFrameMode(true);
 	<div class="block cl">
 		<?foreach($arResult["ITEMS"] as $arItem):?>
 		<div class="item">
-            <div class="image">
-                <a href="<?=$arItem["DETAIL_PAGE_URL"]?>">
-                    <img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="<?echo $arItem["NAME"]?>">
-                </a>
-            </div>
+			<? if($arItem['PREVIEW_PICTURE']['SRC']): ?>
+				<div class="image">
+					<a href="<?=$arItem["DETAIL_PAGE_URL"]?>">
+						<img src="<?=$arItem['PREVIEW_PICTURE']['SRC']?>" alt="<?echo $arItem["NAME"]?>">
+					</a>
+				</div>
+			<? endif; ?>
 			<div class="date">
 				<?if($arParams["DISPLAY_DATE"]!="N" && $arItem["DISPLAY_ACTIVE_FROM"]):?>
 					<?echo $arItem["DISPLAY_ACTIVE_FROM"]?>

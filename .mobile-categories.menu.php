@@ -14,11 +14,10 @@ $aMenuLinks = Array(
         Array(),
         Array(),
         ""
-    ),
-
-    Array(
-        "Прайс-листы",
-        "/price/",
+    ),    
+	Array(
+        "Ворота,<br> автоматика,<br> рольставни",
+        "/catalog/avtomatika/",
         Array(),
         Array(),
         ""
