@@ -226,3 +226,10 @@ Class CBrands
         return "CBrands::updateBrandsAgent();";
     }
 }
+
+AddEventHandler('catalog', 'OnSuccessCatalogImport1C', 'functionOnSuccessCatalogImport1C');
+function functionOnSuccessCatalogImport1C()
+{
+    $page = \Bitrix\Main\Composite\Page::getInstance();
+    $page->deleteAll();
+}
