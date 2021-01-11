@@ -36,7 +36,7 @@ ErrorDocument 404 /404.php
   Redirect 301 /catalog/emal_yaroslavskiy_kolorit/ /catalog/emal_pf_115/
   Redirect 301 /catalog/nasosnoe_oborudovanie/ /catalog/nasosy/
   Redirect 301 /catalog/nasosnye_stantsii_/ /catalog/nasosnye_stantsii/
-#  Redirect 301 /catalog/protochnye/ /catalog/protochnye_vodonagrevateli/
+# Redirect 301 /catalog/protochnye/ /catalog/protochnye_vodonagrevateli/
   Redirect 301 /catalog/teplitsy_pod_sotovyy_polikarbonat/ /catalog/teplitsy_polikarbonat/
   Redirect 301 /catalog/dvukhkonturnye_nastennye_gazovye_kotly/ /catalog/nastennye_gazovye_kotly/
   Redirect 301 /catalog/svarochnye_apparaty_resanta/ /catalog/svarochnye_apparaty/
@@ -104,28 +104,38 @@ RewriteRule ^catalog/aquario/$ /catalog/nasosy_/ [R=301,L]
 RewriteRule ^catalog/grundfos_1/$ /catalog/nasosy_/ [R=301,L]
 RewriteRule ^catalog/wilo_1/$ /catalog/nasosy_/ [R=301,L]
 RewriteRule ^catalog/belamos_2/$ /catalog/nasosy_/ [R=301,L]
+
 # от 21.09.2020 - редиректы папок на фильтры
 # водонагреватели на фильтры
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_1/elektricheskie/$ /catalog/vodonagrevateli_1/kruglye/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_ploskie/$ /catalog/vodonagrevateli_1/ploskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_protochnye/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_protochnye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_protochnye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_ploskie_zanussi/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_maloemkostnye_zanussi/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_ferroli/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_edisson/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_haier/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli_elektricheskie_kruglye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli/$ /catalog/vodonagrevateli_1/gazovye/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli-gazovye/$ /catalog/vodonagrevateli_1/gazovye/ [R=301,L]
-RewriteRule ^/catalog/vodonagrevateli-elektricheskie/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
-RewriteRule ^/catalog/boylery-kosvennogo-nagreva/$ /catalog/boylery/ [R=301,L]
+
+RewriteRule ^catalog/vodonagrevateli_elektricheskie/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_ploskie/$ /catalog/vodonagrevateli_1/ploskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_maloemkostnye/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_protochnye/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_protochnye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_protochnye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_ploskie_zanussi/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_maloemkostnye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_maloemkostnye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_maloemkostnye_zanussi/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_kruglye_ferroli/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_kruglye_edisson/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_kruglye_electrolux/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_kruglye_haier/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli_elektricheskie_kruglye_thermex/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli/$ /catalog/vodonagrevateli_1/gazovye/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli-gazovye/$ /catalog/vodonagrevateli_1/gazovye/ [R=301,L]
+RewriteRule ^catalog/vodonagrevateli-elektricheskie/$ /catalog/vodonagrevateli_1/elektricheskie/ [R=301,L]
+RewriteRule ^catalog/boylery-kosvennogo-nagreva/$ /catalog/boylery/ [R=301,L]
+
+# от 08.12.2020 - редиректы папок на фильтры
+# радиаторы на фильтры
+
+RewriteRule ^catalog/radiator_alyuminievyy/$ /catalog/radiatory/alyuminievye/ [R=301,L]
+RewriteRule ^catalog/radiator_bimetallicheskiy/$ /catalog/radiatory/bimetallicheskie/ [R=301,L]
+RewriteRule ^catalog/radiator_chugunnyy/$ /catalog/radiatory/chugunnye/ [R=301,L]
+
+
 
 <IfModule mod_rewrite.c>
   Options +FollowSymLinks

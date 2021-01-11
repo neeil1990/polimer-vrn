@@ -133,13 +133,13 @@ $this->setFrameMode(true);
 						<div class="rh-col">
 							<div class="lvl">Начальник отдела снабжения</div>
 							<div class="name">Старцев Дмитрий Олегович</div>
-							<div class="phone">тел: (473) 207-55-05 <span>добавочный 327</span></div>
+							<div class="phone">тел: (473) 207-55-05 <span>добавочный 231</span></div>
 							<div class="mail">e-mail: <a href="#">dmitry@polimer-vrn.ru</a></div>
 						</div>
 						<div class="rh-col">
 							<div class="lvl">Начальник отдела продаж</div>
 							<div class="name">Попова Оксана Сергеевна</div>
-							<div class="phone">тел: (473) 207-55-05 <span>добавочный 374</span></div>
+							<div class="phone">тел: (473) 207-55-05 <span>добавочный 155</span></div>
 							<div class="mail">e-mail: <a href="#">popova@polimer-vrn.ru</a></div>
 						</div>
 <!--
