@@ -26,7 +26,7 @@ function addToBasket2(idel, quantity,el) {
     })
 
     if(el){
-        $(el).text('Перейти в корзину');
+        $(el).text('Перейти');
         $(el).attr('onclick','window.location.href="/personal/cart/"');
     }
 

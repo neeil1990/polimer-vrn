@@ -11,3 +11,20 @@ div.news-detail img.detail_picture
 {
 	color:#486DAA;
 }
+
+.pc__articles-also{
+	margin-top: 35px;
+}
+
+.pc__articles-also .pc__vertical-carousel .vc-title{
+	top: 0px;
+}
+
+.pc__articles-also .pc__vertical-carousel .vc-shell .vc-block{
+	height: 576px;
+}
+
+.pc__articles-also .pc__vertical-carousel .vc-shell .vc-ctrl .slick-prev,
+.pc__articles-also .pc__vertical-carousel .vc-shell .vc-ctrl .slick-next {
+	margin-left: 90px;
+}
