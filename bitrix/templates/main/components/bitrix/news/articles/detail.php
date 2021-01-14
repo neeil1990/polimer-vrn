@@ -120,6 +120,15 @@ $this->setFrameMode(true);
     <div class="clear"></div>
 </div>
 
+<script>
+    $(document).ready(function() {
+
+        if($( document ).width() > 1019){
+            $('.nd__rightbar').sticky('.cl');
+        }
+    });
+</script>
+
 <?$APPLICATION->IncludeComponent("bitrix:news.list", "articles-list", Array(
     "ACTIVE_DATE_FORMAT" => "j F Y",
     "ADD_SECTIONS_CHAIN" => "N",	// Включать раздел в цепочку навигации

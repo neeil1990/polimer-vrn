@@ -35,11 +35,5 @@ $this->setFrameMode(true);
     <a href="/<?=$arParams["LINK_TITLE"]?>/" class="archive">Все <?=$arParams["PAGER_TITLE"]?></a>
 </div>
 
-<script>
-    $(document).ready(function() {
-        $('.nd__rightbar').sticky('.cl');
-    });
-</script>
-
 
 
