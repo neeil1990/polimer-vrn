@@ -41,6 +41,20 @@ img {
     max-width: 99%;
 }
 
+#s2u-uniteller-payment-form input[type='submit']{
+    border: none;
+    border-radius: 5px;
+    background: #0060bf;
+    color: #FFFFFF;
+    font: 500 18px/50px 'Fira Sans', sans-serif;
+    padding: 0 30px;
+    cursor: pointer;
+}
+
+#s2u-uniteller-payment-form input[type='submit']:hover{
+    background: #00a1f2;
+}
+
 .cl:after {
     content: ".";
     display: block;
