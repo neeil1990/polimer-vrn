@@ -286,7 +286,7 @@ if(
 			7 => "",
 		),
 		"FILTER_PRICE_CODE" => array(
-			0 => "РОЗНИЦА",
+			0 => "",
 		),
 		"FILTER_PROPERTY_CODE" => array(
 			0 => "VES_KG",
@@ -667,6 +667,7 @@ if(
 		"PARTIAL_PRODUCT_PROPERTIES" => "N",
 		"PRICE_CODE" => array(
 			0 => "РОЗНИЦА",
+			1 => "WHOLESALE",
 		),
 		"PRICE_VAT_INCLUDE" => "Y",
 		"PRICE_VAT_SHOW_VALUE" => "N",
