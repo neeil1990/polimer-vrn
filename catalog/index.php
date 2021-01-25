@@ -7,9 +7,6 @@ $APPLICATION->SetTitle("Каталог инженерной сантехники
 $SORT_FIELD = $_REQUEST['ELEMENT_SORT_FIELD'];
 $_REQUEST['ELEMENT_SORT_ORDER'] = "asc";
 
-if(empty($_REQUEST['PAGE_ELEMENT_COUNT'])){
-	$_REQUEST['PAGE_ELEMENT_COUNT'] = 20;
-}
 if(empty($_REQUEST['ELEMENT_SORT_FIELD'])){
     $SORT_FIELD = "shows";
     $_REQUEST['ELEMENT_SORT_ORDER'] = "desc";
@@ -30,8 +27,8 @@ if(
 ?>
 
 <?$APPLICATION->IncludeComponent(
-	"bitrix:catalog", 
-	"catalog", 
+	"bitrix:catalog",
+	"catalog",
 	array(
 		"ACTION_VARIABLE" => "action",
 		"ADD_ELEMENT_CHAIN" => "Y",
@@ -666,7 +663,7 @@ if(
 		"PAGER_SHOW_ALWAYS" => "N",
 		"PAGER_TEMPLATE" => ".default",
 		"PAGER_TITLE" => "Товары",
-		"PAGE_ELEMENT_COUNT" => $_REQUEST["PAGE_ELEMENT_COUNT"],
+		"PAGE_ELEMENT_COUNT" => 40,
 		"PARTIAL_PRODUCT_PROPERTIES" => "N",
 		"PRICE_CODE" => array(
 			0 => "РОЗНИЦА",
