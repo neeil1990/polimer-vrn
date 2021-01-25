@@ -1142,6 +1142,7 @@ header .header__bottom .header__catalog .catalog-sections-menu ul.first-sections
     font-size: 14px;
     left: 240px;
     width: 1030px;
+    min-height:100%;
     background: #fff;
     position: absolute;
     padding: 40px;
