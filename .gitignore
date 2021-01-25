@@ -10,3 +10,9 @@ access/*
 bitrix/html_pages/*
 bitrix/backup/*
 bitrix/catalog_export/*
+.htaccess
+yandex_*
+google*
+mailru-*
+log_askaron_pro1c__*
+*.log
