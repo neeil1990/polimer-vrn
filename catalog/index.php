@@ -667,7 +667,7 @@ if(
 		"PARTIAL_PRODUCT_PROPERTIES" => "N",
 		"PRICE_CODE" => array(
 			0 => "РОЗНИЦА",
-			1 => "WHOLESALE",
+			1 => "КРУПНЫЙ_ОПТ",
 		),
 		"PRICE_VAT_INCLUDE" => "Y",
 		"PRICE_VAT_SHOW_VALUE" => "N",
