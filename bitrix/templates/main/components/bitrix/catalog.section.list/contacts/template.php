@@ -11,8 +11,7 @@
 /** @var string $componentPath */
 /** @var CBitrixComponent $component */
 $this->setFrameMode(true);
-?>
-<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+?><script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <div class="co__sandwich">
 	<a href="#" class="sandwich">
 		<span></span>
@@ -127,7 +126,7 @@ $this->setFrameMode(true);
 						<div class="rh-col">
 							<div class="lvl">Директор</div>
 							<div class="name">Рябцев Сергей Геннадьевич</div>
-							<div class="phone">тел: (473) 237-35-55 <span>добавочный 201</span></div>
+							<div class="phone">тел: (473) 207-55-05 <span>добавочный 201</span></div>
 							<div class="mail">e-mail: <a href="#">rsg@polimer-vrn.ru</a></div>
 						</div>
 						<div class="rh-col">
@@ -161,8 +160,3 @@ $this->setFrameMode(true);
 	<? endforeach; ?>
 
 </div><!--end::co__cities-list-->
-
-
-
-
-

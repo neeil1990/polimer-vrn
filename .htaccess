@@ -136,6 +136,24 @@ RewriteRule ^catalog/radiator_bimetallicheskiy/$ /catalog/radiatory/bimetalliche
 RewriteRule ^catalog/radiator_chugunnyy/$ /catalog/radiatory/chugunnye/ [R=301,L]
 
 
+# от 18.02.2020 - редиректы папок на фильтры
+# Ворота
+
+RewriteRule ^catalog/avtomatika/$ /catalog/Vorota-avtomatika-rolstavni/ [R=301,L]
+RewriteRule ^catalog/otkatnye_vorota_iz_proflista/$ /catalog/otkatnye_vorota/ [R=301,L]
+RewriteRule ^catalog/garazhnye_vorota_doorhan/$ /catalog/garazhnye_vorota/ [R=301,L]
+RewriteRule ^catalog/promyshlennye_vorota_alyutekh/$ /catalog/promyshlennye_vorota/ [R=301,L]
+RewriteRule ^catalog/rolletnye_vorota_alyutekh/$ /catalog/rolletnye_vorota/ [R=301,L]
+
+# от 20.02.2020
+# Автоматика для ворот
+RewriteRule ^catalog/avtomatika_alyutekh/$ /catalog/avtomatika_dlya_vorot/alyutekh/ [R=301,L]
+RewriteRule ^catalog/avtomatika_dlya_vorot_an_motors/$ /catalog/avtomatika_dlya_vorot/an-motors/ [R=301,L]
+RewriteRule ^catalog/avtomatika_dlya_vorot_comunello/$ /catalog/avtomatika_dlya_vorot/comunello/ [R=301,L]
+RewriteRule ^catalog/avtomatika_doorhan/$ /catalog/avtomatika_dlya_vorot/doorhan/ [R=301,L]
+RewriteRule ^catalog/avtomatika_home_gate/$ /catalog/avtomatika_dlya_vorot/ [R=301,L]
+
+
 
 <IfModule mod_rewrite.c>
   Options +FollowSymLinks
