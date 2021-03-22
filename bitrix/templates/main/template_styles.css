@@ -814,7 +814,7 @@ header .header__top .menu__top {
     display: inline-block;
     text-align: justify;
     float: left;
-    width: 50%;
+    width: 55%;
     height: 40px
 }
 
@@ -847,7 +847,7 @@ header .header__top .menu__top li a {
     -webkit-transition: all .3s ease;
     transition: all .3s ease;
     line-height: 40px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 header .header__top .menu__top li a:hover, header .header__top .menu__top li a:active {
