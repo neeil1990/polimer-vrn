@@ -47,13 +47,11 @@ if(!defined("B_PROLOG_INCLUDED")||B_PROLOG_INCLUDED!==true)die();
 			<? foreach($arResult['USER_FIELD'] as $field):?>
 
 				<? if($field['XML_ID'] == 'hidden'):?>
-					<?
-					$prod = getUrlProd($APPLICATION->GetCurPage(false));
-					?>
+
 					<?if($field['CODE'] == 'PRODUCT'):?>
-						<input type="hidden" name="<?=$field['CODE']?>" value="<?=$prod['NAME']?>">
+						<input type="hidden" name="<?=$field['CODE']?>" value="<?=$_REQUEST['TITLE']?>">
 					<? else:?>
-						<input type="hidden" name="<?=$field['CODE']?>" value="<?=$prod['DETAIL_PAGE_URL']?>">
+						<input type="hidden" name="<?=$field['CODE']?>" value="<?=$_REQUEST['URL']?>">
 					<?endif;?>
 				<? else: ?>
 
