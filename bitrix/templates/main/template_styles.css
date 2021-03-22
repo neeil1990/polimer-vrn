@@ -1,6 +1,6 @@
 h1 {
     margin: 0 0 20px 0;
-    font: 500 24px/24px 'Fira Sans', sans-serif;
+    font: 500 24px/24px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -26,7 +26,7 @@ body, html {
 }
 
 body {
-    font-family: 'Fira Sans', sans-serif;
+    font-family: 'roboto', sans-serif;
     font-size: 14px;
     color: #333;
     line-height: 1.42
@@ -46,7 +46,7 @@ img {
     border-radius: 5px;
     background: #0060bf;
     color: #FFFFFF;
-    font: 500 18px/50px 'Fira Sans', sans-serif;
+    font: 500 18px/50px 'roboto', sans-serif;
     padding: 0 30px;
     cursor: pointer;
 }
@@ -100,7 +100,7 @@ img {
     float: left;
     margin: 0 20px 0 0;
     border-bottom: 1px solid #7cadd9;
-    font: 400 13px/14px 'Fira Sans', sans-serif;
+    font: 400 13px/14px 'roboto', sans-serif;
     text-decoration: none;
     color: #0464bb
 }
@@ -127,7 +127,7 @@ img {
 .breadcrumbs span {
     display: block;
     float: left;
-    font: 400 13px/14px 'Fira Sans', sans-serif;
+    font: 400 13px/14px 'roboto', sans-serif;
     color: #414141
 }
 
@@ -169,14 +169,14 @@ img {
 
 .page_content p {
     margin: 20px 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
 
 .page_content p.intro {
     margin: 25px 0;
-    font: 40 . co__tabs . t-list0 18px / 24px 'Fira Sans', sans-serif
+    font: 40 . co__tabs . t-list0 18px / 24px 'roboto', sans-serif
 }
 
 .page_content ul {
@@ -308,7 +308,7 @@ img {
 @media screen and (max-width: 659px) {
     h1 {
         margin: 0 0 15px 0;
-        font: 600 18px/24px 'Fira Sans', sans-serif
+        font: 600 18px/24px 'roboto', sans-serif
     }
 
     .wr {
@@ -1892,7 +1892,7 @@ header .header__bottom.fixed .header__account
 }
 
 .mp__banners .wp__banner .banner__sale .banner__sale__text .banner__sale__title span {
-    font-family: 'Fira Sans', sans-serif;
+    font-family: 'roboto', sans-serif;
     font-weight: 600
 }
 
@@ -3070,7 +3070,7 @@ header .header__bottom.fixed .header__account
 
 .at__block-about .col-about p.about {
     margin: 0 0 30px;
-    font: 400 24px/36px 'Fira Sans', sans-serif
+    font: 400 24px/36px 'roboto', sans-serif
 }
 
 .at__block-about .col-about .at__video {
@@ -3126,7 +3126,7 @@ header .header__bottom.fixed .header__account
 .at__block-about .col-about .block-maingroup .col-maig .title {
     position: relative;
     padding: 10px 0 0 120px;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-transform: uppercase;
     text-align: left;
     color: #333
@@ -3162,7 +3162,7 @@ header .header__bottom.fixed .header__account
 
 .at__block-about .col-about .block-maingroup .col-maig .txt {
     margin-top: 30px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3171,7 +3171,7 @@ header .header__bottom.fixed .header__account
     position: relative;
     margin-top: 45px;
     padding-left: 120px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3202,7 +3202,7 @@ header .header__bottom.fixed .header__account
 }
 
 .at__blue-line .title {
-    font: 500 24px/30px 'Fira Sans', sans-serif;
+    font: 500 24px/30px 'roboto', sans-serif;
     text-align: left;
     color: #FFF
 }
@@ -3223,7 +3223,7 @@ header .header__bottom.fixed .header__account
 .at__blue-line .block-blue .col-blue .txt {
     position: relative;
     margin-top: 10px;
-    font: 400 18px/24px 'Fira Sans', sans-serif;
+    font: 400 18px/24px 'roboto', sans-serif;
     text-align: left;
     color: #FFF
 }
@@ -3260,7 +3260,7 @@ header .header__bottom.fixed .header__account
 
 .at__blue-line .block-blue .col-blue:nth-child(2) .txt {
     margin-top: 0;
-    font: 500 14px/20px 'Fira Sans', sans-serif;
+    font: 500 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #FFF
 }
@@ -3293,7 +3293,7 @@ header .header__bottom.fixed .header__account
 .at__block-four .item .title {
     position: relative;
     padding: 40px 0 0 120px;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3307,7 +3307,7 @@ header .header__bottom.fixed .header__account
 .at__block-four .item .txt {
     margin-top: 40px;
     padding-right: 50px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3373,7 +3373,7 @@ header .header__bottom.fixed .header__account
 
 .at__block-req .col-req .requisites .title {
     margin-bottom: 40px;
-    font: 500 24px/28px 'Fira Sans', sans-serif;
+    font: 500 24px/28px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3381,19 +3381,19 @@ header .header__bottom.fixed .header__account
 .at__block-req .col-req .requisites span {
     display: block;
     margin-top: 15px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: rgba(0, 0, 0, 0.5)
 }
 
 @media screen and (max-width: 1319px) {
     .at__block-about .col-about p.about {
-        font: 400 20px/30px 'Fira Sans', sans-serif
+        font: 400 20px/30px 'roboto', sans-serif
     }
 
     .at__block-about .col-about .block-maingroup .col-maig .title {
         padding: 10px 0 0 90px;
-        font: 700 16px/20px 'Fira Sans', sans-serif
+        font: 700 16px/20px 'roboto', sans-serif
     }
 
     .at__block-about .col-about .block-maingroup .col-maig .title.ins:before {
@@ -3449,7 +3449,7 @@ header .header__bottom.fixed .header__account
     }
 
     .at__blue-line .title {
-        font: 500 22px/30px 'Fira Sans', sans-serif
+        font: 500 22px/30px 'roboto', sans-serif
     }
 
     .at__block-four {
@@ -3458,7 +3458,7 @@ header .header__bottom.fixed .header__account
 
     .at__block-four .item .title {
         padding: 40px 0 0 90px;
-        font: 700 16px/20px 'Fira Sans', sans-serif
+        font: 700 16px/20px 'roboto', sans-serif
     }
 
     .at__block-four .item .txt {
@@ -3504,7 +3504,7 @@ header .header__bottom.fixed .header__account
 
     .at__block-about .col-about p.about {
         margin: 20px 0 20px;
-        font: 400 20px/30px 'Fira Sans', sans-serif
+        font: 400 20px/30px 'roboto', sans-serif
     }
 
     .at__blue-line .title {
@@ -3574,7 +3574,7 @@ header .header__bottom.fixed .header__account
     }
 
     .at__block-about .col-about p.about {
-        font: 400 18px/26px 'Fira Sans', sans-serif
+        font: 400 18px/26px 'roboto', sans-serif
     }
 
     .at__block-about .col-about .block-maingroup .col-maig {
@@ -3602,7 +3602,7 @@ header .header__bottom.fixed .header__account
 
     .at__blue-line .title {
         padding-right: 0;
-        font: 500 18px/24px 'Fira Sans', sans-serif
+        font: 500 18px/24px 'roboto', sans-serif
     }
 
     .at__blue-line .block-blue {
@@ -3624,7 +3624,7 @@ header .header__bottom.fixed .header__account
     }
 
     .at__blue-line .block-blue .col-blue .txt {
-        font: 400 16px/20px 'Fira Sans', sans-serif
+        font: 400 16px/20px 'roboto', sans-serif
     }
 
     .at__blue-line .block-blue .col-blue .txt:before {
@@ -3667,7 +3667,7 @@ header .header__bottom.fixed .header__account
 }
 
 .ns__block .item .date {
-    font: italic 12px/14px 'Fira Sans', sans-serif;
+    font: italic 12px/14px 'roboto', sans-serif;
     text-align: left;
     color: #737373
 }
@@ -3676,7 +3676,7 @@ header .header__bottom.fixed .header__account
     display: inline-block;
     margin-top: 5px;
     border-bottom: 0;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0464bb
@@ -3689,7 +3689,7 @@ header .header__bottom.fixed .header__account
 
 .ns__block .item .txt {
     margin-top: 10px;
-    font: 400 12px/14px 'Fira Sans', sans-serif;
+    font: 400 12px/14px 'roboto', sans-serif;
     text-align: left;
     color: #414141
 }
@@ -3712,7 +3712,7 @@ header .header__bottom.fixed .header__account
 .ns__paginator .name {
     float: left;
     margin-right: 30px;
-    font: 500 14px/30px 'Fira Sans', sans-serif;
+    font: 500 14px/30px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3814,7 +3814,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 12px;
     border-radius: 12px;
     background: transparent;
-    font: 400 14px/24px 'Fira Sans', sans-serif;
+    font: 400 14px/24px 'roboto', sans-serif;
     text-align: center;
     color: #0060bf;
     -webkit-transition: all .2s ease;
@@ -3894,7 +3894,7 @@ header .header__bottom.fixed .header__account
     .ns__paginator .pages .page {
         height: 20px;
         width: 20px;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 }
 
@@ -3904,7 +3904,7 @@ header .header__bottom.fixed .header__account
 }
 
 .nd__content .date {
-    font: italic 12px/14px 'Fira Sans', sans-serif;
+    font: italic 12px/14px 'roboto', sans-serif;
     text-align: left;
     color: #737373
 }
@@ -3913,7 +3913,7 @@ header .header__bottom.fixed .header__account
     margin-top: 30px;
     padding-bottom: 30px;
     border-bottom: 1px solid #ced5d9;
-    font: 400 24px/26px 'Fira Sans', sans-serif;
+    font: 400 24px/26px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -3924,7 +3924,7 @@ header .header__bottom.fixed .header__account
     margin: 7px 0;
     padding-left: 45px;
     border: 0;
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     margin: 30px 0
@@ -3997,7 +3997,7 @@ header .header__bottom.fixed .header__account
     margin: 7px 0;
     padding-left: 45px;
     border: 0;
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left
 }
@@ -4061,7 +4061,7 @@ header .header__bottom.fixed .header__account
     display: block;
     margin-right: 20px;
     padding: 7px 0;
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -4091,7 +4091,7 @@ header .header__bottom.fixed .header__account
 }
 
 .nd__rightbar .block .item .date {
-    font: italic 12px/14px 'Fira Sans', sans-serif;
+    font: italic 12px/14px 'roboto', sans-serif;
     text-align: left;
     color: #737373
 }
@@ -4100,14 +4100,14 @@ header .header__bottom.fixed .header__account
     display: inline-block;
     margin-top: 5px;
     border-bottom: 0;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left
 }
 
 .nd__rightbar .block .item .txt {
     margin-top: 10px;
-    font: 400 12px/14px 'Fira Sans', sans-serif;
+    font: 400 12px/14px 'roboto', sans-serif;
     text-align: left;
     color: #414141
 }
@@ -4126,7 +4126,7 @@ header .header__bottom.fixed .header__account
 .nd__rightbar .archive {
     display: inline-block;
     border-bottom: 0;
-    font: 400 16px/24px 'Fira Sans', sans-serif;
+    font: 400 16px/24px 'roboto', sans-serif;
     text-align: left;
     color: #0464bb
 }
@@ -4289,7 +4289,7 @@ header .header__bottom.fixed .header__account
     display: block;
     padding-left: 30px;
     border-bottom: 0;
-    font: 700 16px/18px 'Fira Sans', sans-serif;
+    font: 700 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -4347,7 +4347,7 @@ header .header__bottom.fixed .header__account
     position: relative;
     display: inline-block;
     border-bottom: 0;
-    font: 700 14px/20px 'Fira Sans', sans-serif;
+    font: 700 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -4393,7 +4393,7 @@ header .header__bottom.fixed .header__account
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .range-slider .extra-controls span {
     position: absolute;
-    font: 400 14px/30px 'Fira Sans', sans-serif;
+    font: 400 14px/30px 'roboto', sans-serif;
     text-align: left;
     color: #000
 }
@@ -4411,7 +4411,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 5px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: center;
     color: #000
 }
@@ -4443,14 +4443,14 @@ header .header__bottom.fixed .header__account
     background: 0;
     top: 10px;
     padding: 1px 0;
-    font: 400 10px/12px 'Fira Sans', sans-serif
+    font: 400 10px/12px 'roboto', sans-serif
 }
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .range-slider .irs .irs-max {
     background: 0;
     top: 10px;
     padding: 1px 0;
-    font: 400 10px/12px 'Fira Sans', sans-serif
+    font: 400 10px/12px 'roboto', sans-serif
 }
 
 .ct__leftbar .cat .cat-ul .cat-li .inner .range-slider .irs .irs-bar {
@@ -4485,7 +4485,7 @@ header .header__bottom.fixed .header__account
 .ct__leftbar .cat .cat-ul .cat-li .inner .checkboxes .item input[type="checkbox"] + label {
     position: relative;
     padding-left: 25px;
-    font: 400 14px/14px 'Fira Sans', sans-serif;
+    font: 400 14px/14px 'roboto', sans-serif;
     color: #333;
     cursor: pointer;
     display: grid;
@@ -4530,7 +4530,7 @@ header .header__bottom.fixed .header__account
     display: inline-block;
     margin-top: 20px;
     border-bottom: 0;
-    font: 500 14px/20px 'Fira Sans', sans-serif;
+    font: 500 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #0464bb
 }
@@ -4541,7 +4541,7 @@ header .header__bottom.fixed .header__account
     border-bottom: 0;
     padding-left: 20px;
     margin-bottom: 12px;
-    font: 400 12px/14px 'Fira Sans', sans-serif;
+    font: 400 12px/14px 'roboto', sans-serif;
     text-align: left;
     color: #0464bb;
 }
@@ -4580,7 +4580,7 @@ header .header__bottom.fixed .header__account
 }
 
 .ct__leftbar .cat .cat-ul .cat-li .inner #select1-button .ui-selectmenu-text {
-    font: italic 12px/20px 'Fira Sans', sans-serif;
+    font: italic 12px/20px 'roboto', sans-serif;
     text-align: left;
     color: #666
 }
@@ -4611,7 +4611,7 @@ header .header__bottom.fixed .header__account
 }
 
 .ct__leftbar .cat.insan .cat-ul .cat-li .title, .ct__leftbar .cat.stroima .cat-ul .cat-li .title, .ct__leftbar .cat.pricel .cat-ul .cat-li .title {
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #0464bb
 }
 
@@ -4793,7 +4793,7 @@ header .header__bottom.fixed .header__account
 
 .products_roll .pr_header .sort label {
     margin-right: 20px;
-    font: 400 14px/30px 'Fira Sans', sans-serif;
+    font: 400 14px/30px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -4820,7 +4820,7 @@ header .header__bottom.fixed .header__account
 
 .products_roll .pr_header .quan label {
     margin-right: 20px;
-    font: 400 14px/30px 'Fira Sans', sans-serif;
+    font: 400 14px/30px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -4856,7 +4856,7 @@ header .header__bottom.fixed .header__account
     display: inline-block;
     border: 0;
     padding: 5px 0 5px 20px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #0464bb
 }
@@ -4950,7 +4950,7 @@ header .header__bottom.fixed .header__account
     position: absolute;
     right: 0;
     top: -20px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #666
 }
@@ -4962,7 +4962,7 @@ header .header__bottom.fixed .header__account
 .products_roll .pr_box .item .hover .inner .compare input[type="checkbox"] + span {
     position: relative;
     padding-right: 25px;
-    font: 400 14px/18px 'Fira Sans', sans-serif;
+    font: 400 14px/18px 'roboto', sans-serif;
     color: #666;
     cursor: pointer
 }
@@ -5036,7 +5036,7 @@ header .header__bottom.fixed .header__account
 .products_roll .pr_box .item .hover .inner .title {
     display: block;
     border: 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #0464bb;
     height: 60px;
@@ -5055,7 +5055,7 @@ header .header__bottom.fixed .header__account
     position: absolute;
     bottom: 85px;
     left: 30px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -5068,7 +5068,7 @@ header .header__bottom.fixed .header__account
     position: absolute;
     bottom: 110px;
     left: 30px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: center;
     color: #666;
     text-decoration: line-through
@@ -5153,7 +5153,7 @@ header .header__bottom.fixed .header__account
     border: 1px solid #cdd2d6;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: center;
     color: #000;
     transition: .2s border-color
@@ -5199,7 +5199,7 @@ header .header__bottom.fixed .header__account
     width: 100%;
     top: 255px;
     left: 0;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -5221,7 +5221,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 14px/40px 'Fira Sans', sans-serif;
+    font: 500 14px/40px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #fff
@@ -5267,7 +5267,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 14px/40px 'Fira Sans', sans-serif;
+    font: 500 14px/40px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #fff
@@ -5306,7 +5306,7 @@ header .header__bottom.fixed .header__account
     width: 100%;
     left: 0;
     bottom: -14px;
-    font: 400 14px/18px 'Fira Sans', sans-serif;
+    font: 400 14px/18px 'roboto', sans-serif;
     text-align: center;
     color: #0060bf;
 }
@@ -5319,7 +5319,7 @@ header .header__bottom.fixed .header__account
     left: -10px;
     bottom: 110px;
     padding-right: 30px;
-    font: 400 14px/18px 'Fira Sans', sans-serif;
+    font: 400 14px/18px 'roboto', sans-serif;
     text-align: center;
     color: #00a600;
 }
@@ -5344,7 +5344,7 @@ header .header__bottom.fixed .header__account
     width: 100%;
     left: 0;
     bottom: -14px;
-    font: 400 14px/18px 'Fira Sans', sans-serif;
+    font: 400 14px/18px 'roboto', sans-serif;
     text-align: center;
     color: #00a600
 }
@@ -5441,7 +5441,7 @@ header .header__bottom.fixed .header__account
     margin-left: -100px;
     padding-left: 0;
     padding-top: 40px;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     background: #59bf26;
     transition: .2s background-color
 }
@@ -5489,7 +5489,7 @@ header .header__bottom.fixed .header__account
 
 .products_roll .pr_footer .quan_b label {
     margin-right: 20px;
-    font: 400 14px/30px 'Fira Sans', sans-serif;
+    font: 400 14px/30px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -5561,7 +5561,7 @@ header .header__bottom.fixed .header__account
     border: 1px solid #0464bb;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 400 14px/38px 'Fira Sans', sans-serif;
+    font: 400 14px/38px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #0464bb
@@ -5713,7 +5713,7 @@ header .header__bottom.fixed .header__account
         border: 2px solid #0060bf;
         -webkit-border-radius: 5px;
         border-radius: 5px;
-        font: 500 12px/26px 'Fira Sans', sans-serif;
+        font: 500 12px/26px 'roboto', sans-serif;
         text-align: center;
         color: #FFF
     }
@@ -5802,7 +5802,7 @@ header .header__bottom.fixed .header__account
         border: 0;
         -webkit-border-radius: 0;
         border-radius: 0;
-        font: 400 12px/30px 'Fira Sans', sans-serif;
+        font: 400 12px/30px 'roboto', sans-serif;
         border-right: 1px solid #FFF
     }
 
@@ -5830,7 +5830,7 @@ header .header__bottom.fixed .header__account
         border: 0;
         -webkit-border-radius: 0;
         border-radius: 0;
-        font: 400 12px/20px 'Fira Sans', sans-serif;
+        font: 400 12px/20px 'roboto', sans-serif;
         text-align: center;
         color: #fff
     }
@@ -5878,7 +5878,7 @@ header .header__bottom.fixed .header__account
         bottom: auto;
         width: 110px;
         padding-right: 0;
-        font: 400 12px/20px 'Fira Sans', sans-serif;
+        font: 400 12px/20px 'roboto', sans-serif;
         text-align: left
     }
 
@@ -5965,7 +5965,7 @@ header .header__bottom.fixed .header__account
     .products_roll .pr_footer .ns__paginator .pages .page {
         height: 20px;
         width: 20px;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .products_roll .pr_footer .quan_b {
@@ -5983,7 +5983,7 @@ header .header__bottom.fixed .header__account
 
 .reg_title {
     margin: 0 0 30px 0;
-    font: 500 24px/28px 'Fira Sans', sans-serif;
+    font: 500 24px/28px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6025,7 +6025,7 @@ header .header__bottom.fixed .header__account
     position: absolute;
     left: 0;
     top: -25px;
-    font: 500 18px/20px 'Fira Sans', sans-serif;
+    font: 500 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6039,7 +6039,7 @@ header .header__bottom.fixed .header__account
     border-radius: 5px;
     background: #fff;
     padding: 15px 20px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6052,7 +6052,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     background: #379917;
-    font: 400 24px/58px 'Fira Sans', sans-serif;
+    font: 400 24px/58px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #fff;
@@ -6071,7 +6071,7 @@ header .header__bottom.fixed .header__account
 .form_login .remind_pass {
     display: inline-block;
     margin-top: 30px;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     border-bottom: 0;
     text-decoration: none;
     color: #0053a6
@@ -6079,7 +6079,7 @@ header .header__bottom.fixed .header__account
 
 .form_login .login_social {
     margin-top: 50px;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     border-bottom: 0;
     text-decoration: none;
     color: #333
@@ -6149,7 +6149,7 @@ header .header__bottom.fixed .header__account
 .form_registration .face_type input[type="radio"] + span {
     position: relative;
     padding-left: 40px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     color: #333;
     cursor: pointer
 }
@@ -6200,7 +6200,7 @@ header .header__bottom.fixed .header__account
 .form_registration .line span {
     display: block;
     padding: 15px 0;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6216,7 +6216,7 @@ header .header__bottom.fixed .header__account
     right: 0;
     top: -50px;
     padding: 0 10px 0 0;
-    font: italic 12px/16px 'Fira Sans', sans-serif
+    font: italic 12px/16px 'roboto', sans-serif
 }
 
 .form_registration .line span.se7en {
@@ -6225,7 +6225,7 @@ header .header__bottom.fixed .header__account
     width: 40px;
     top: 0;
     right: 410px;
-    font: 400 16px/20px 'Fira Sans', sans-serif
+    font: 400 16px/20px 'roboto', sans-serif
 }
 
 .form_registration .line span.tip {
@@ -6235,7 +6235,7 @@ header .header__bottom.fixed .header__account
     top: 0;
     right: 0;
     padding: 9px 100px 9px 20px;
-    font: italic 12px/16px 'Fira Sans', sans-serif
+    font: italic 12px/16px 'roboto', sans-serif
 }
 
 .form_registration .line input[type=text], .form_registration .line input[type=password] {
@@ -6249,7 +6249,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 15px 20px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333;
     transition: border-color .2s
@@ -6288,7 +6288,7 @@ header .header__bottom.fixed .header__account
 .form_registration .agent input[type="checkbox"] + span {
     position: relative;
     padding-left: 25px;
-    font: 400 14px/16px 'Fira Sans', sans-serif;
+    font: 400 14px/16px 'roboto', sans-serif;
     color: #333;
     cursor: pointer;
     display: inline-block
@@ -6341,7 +6341,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     background: #0464bb;
-    font: 400 24px/60px 'Fira Sans', sans-serif;
+    font: 400 24px/60px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #FFF
@@ -6435,7 +6435,7 @@ header .header__bottom.fixed .header__account
         border: 0;
         top: 7px;
         right: 0;
-        font: 500 18px/20px 'Fira Sans', sans-serif;
+        font: 500 18px/20px 'roboto', sans-serif;
         text-align: left;
         color: #0464bb
     }
@@ -6463,7 +6463,7 @@ header .header__bottom.fixed .header__account
         -webkit-border-radius: 5px;
         border-radius: 5px;
         background: #0464bb;
-        font: 400 24px/58px 'Fira Sans', sans-serif;
+        font: 400 24px/58px 'roboto', sans-serif;
         text-decoration: none;
         text-align: center;
         color: #fff
@@ -6482,12 +6482,12 @@ header .header__bottom.fixed .header__account
 @media screen and (max-width: 659px) {
     .reg_title {
         margin: 0 0 5px 0;
-        font: 400 18px/24px 'Fira Sans', sans-serif
+        font: 400 18px/24px 'roboto', sans-serif
     }
 
     .row.login.user_reg .reg .back2enter {
         top: 6px;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .form_login {
@@ -6514,7 +6514,7 @@ header .header__bottom.fixed .header__account
     .form_login .line span {
         top: 0;
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .form_login .line input[type=text], .form_login .line input[type=password] {
@@ -6527,13 +6527,13 @@ header .header__bottom.fixed .header__account
     .form_login .login_enter {
         height: 50px;
         margin: 40px auto 0;
-        font: 400 18px/50px 'Fira Sans', sans-serif
+        font: 400 18px/50px 'roboto', sans-serif
     }
 
     .form_login .login_reg {
         height: 50px;
         margin: 20px auto 0;
-        font: 400 18px/50px 'Fira Sans', sans-serif
+        font: 400 18px/50px 'roboto', sans-serif
     }
 
     .form_login .login_social {
@@ -6562,7 +6562,7 @@ header .header__bottom.fixed .header__account
     .form_registration .face_type input[type="radio"] + span {
         width: 100%;
         padding-left: 40px;
-        font: 400 14px/18px 'Fira Sans', sans-serif
+        font: 400 14px/18px 'roboto', sans-serif
     }
 
     .form_registration .face_type input[type="radio"] + span::before {
@@ -6584,7 +6584,7 @@ header .header__bottom.fixed .header__account
 
     .form_registration .line span {
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .form_registration .line span br {
@@ -6630,7 +6630,7 @@ header .header__bottom.fixed .header__account
     .form_registration .agent input[type="checkbox"] + span {
         display: block;
         padding-left: 25px;
-        font: 400 14px/16px 'Fira Sans', sans-serif
+        font: 400 14px/16px 'roboto', sans-serif
     }
 
     .form_registration .agent input[type="checkbox"] + span::before {
@@ -6644,7 +6644,7 @@ header .header__bottom.fixed .header__account
         margin-top: 20px;
         width: 100%;
         height: 50px;
-        font: 400 18px/50px 'Fira Sans', sans-serif
+        font: 400 18px/50px 'roboto', sans-serif
     }
 }
 
@@ -6660,7 +6660,7 @@ header .header__bottom.fixed .header__account
     top: 10px;
     right: 0;
     padding-right: 23px;
-    font: 400 14px/16px 'Fira Sans', sans-serif;
+    font: 400 14px/16px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #333
@@ -6696,7 +6696,7 @@ header .header__bottom.fixed .header__account
     height: 100px;
     background: #0053a6;
     color: #FFF;
-    font: 400 14px/16px 'Fira Sans', sans-serif
+    font: 400 14px/16px 'roboto', sans-serif
 }
 
 .lk_leftbar .welcome span {
@@ -6705,12 +6705,12 @@ header .header__bottom.fixed .header__account
 
 .lk_leftbar .welcome span.username {
     margin-top: 5px;
-    font: 700 18px/16px 'Fira Sans', sans-serif
+    font: 700 18px/16px 'roboto', sans-serif
 }
 
 .lk_leftbar .welcome span.usermail {
     margin-top: 5px;
-    font: 500 12px/16px 'Fira Sans', sans-serif
+    font: 500 12px/16px 'roboto', sans-serif
 }
 
 .lk_leftbar .welcome:before {
@@ -6740,7 +6740,7 @@ header .header__bottom.fixed .header__account
     background: #f5f6f8;
     border: 1px solid #ced5d9;
     border-top: 0;
-    font: 500 18px/20px 'Fira Sans', sans-serif;
+    font: 500 18px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #333
@@ -6841,7 +6841,7 @@ header .header__bottom.fixed .header__account
     margin-top: 58px;
     padding: 37.5px 40px;
     background: #f5f6f8;
-    font: 500 24px/26px 'Fira Sans', sans-serif;
+    font: 500 24px/26px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6852,7 +6852,7 @@ header .header__bottom.fixed .header__account
 }
 
 .ph__no-purchase .title {
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6867,7 +6867,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     position: relative;
     padding: 0 0 0 110px;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-transform: uppercase;
     text-align: left;
     color: #333
@@ -6918,7 +6918,7 @@ header .header__bottom.fixed .header__account
 
 .ph__item .title .id {
     float: left;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -6927,7 +6927,7 @@ header .header__bottom.fixed .header__account
     float: right;
     display: block;
     border: 0;
-    font: 700 14px/20px 'Fira Sans', sans-serif;
+    font: 700 14px/20px 'roboto', sans-serif;
     text-decoration: none;
     color: #0060bf
 }
@@ -6971,7 +6971,7 @@ header .header__bottom.fixed .header__account
     position: relative;
     background: #fff;
     padding-right: 3px;
-    font: 500 18px/20px 'Fira Sans', sans-serif;
+    font: 500 18px/20px 'roboto', sans-serif;
     color: #333
 }
 
@@ -6991,7 +6991,7 @@ header .header__bottom.fixed .header__account
 }
 
 .ph__item .inner .status_options .pos.date span {
-    font: 400 14px/16px 'Fira Sans', sans-serif
+    font: 400 14px/16px 'roboto', sans-serif
 }
 
 .ph__item .inner .status_options .pos.date span.val {
@@ -7006,7 +7006,7 @@ header .header__bottom.fixed .header__account
     border: 2px solid transparent;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 700 14px/36px 'Fira Sans', sans-serif;
+    font: 700 14px/36px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     -webkit-transition: all .2s ease;
@@ -7065,7 +7065,7 @@ header .header__bottom.fixed .header__account
 
 .ph__item .inner .sum, .ph__item .inner .paid, .ph__item .inner .paytype, .ph__item .inner .delivery, .ph__item .inner .goods {
     margin-top: 15px;
-    font: 500 14px/20px 'Fira Sans', sans-serif;
+    font: 500 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -7085,7 +7085,7 @@ header .header__bottom.fixed .header__account
 .ph__item .inner .goods ol li {
     margin-top: 15px;
     padding-left: 15px;
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     color: #333
 }
 
@@ -7134,7 +7134,7 @@ header .header__bottom.fixed .header__account
 .pd__block .face_type input[type="radio"] + span {
     position: relative;
     padding-left: 40px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     color: #333;
     cursor: pointer
 }
@@ -7185,7 +7185,7 @@ header .header__bottom.fixed .header__account
 .pd__block .line span {
     display: block;
     padding: 15px 0;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -7201,7 +7201,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 15px 20px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -7218,7 +7218,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     margin-top: 30px;
     padding-left: 40px;
-    font: 500 16px/22px 'Fira Sans', sans-serif;
+    font: 500 16px/22px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0053a6
@@ -7262,7 +7262,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 700 16px/50px 'Fira Sans', sans-serif;
+    font: 700 16px/50px 'roboto', sans-serif;
     text-align: center;
     color: #fff
 }
@@ -7287,7 +7287,7 @@ header .header__bottom.fixed .header__account
 .ss__block .line span {
     display: block;
     padding: 15px 0;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -7299,7 +7299,7 @@ header .header__bottom.fixed .header__account
     right: -160px;
     top: -50px;
     padding: 0 10px 0 0;
-    font: italic 12px/16px 'Fira Sans', sans-serif
+    font: italic 12px/16px 'roboto', sans-serif
 }
 
 .ss__block .line input[type=text], .ss__block .line input[type=password] {
@@ -7313,7 +7313,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 15px 20px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -7332,7 +7332,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 700 16px/50px 'Fira Sans', sans-serif;
+    font: 700 16px/50px 'roboto', sans-serif;
     text-align: center;
     color: #fff
 }
@@ -7584,7 +7584,7 @@ header .header__bottom.fixed .header__account
     .lk_content .header {
         height: 60px;
         padding: 18px 0;
-        font: 500 20px/22px 'Fira Sans', sans-serif;
+        font: 500 20px/22px 'roboto', sans-serif;
         text-align: center
     }
 
@@ -7613,14 +7613,14 @@ header .header__bottom.fixed .header__account
 
     .ph__item .title .id {
         float: none;
-        font: 700 16px/20px 'Fira Sans', sans-serif;
+        font: 700 16px/20px 'roboto', sans-serif;
         text-align: center
     }
 
     .ph__item .title .detail {
         float: none;
         margin-top: 8px;
-        font: 400 16px/20px 'Fira Sans', sans-serif;
+        font: 400 16px/20px 'roboto', sans-serif;
         text-align: center
     }
 
@@ -7685,7 +7685,7 @@ header .header__bottom.fixed .header__account
     .pd__block .face_type input[type="radio"] + span {
         width: 100%;
         padding-left: 40px;
-        font: 400 14px/18px 'Fira Sans', sans-serif
+        font: 400 14px/18px 'roboto', sans-serif
     }
 
     .pd__block .face_type input[type="radio"] + span::before {
@@ -7703,7 +7703,7 @@ header .header__bottom.fixed .header__account
 
     .pd__block .line span {
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .pd__block .line input[type=text], .pd__block .line input[type=password] {
@@ -7731,7 +7731,7 @@ header .header__bottom.fixed .header__account
 
     .ss__block .line span {
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .ss__block .line span.req {
@@ -7765,7 +7765,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     top: 40px;
     right: 0;
-    font: 500 14px/20px 'Fira Sans', sans-serif;
+    font: 500 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #0464bb
 }
@@ -7777,7 +7777,7 @@ header .header__bottom.fixed .header__account
     height: 90px;
     margin-left: 30px;
     padding: 20px 0 0 120px;
-    font: 500 18px/22px 'Fira Sans', sans-serif;
+    font: 500 18px/22px 'roboto', sans-serif;
     text-align: left;
     color: #999
 }
@@ -7792,7 +7792,7 @@ header .header__bottom.fixed .header__account
     border: 2px solid #999;
     -webkit-border-radius: 14px;
     border-radius: 14px;
-    font: 500 14px/26px 'Fira Sans', sans-serif;
+    font: 500 14px/26px 'roboto', sans-serif;
     text-align: center;
     color: #999
 }
@@ -7955,7 +7955,7 @@ header .header__bottom.fixed .header__account
 
 .or__content .title {
     padding: 40px 0;
-    font: 400 24px/26px 'Fira Sans', sans-serif;
+    font: 400 24px/26px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -7976,7 +7976,7 @@ header .header__bottom.fixed .header__account
 
 .or__content.s1 .column .title {
     margin-bottom: 30px;
-    font: 400 24px/26px 'Fira Sans', sans-serif;
+    font: 400 24px/26px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8048,7 +8048,7 @@ header .header__bottom.fixed .header__account
 .or__content.s2 .methods .meth .inner {
     display: table-cell;
     vertical-align: middle;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -8067,7 +8067,7 @@ header .header__bottom.fixed .header__account
 
 .or__content.s2 .methods .meth .inner span {
     display: block;
-    font: 400 14px/18px 'Fira Sans', sans-serif
+    font: 400 14px/18px 'roboto', sans-serif
 }
 
 .or__content.s2 .methods .meth .inner span br.translate {
@@ -8117,7 +8117,7 @@ header .header__bottom.fixed .header__account
     position: absolute;
     top: 0;
     left: 0;
-    font: 500 14px/40px 'Fira Sans', sans-serif;
+    font: 500 14px/40px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8126,7 +8126,7 @@ header .header__bottom.fixed .header__account
     position: absolute;
     top: -30px;
     left: 0;
-    font: 500 14px/20px 'Fira Sans', sans-serif;
+    font: 500 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8212,7 +8212,7 @@ header .header__bottom.fixed .header__account
     border-radius: 5px;
     outline: 0;
     padding: 10px 20px;
-    font: 400 14px/18px 'Fira Sans', sans-serif;
+    font: 400 14px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8240,7 +8240,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     margin: 11px 0;
     padding-left: 30px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-decoration: none;
     color: #0464bb
 }
@@ -8298,7 +8298,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 18px/48px 'Fira Sans', sans-serif;
+    font: 500 18px/48px 'roboto', sans-serif;
     text-align: left
 }
 
@@ -8390,7 +8390,7 @@ header .header__bottom.fixed .header__account
     margin: 5px;
     border: 5px solid #ced5d9;
     padding-top: 130px;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-transform: uppercase;
     text-align: center;
     color: #333
@@ -8469,7 +8469,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     background: #279b2b;
-    font: 500 18px/50px 'Fira Sans', sans-serif;
+    font: 500 18px/50px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #fff
@@ -8511,7 +8511,7 @@ header .header__bottom.fixed .header__account
     border: 2px solid #666;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 16px/46px 'Fira Sans', sans-serif;
+    font: 500 16px/46px 'roboto', sans-serif;
     text-align: center;
     color: #666
 }
@@ -8535,7 +8535,7 @@ header .header__bottom.fixed .header__account
     position: relative;
     margin-top: 20px;
     padding-left: 190px;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8579,7 +8579,7 @@ header .header__bottom.fixed .header__account
 .or__content.s4 .confirm .block .rogerdat input[type="checkbox"] + span {
     position: relative;
     padding-left: 25px;
-    font: 400 14px/16px 'Fira Sans', sans-serif;
+    font: 400 14px/16px 'roboto', sans-serif;
     color: #333;
     cursor: pointer
 }
@@ -8622,7 +8622,7 @@ header .header__bottom.fixed .header__account
 .or__content.s4 .confirm .block .phonetime {
     height: 40px;
     margin-top: 30px;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     color: #333
 }
 
@@ -8649,7 +8649,7 @@ header .header__bottom.fixed .header__account
     border: 1px solid #cdd2d6;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -8660,7 +8660,7 @@ header .header__bottom.fixed .header__account
 
 .or__content.s4 .confirm .block .note {
     margin-top: 60px;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8674,7 +8674,7 @@ header .header__bottom.fixed .header__account
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 20px;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -8695,7 +8695,7 @@ header .header__bottom.fixed .header__account
     top: 0;
     right: 340px;
     margin: 15px 0 15px 0;
-    font: 400 16px/20px 'Fira Sans', sans-serif;
+    font: 400 16px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0060bf
@@ -8717,7 +8717,7 @@ header .header__bottom.fixed .header__account
     border: 0;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 18px/50px 'Fira Sans', sans-serif;
+    font: 500 18px/50px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #FFF
@@ -8859,13 +8859,13 @@ a.pickup-stores__item .desc {
     .or__stages .stage {
         width: 200px;
         padding: 20px 0 0 80px;
-        font: 500 16px/20px 'Fira Sans', sans-serif
+        font: 500 16px/20px 'roboto', sans-serif
     }
 
     .or__stages .stage span {
         width: 22px;
         height: 22px;
-        font: 500 13px/18px 'Fira Sans', sans-serif
+        font: 500 13px/18px 'roboto', sans-serif
     }
 
     .or__stages .stage.complite span:before {
@@ -8927,12 +8927,12 @@ a.pickup-stores__item .desc {
     }
 
     .or__content.s1 .column .form_login .line span {
-        font: 400 16px/20px 'Fira Sans', sans-serif
+        font: 400 16px/20px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_login .login_enter {
         height: 50px;
-        font: 400 20px/48px 'Fira Sans', sans-serif
+        font: 400 20px/48px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_registration .line span.se7en {
@@ -8973,11 +8973,11 @@ a.pickup-stores__item .desc {
     .or__content.s1 .column .form_registration .registrate {
         width: 330px;
         height: 50px;
-        font: 400 20px/48px 'Fira Sans', sans-serif
+        font: 400 20px/48px 'roboto', sans-serif
     }
 
     .or__content.s2 .methods .meth .inner {
-        font: 700 16px/20px 'Fira Sans', sans-serif
+        font: 700 16px/20px 'roboto', sans-serif
     }
 
     .or__content.s3 {
@@ -9052,7 +9052,7 @@ a.pickup-stores__item .desc {
 
     .or__content.s1 .column .form_login .login_enter {
         height: 60px;
-        font: 400 24px/58px 'Fira Sans', sans-serif
+        font: 400 24px/58px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .back2enter {
@@ -9061,7 +9061,7 @@ a.pickup-stores__item .desc {
         border: 0;
         top: 5px;
         right: 0;
-        font: 500 18px/20px 'Fira Sans', sans-serif;
+        font: 500 18px/20px 'roboto', sans-serif;
         text-align: left;
         color: #0464bb
     }
@@ -9102,7 +9102,7 @@ a.pickup-stores__item .desc {
     .or__content.s1 .column .form_registration .registrate {
         width: 400px;
         height: 60px;
-        font: 400 24px/58px 'Fira Sans', sans-serif
+        font: 400 24px/58px 'roboto', sans-serif
     }
 
     .or__content.s1.user_reg .column {
@@ -9116,7 +9116,7 @@ a.pickup-stores__item .desc {
     }
 
     .or__content.s2 .methods .meth .inner {
-        font: 700 14px/16px 'Fira Sans', sans-serif
+        font: 700 14px/16px 'roboto', sans-serif
     }
 
     .or__content.s3 {
@@ -9131,7 +9131,7 @@ a.pickup-stores__item .desc {
         width: 130px;
         height: 130px;
         padding-top: 80px;
-        font: 700 12px/16px 'Fira Sans', sans-serif
+        font: 700 12px/16px 'roboto', sans-serif
     }
 
     .or__content.s3 .payment_types .type.t1:before {
@@ -9167,7 +9167,7 @@ a.pickup-stores__item .desc {
     }
 
     .or__content.s4 .confirm .block .phonetime {
-        font: 400 14px/20px 'Fira Sans', sans-serif
+        font: 400 14px/20px 'roboto', sans-serif
     }
 
     .or__content.s4 .confirm .block .phonetime span.label {
@@ -9233,7 +9233,7 @@ a.pickup-stores__item .desc {
 
     .or__content .title {
         padding: 0 20px 20px;
-        font: 400 18px/24px 'Fira Sans', sans-serif
+        font: 400 18px/24px 'roboto', sans-serif
     }
 
     .or__content.s1 {
@@ -9243,7 +9243,7 @@ a.pickup-stores__item .desc {
     .or__content.s1 .column .title {
         padding: 0;
         margin: 0 0 5px 0;
-        font: 400 18px/24px 'Fira Sans', sans-serif
+        font: 400 18px/24px 'roboto', sans-serif
     }
 
     .or__content.s1 .column:nth-child(1) .title {
@@ -9256,17 +9256,17 @@ a.pickup-stores__item .desc {
 
     .or__content.s1 .column .form_login .line span {
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_login .login_enter {
         height: 50px;
-        font: 400 18px/50px 'Fira Sans', sans-serif
+        font: 400 18px/50px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .back2enter {
         top: 5px;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_registration {
@@ -9291,7 +9291,7 @@ a.pickup-stores__item .desc {
     .or__content.s1 .column .form_registration .face_type input[type="radio"] + span {
         width: 100%;
         padding-left: 40px;
-        font: 400 14px/18px 'Fira Sans', sans-serif
+        font: 400 14px/18px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_registration .face_type input[type="radio"] + span::before {
@@ -9313,7 +9313,7 @@ a.pickup-stores__item .desc {
 
     .or__content.s1 .column .form_registration .line span {
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_registration .line span br {
@@ -9359,7 +9359,7 @@ a.pickup-stores__item .desc {
     .or__content.s1 .column .form_registration .agent input[type="checkbox"] + span {
         display: block;
         padding-left: 25px;
-        font: 400 14px/16px 'Fira Sans', sans-serif
+        font: 400 14px/16px 'roboto', sans-serif
     }
 
     .or__content.s1 .column .form_registration .agent input[type="checkbox"] + span::before {
@@ -9373,11 +9373,11 @@ a.pickup-stores__item .desc {
         margin-top: 20px;
         width: 100%;
         height: 50px;
-        font: 400 18px/50px 'Fira Sans', sans-serif
+        font: 400 18px/50px 'roboto', sans-serif
     }
 
     .or__content.s2 .methods .meth .inner {
-        font: 500 12px/12px 'Fira Sans', sans-serif
+        font: 500 12px/12px 'roboto', sans-serif
     }
 
     .or__content.s2 .methods .meth .inner br.translate {
@@ -9394,7 +9394,7 @@ a.pickup-stores__item .desc {
 
     .or__content.s2 .methods .meth .inner span {
         margin-top: 5px;
-        font: 400 9px/10px 'Fira Sans', sans-serif;
+        font: 400 9px/10px 'roboto', sans-serif;
         color: #666
     }
 
@@ -9426,7 +9426,7 @@ a.pickup-stores__item .desc {
     .or__content.s2 .methods_detail .group .line span {
         top: 0;
         padding: 12px 0;
-        font: 500 14px/16px 'Fira Sans', sans-serif
+        font: 500 14px/16px 'roboto', sans-serif
     }
 
     .or__content.s2 .methods_detail .group .line span.g-title {
@@ -9503,7 +9503,7 @@ a.pickup-stores__item .desc {
     }
 
     .or__content.s2 .methods_detail .controls .control {
-        font: 500 14px/48px 'Fira Sans', sans-serif
+        font: 500 14px/48px 'roboto', sans-serif
     }
 
     .or__content.s2 .methods_detail .controls .control.prev {
@@ -9563,7 +9563,7 @@ a.pickup-stores__item .desc {
         height: 40px;
         width: 100%;
         padding: 0;
-        font: 500 14px/36px 'Fira Sans', sans-serif
+        font: 500 14px/36px 'roboto', sans-serif
     }
 
     .or__content.s4 .confirm .block .receiver.byother {
@@ -9573,7 +9573,7 @@ a.pickup-stores__item .desc {
     .or__content.s4 .confirm .block .line {
         margin-top: 10px;
         padding-left: 120px;
-        font: 400 14px/18px 'Fira Sans', sans-serif
+        font: 400 14px/18px 'roboto', sans-serif
     }
 
     .or__content.s4 .confirm .block .line .name br.translate {
@@ -9644,7 +9644,7 @@ a.pickup-stores__item .desc {
 
 .pc__code {
     display: inline-block;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #414141
 }
@@ -9713,7 +9713,7 @@ a.pickup-stores__item .desc {
 
 .pc__buy-block .bb_compare {
     padding: 15px 0;
-    font: 400 16px 'Fira Sans', sans-serif;
+    font: 400 16px 'roboto', sans-serif;
     border-bottom: 1px solid #cdd2d6;
 }
 
@@ -9727,7 +9727,7 @@ a.pickup-stores__item .desc {
 
 .pc__buy-block .bb_info {
     padding: 15px 0;
-    font: 400 16px 'Fira Sans', sans-serif;
+    font: 400 16px 'roboto', sans-serif;
     color: #0464bb;
 }
 .pc__buy-block .bb_info .i_rows{
@@ -9845,7 +9845,7 @@ a.pickup-stores__item .desc {
 
 .pc__buy-block .bb_row .price .price-old {
     float: left;
-    font: 400 18px/20px 'Fira Sans', sans-serif;
+    font: 400 18px/20px 'roboto', sans-serif;
     text-decoration: line-through;
     color: #666;
     vertical-align: super;
@@ -9853,25 +9853,25 @@ a.pickup-stores__item .desc {
 }
 
 .pc__buy-block .bb_row .price .price-old span {
-    font: 700 18px/20px 'Fira Sans', sans-serif
+    font: 700 18px/20px 'roboto', sans-serif
 }
 
 .pc__buy-block .bb_row .price .price-new {
     float: left;
-    font: 500 14px/22px 'Fira Sans', sans-serif;
+    font: 500 14px/22px 'roboto', sans-serif;
     color: #333;
     margin-right: 20px;
 }
 
 .pc__buy-block .bb_row .price .price-new span {
-    font: 700 30px/32px 'Fira Sans', sans-serif
+    font: 700 30px/32px 'roboto', sans-serif
 }
 
 .pc__buy-block .bb_row .price .sale-y {
     float: right;
     width: 50px;
     position: relative;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     vertical-align: super;
     background: #FDD302;
     padding: 5px;
@@ -9895,7 +9895,7 @@ a.pickup-stores__item .desc {
 .pc__buy-block .bb_row .cheaper {
     display: block;
     padding: 35px 0 7px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0464bb
@@ -9914,14 +9914,14 @@ a.pickup-stores__item .desc {
 .pc__buy-block .bb_row .sale span {
     padding: 15px 0 0 0;
     display: block;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-align: center;
     color: #ff2a2a
 }
 
 .pc__buy-block .bb_row .sale span:nth-child(2) {
     padding-top: 10px;
-    font: 400 12px/16px 'Fira Sans', sans-serif;
+    font: 400 12px/16px 'roboto', sans-serif;
     text-transform: uppercase;
     color: #333
 }
@@ -9998,7 +9998,7 @@ a.pickup-stores__item .desc {
     border: 1px solid #cdd2d6;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: center;
     color: #000
 }
@@ -10020,7 +10020,7 @@ a.pickup-stores__item .desc {
     background: #0060bf;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 600 18px/55px 'Fira Sans', sans-serif;
+    font: 600 18px/55px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #FFF;
@@ -10060,7 +10060,7 @@ a.pickup-stores__item .desc {
 .pc__buy-block .bb_btn span {
     display: table-cell;
     vertical-align: middle;
-    font: 500 16px/16px 'Fira Sans', sans-serif;
+    font: 500 16px/16px 'roboto', sans-serif;
     color: #0464bb
 }
 
@@ -10109,7 +10109,7 @@ a.pickup-stores__item .desc {
     vertical-align: middle;
     background: #f4f6f8;
     border: 1px solid #cdd2d6;
-    font: 500 16px/18px 'Fira Sans', sans-serif;
+    font: 500 16px/18px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #0464bb
@@ -10159,7 +10159,7 @@ a.pickup-stores__item .desc {
 
 .pc__tabs .t-content .tab.tab_des p {
     margin: 20px 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -10172,7 +10172,7 @@ a.pickup-stores__item .desc {
     position: relative;
     list-style-type: none;
     margin: 10px 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -10198,7 +10198,7 @@ a.pickup-stores__item .desc {
 .pc__tabs .t-content .tab.tab_tec .line {
     padding: 5px 40px;
     background: #FFF;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #333
 }
 
@@ -10231,7 +10231,7 @@ a.pickup-stores__item .desc {
 }
 
 .pc__tabs .t-content .tab.tab_fed .comment .item {
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -10240,7 +10240,7 @@ a.pickup-stores__item .desc {
     position: relative;
     margin-top: 30px;
     display: inline-block;
-    font: 500 16px/20px 'Fira Sans', sans-serif
+    font: 500 16px/20px 'roboto', sans-serif
 }
 
 .pc__tabs .t-content .tab.tab_fed .comment .item .date {
@@ -10317,7 +10317,7 @@ a.pickup-stores__item .desc {
 
 .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(1) {
     width: 250px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -10367,21 +10367,21 @@ a.pickup-stores__item .desc {
 
 .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(2) .q {
     margin-top: 5px;
-    font: 400 14px/16px 'Fira Sans', sans-serif;
+    font: 400 14px/16px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
 
 .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(3) {
     width: 170px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
 
 .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(4) {
     width: 198px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -10400,7 +10400,7 @@ a.pickup-stores__item .desc {
 }
 
 .pc__tabs .t-content .tab.tab_nal .tab-row.head .tab-cell {
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -10410,7 +10410,7 @@ a.pickup-stores__item .desc {
 }
 
 .pc__vertical-carousel .vc-title {
-    font: 500 19px/26px 'Fira Sans', sans-serif;
+    font: 500 19px/26px 'roboto', sans-serif;
     text-align: left;
     color: #333;
     width: 200px;
@@ -10440,7 +10440,7 @@ a.pickup-stores__item .desc {
     float: left;
     display: table;
     width: 50%;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0464bb
@@ -10466,7 +10466,7 @@ a.pickup-stores__item .desc {
     position: absolute;
     width: 50%;
     bottom: 30px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -10486,7 +10486,7 @@ a.pickup-stores__item .desc {
     padding-left: 30px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 14px/40px 'Fira Sans', sans-serif;
+    font: 500 14px/40px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #fff
@@ -10615,23 +10615,23 @@ a.pickup-stores__item .desc {
     }
 
     .pc__buy-block .bb_row .price .price-old {
-        font: 400 18px/20px 'Fira Sans', sans-serif;
+        font: 400 18px/20px 'roboto', sans-serif;
         text-decoration: line-through;
         color: #666
     }
 
     .pc__buy-block .bb_row .price .price-old span {
-        font: 700 18px/20px 'Fira Sans', sans-serif
+        font: 700 18px/20px 'roboto', sans-serif
     }
 
     .pc__buy-block .bb_row .price .price-new {
         padding-top: 13px;
-        font: 400 20px/22px 'Fira Sans', sans-serif;
+        font: 400 20px/22px 'roboto', sans-serif;
         color: #333
     }
 
     .pc__buy-block .bb_row .price .price-new span {
-        font: 700 30px/32px 'Fira Sans', sans-serif
+        font: 700 30px/32px 'roboto', sans-serif
     }
 
     .pc__buy-block .bb_row.right {
@@ -10641,7 +10641,7 @@ a.pickup-stores__item .desc {
     .pc__buy-block .add2cart {
         margin-top: 35px;
         height: 60px;
-        font: 700 18px/58px 'Fira Sans', sans-serif
+        font: 700 18px/58px 'roboto', sans-serif
     }
 
     .pc__tabs .t-list a {
@@ -10673,7 +10673,7 @@ a.pickup-stores__item .desc {
 
     .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(1) {
         width: 220px;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(2) {
@@ -10694,21 +10694,21 @@ a.pickup-stores__item .desc {
 
     .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(2) .q {
         margin-top: 5px;
-        font: 400 12px/16px 'Fira Sans', sans-serif
+        font: 400 12px/16px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(3) {
         width: 110px;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.tab_nal .tab-row .tab-cell:nth-child(4) {
         width: 148px;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.tab_nal .tab-row.head .tab-cell {
-        font: 500 12px/16px 'Fira Sans', sans-serif
+        font: 500 12px/16px 'roboto', sans-serif
     }
 
     .pc__prod-also {
@@ -10716,7 +10716,7 @@ a.pickup-stores__item .desc {
     }
 
     .pc__vertical-carousel .vc-title {
-        font: 500 24px/28px 'Fira Sans', sans-serif;
+        font: 500 24px/28px 'roboto', sans-serif;
         text-align: left;
         color: #333
     }
@@ -10786,7 +10786,7 @@ a.pickup-stores__item .desc {
     .pc__vertical-carousel .vc-shell .vc-block .item a {
         width: 100%;
         height: 120px;
-        font: 400 14px/20px 'Fira Sans', sans-serif
+        font: 400 14px/20px 'roboto', sans-serif
     }
 
     .pc__vertical-carousel .vc-shell .vc-block .item a span img {
@@ -10875,7 +10875,7 @@ a.pickup-stores__item .desc {
     }
 
     .pc__buy-block .bb_info{
-        font: 500 14px 'Fira Sans', sans-serif;
+        font: 500 14px 'roboto', sans-serif;
     }
     .pc__buy-block .bb_info .i_rows i{
         vertical-align: baseline;
@@ -10910,11 +10910,11 @@ a.pickup-stores__item .desc {
     .pc__buy-block .bb_row .price .price-new {
         float: none;
         margin-bottom: 5px;
-        font: 400 20px/22px 'Fira Sans', sans-serif
+        font: 400 20px/22px 'roboto', sans-serif
     }
 
     .pc__buy-block .bb_row .price .price-new span {
-        font: 700 24px/26px 'Fira Sans', sans-serif
+        font: 700 24px/26px 'roboto', sans-serif
     }
 
     .pc__buy-block .bb_row .quantity {
@@ -10929,7 +10929,7 @@ a.pickup-stores__item .desc {
     .pc__buy-block .add2cart {
         margin-top: 10px;
         height: 80px;
-        font: 700 15px/78px 'Fira Sans', sans-serif
+        font: 700 15px/78px 'roboto', sans-serif
     }
 
     .pc__buy-block .add2cart:before {
@@ -10956,7 +10956,7 @@ a.pickup-stores__item .desc {
         height: 50px;
         background: #f4f6f8;
         padding-left: 45px;
-        font: 500 14px/50px 'Fira Sans', sans-serif;
+        font: 500 14px/50px 'roboto', sans-serif;
         text-decoration: none;
         text-align: left;
         color: #0464bb
@@ -11022,18 +11022,18 @@ a.pickup-stores__item .desc {
     }
 
     .pc__tabs .t-content .tab.m_active.tab_des .content p {
-        font: 400 12px/18px 'Fira Sans', sans-serif
+        font: 400 12px/18px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.m_active.tab_des .content ul li {
-        font: 400 12px/18px 'Fira Sans', sans-serif
+        font: 400 12px/18px 'roboto', sans-serif
     }
 
 
 
     .pc__tabs .t-content .tab.m_active.tab_tec .content .line {
         padding: 5px 0;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.m_active.tab_tec .content .line .prop {
@@ -11053,11 +11053,11 @@ a.pickup-stores__item .desc {
     }
 
     .pc__tabs .t-content .tab.m_active.tab_fed .content .item {
-        font: 400 12px/18px 'Fira Sans', sans-serif
+        font: 400 12px/18px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.m_active.tab_fed .content .item .title {
-        font: 500 12px/18px 'Fira Sans', sans-serif
+        font: 500 12px/18px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.m_active.tab_fed .content .item.main .title {
@@ -11104,13 +11104,13 @@ a.pickup-stores__item .desc {
         float: none;
         padding-bottom: 10px;
         border-bottom: 1px dashed #cdd2d6;
-        font: 400 12px/16px 'Fira Sans', sans-serif
+        font: 400 12px/16px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.m_active.tab_nal .content .tab-row .tab-cell .mtn {
         display: block;
         padding: 10px 0 5px;
-        font: 500 12px/16px 'Fira Sans', sans-serif
+        font: 500 12px/16px 'roboto', sans-serif
     }
 
     .pc__tabs .t-content .tab.m_active.tab_nal .content .tab-row .tab-cell:nth-child(1) {
@@ -11140,7 +11140,7 @@ a.pickup-stores__item .desc {
 
     .pc__vertical-carousel .vc-title {
         padding-top: 40px;
-        font: 400 18px/24px 'Fira Sans', sans-serif
+        font: 400 18px/24px 'roboto', sans-serif
     }
 
     .pc__vertical-carousel .vc-shell {
@@ -11195,7 +11195,7 @@ a.pickup-stores__item .desc {
     top: 45px;
     right: 0;
     border: 0;
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     text-decoration: none;
     text-align: right;
     color: #0464bb
@@ -11213,7 +11213,7 @@ a.pickup-stores__item .desc {
 
 .list .l-head .lh {
     float: left;
-    font: 400 14px/48px 'Fira Sans', sans-serif;
+    font: 400 14px/48px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -11280,14 +11280,14 @@ a.pickup-stores__item .desc {
 .list .l-block .l-row .l-cell.name {
     width: 480px;
     padding-right: 30px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #666
 }
 
 .list .l-block .l-row .l-cell.name a {
     display: block;
     border: 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0464bb
@@ -11299,7 +11299,7 @@ a.pickup-stores__item .desc {
 
 .list .l-block .l-row .l-cell.price {
     width: 130px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #333
 }
 
@@ -11309,7 +11309,7 @@ a.pickup-stores__item .desc {
 
 .list .l-block .l-row .l-cell.sale {
     width: 70px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -11395,7 +11395,7 @@ a.pickup-stores__item .desc {
     border: 1px solid #cdd2d6;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: center;
     color: #000
 }
@@ -11407,7 +11407,7 @@ a.pickup-stores__item .desc {
 .list .l-block .l-row .l-cell.cost {
     width: 145px;
     margin-left: 40px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -11443,7 +11443,7 @@ a.pickup-stores__item .desc {
     top: 12px;
     left: 0;
     padding-left: 20px;
-    font: 400 14px/16px 'Fira Sans', sans-serif;
+    font: 400 14px/16px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #666
@@ -11468,7 +11468,7 @@ a.pickup-stores__item .desc {
     position: absolute;
     bottom: 16px;
     left: 0;
-    font: 500 14px/16px 'Fira Sans', sans-serif;
+    font: 500 14px/16px 'roboto', sans-serif;
     text-decoration: none;
     text-align: left;
     color: #0060bf
@@ -11488,7 +11488,7 @@ a.pickup-stores__item .desc {
     float: right;
     margin-right: 20px;
     padding: 10px 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: right;
     color: #333
 }
@@ -11499,7 +11499,7 @@ a.pickup-stores__item .desc {
     width: 120px;
     height: 40px;
     padding: 10px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: right;
     color: #333;
     border: 1px solid #cdd2d6;
@@ -11516,7 +11516,7 @@ a.pickup-stores__item .desc {
     background: #0060bf;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 14px/40px 'Fira Sans', sans-serif;
+    font: 500 14px/40px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #FFF
@@ -11537,7 +11537,7 @@ a.pickup-stores__item .desc {
     border: 1px solid #0060bf;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 18px/48px 'Fira Sans', sans-serif;
+    font: 500 18px/48px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #0060bf
@@ -11558,7 +11558,7 @@ a.pickup-stores__item .desc {
     background: #0060bf;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 500 18px/50px 'Fira Sans', sans-serif;
+    font: 500 18px/50px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #fff
@@ -11594,7 +11594,7 @@ a.pickup-stores__item .desc {
     position: relative;
     background: #fff;
     padding-right: 3px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #333
 }
 
@@ -11604,7 +11604,7 @@ a.pickup-stores__item .desc {
     position: relative;
     background: #fff;
     padding-left: 3px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #333
 }
 
@@ -11621,7 +11621,7 @@ a.pickup-stores__item .desc {
 }
 
 .options .total .t-row.t-cost .value {
-    font: 400 16px/24px 'Fira Sans', sans-serif
+    font: 400 16px/24px 'roboto', sans-serif
 }
 
 .options .total .t-row.t-cost .value span {
@@ -11704,7 +11704,7 @@ a.pickup-stores__item .desc {
     .list .l-block .l-row .l-cell .txt {
         display: block;
         padding-bottom: 5px;
-        font: 400 12px/20px 'Fira Sans', sans-serif;
+        font: 400 12px/20px 'roboto', sans-serif;
         text-align: left;
         color: #666
     }
@@ -11761,13 +11761,13 @@ a.pickup-stores__item .desc {
         left: auto;
         right: 0;
         top: -40px;
-        font: 400 14px/20px 'Fira Sans', sans-serif
+        font: 400 14px/20px 'roboto', sans-serif
     }
 
     .options .continue_shopping {
         bottom: auto;
         top: -40px;
-        font: 500 14px/20px 'Fira Sans', sans-serif
+        font: 500 14px/20px 'roboto', sans-serif
     }
 
     .options .promo {
@@ -11794,11 +11794,11 @@ a.pickup-stores__item .desc {
 
     .options .checkout_wr {
         width: 300px;
-        font: 500 16px/50px 'Fira Sans', sans-serif
+        font: 500 16px/50px 'roboto', sans-serif
     }
 
     .options .checkout {
-        font: 500 16px/50px 'Fira Sans', sans-serif
+        font: 500 16px/50px 'roboto', sans-serif
     }
 }
 
@@ -11824,11 +11824,11 @@ a.pickup-stores__item .desc {
         width: 180px;
         padding-right: 0;
         padding-bottom: 10px;
-        font: 400 12px/16px 'Fira Sans', sans-serif
+        font: 400 12px/16px 'roboto', sans-serif
     }
 
     .list .l-block .l-row .l-cell.name .plink {
-        font: 400 12px/16px 'Fira Sans', sans-serif
+        font: 400 12px/16px 'roboto', sans-serif
     }
 
     .list .l-block .l-row .l-cell.price {
@@ -11895,11 +11895,11 @@ a.pickup-stores__item .desc {
     }
 
     .options .clear_basket {
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .options .continue_shopping {
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .options .promo {
@@ -11947,7 +11947,7 @@ a.pickup-stores__item .desc {
     top: 0;
     right: -340px;
     position: absolute;
-    font: 400 18px/20px 'Fira Sans', sans-serif;
+    font: 400 18px/20px 'roboto', sans-serif;
     text-align: center;
     color: #333
 }
@@ -11975,7 +11975,7 @@ a.pickup-stores__item .desc {
 .pl__content .block .col .title .name {
     float: left;
     position: relative;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-transform: uppercase;
     text-align: left;
     color: #333
@@ -12003,7 +12003,7 @@ a.pickup-stores__item .desc {
     position: relative;
     display: block;
     border-bottom: 0;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     color: #0464bb
 }
 
@@ -12023,7 +12023,7 @@ a.pickup-stores__item .desc {
 
 .pl__content .block .col .title .download span {
     display: block;
-    font: 400 12px/20px 'Fira Sans', sans-serif;
+    font: 400 12px/20px 'roboto', sans-serif;
     text-align: left;
     color: #6a6a6a
 }
@@ -12039,7 +12039,7 @@ a.pickup-stores__item .desc {
 .pl__content .block .col .list .line span {
     max-width: 260px;
     float: left;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12048,7 +12048,7 @@ a.pickup-stores__item .desc {
     float: right;
     position: relative;
     border: 0;
-    font: 400 11px/20px 'Fira Sans', sans-serif;
+    font: 400 11px/20px 'roboto', sans-serif;
     text-align: right;
     color: #0464bb
 }
@@ -12104,7 +12104,7 @@ a.pickup-stores__item .desc {
 }
 
 .pl__subscribe .form .name {
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12121,7 +12121,7 @@ a.pickup-stores__item .desc {
     display: block;
     top: -30px;
     left: 0;
-    font: 500 14px/30px 'Fira Sans', sans-serif;
+    font: 500 14px/30px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12135,7 +12135,7 @@ a.pickup-stores__item .desc {
     border: 1px solid #cdd2d6;
     background: #fff;
     padding: 10px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333;
     transition: .2s border-color
@@ -12154,7 +12154,7 @@ a.pickup-stores__item .desc {
     -webkit-border-radius: 5px;
     border-radius: 5px;
     border-bottom: 0;
-    font: 500 16px/50px 'Fira Sans', sans-serif;
+    font: 500 16px/50px 'roboto', sans-serif;
     text-align: center;
     color: #fff
 }
@@ -12165,7 +12165,7 @@ a.pickup-stores__item .desc {
 
 .pl__subscribe .form .req {
     margin-top: 20px;
-    font: italic 14px/20px 'Fira Sans', sans-serif;
+    font: italic 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12191,7 +12191,7 @@ a.pickup-stores__item .desc {
     }
 
     .pl__content .block .col .title .name {
-        font: 700 16px/20px 'Fira Sans', sans-serif
+        font: 700 16px/20px 'roboto', sans-serif
     }
 
     .pl__content .block .col .title .name:before {
@@ -12207,7 +12207,7 @@ a.pickup-stores__item .desc {
 
     .pl__content .block .col .list .line span {
         max-width: 145px;
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .pl__subscribe {
@@ -12215,7 +12215,7 @@ a.pickup-stores__item .desc {
     }
 
     .pl__subscribe .form .name {
-        font: 700 16px/20px 'Fira Sans', sans-serif
+        font: 700 16px/20px 'roboto', sans-serif
     }
 }
 
@@ -12249,7 +12249,7 @@ a.pickup-stores__item .desc {
     }
 
     .pl__subscribe .form .name {
-        font: 700 18px/20px 'Fira Sans', sans-serif
+        font: 700 18px/20px 'roboto', sans-serif
     }
 
     .pl__subscribe .form .name br {
@@ -12266,7 +12266,7 @@ a.pickup-stores__item .desc {
         right: auto;
         left: 0;
         top: 65px;
-        font: 400 16px/20px 'Fira Sans', sans-serif
+        font: 400 16px/20px 'roboto', sans-serif
     }
 
     .pl__content .block .col {
@@ -12294,7 +12294,7 @@ a.pickup-stores__item .desc {
     }
 
     .pl__subscribe .form .name {
-        font: 700 18px/20px 'Fira Sans', sans-serif
+        font: 700 18px/20px 'roboto', sans-serif
     }
 
     .pl__subscribe .form .name br {
@@ -12316,7 +12316,7 @@ a.pickup-stores__item .desc {
     display: inline-block;
     margin-left: 20px;
     border: 0;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-decoration: none;
     color: #0358a6
 }
@@ -12360,7 +12360,7 @@ a.pickup-stores__item .desc {
     background: #f4f6f8;
     border: 1px solid #cdd2d6;
     border-right: 0;
-    font: 400 18px/20px 'Fira Sans', sans-serif;
+    font: 400 18px/20px 'roboto', sans-serif;
     text-decoration: none;
     text-align: center;
     color: #0358a6
@@ -12420,7 +12420,7 @@ a.pickup-stores__item .desc {
     position: relative;
     display: block;
     margin-bottom: 20px;
-    font: 400 18px/20px 'Fira Sans', sans-serif;
+    font: 400 18px/20px 'roboto', sans-serif;
     text-decoration: none;
     border-bottom: 0;
     text-align: left;
@@ -12468,7 +12468,7 @@ a.pickup-stores__item .desc {
 .co__tabs .t-content .tab .col-text .txt {
     position: relative;
     margin-bottom: 15px;
-    font: 400 18px/20px 'Fira Sans', sans-serif;
+    font: 400 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12510,7 +12510,7 @@ a.pickup-stores__item .desc {
 .co__tabs .t-content .tab .col-text .tit {
     position: relative;
     margin-bottom: 30px;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12552,7 +12552,7 @@ a.pickup-stores__item .desc {
 
 .co__tabs .t-content .tab .col-text .time span {
     display: block;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12636,21 +12636,21 @@ a.pickup-stores__item .desc {
 
 .co__heads .rh-col .lvl {
     padding-top: 30px;
-    font: italic 14px/20px 'Fira Sans', sans-serif;
+    font: italic 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
 
 .co__heads .rh-col .name {
     padding-top: 20px;
-    font: 500 18px/20px 'Fira Sans', sans-serif;
+    font: 500 18px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
 
 .co__heads .rh-col .phone {
     padding-top: 20px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12661,7 +12661,7 @@ a.pickup-stores__item .desc {
 
 .co__heads .rh-col .mail {
     padding-top: 10px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -12679,7 +12679,7 @@ a.pickup-stores__item .desc {
 
 @media screen and (max-width: 1319px) {
     .co__tabs .t-list a span {
-        font: 400 16px/20px 'Fira Sans', sans-serif
+        font: 400 16px/20px 'roboto', sans-serif
     }
 
     .co__tabs .t-content {
@@ -12735,7 +12735,7 @@ a.pickup-stores__item .desc {
 
 @media screen and (max-width: 1019px) {
     .co__tabs .t-list a span {
-        font: 400 16px/20px 'Fira Sans', sans-serif
+        font: 400 16px/20px 'roboto', sans-serif
     }
 
     .co__tabs .t-content .tab .col-text {
@@ -12926,7 +12926,7 @@ a.pickup-stores__item .desc {
         vertical-align: middle;
         background: #FFF;
         border-bottom: 1px solid #cdd2d6;
-        font: 500 16px/20px 'Fira Sans', sans-serif;
+        font: 500 16px/20px 'roboto', sans-serif;
         text-align: center
     }
 
@@ -12945,11 +12945,11 @@ a.pickup-stores__item .desc {
     }
 
     .co__tabs .t-content .tab .col-text .txt {
-        font: 400 14px/20px 'Fira Sans', sans-serif
+        font: 400 14px/20px 'roboto', sans-serif
     }
 
     .co__tabs .t-content .tab .col-text .txt.locate {
-        font: 400 16px/20px 'Fira Sans', sans-serif;
+        font: 400 16px/20px 'roboto', sans-serif;
         margin-left: 60px;
         margin-bottom: 20px;
         padding-right: 20px
@@ -12974,11 +12974,11 @@ a.pickup-stores__item .desc {
     }
 
     .co__tabs .t-content .tab .col-text .time span {
-        font: 400 12px/20px 'Fira Sans', sans-serif
+        font: 400 12px/20px 'roboto', sans-serif
     }
 
     .co__tabs .t-content .tab .col-text a {
-        font: 400 14px/20px 'Fira Sans', sans-serif
+        font: 400 14px/20px 'roboto', sans-serif
     }
 
     .co__tabs .t-content .tab .col-text a.dlmap {
@@ -13019,7 +13019,7 @@ a.pickup-stores__item .desc {
     display: inline-block;
     margin-left: 20px;
     border-bottom: 1px solid #81b1dd;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-decoration: none;
     color: #0464bb
 }
@@ -13058,7 +13058,7 @@ a.pickup-stores__item .desc {
     float: left;
     width: 240px;
     padding-left: 115px;
-    font: 400 24px/30px 'Fira Sans', sans-serif;
+    font: 400 24px/30px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -13132,18 +13132,18 @@ a.pickup-stores__item .desc {
 
 .sh__text .cars .car .txt .model {
     margin-top: 55px;
-    font: 400 18px/20px 'Fira Sans', sans-serif;
+    font: 400 18px/20px 'roboto', sans-serif;
     text-transform: uppercase
 }
 
 .sh__text .cars .car .txt .cost {
     margin-top: 12px;
-    font: 400 12px/14px 'Fira Sans', sans-serif
+    font: 400 12px/14px 'roboto', sans-serif
 }
 
 .sh__text .cars .car .txt .cost span {
     display: block;
-    font: 700 24px/26px 'Fira Sans', sans-serif
+    font: 700 24px/26px 'roboto', sans-serif
 }
 
 .sh__visual {
@@ -13162,14 +13162,14 @@ a.pickup-stores__item .desc {
     width: 110px;
     height: 100%;
     padding-left: 30px;
-    font: 400 14px/18px 'Fira Sans', sans-serif;
+    font: 400 14px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
 
 .sh__visual .area_cost .area span {
     display: block;
-    font: 700 24px/26px 'Fira Sans', sans-serif
+    font: 700 24px/26px 'roboto', sans-serif
 }
 
 .sh__visual .area_cost .area:before {
@@ -13234,7 +13234,7 @@ a.pickup-stores__item .desc {
     .sh__text .type .shipby {
         width: 50%;
         padding-left: 100px;
-        font: 400 20px/24px 'Fira Sans', sans-serif
+        font: 400 20px/24px 'roboto', sans-serif
     }
 
     .sh__text .type .shipby.self:before {
@@ -13273,16 +13273,16 @@ a.pickup-stores__item .desc {
 
     .sh__text .cars .car .txt .model {
         margin-top: 90px;
-        font: 500 32px/34px 'Fira Sans', sans-serif
+        font: 500 32px/34px 'roboto', sans-serif
     }
 
     .sh__text .cars .car .txt .cost {
         margin-top: 0;
-        font: 400 16px/18px 'Fira Sans', sans-serif
+        font: 400 16px/18px 'roboto', sans-serif
     }
 
     .sh__text .cars .car .txt .cost span {
-        font: 700 34px/38px 'Fira Sans', sans-serif
+        font: 700 34px/38px 'roboto', sans-serif
     }
 
     .sh__visual .area_cost .area {
@@ -13291,7 +13291,7 @@ a.pickup-stores__item .desc {
     }
 
     .sh__visual .area_cost .area span {
-        font: 700 20px/24px 'Fira Sans', sans-serif
+        font: 700 20px/24px 'roboto', sans-serif
     }
 
     .sh__visual .area_cost .area:before {
@@ -13327,7 +13327,7 @@ a.pickup-stores__item .desc {
 
     .sh__text .cars .car .txt .model {
         margin-top: 50px;
-        font: 500 24px/28px 'Fira Sans', sans-serif
+        font: 500 24px/28px 'roboto', sans-serif
     }
 
     .sh__visual {
@@ -13370,7 +13370,7 @@ a.pickup-stores__item .desc {
     .sh__text .type .shipby {
         width: 100%;
         padding-left: 100px;
-        font: 400 18px/24px 'Fira Sans', sans-serif
+        font: 400 18px/24px 'roboto', sans-serif
     }
 
     .sh__text .type .shipby br {
@@ -13407,15 +13407,15 @@ a.pickup-stores__item .desc {
 
     .sh__text .cars .car .txt .model {
         margin-top: 15px;
-        font: 500 14px/18px 'Fira Sans', sans-serif
+        font: 500 14px/18px 'roboto', sans-serif
     }
 
     .sh__text .cars .car .txt .cost {
-        font: 400 14px/18px 'Fira Sans', sans-serif
+        font: 400 14px/18px 'roboto', sans-serif
     }
 
     .sh__text .cars .car .txt .cost span {
-        font: 700 18px/20px 'Fira Sans', sans-serif
+        font: 700 18px/20px 'roboto', sans-serif
     }
 
     .sh__visual {
@@ -13429,7 +13429,7 @@ a.pickup-stores__item .desc {
     }
 
     .sh__visual .area_cost .area span {
-        font: 700 15px/24px 'Fira Sans', sans-serif
+        font: 700 15px/24px 'roboto', sans-serif
     }
 
     .sh__visual .area_cost .area:before {
@@ -13452,7 +13452,7 @@ a.pickup-stores__item .desc {
 .pm__types .type .title {
     position: relative;
     padding: 45px 0 0 150px;
-    font: 700 18px/20px 'Fira Sans', sans-serif;
+    font: 700 18px/20px 'roboto', sans-serif;
     text-transform: uppercase;
     text-align: left;
     color: #333
@@ -13467,7 +13467,7 @@ a.pickup-stores__item .desc {
 .pm__types .type .txt {
     position: relative;
     padding: 40px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -13608,7 +13608,7 @@ a.pickup-stores__item .desc {
 
 @media screen and (max-width: 659px) {
     p.intro.pay {
-        font: 400 16px/22px 'Fira Sans', sans-serif
+        font: 400 16px/22px 'roboto', sans-serif
     }
 
     .pm__types .type:first-child {
@@ -13672,7 +13672,7 @@ a.pickup-stores__item .desc {
     position: absolute;
     top: 0;
     left: 0;
-    font: 500 16px/50px 'Fira Sans', sans-serif;
+    font: 500 16px/50px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -13693,7 +13693,7 @@ a.pickup-stores__item .desc {
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 15px 20px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333;
     transition: border-color .2s
@@ -13719,7 +13719,7 @@ a.pickup-stores__item .desc {
 
 .rq__form .line.textarea span {
     top: -30px;
-    font: 500 16px/30px 'Fira Sans', sans-serif
+    font: 500 16px/30px 'roboto', sans-serif
 }
 
 .rq__form .line.textarea textarea {
@@ -13730,7 +13730,7 @@ a.pickup-stores__item .desc {
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 15px 20px;
-    font: 400 16px/18px 'Fira Sans', sans-serif;
+    font: 400 16px/18px 'roboto', sans-serif;
     text-align: left;
     color: #333;
     transition: border-color .2s
@@ -13744,13 +13744,13 @@ a.pickup-stores__item .desc {
     display: inline-block;
     margin-top: 35px;
     border-bottom: 0;
-    font: 500 16px/20px 'Fira Sans', sans-serif;
+    font: 500 16px/20px 'roboto', sans-serif;
     text-align: left;
     color: #0053a6
 }
 
 .rq__form .attach span {
-    font: italic 14px/20px 'Fira Sans', sans-serif;
+    font: italic 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #808080
 }
@@ -13764,7 +13764,7 @@ a.pickup-stores__item .desc {
     background: #0060bf;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    font: 400 24px/60px 'Fira Sans', sans-serif;
+    font: 400 24px/60px 'roboto', sans-serif;
     text-align: center;
     color: #FFF
 }
@@ -13782,7 +13782,7 @@ a.pickup-stores__item .desc {
 
 .rq__list .title {
     margin-bottom: 55px;
-    font: 400 14px/20px 'Fira Sans', sans-serif;
+    font: 400 14px/20px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
@@ -13937,7 +13937,7 @@ a.pickup-stores__item .desc {
     }
 
     .rq__form .line span {
-        font: 500 14px/40px 'Fira Sans', sans-serif
+        font: 500 14px/40px 'roboto', sans-serif
     }
 
     .rq__form .line span.txt_ct {
@@ -13968,12 +13968,12 @@ a.pickup-stores__item .desc {
     }
 
     .rq__form .line.textarea span {
-        font: 500 14px/30px 'Fira Sans', sans-serif
+        font: 500 14px/30px 'roboto', sans-serif
     }
 
     .rq__form .line.textarea textarea {
         padding: 15px 15px;
-        font: 400 14px/18px 'Fira Sans', sans-serif
+        font: 400 14px/18px 'roboto', sans-serif
     }
 
     .rq__form .attach {
@@ -13983,7 +13983,7 @@ a.pickup-stores__item .desc {
     .rq__form .send {
         width: 100%;
         height: 50px;
-        font: 400 18px/50px 'Fira Sans', sans-serif
+        font: 400 18px/50px 'roboto', sans-serif
     }
 
     .rq__list .title {
@@ -14568,7 +14568,7 @@ a.pickup-stores__item .desc {
 
 .h1 {
     margin: 0 0 30px 0;
-    font: 500 24px/28px 'Fira Sans', sans-serif;
+    font: 500 24px/28px 'roboto', sans-serif;
     text-align: left;
     color: #333
 }
