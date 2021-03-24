@@ -37,7 +37,7 @@ use Bitrix\Main\ModuleManager;
                 $arCurSection = array();
                 if (Loader::includeModule("iblock"))
                 {
-                    $dbRes = CIBlockSection::GetList(array(), $arFilter, false, array("ID", "UF_HIDDEN_SUBSECTION", "UF_FILTER_CATALOG_M"));
+                    $dbRes = CIBlockSection::GetList(array(), $arFilter, false, array("ID", "UF_HIDDEN_SUBSECTION", "UF_TAG_MENU"));
 
                     if(defined("BX_COMP_MANAGED_CACHE"))
                     {
@@ -117,41 +117,6 @@ use Bitrix\Main\ModuleManager;
         <?endif?>
 
         <?
-        $filterMenu = [];
-        if($arCurSection['UF_FILTER_CATALOG_M']){
-            $arSelect = Array("ID", "IBLOCK_ID", "NAME", "CODE", "PREVIEW_PICTURE", "PROPERTY_*");
-            $arFilter = Array("IBLOCK_ID" => 31, "ID" => $arCurSection['UF_FILTER_CATALOG_M'], "ACTIVE" => "Y");
-            $res = CIBlockElement::GetList(Array(), $arFilter, false, false, $arSelect);
-            while($ob = $res->GetNextElement())
-            {
-                $arFields = $ob->GetFields();
-                $arProps = $ob->GetProperties();
-
-                $filterMenu[$arFields['ID']] = $arFields;
-                $filterMenu[$arFields['ID']]['PREVIEW_PICTURE'] = CFile::GetPath($arFields['PREVIEW_PICTURE']);
-                $filterMenu[$arFields['ID']]['PROP'] = $arProps;
-            }
-        }
-        ?>
-
-        <div class="product_top">
-            <? if(count($filterMenu) > 0): ?>
-                <div class="filter_top" style="padding: 10px;">
-                    <div class="body_f">
-                        <? foreach($filterMenu as $arItem):?>
-                            <div class="item_f">
-                                <div class="name_f" style="color: #333;font: 700 14px/20px 'Fira Sans', sans-serif;"><?=$arItem['PROP']['TITLE']['VALUE']?></div>
-                                <? foreach ($arItem['PROP']['PARAM']['VALUE'] as $desc => $val):?>
-                                    <a href="<?=$arItem['PROP']['PARAM']['DESCRIPTION'][$desc]?>" style="line-height: 30px;"><?=$val?></a>
-                                <? endforeach; ?>
-                            </div>
-                        <? endforeach; ?>
-                    </div>
-                </div>
-            <? endif; ?>
-        </div>
-
-        <?
         $APPLICATION->IncludeComponent(
             "bitrix:catalog.section.list",
             "catalog-menu",
@@ -183,11 +148,19 @@ use Bitrix\Main\ModuleManager;
             false
         );?>
 
-
         <div class="cat pricel">
             <a href="/price/" class="name"><div class="cube"><span></span><span></span></div>Прайс-листы</a>
         </div>
 
+        <? if($arCurSection['UF_TAG_MENU']): ?>
+        <div class="tag_menu">
+            <? foreach ($arCurSection['UF_TAG_MENU'] as $tag):
+                $t = explode(';', $tag, 2);
+                ?>
+            <a href="<?=$t[1]?>"><?=$t[0]?></a>
+            <? endforeach; ?>
+        </div>
+        <? endif; ?>
     </div>
 
     <div class="ct__content">

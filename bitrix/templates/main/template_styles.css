@@ -4280,6 +4280,14 @@ header .header__bottom.fixed .header__account
     margin-top: 10px;
 }
 
+.ct__leftbar .tag_menu a {
+    border: 1px solid #0060bf;
+    display: block;
+    margin-top: 10px;
+    padding: 7px 15px;
+    font-size: 13px;
+}
+
 .ct__leftbar .cat {
     margin: 20px 0
 }
