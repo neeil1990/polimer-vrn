@@ -64,14 +64,12 @@ $this->setFrameMode(true);
 								<? foreach($arItem['ING_TIME_W']['VALUE'] as $v):?>
 								<span><?=$v?></span>
 								<? endforeach; ?>
-
 							</div>
 							<? endif;?>
 						</div>
-
 						<div class="block-cont right">
 							<? if(empty($arItem['DEL_CATEGORY']['VALUE'])): ?>
-							<div class="tit stroma">Строительные<br>материалы</div>
+							<div class="tit stroma">Строительные<br>материалы, ворота<br>автоматика, рольставни</div>
 							<? endif;?>
 							<? if($arItem['STR_PHONE']['VALUE']): ?>
 							<div class="txt phone"><?=$arItem['STR_PHONE']['VALUE']?></div>
