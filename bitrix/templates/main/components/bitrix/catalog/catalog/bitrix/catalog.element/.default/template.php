@@ -118,7 +118,7 @@ $this->setFrameMode(true);
                       <? endforeach; ?>
 
                        <? if($arResult['WHOLESALE']): ?>
-                           <div class="price-old"><span><?=$arResult['WHOLESALE']['PRICE']?></span> &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                           <div class="price-old"><span><?=$arResult['WHOLESALE']['PRICE']?></span></div>
                             <? if($arResult['WHOLESALE']['PERCENT']): ?>
                                 <div class="sale-y"><span>- <?=$arResult['WHOLESALE']['PERCENT'];?>%</span></div>
                             <? endif; ?>
