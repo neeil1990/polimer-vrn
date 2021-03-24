@@ -112,7 +112,7 @@ $this->setFrameMode(true);
                       <? foreach($arResult['ITEM_PRICES'] as $name => $price):?>
                           <div class="price-new"><span><?=str_replace("&#8381;","",$price['PRINT_PRICE'])?></span>  &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
                         <?if($price['PERCENT']):?>
-                          <div class="price-old"><span><?=$price['BASE_PRICE']?></span> &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                          <div class="price-old"><span><?=$price['BASE_PRICE']?> &#8381;</span></div>
                         <? endif; ?>
 
                       <? endforeach; ?>
