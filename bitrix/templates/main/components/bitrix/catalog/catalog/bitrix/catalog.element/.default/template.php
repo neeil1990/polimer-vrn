@@ -117,6 +117,10 @@ $this->setFrameMode(true);
 
                       <? endforeach; ?>
 
+                       <? if($arResult['WHOLESALE_PRICE']): ?>
+                           <div class="price-old"><span><?=$arResult['WHOLESALE_PRICE']?></span> &#8381;/<?=$arResult['PROPERTIES']['CML2_BASE_UNIT']['VALUE'];?></div>
+                       <? endif; ?>
+
                        <? foreach($arResult['ITEM_PRICES'] as $name => $price):
                            if(!$price['PERCENT'])
                                continue;

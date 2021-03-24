@@ -674,7 +674,12 @@ if (CModule::IncludeModule("parnas.khayrcomment")){
 	$arResult['RATING']['STARS'] = round($arResult['RATING']['TOTAL']/$arResult['RATING']['COUNT'],1);
 }
 
-
+global $USER;
+$arGroups = $USER->GetUserGroupArray();
+if (in_array("9", $arGroups)) {
+	$ar_price = CPrice::GetBasePrice($arResult['ID']);
+	$arResult['WHOLESALE_PRICE'] = CurrencyFormat($ar_price["PRICE"], $ar_price["CURRENCY"]);
+}
 ?>
 
 
