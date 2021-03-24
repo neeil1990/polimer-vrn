@@ -9882,7 +9882,7 @@ a.pickup-stores__item .desc {
     font: 500 16px/20px 'roboto', sans-serif;
     vertical-align: super;
     background: #FDD302;
-    padding: 5px;
+    padding: 5px 0;
 }
 
 .pc__buy-block .bb_row .price .sale-y::before{
