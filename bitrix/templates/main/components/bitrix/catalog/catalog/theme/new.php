@@ -153,7 +153,7 @@ use Bitrix\Main\ModuleManager;
         </div>
 
         <? if($arCurSection['UF_TAG_MENU']): ?>
-        <div class="tag_menu">
+        <div class="cat tag_menu">
             <? foreach ($arCurSection['UF_TAG_MENU'] as $tag):
                 $t = explode(';', $tag, 2);
                 ?>

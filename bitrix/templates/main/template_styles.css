@@ -5775,6 +5775,14 @@ header .header__bottom.fixed .header__account
         top: 30px
     }
 
+    .ct__leftbar.active .cat{
+        display: none;
+    }
+
+    .ct__leftbar.active .filter{
+        display: block;
+    }
+
     .ct__content.active {
         visibility: hidden;
         right: unset;
@@ -5813,15 +5821,6 @@ header .header__bottom.fixed .header__account
         border-radius: 0;
         font: 400 12px/30px 'roboto', sans-serif;
         border-right: 1px solid #FFF
-    }
-
-    .products_roll .pr_header .filter.change {
-        z-index: 2;
-        top: -935px;
-        left: 110px;
-        -webkit-border-radius: 5px;
-        border-radius: 5px;
-        visibility: visible;
     }
 
     .products_roll .pr_header .sort {
