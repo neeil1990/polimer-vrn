@@ -5816,7 +5816,7 @@ header .header__bottom.fixed .header__account
 
     .products_roll .pr_header .filter.change {
         z-index: 2;
-        top: -925px;
+        top: -935px;
         left: -450px;
         -webkit-border-radius: 5px;
         border-radius: 5px
