@@ -9668,7 +9668,9 @@ a.pickup-stores__item .desc {
     }
 
     .product_top .filter_top .body_f .item_f a{
-        line-height: 30px;
+        line-height: 16px;
+        display: inline-block;
+        margin-bottom: 5px;
     }
 }
 
