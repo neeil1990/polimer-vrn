@@ -5739,10 +5739,6 @@ header .header__bottom.fixed .header__account
         display: none
     }
 
-    .products_roll .pr_header .filter.change {
-        z-index: 2
-    }
-
     .products_roll .pr_header .filter.change span:nth-child(1) {
         display: none
     }
