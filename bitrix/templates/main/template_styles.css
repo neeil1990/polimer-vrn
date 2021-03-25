@@ -5816,8 +5816,8 @@ header .header__bottom.fixed .header__account
 
     .products_roll .pr_header .filter.change {
         z-index: 2;
-        top: -68px;
-        left: -560px;
+        top: -925px;
+        left: -450px;
         -webkit-border-radius: 5px;
         border-radius: 5px
     }
@@ -9137,7 +9137,7 @@ a.pickup-stores__item .desc {
 
     .or__content.s3 .payment_types .type {
         width: 130px;
-        height: 130px;
+        height: 150px;
         padding-top: 80px;
         font: 700 12px/16px 'roboto', sans-serif
     }
@@ -9557,7 +9557,7 @@ a.pickup-stores__item .desc {
 
     .or__content.s4 .confirm .block {
         padding-bottom: 30px;
-        margin-bottom: 30px
+        margin-bottom: 30px;
     }
 
     .or__content.s4 .confirm .block .title {
@@ -9636,7 +9636,45 @@ a.pickup-stores__item .desc {
         top: auto;
         bottom: 0
     }
+
+    .or__content.s4 .confirm .purchase_data{
+        overflow:scroll;
+    }
+
+    .or__content.s4 .confirm .purchase_data .line{
+        padding: 0;
+    }
+
+    .or__content.s4 .confirm .purchase_data .line .name{
+        position: unset;
+    }
+
+    .order-successful{
+        margin: 10px auto;
+    }
+
+    .order-successful td{
+        display: block;
+    }
+
+    .breadcrumbs{
+        padding: 0 0;
+    }
+
+    .product_top .filter_top .body_f .item_f .name_f{
+        display: block;
+        margin-bottom: 5px;
+        text-align: justify;
+    }
+
+    .product_top .filter_top .body_f .item_f a{
+        line-height: 30px;
+    }
 }
+
+.order-successful .t1{ width: 60%; }
+.order-successful .t2{ width: 5%; }
+.order-successful .t3{ width: 35%; }
 
 .prod_card {
     padding: 30px 0 50px
@@ -10878,8 +10916,12 @@ a.pickup-stores__item .desc {
         text-align: center;
     }
 
-    .pc__prod-info {
+    .pc__prod-info .bb_col{
 
+    }
+
+    .pc__prod-info .bb_col span a{
+        border: none;
     }
 
     .pc__buy-block .bb_info{

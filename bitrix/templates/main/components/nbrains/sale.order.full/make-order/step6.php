@@ -1,7 +1,7 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
-<table>
+<table class="order-successful">
 <tr>
-	<td valign="top" width="60%">
+	<td valign="top t1" width="">
 		<?
 		if (!empty($arResult["ORDER"]))
 		{
@@ -90,8 +90,8 @@
 		}
 		?>
 	</td>
-	<td valign="top" width="5%">&nbsp;</td>
-	<td valign="top" width="35%">
+	<td valign="top t2" width="">&nbsp;</td>
+	<td valign="top t3" width="">
 		<?= str_replace("#LINK#", $arParams["PATH_TO_PERSONAL"], GetMessage("STOF_ORDER_VIEW")) ?><br /><br />
 		<?= str_replace("#LINK#", $arParams["PATH_TO_PERSONAL"], GetMessage("STOF_ANNUL_NOTES")) ?><br /><br />
 		<?= str_replace("#ORDER_ID#", $arResult["ORDER_ID"], GetMessage("STOF_ORDER_ID_NOTES")) ?>
