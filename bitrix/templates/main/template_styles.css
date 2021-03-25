@@ -5677,7 +5677,7 @@ header .header__bottom.fixed .header__account
     }
 
     .ct__content.active {
-        visibility: hidden;
+        right: -320px
     }
 
     .ct__mask {
@@ -5740,8 +5740,7 @@ header .header__bottom.fixed .header__account
     }
 
     .products_roll .pr_header .filter.change {
-        z-index: 2;
-        visibility: visible;
+        z-index: 2
     }
 
     .products_roll .pr_header .filter.change span:nth-child(1) {
@@ -5774,6 +5773,11 @@ header .header__bottom.fixed .header__account
 
     .ct__leftbar.active {
         top: 30px
+    }
+
+    .ct__content.active {
+        visibility: hidden;
+        right: unset;
     }
 
     .product_top .catalog_top .item_c{
@@ -5816,7 +5820,8 @@ header .header__bottom.fixed .header__account
         top: -935px;
         left: 110px;
         -webkit-border-radius: 5px;
-        border-radius: 5px
+        border-radius: 5px;
+        visibility: visible;
     }
 
     .products_roll .pr_header .sort {
