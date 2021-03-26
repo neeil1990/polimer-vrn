@@ -14069,6 +14069,30 @@ a.pickup-stores__item .desc {
         top: 0;
         left: 0
     }
+
+    .form_login .login_enter{
+        width: 100%;
+    }
+
+    .or__content.s1 .column .back2enter{
+        display: none;
+    }
+
+    .or__content.s1 .column:nth-child(2){
+        width: 100%;
+    }
+
+    .or__content.s1 .column .form_registration .line.pass_rep{
+        height: auto;
+    }
+
+    .or__content.s1 .column .form_registration .line.pass_rep input[type=password].pass{
+        position: unset;
+        display: block;
+        width: 100%;
+        height: 40px;
+    }
+
 }
 
 .sale-list__item {
