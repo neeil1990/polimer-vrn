@@ -3597,7 +3597,8 @@ header .header__bottom.fixed .header__account
     }
 
     .at__blue-line {
-        padding: 35px 50px
+        padding: 35px 50px;
+        margin: -20px;
     }
 
     .at__blue-line .title {
@@ -3616,7 +3617,7 @@ header .header__bottom.fixed .header__account
     }
 
     .at__blue-line .block-blue .col-blue:nth-child(2) {
-        padding-left: 35px
+        padding-left: 0px
     }
 
     .at__blue-line .block-blue .col-blue:nth-child(2):before {
@@ -3653,6 +3654,14 @@ header .header__bottom.fixed .header__account
 
     .at__block-req .col-req .requisites {
         padding: 30px 35px 30px
+    }
+
+    .ns__paginator{
+        margin-bottom: 15px;
+    }
+
+    .articles-list__item{
+        margin: 0 0 30px 0;
     }
 }
 
@@ -14183,11 +14192,15 @@ a.pickup-stores__item .desc {
     }
 
     .articles-list__item .pic {
-        display: none;
+        float: none;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
     }
 
     .articles-list__item .name {
-        font-size: inherit
+        font-size: inherit;
+        text-align: center;
     }
 }
 
