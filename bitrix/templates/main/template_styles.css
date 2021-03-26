@@ -3658,6 +3658,7 @@ header .header__bottom.fixed .header__account
 
     .ns__paginator{
         margin-bottom: 15px;
+        padding: 0 10px;
     }
 
     .articles-list__item{
