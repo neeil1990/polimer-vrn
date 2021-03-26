@@ -5771,7 +5771,7 @@ header .header__bottom.fixed .header__account
         top: 30px
     }
 
-    .ct__leftbar.active .cat{
+    .ct__leftbar .cat{
         display: none;
     }
 
