@@ -13976,7 +13976,16 @@ a.pickup-stores__item .desc {
     }
 }
 
+.cat.filter.m-close.products_roll{
+    display: none;
+}
+
 @media screen and (max-width: 659px) {
+
+    .cat.filter.m-close.products_roll{
+        display: block;
+    }
+
     .rq__form .line {
         height: 40px
     }

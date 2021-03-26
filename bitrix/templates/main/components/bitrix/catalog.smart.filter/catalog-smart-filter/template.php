@@ -647,3 +647,11 @@ $this->addExternalCss("/bitrix/css/main/font-awesome.css");
 <script>
 	var smartFilter = new JCSmartFilter('<?echo CUtil::JSEscape($arResult["FORM_ACTION"])?>', '<?=CUtil::JSEscape($arParams["FILTER_VIEW_MODE"])?>', <?=CUtil::PhpToJSObject($arResult["JS_FILTER_PARAMS"])?>);
 </script>
+
+<div class="cat filter m-close products_roll">
+    <div class="pr_header cl">
+        <a href="#" class="filter" onclick="return false" style="border-radius: 5px;width: 100%;">
+            <span>Закрыть</span>
+        </a>
+    </div>
+</div>
