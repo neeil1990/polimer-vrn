@@ -3160,6 +3160,17 @@ header .header__bottom.fixed .header__account
     background-size: 100%
 }
 
+.at__block-about .col-about .block-maingroup .col-maig .title.voa:before {
+    top: 0;
+    left: 2px;
+    width: 89px;
+    height: 59px;
+    background: url('img/category_3.png') no-repeat;
+    -webkit-background-size: 100%;
+    -o-background-size: 100%;
+    background-size: 100%
+}
+
 .at__block-about .col-about .block-maingroup .col-maig .txt {
     margin-top: 30px;
     font: 400 14px/20px 'roboto', sans-serif;
