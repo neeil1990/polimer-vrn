@@ -85,9 +85,9 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 			<a href="#" class="category__show">Показать ещё категории</a>
 		</div><!-- end: tabitem -->
 		<? endforeach; ?>
-      	
+
 		<!-- <div class="tabitem"></div> -->
-		
+
 		<!-- end: tabitem -->
    	</div><!-- end: tablist_content -->
 </div><!--end::mp__categories-->
@@ -224,9 +224,9 @@ $APPLICATION->SetTitle("«Полимер» — главная страница 
 		<div class="tab_item">
 			<div class="slider_product" id="mp__product__new">
 				<?
-				$arSelect = Array("ID","IBLOCK_ID", "NAME", "DETAIL_PAGE_URL","PREVIEW_PICTURE","PROPERTY_SALE","PROPERTY_CML2_BASE_UNIT");
+				$arSelect = Array("ID","IBLOCK_ID", "NAME", "TIMESTAMP_X", "DETAIL_PAGE_URL","PREVIEW_PICTURE","PROPERTY_SALE","PROPERTY_CML2_BASE_UNIT");
 				$arFilter = array('IBLOCK_ID' => 21, 'ACTIVE' => 'Y','>=TIMESTAMP_X' => date($DB->DateFormatToPHP(CLang::GetDateFormat("SHORT")), strtotime('-30 day')));
-				$res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize" => 10), $arSelect);
+				$res = CIBlockElement::GetList(Array('TIMESTAMP_X' => 'desc', 'id' => 'asc'), $arFilter, false, Array("nPageSize" => 10), $arSelect);
 				while($ob = $res->GetNextElement()):
 					$arFields = $ob->GetFields();
 					$arProps = $ob->GetProperties();
