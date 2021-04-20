@@ -1,11 +1,25 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetTitle("1");
+
+if(empty($_REQUEST['ORDER_ID'])){
+
+	$basket = Bitrix\Sale\Basket::loadItemsForFUser(Bitrix\Sale\Fuser::getId(), Bitrix\Main\Context::getCurrent()->getSite());
+	$context = new \Bitrix\Sale\Discount\Context\Fuser($basket->getFUserId());
+	$discounts = \Bitrix\Sale\Discount::buildFromBasket($basket, $context);
+	$r = $discounts->calculate();
+	if ($r->isSuccess())
+	{
+		$result = $r->getData();
+	}
+}
 ?>
+
 <? $APPLICATION->IncludeComponent(
-	"nbrains:sale.order.full", 
-	"make-order", 
+	"nbrains:sale.order.full",
+	"make-order",
 	array(
+		"DISCOUNT_PRICE_D7" => $result['BASKET_ITEMS'],
 		"ALLOW_PAY_FROM_ACCOUNT" => "Y",
 		"CITY_OUT_LOCATION" => "Y",
 		"COUNT_DELIVERY_TAX" => "N",
