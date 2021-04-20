@@ -256,20 +256,10 @@ if ($this->startResultCache())
 			{
 				if (!empty($userField) && !empty($prop[$userField]))
 				{
-					ob_start();
-					$APPLICATION->IncludeComponent(
-						"bitrix:system.field.view",
-						$userFields[$userField]["USER_TYPE_ID"],
-						array("arUserField" => array_merge($userFields[$userField], array('VALUE' => $prop[$userField]))),
-						null,
-						array("HIDE_ICONS"=>"Y")
-					);
-
-					$storeInformation["USER_FIELDS"][$userField] = array(
-						'CONTENT'   => ob_get_contents(),
-						'TITLE'     => (strlen($userFields[$userField]['LIST_COLUMN_LABEL']) > 0) ? $userFields[$userField]['LIST_COLUMN_LABEL'] : $userField
-					);
-					ob_end_clean();
+                    $storeInformation["USER_FIELDS"][$userField] = array(
+                        'VALUE'   => unserialize(html_entity_decode($prop[$userField])),
+                        'TITLE'     => (strlen($userFields[$userField]['LIST_COLUMN_LABEL']) > 0) ? $userFields[$userField]['LIST_COLUMN_LABEL'] : $userField
+                    );
 				}
 			}
 
