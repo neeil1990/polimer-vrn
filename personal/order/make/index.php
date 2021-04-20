@@ -2,7 +2,7 @@
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetTitle("1");
 
-if(empty($_REQUEST['ORDER_ID'])){
+if($_REQUEST['CurrentStep'] == "5" && empty($_REQUEST['ORDER_ID'])){
 
 	$basket = Bitrix\Sale\Basket::loadItemsForFUser(Bitrix\Sale\Fuser::getId(), Bitrix\Main\Context::getCurrent()->getSite());
 	$context = new \Bitrix\Sale\Discount\Context\Fuser($basket->getFUserId());
