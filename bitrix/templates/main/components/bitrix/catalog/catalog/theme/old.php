@@ -118,7 +118,7 @@ $sectionID = $APPLICATION->IncludeComponent(
                     1 => 'UF_FILTER_CATALOG',
                 ),
                 'TEMPLATE_THEME' => (isset($arParams['TEMPLATE_THEME']) ? $arParams['TEMPLATE_THEME'] : ''),
-                "ADD_SECTIONS_CHAIN" => (isset($arParams["ADD_SECTIONS_CHAIN"]) ? $arParams["ADD_SECTIONS_CHAIN"] : ''),
+                "ADD_SECTIONS_CHAIN" => "N",
                 'ADD_TO_BASKET_ACTION' => $basketAction,
                 'SHOW_CLOSE_POPUP' => isset($arParams['COMMON_SHOW_CLOSE_POPUP']) ? $arParams['COMMON_SHOW_CLOSE_POPUP'] : '',
                 'COMPARE_PATH' => $arResult['FOLDER'].$arResult['URL_TEMPLATES']['compare'],
