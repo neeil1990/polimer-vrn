@@ -27,8 +27,8 @@ if(
 ?>
 
 <?$APPLICATION->IncludeComponent(
-	"bitrix:catalog", 
-	"catalog", 
+	"bitrix:catalog",
+	"catalog",
 	array(
 		"ACTION_VARIABLE" => "action",
 		"ADD_ELEMENT_CHAIN" => "Y",
@@ -667,6 +667,7 @@ if(
 		"PRICE_CODE" => array(
 			0 => "РОЗНИЦА",
 			1 => "КРУПНЫЙ_ОПТ",
+			2 => "СПЕЦЦЕНА",
 		),
 		"PRICE_VAT_INCLUDE" => "Y",
 		"PRICE_VAT_SHOW_VALUE" => "N",

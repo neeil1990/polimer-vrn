@@ -676,7 +676,7 @@ if (CModule::IncludeModule("parnas.khayrcomment")){
 
 global $USER;
 $arGroups = $USER->GetUserGroupArray();
-if (in_array("9", $arGroups)) {
+if (in_array("9", $arGroups) || in_array("10", $arGroups)) {
 	$ar_price = CPrice::GetBasePrice($arResult['ID']);
 	$arResult['WHOLESALE']['PRICE'] = CurrencyFormat($ar_price["PRICE"], $ar_price["CURRENCY"]);
 	$arResult['WHOLESALE']['PERCENT'] = round(((float)$ar_price["PRICE"] / (float)$arResult['ITEM_PRICES'][0]['PRICE'] - 1) * 100);
