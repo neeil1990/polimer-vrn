@@ -50,7 +50,7 @@ $APPLICATION->SetTitle("О компании");
 			</div>
 		</div>
 		<div class="at__locate">
-			Весь ассортимент товаров имеется в наличии на главном складе по адресу <a href="https://polimer-vrn.ru/contacts">Ильюшина 10Б</a>. Здесь же и расположен основной офис компании. Также почти все группы товаров представлены в наших&nbsp;магазинах на <a href="https://polimer-vrn.ru/contacts">Шишкова 107Б</a>,&nbsp;&nbsp;<a href="https://polimer-vrn.ru/contacts">Богачева 3/1</a>, в городе Лиски (<a href="https://polimer-vrn.ru/contacts">Проспект Ленина 3</a>).
+			Весь ассортимент товаров имеется в наличии на главном складе по адресу <a href="https://polimer-vrn.ru/contacts">Ильюшина 10Б</a>. Здесь же и расположен основной офис компании. Также почти все группы товаров представлены в наших&nbsp;магазинах на <a href="https://polimer-vrn.ru/contacts">Шишкова 107Б</a>,&nbsp;&nbsp;<a href="https://polimer-vrn.ru/contacts">Богачева 3/1</a>, в городе Лиски (<a href="https://polimer-vrn.ru/contacts">Проспект Ленина 3</a>) и в городе Старый Оскол (<a href="https://polimer-vrn.ru/contacts">Проспект Алексея Угарова 18ж</a>).
 		</div>
 	</div>
 </div>
