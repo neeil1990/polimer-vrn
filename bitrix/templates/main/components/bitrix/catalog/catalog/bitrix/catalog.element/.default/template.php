@@ -330,6 +330,7 @@ $this->setFrameMode(true);
                                        4 => "17",
                                        5 => "7",
                                        6 => "4",
+                                       7 => "19",
                                    ),
                                    "STORE_PATH" => "",
                                    "USER_FIELDS" => array(
