@@ -365,6 +365,14 @@ if (!empty($arResult['ITEMS']))
 			<div class="col-txt">
 				<div class="catalog-sections-text-hidden">
 				<?=($arParams['SEO_BOTTOM_DESC']) ? $arParams['SEO_BOTTOM_DESC'] : htmlspecialchars_decode($arParams['PARENT_DESC'])?>
+
+                <?
+                $APPLICATION->IncludeFile("/include/table/" .$arResult['CODE']. ".php", Array(), Array(
+                    "MODE"      => "html",
+                    "NAME"      => "Редактирование",
+                    "TEMPLATE"  => ""
+                ));
+                ?>
 				</div>
 			</div>
 			<div class="col-articles">
