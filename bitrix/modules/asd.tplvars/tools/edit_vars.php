@@ -37,7 +37,7 @@ $singleCode = trim($_REQUEST['code']);
 $singleCodeReal = trim($_REQUEST['realcode']);
 $site = trim($_REQUEST['site']);
 $save = isset($_REQUEST['save']);
-$bOptExist = isset($MAIN_OPTIONS[$site]) && isset($MAIN_OPTIONS[$site]['tpl_vars']);
+$bOptExist = isset($MAIN_OPTIONS['tpl_vars']) && isset($MAIN_OPTIONS['tpl_vars'][$site]);
 $asd_new_var = trim($_REQUEST['asd_new_var']);
 $asd_new_val = trim($_REQUEST['asd_new_val']);
 $asd_new_desc = trim($_REQUEST['asd_new_desc']);
@@ -52,7 +52,7 @@ if (!CModule::IncludeModule('asd.tplvars')) {
 	} else {
 		require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_js.php');
 		if ($bOptExist) {
-			foreach ($MAIN_OPTIONS[$site]['tpl_vars'] as $code => $val) {
+			foreach ($MAIN_OPTIONS['tpl_vars'][$site] as $code => $val) {
 				$codeMd5 = md5($code);
 				if (strlen($singleCode) && $codeMd5!=$singleCode) {
 					continue;
@@ -116,7 +116,7 @@ require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_aft
 		<?if ($bOptExist):?>
 		<?
 		$needCreate = true;
-		foreach ($MAIN_OPTIONS[$site]['tpl_vars'] as $code => $val):
+		foreach ($MAIN_OPTIONS['tpl_vars'][$site] as $code => $val):
 			$codeMd5 = md5($code);
 			if (strlen($singleCode) && $codeMd5!=$singleCode) {
 				continue;

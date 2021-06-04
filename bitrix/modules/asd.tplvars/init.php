@@ -4,13 +4,13 @@ if (!function_exists('tplvar')) {
 	function tplvar($code, $bShowIcon=false, $bNotVal=false) {
 		static $MAIN_OPTIONS = array();
 		$code = trim($code);
-		if (!isset($MAIN_OPTIONS[SITE_ID]) || !isset($MAIN_OPTIONS[SITE_ID]['tpl_vars'])) {
+		if (!isset($MAIN_OPTIONS['tpl_vars']) || !isset($MAIN_OPTIONS['tpl_vars'][SITE_ID])) {
 			// get from DB to cache
 			if (CModule::IncludeModule('asd.tplvars')) {
 				$MAIN_OPTIONS = CASDOption::GetOptions();
 			}
 		}
-		$val = $MAIN_OPTIONS[SITE_ID]['tpl_vars'][$code];
+		$val = $MAIN_OPTIONS['tpl_vars'][SITE_ID][$code];
 		if ($bNotVal) {
 			$val = '';
 		}

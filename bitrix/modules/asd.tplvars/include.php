@@ -39,6 +39,7 @@ class CASDTplVars {
 if (version_compare(SM_VERSION, '14.0.0')>=0) {
 	class CASDOption extends \Bitrix\Main\Config\Option {
 		public static function GetOptions() {
+			self::load('tpl_vars');
 			return self::$options;
 		}
 
