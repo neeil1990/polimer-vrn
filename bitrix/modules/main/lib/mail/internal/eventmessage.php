@@ -8,6 +8,7 @@
 
 namespace Bitrix\Main\Mail\Internal;
 
+use Bitrix\Main\Orm;
 use Bitrix\Main\Entity;
 use Bitrix\Main\Type as Type;
 
@@ -103,10 +104,7 @@ class EventMessageTable extends Entity\DataManager
 			'SITE_TEMPLATE_ID' => array(
 				'data_type' => 'string',
 			),
-			'ADDITIONAL_FIELD' => array(
-				'data_type' => 'string',
-				'serialized' => true,
-			),
+			(new Orm\Fields\ArrayField('ADDITIONAL_FIELD'))->configureSerializationPhp(),
 			'EVENT_MESSAGE_SITE' => array(
 				'data_type' => 'Bitrix\Main\Mail\Internal\EventMessageSite',
 				'reference' => array('=this.ID' => 'ref.EVENT_MESSAGE_ID'),
@@ -122,7 +120,7 @@ class EventMessageTable extends Entity\DataManager
 		preg_match_all("/#([0-9a-zA-Z_.]+?)#/", $str, $matchesFindPlaceHolders);
 		$matchesFindPlaceHoldersCount = count($matchesFindPlaceHolders[1]);
 		for($i=0; $i<$matchesFindPlaceHoldersCount; $i++)
-			if(strlen($matchesFindPlaceHolders[1][$i]) > 200)
+			if(mb_strlen($matchesFindPlaceHolders[1][$i]) > 200)
 				unset($matchesFindPlaceHolders[1][$i]);
 
 		if(empty($matchesFindPlaceHolders[1]))
@@ -159,8 +157,8 @@ class EventMessageTable extends Entity\DataManager
 			{
 				$placeHolder = $tag[0];
 				$placeHolderPosition = $tag[1];
-				$ch1 = substr($placeHolder, 0, 1);
-				$ch2 = substr($placeHolder, 0, 2);
+				$ch1 = mb_substr($placeHolder, 0, 1);
+				$ch2 = mb_substr($placeHolder, 0, 2);
 
 				if($ch2 == "<?")
 					$bOpenPhpTag = true;
@@ -168,10 +166,10 @@ class EventMessageTable extends Entity\DataManager
 					$bOpenPhpTag = false;
 				elseif($ch1 == "#")
 				{
-					$placeHolderClear = substr($placeHolder, 1, strlen($placeHolder)-2);
+					$placeHolderClear = mb_substr($placeHolder, 1, mb_strlen($placeHolder) - 2);
 
-					$bOpenQuote = (substr($str, $placeHolderPosition-2, 2) == '"{');
-					$bCloseQuote = (substr($str, $placeHolderPosition+strlen($placeHolder), 2) == '}"');
+					$bOpenQuote = (mb_substr($str, $placeHolderPosition - 2, 2) == '"{');
+					$bCloseQuote = (mb_substr($str, $placeHolderPosition + mb_strlen($placeHolder), 2) == '}"');
 					if($bOpenPhpTag && $bOpenQuote && $bCloseQuote)
 						$replaceTo = '$arParams[\''.$placeHolderClear.'\']';
 					else

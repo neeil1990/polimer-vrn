@@ -38,7 +38,7 @@ if (!$arResult['CAN_CONNECT_NEW_MAILBOX'])
 						<? if ($settings['icon']): ?>
 							<img class="mail-add-img" src="<?=$settings['icon'] ?>" alt="<?=htmlspecialcharsbx($settings['name']) ?>">
 						<? else: ?>
-							<span class="mail-add-text <? if (strlen($settings['name']) > 10): ?> mail-add-text-small"<? endif ?>">
+							<span class="mail-add-text <? if (mb_strlen($settings['name']) > 10): ?> mail-add-text-small"<? endif ?>">
 								&nbsp;<?=htmlspecialcharsbx($settings['name']) ?>&nbsp;
 							</span>
 						<? endif ?>
@@ -51,21 +51,41 @@ if (!$arResult['CAN_CONNECT_NEW_MAILBOX'])
 
 <script type="text/javascript">
 
-	if (window === top.window)
-	{
-		BX.addCustomEvent(
-			'SidePanel.Slider:onMessage',
-			function (event)
+	BX.addCustomEvent(
+		'SidePanel.Slider:onMessage',
+		function (event)
+		{
+			var urlParams = {};
+			if (window !== window.top)
 			{
-				if (event.getEventId() == 'mail-mailbox-config-success')
-				{
-					window.location.href = '<?=\CUtil::jsEscape($arParams['PATH_TO_MAIL_MSG_LIST']) ?>'.replace('#id#', event.data.id);
+				urlParams.IFRAME = 'Y';
+			}
 
-					top.BX.SidePanel.Instance.closeAll();
+			if (event.getEventId() === 'mail-mailbox-config-success')
+			{
+				event.data.handled = false;
+
+				top.BX.SidePanel.Instance.postMessage(window, event.getEventId(), event.data);
+
+				if (event.data.handled)
+				{
+					var slider = top.BX.SidePanel.Instance.getSliderByWindow(window);
+					if (slider)
+					{
+						slider.setCacheable(false);
+						slider.close();
+					}
+				}
+				else
+				{
+					window.location.href = BX.util.add_url_param(
+						'<?=\CUtil::jsEscape($arParams['PATH_TO_MAIL_MSG_LIST']) ?>'.replace('#id#', event.data.id),
+						urlParams
+					);
 				}
 			}
-		);
-	}
+		}
+	);
 
 	function showLicenseInfoPopup(id)
 	{

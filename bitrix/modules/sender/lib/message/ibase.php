@@ -15,10 +15,12 @@ namespace Bitrix\Sender\Message;
 interface iBase
 {
 	const CODE_MAIL = 'mail';
+	const CODE_TOLOKA = 'toloka';
 	const CODE_WEB_HOOK = 'web_hook';
 	const CODE_SMS = 'sms';
 	const CODE_IM = 'im';
 	const CODE_CALL = 'call';
+	const CODE_AUDIO_CALL = 'audio_call';
 	const CODE_UNDEFINED = '';
 	const EVENT_NAME = 'onSenderMessageList';
 
@@ -54,7 +56,7 @@ interface iBase
 	/**
 	 * Save configuration.
 	 *
-	 * @param Configuration $configuration
+	 * @param Configuration $configuration Configuration.
 	 * @return Result|null
 	 */
 	public function saveConfiguration(Configuration $configuration);

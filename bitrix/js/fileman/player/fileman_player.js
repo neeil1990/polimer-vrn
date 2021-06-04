@@ -420,7 +420,7 @@ BX.Fileman.Player.prototype.fillParameters = function(params)
 	this.hasFlash = params.hasFlash || false;
 	if(params.playbackRate && !params.hasFlash)
 	{
-		params.playbackRate = parseInt(params.playbackRate);
+		params.playbackRate = parseFloat(params.playbackRate);
 		if(params.playbackRate != 1)
 		{
 			if(params.playbackRate <= 0)
@@ -513,8 +513,13 @@ BX.Fileman.Player.prototype.init = function()
 			{
 				if(this.params.sources.hasOwnProperty(i))
 				{
-					if(this.getAbsoluteURL(this.params.sources[i].src) === this.getSource() && this.params.sources.length > i + 1)
+					if(
+						this.getAbsoluteURL(this.params.sources[i].src) === this.getSource() &&
+						this.params.sources.length > i + 1 &&
+						this.previousTrack !== this.getSource()
+					)
 					{
+						this.previousTrack = this.getSource();
 						this.setSource(this.params.sources[parseInt(i + 1)]);
 						return;
 					}

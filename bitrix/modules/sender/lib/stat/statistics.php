@@ -9,17 +9,16 @@ namespace Bitrix\Sender\Stat;
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Entity\ExpressionField;
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Type\Date;
 use Bitrix\Main\UserTable;
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Sender\MailingChainTable;
-use Bitrix\Sender\PostingTable;
-use Bitrix\Sender\PostingClickTable;
-use Bitrix\Sender\MailingSubscriptionTable;
-use Bitrix\Sender\Entity;
-use Bitrix\Sender\Message;
-
 use Bitrix\Main\Web\Uri;
+use Bitrix\Sender\Entity;
+use Bitrix\Sender\MailingChainTable;
+use Bitrix\Sender\MailingSubscriptionTable;
+use Bitrix\Sender\Message;
+use Bitrix\Sender\PostingClickTable;
+use Bitrix\Sender\PostingTable;
 
 Loc::loadMessages(__FILE__);
 
@@ -172,12 +171,22 @@ class Statistics
 			$list = $this->filter->getNames();
 			foreach ($list as $name)
 			{
-				if (!isset($userOptionFilters[$name]) || !$userOptionFilters[$name])
+				if (
+				    !isset($userOptionFilters[$name])
+                    || !$userOptionFilters[$name]
+                    || !$this->checkFilterValue($userOptionFilters[$name])
+                    )
 				{
 					continue;
 				}
-				$this->filter->set($name, (string) $userOptionFilters[$name]);
-				$isFilterSet = true;
+				try
+				{
+					$this->filter->set($name, (string) $userOptionFilters[$name]);
+					$isFilterSet = true;
+				}
+				catch (\Exception $e)
+				{
+				}
 			}
 		}
 
@@ -188,6 +197,14 @@ class Statistics
 
 		return $this;
 	}
+
+	private function checkFilterValue($filter)
+    {
+        return $filter === null
+            || is_scalar($filter)
+            ;
+
+    }
 
 	protected function saveFilterToUserOption()
 	{
@@ -257,7 +274,7 @@ class Statistics
 	protected static function formatNumber($number, $num = 1)
 	{
 		$formatted = number_format($number, $num, '.', ' ');
-		$formatted = substr($formatted, -($num + 1)) == '.' . str_repeat('0', $num) ? substr($formatted, 0, -2) : $formatted;
+		$formatted = mb_substr($formatted, -($num + 1)) == '.'.str_repeat('0', $num)? mb_substr($formatted, 0, -2) : $formatted;
 		return $formatted;
 	}
 
@@ -418,21 +435,43 @@ class Statistics
 		));
 		while ($item = $listDb->fetch())
 		{
-			foreach ($item as $name => $value)
-			{
-				if (substr($name, 0, 4) == 'SEND')
-				{
-					$base = $item['SEND_ALL'];
-				}
-				else
-				{
-					$base = $item['SEND_SUCCESS'];
-				}
-				$list[] = self::getCounterCalculation($name, $value, $base);
-			}
+			$list = array_merge($list, $this->createListFromItem($item));
 		}
 
 		$this->counters = $list;
+		return $list;
+	}
+
+	public function initFromArray($postingData)
+	{
+		$item = [
+			'SEND_ALL' => (int)$postingData['COUNT_SEND_ALL'],
+			'SEND_ERROR' => (int)$postingData['COUNT_SEND_ERROR'],
+			'SEND_SUCCESS' => (int)$postingData['COUNT_SEND_SUCCESS'],
+			'READ' => (int)$postingData['COUNT_READ'],
+			'CLICK' => (int)$postingData['COUNT_CLICK'],
+			'UNSUB' => (int)$postingData['COUNT_UNSUB']
+		];
+		$this->counters = $this->createListFromItem($item);
+
+		return $this;
+	}
+
+	protected function createListFromItem($item)
+	{
+		$list = [];
+		foreach ($item as $name => $value)
+		{
+			if (mb_substr($name, 0, 4) == 'SEND')
+			{
+				$base = $item['SEND_ALL'];
+			}
+			else
+			{
+				$base = $item['SEND_SUCCESS'];
+			}
+			$list[] = self::getCounterCalculation($name, $value, $base);
+		}
 		return $list;
 	}
 
@@ -527,7 +566,7 @@ class Statistics
 			{
 				$item['URL'] = (new Uri($item['URL']))
 					->deleteParams($linkParams, true)
-					->getLocator();
+					->getUri();
 				$item['URL'] = urldecode($item['URL']);
 				if (!isset($groupedList[$item['URL']]))
 				{
@@ -560,7 +599,7 @@ class Statistics
 				'CNT' => 0,
 				'CNT_DISPLAY' => 0,
 				'DAY_HOUR' => $i,
-				'DAY_HOUR_DISPLAY' => (strlen($i) == 1 ? '0' : '') . $i . ':00',
+				'DAY_HOUR_DISPLAY' => (mb_strlen($i) == 1 ? '0' : '') . $i . ':00',
 			);
 		}
 

@@ -109,7 +109,7 @@ class CAllClusterDBNode
 		unset($arFields["GROUP_ID"]);
 
 		$strUpdate = $DB->PrepareUpdate("b_cluster_dbnode", $arFields);
-		if(strlen($strUpdate) > 0)
+		if($strUpdate <> '')
 		{
 			$strSql = "
 				UPDATE b_cluster_dbnode SET
@@ -207,8 +207,8 @@ class CAllClusterDBNode
 		$arQueryOrder = array();
 		foreach($arOrder as $strColumn => $strDirection)
 		{
-			$strColumn = strtoupper($strColumn);
-			$strDirection = strtoupper($strDirection)=="ASC"? "ASC": "DESC";
+			$strColumn = mb_strtoupper($strColumn);
+			$strDirection = mb_strtoupper($strDirection) == "ASC"? "ASC": "DESC";
 			switch($strColumn)
 			{
 				case "ID":
@@ -222,7 +222,7 @@ class CAllClusterDBNode
 		$arQuerySelect = array();
 		foreach($arSelect as $strColumn)
 		{
-			$strColumn = strtoupper($strColumn);
+			$strColumn = mb_strtoupper($strColumn);
 			switch($strColumn)
 			{
 				case "ID":

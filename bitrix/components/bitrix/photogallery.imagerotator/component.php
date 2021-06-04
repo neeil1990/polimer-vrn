@@ -1,8 +1,14 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 if (!CModule::IncludeModule("photogallery"))
-	return ShowError(GetMessage("P_MODULE_IS_NOT_INSTALLED"));
+{
+	ShowError(GetMessage("P_MODULE_IS_NOT_INSTALLED"));
+	return;
+}
 elseif (!IsModuleInstalled("iblock"))
-	return ShowError(GetMessage("IBLOCK_MODULE_NOT_INSTALLED"));
+{
+	ShowError(GetMessage("IBLOCK_MODULE_NOT_INSTALLED"));
+	return;
+}
 
 $arParams['WIDTH'] = $arParams['WIDTH'] > 0 ? $arParams['WIDTH'] : '300';
 $arParams['HEIGHT'] = $arParams['HEIGHT'] > 0 ? $arParams['HEIGHT'] : '300';
@@ -59,12 +65,12 @@ if (is_array($res) && count($res) > 0):
 
 $maxChar = 28;
 if ($arParams['WIDTH'] != 300)
-	$maxChar = intVal(($arParams['WIDTH'] - 100) / 8);
+	$maxChar = intval(($arParams['WIDTH'] - 100) / 8);
 
 foreach($res as $photo):
 
-		if (strlen($photo['description']) > $maxChar)
-			$title = trim(substr($photo['description'], 0, $maxChar)).'...';
+		if (mb_strlen($photo['description']) > $maxChar)
+			$title = trim(mb_substr($photo['description'], 0, $maxChar)).'...';
 		else
 			$title = $photo['album_name'].' - '.$photo['description'];
 		$title = trim($title, ' -');
@@ -92,7 +98,7 @@ endif;?>
 	die();
 }
 
-if (!function_exists(bxRotatorAddFlashvar))
+if (!function_exists('bxRotatorAddFlashvar'))
 {
 	function bxRotatorAddFlashvar($config, $key, $value)
 	{

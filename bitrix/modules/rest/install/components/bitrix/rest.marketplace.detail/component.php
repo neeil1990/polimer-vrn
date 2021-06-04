@@ -13,13 +13,29 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
  * @global CMain $APPLICATION
  * @global CUser $USER
  */
+use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Main\Loader;
+use \Bitrix\Rest\Engine\Access;
+use Bitrix\Main\ModuleManager;
 
 if(!CModule::IncludeModule("rest"))
 {
 	return;
 }
 
+$request = \Bitrix\Main\Context::getCurrent()->getRequest();
+
+$arResult['SUBSCRIPTION_AVAILABLE'] = \Bitrix\Rest\Marketplace\Client::isSubscriptionAvailable();
+$arResult['SUBSCRIPTION_BUY_URL'] = \Bitrix\Rest\Marketplace\Url::getSubscriptionBuyUrl();
+$arResult['ANALYTIC_FROM'] = '';
+if (!empty($request->get('from')))
+{
+	$arResult['ANALYTIC_FROM'] = htmlspecialcharsbx($request->get('from'));
+}
+
 $arParams['APP'] = !empty($arParams['APP']) ? $arParams['APP'] : $_GET['app'];
+
+$arResult['REST_ACCESS'] = Access::isAvailable($arParams['APP']) && Access::isAvailableCount(Access::ENTITY_TYPE_APP, $arParams['APP']);
 
 $ver = false;
 
@@ -52,14 +68,24 @@ if($ver === false && $ar['ACTIVE'] === 'N' && $ar['STATUS'] === \Bitrix\Rest\App
 	$ver = intval($ar['VERSION']);
 }
 
-$arApp = \Bitrix\Rest\Marketplace\Client::getApp($arParams['APP'], $ver, $arResult['CHECK_HASH'], $arResult['INSTALL_HASH']);
+if(
+	($ar['ID'] > 0 && $ar['ACTIVE'] === \Bitrix\Rest\AppTable::ACTIVE && $ar['INSTALLED'] === \Bitrix\Rest\AppTable::INSTALLED)
+	|| ($request->isPost() && $request['install'] && check_bitrix_sessid())
+	|| ($ver > 0 && isset($arResult['CHECK_HASH']) && isset($arResult['INSTALL_HASH']))
+)
+{
+	$arApp = \Bitrix\Rest\Marketplace\Client::getApp($arParams['APP'], $ver, $arResult['CHECK_HASH'], $arResult['INSTALL_HASH']);
+}
+else
+{
+	$arApp = \Bitrix\Rest\Marketplace\Client::getAppPublic($arParams['APP'], $ver, $arResult['CHECK_HASH'], $arResult['INSTALL_HASH']);
+}
 
 if($arApp)
 {
 	$arApp = $arApp["ITEMS"];
 
 	$APPLICATION->SetTitle(htmlspecialcharsbx($arApp["NAME"]));
-
 
 	if($ar)
 	{
@@ -79,7 +105,7 @@ if($arApp)
 		}
 	}
 
-	if ($arApp["ACTIVE"] == "Y")
+	if ($arApp["ACTIVE"] == "Y" && $arApp['TYPE'] !== \Bitrix\Rest\AppTable::TYPE_CONFIGURATION)
 	{
 		$arApp["UPDATES"] = \Bitrix\Rest\Marketplace\Client::getAvailableUpdate($arApp["CODE"]);
 	}
@@ -95,13 +121,53 @@ if($arApp)
 		$arApp["DATE_UPDATE"] = ConvertTimeStamp($stmp);
 	}
 
+	$subscribeFinish = \Bitrix\Rest\Marketplace\Client::getSubscriptionFinalDate();
+	$arResult["SUBSCRIPTION_ACTIVE"] = \Bitrix\Rest\Marketplace\Client::isSubscriptionAvailable();
+	$arResult["PAID_APP_IN_SUBSCRIBE"] = Access::isActiveRules() && \Bitrix\Rest\Marketplace\Client::isSubscriptionAccess();
+
+	if ($arResult["PAID_APP_IN_SUBSCRIBE"] && $arApp['TRIAL_PERIOD'] > 0)
+	{
+		$days = (int) $arApp['TRIAL_PERIOD'];
+		$now = new \Bitrix\Main\Type\DateTime();
+		if (!$subscribeFinish || $now->getTimestamp() > $subscribeFinish->getTimestamp())
+		{
+			$arApp['TRIAL_PERIOD'] = 0;
+		}
+		else
+		{
+			$diff = $subscribeFinish->getDiff($now);
+			$subscribeFinishDays = (int) $diff->days;
+
+			if ($days > $subscribeFinishDays)
+			{
+				$arApp['TRIAL_PERIOD'] = $subscribeFinishDays;
+			}
+		}
+	}
+	if ($arApp["BY_SUBSCRIPTION"] === "Y" && $arResult["SUBSCRIPTION_ACTIVE"])
+	{
+		$arApp["STATUS"] = \Bitrix\Rest\AppTable::STATUS_PAID;
+		$arApp["DATE_FINISH"] = $subscribeFinish;
+	}
+
+	$arResult['REDIRECT_PRIORITY'] = false;
+	if($arApp['TYPE'] === \Bitrix\Rest\AppTable::TYPE_CONFIGURATION)
+	{
+		$arResult['REDIRECT_PRIORITY'] = true;
+	}
+
 	$arResult["APP"] = $arApp;
+
+	$arResult['REST_ACCESS_HELPER_CODE'] = Access::getHelperCode(Access::ACTION_INSTALL, Access::ENTITY_TYPE_APP, $arResult["APP"]);
+
+	if (!ModuleManager::isModuleInstalled('bitrix24'))
+	{
+		$arResult['POPUP_BUY_SUBSCRIPTION_PRIORITY'] = true;
+	}
 }
 
 $arResult["ADMIN"] = \CRestUtil::isAdmin();
 $arResult["CAN_INSTALL"] = $arResult['ADMIN'] || \CRestUtil::canInstallApplication($arApp);
-
-$request = \Bitrix\Main\Context::getCurrent()->getRequest();
 
 if($request->isPost() && $request['install'] && check_bitrix_sessid())
 {
@@ -113,21 +179,28 @@ if($request->isPost() && $request['install'] && check_bitrix_sessid())
 	}
 	else
 	{
-		$obRestDesc = new \CRestProvider();
-		$arRestDesc = $obRestDesc->getDescription();
-
+		$scopeList = \Bitrix\Rest\Engine\ScopeManager::getInstance()->listScope();
+		\Bitrix\Main\Localization\Loc::loadMessages($_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/rest/scope.php');
 		$arResult['SCOPE_DENIED'] = array();
 		if(is_array($arResult['APP']['RIGHTS']))
 		{
 			foreach($arResult['APP']['RIGHTS'] as $key => $scope)
 			{
-				if(!array_key_exists($key, $arRestDesc))
+				$arResult['APP']['RIGHTS'][$key] = [
+					"TITLE" => Loc::getMessage("REST_SCOPE_".mb_strtoupper($key)) ?: $scope,
+					"DESCRIPTION" => Loc::getMessage("REST_SCOPE_".mb_strtoupper($key)."_DESCRIPTION")
+				];
+				if(!in_array($key, $scopeList, true))
 				{
 					$arResult['SCOPE_DENIED'][$key] = 1;
 				}
 			}
 		}
-
+		if(Loader::IncludeModule('bitrix24')
+			&& !in_array(\CBitrix24::getLicensePrefix(), array('ru', 'ua', 'kz', 'by')))
+		{
+			$arResult['TERMS_OF_SERVICE_LINK'] = Loc::getMessage('REST_MARKETPLACE_TERMS_OF_SERVICE_LINK');
+		}
 		$arResult['IS_HTTPS'] = \Bitrix\Main\Context::getCurrent()->getRequest()->isHttps();
 
 		$this->includeComponentTemplate('install');
@@ -137,7 +210,7 @@ if($request->isPost() && $request['install'] && check_bitrix_sessid())
 }
 else
 {
-	if(is_array($arResult["APP"]["PRICE"]) && !empty($arResult["APP"]["PRICE"]) && $arResult['ADMIN'])
+	if($arResult["APP"]['FREE'] === 'N' && is_array($arResult["APP"]["PRICE"]) && !empty($arResult["APP"]["PRICE"]) && $arResult['ADMIN'])
 	{
 		$arResult['BUY'] = array();
 		foreach($arResult["APP"]["PRICE"] as $num => $price)
@@ -152,6 +225,28 @@ else
 		}
 	}
 
+	if($arResult['APP']['TYPE'] == \Bitrix\Rest\AppTable::TYPE_CONFIGURATION)
+	{
+		$url = \Bitrix\Rest\Marketplace\Url::getConfigurationImportAppUrl($arResult['APP']['CODE']);
+
+		$check_hash = $request->getQuery("check_hash");
+		$install_hash = $request->getQuery("install_hash");
+		if($install_hash && $check_hash)
+		{
+			$uri = new Bitrix\Main\Web\Uri($url);
+			$uri->addParams(
+				[
+					'check_hash' => $check_hash,
+					'install_hash' => $install_hash
+				]
+			);
+			$arResult['IMPORT_PAGE'] = $uri->getUri();
+		}
+		else
+		{
+			$arResult['IMPORT_PAGE'] = $url;
+		}
+	}
 	CJSCore::Init(array('marketplace', 'image', 'applayout'));
 
 	$this->IncludeComponentTemplate();

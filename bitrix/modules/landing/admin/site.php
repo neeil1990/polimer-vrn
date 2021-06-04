@@ -58,30 +58,20 @@ $filter = [
 	'=TYPE' => $type,
 	'CHECK_PERMISSIONS' => 'N'
 ];
-if ($site)
-{
-	$filter['=SMN_SITE_ID'] = $site;
-}
-else if ($siteId)
+if ($siteId)
 {
 	$filter['ID'] = $siteId;
+}
+else if ($site)
+{
+	$filter['=SMN_SITE_ID'] = $site;
 }
 else
 {
 	$filter['ID'] = -1;
 }
 
-//for show PREVIEW sites on repo
-if($request->get('type') == 'PREVIEW' && defined('LANDING_IS_REPO') && LANDING_IS_REPO === true)
-{
-	$type = 'PREVIEW';
-	$filter['=TYPE'] = $type;
-	if ($siteId)
-	{
-		$filter['ID'] = $siteId;
-	}
-}
-
+$rights = [];
 $res = Site::getList([
 	 'select' => [
 		'ID', 'SMN_SITE_ID'
@@ -92,11 +82,8 @@ if ($row = $res->fetch())
 {
 	$siteId = $row['ID'];
 	$site = $row['SMN_SITE_ID'];
-	$hasAccess = Rights::hasAccessForSite(
-		$siteId,
-		Rights::ACCESS_TYPES['read']
-	);
-	if (!$hasAccess)
+	$rights = Rights::getOperationsForSite($siteId);
+	if (!in_array(Rights::ACCESS_TYPES['read'], $rights))
 	{
 		require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_admin_after.php');
 		\showError(Loc::getMessage('LANDING_ADMIN_SITE_ACCESS_DENIED'));
@@ -115,14 +102,13 @@ else
 			'TITLE' => $siteRow['NAME'],
 			'SMN_SITE_ID' => $site,
 			'TYPE' => $type,
-			'DOMAIN_ID' => !Manager::isB24()
-			? Domain::getCurrentId()
-			: ' ',
-			'CODE' => strtolower(\randString(10))
+			'DOMAIN_ID' => !Manager::isB24() ? Domain::getCurrentId() : ' ',
+			'CODE' => mb_strtolower(\randString(10))
 		));
 		if ($res->isSuccess())
 		{
 			$siteId = $res->getId();
+			$rights = Rights::getOperationsForSite($siteId);
 		}
 		else
 		{
@@ -149,6 +135,8 @@ $editPage = $landingsPage . '&cmp=landing_edit&id=#landing_edit#';
 $editPage .= ($siteTemplate ? '&template=' . $siteTemplate : '');
 $editSite = $landingsPage . '&cmp=site_edit';
 $editSite .= ($siteTemplate ? '&template=' . $siteTemplate : '');
+$editCookies = $landingsPage . '&cmp=cookies_edit';
+$editCookies .= ($siteTemplate ? '&template=' . $siteTemplate : '');
 $viewPage ='landing_view.php?lang=' . LANGUAGE_ID . '&id=#landing_edit#&site=' . $site . '&template=' . $siteTemplate;
 
 if ($isFrame)
@@ -188,11 +176,14 @@ echo '<div class="landing-content-title-admin">';
 
 if (!$cmp && !$isFrame)
 {
+	$storeEnabled = !Manager::isB24() && Manager::isStoreEnabled();
+
+	// create buttons
 	if (!Rights::hasAccessForSite($siteId, Rights::ACCESS_TYPES['edit']))
 	{
 		$buttons = [];
 	}
-	else if (!Manager::isB24() && Manager::isStoreEnabled())
+	else if ($storeEnabled)
 	{
 		$buttons = array(
 			array(
@@ -218,6 +209,27 @@ if (!$cmp && !$isFrame)
 			)
 		);
 	}
+
+	// settings menu
+	$settingsLink = [];
+	if (in_array(Rights::ACCESS_TYPES['sett'], $rights))
+	{
+		$settingsLink[] = [
+			'TITLE' => Loc::getMessage('LANDING_ADMIN_ACTION_SETTINGS'),
+			'LINK' => $editSite
+		];
+		if ($storeEnabled)
+		{
+			$uriSettCatalog = new \Bitrix\Main\Web\Uri($editSite);
+			$uriSettCatalog->addParams(['tpl' => 'catalog']);
+			$settingsLink[] = [
+				'TITLE' => Loc::getMessage('LANDING_ADMIN_ACTION_CATALOG'),
+				'LINK' => $uriSettCatalog->getUri()
+			];
+			unset($uriSettCatalog);
+		}
+	}
+
 	$folderId = $request->get($actionFolder);
 	$APPLICATION->IncludeComponent(
 		'bitrix:landing.filter',
@@ -225,7 +237,7 @@ if (!$cmp && !$isFrame)
 		array(
 			'FILTER_TYPE' => 'LANDING',
 			'TYPE' => $type,
-			'SETTING_LINK' => $editSite,
+			'SETTING_LINK' => $settingsLink,
 			'BUTTONS' => $buttons,
 			'FOLDER_SITE_ID' => !$folderId ? $siteId : 0
 		),
@@ -252,6 +264,7 @@ if ($cmp == 'landing_edit')
 			'bitrix:landing.landing_edit',
 			'.default',
 			array(
+				'TYPE' => $type,
 				'SITE_ID' => $siteId,
 				'LANDING_ID' => $landing,
 				'PAGE_URL_LANDINGS' => $landingsPage,
@@ -312,7 +325,20 @@ elseif ($cmp == 'site_edit')
 			'SITE_ID' => $siteId,
 			'PAGE_URL_SITES' => '',
 			'PAGE_URL_LANDING_VIEW' => $viewPage,
+			'PAGE_URL_SITE_COOKIES' => $editCookies,
 			'TEMPLATE' => $tpl
+		),
+		$component
+	);
+}
+elseif ($cmp == 'cookies_edit')
+{
+	$APPLICATION->IncludeComponent(
+		'bitrix:landing.site_cookies',
+		'.default',
+		array(
+			'TYPE' => $type,
+			'SITE_ID' => $siteId
 		),
 		$component
 	);

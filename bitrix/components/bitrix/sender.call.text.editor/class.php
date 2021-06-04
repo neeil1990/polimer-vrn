@@ -1,11 +1,17 @@
 <?
 
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ErrorCollection;
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Sender\Integration\VoxImplant\SpeechRate;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 {
+	die();
+}
+
+if (!Bitrix\Main\Loader::includeModule('sender'))
+{
+	ShowError('Module `sender` not installed');
 	die();
 }
 
@@ -31,7 +37,6 @@ class SenderCallTextEditorComponent extends CBitrixComponent
 	{
 		$this->arResult['ACTION_URL'] = $this->getPath() . '/ajax.php';
 		$this->arResult['VALUE'] = htmlspecialcharsback($this->arParams['VALUE']);
-		$this->arResult['COUNT'] = count($this->arParams['VALUE']);
 		$this->arResult['SPEECH_RATES'] = SpeechRate::getList();
 		$this->arResult['SPEECH_RATE_INTERVAL'] = SpeechRate::getBaseInterval();
 

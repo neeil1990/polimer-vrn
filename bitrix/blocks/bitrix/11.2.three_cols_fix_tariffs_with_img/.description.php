@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NAME'),
 		'section' => array('tariffs'),
+		'type' => ['page', 'store'],
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
@@ -29,7 +30,7 @@ return array(
 		'.landing-block-node-card-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARD_IMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 370, 'height' => 200),
+			'dimensions' => array('width' => 540),
 		),
 		'.landing-block-node-card-icon' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARD_ICON'),
@@ -71,7 +72,7 @@ return array(
 		),
 		'.landing-block-node-card-icon-container' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARD_ICON'),
-			'type' => 'color',
+			'type' => ['color', 'background-color'],
 		),
 		'.landing-block-node-card-title' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARD_TITLE'),
@@ -91,7 +92,11 @@ return array(
 		),
 		'.landing-block-node-card-price-list li' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARDPRICE_LIST_ITEM'),
-			'type' => array('background-color', 'background-gradient', 'typo'),
+			'type' => array('background-color', 'background-gradient'),
+		),
+		'.landing-block-node-card-price-list' => array(
+			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARDPRICE_LIST'),
+			'type' => array('typo'),
 		),
 		'.landing-block-node-card-button' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_11.2.THREE_COLS_FIX_TARIFFS_BLACK_NODES_LANDINGBLOCKNODECARD_BUTTON'),

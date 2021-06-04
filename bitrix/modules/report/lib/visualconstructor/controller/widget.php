@@ -2,6 +2,7 @@
 
 namespace Bitrix\Report\VisualConstructor\Controller;
 
+use Bitrix\Main;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Entity\Query;
 use Bitrix\Report\VisualConstructor\Internal\Engine\Response\Component;
@@ -24,10 +25,26 @@ use Bitrix\Report\VisualConstructor\RuntimeProvider\ViewProvider;
  */
 class Widget extends \Bitrix\Report\VisualConstructor\Controller\Base
 {
+	public function configureActions()
+	{
+		return [
+			'load' => [
+				'+prefilters' => [
+					new Main\Engine\ActionFilter\CloseSession(),
+				]
+			],
+			'loadByBoardId' => [
+				'+prefilters' => [
+					new Main\Engine\ActionFilter\CloseSession(),
+				]
+			],
+		];
+	}
+
 	/**
 	 * Action return configuration form by widget gid, and board gid.
 	 *
-	 * @param sting $widgetId Widget gId.
+	 * @param string $widgetId Widget gId.
 	 * @param string $boardId Board key.
 	 * @return Component|bool
 	 */
@@ -466,7 +483,7 @@ class Widget extends \Bitrix\Report\VisualConstructor\Controller\Base
 	 */
 	private function isReportPseudo($reportId)
 	{
-		return (strpos($reportId, '_pseudo') === 0);
+		return (mb_strpos($reportId, '_pseudo') === 0);
 	}
 
 

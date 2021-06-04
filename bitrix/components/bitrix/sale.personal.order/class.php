@@ -92,7 +92,7 @@ class PersonalOrder extends CBitrixComponent
 		{
 			$id = urldecode(urldecode($variables["ID"]));
 			Loader::includeModule('sale');
-			$registry = Sale\Registry::getInstance(Sale\Order::getRegistryType());
+			$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
 			$orderClassName = $registry->getOrderClassName();
 
 			$order = $orderClassName::loadByAccountNumber($id);
@@ -109,7 +109,7 @@ class PersonalOrder extends CBitrixComponent
 					|| $order->isCanceled()
 				)
 				{
-					$delimeter = (strpos($this->arResult["PATH_TO_LIST"], '?' ) !== false) ? '&' : '?';
+					$delimeter = (mb_strpos($this->arResult["PATH_TO_LIST"], '?') !== false) ? '&' : '?';
 					$this->arResult["PATH_TO_LIST"] .=  $delimeter . "filter_history=Y";
 					if ($order->isCanceled())
 					{

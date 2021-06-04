@@ -466,7 +466,7 @@ class ListsElementAttachedCrmComponent extends CBitrixComponent
 			{
 				if(empty($visibleColumns) || in_array($fieldId, $visibleColumns))
 				{
-					if(substr($fieldId, 0, 9) == 'PROPERTY_')
+					if(mb_substr($fieldId, 0, 9) == 'PROPERTY_')
 						$this->properties[$iblockId][] = $fieldId;
 					else
 						$this->selectedFields[$iblockId][] = $fieldId;
@@ -543,7 +543,7 @@ class ListsElementAttachedCrmComponent extends CBitrixComponent
 
 		foreach($this->listFields[$iblockId] as $fieldId => $field)
 		{
-			$valueKey = (substr($fieldId, 0, 9) == "PROPERTY_") ? $fieldId : "~".$fieldId;
+			$valueKey = (mb_substr($fieldId, 0, 9) == "PROPERTY_") ? $fieldId : "~".$fieldId;
 			$field["ELEMENT_ID"] = $elementId;
 			$field["FIELD_ID"] = $fieldId;
 			$field['VALUE'] = $this->listFieldsValue[$elementId][$valueKey];
@@ -658,32 +658,25 @@ class ListsElementAttachedCrmComponent extends CBitrixComponent
 
 	protected function createRowActions($iblockId, $elementId)
 	{
-		$actions = array();
-
-		$url = str_replace(
-			array('#list_id#', '#section_id#', '#element_id#', '#group_id#'),
-			array($iblockId, 0, $elementId, $this->listIblockSocnetGroupId[$iblockId]),
-			$this->listIblockElementTemplateUrl[$iblockId]
-		);
+		$actions = [];
 
 		$canEdit = (array_key_exists($elementId, $this->listElementEditPermission)
 			&& $this->listElementEditPermission[$elementId] == CListPermissions::CAN_WRITE);
 
-		$actions[] = array(
-			'text' => $canEdit ? Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_EDIT')
-				: Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_SHOW'),
+		$actions[] = [
+			'text' => $canEdit ? Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_EDIT') :
+				Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_SHOW'),
 			'title' => Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_SHOW_TITLE'),
-			'onclick' => 'BX.Lists["'.$this->arParams['JS_OBJECT'].'"].showElement("'.
-				$this->listGridId[$iblockId].'", "'.$elementId.'", "'.$url.'");'
-		);
-		if($canEdit)
+			'onclick' => 'BX.Lists["'.$this->arParams['JS_OBJECT'].'"].editElement("'.$elementId.'");'
+		];
+		if ($canEdit)
 		{
-			$actions[] = array(
+			$actions[] = [
 				'text' => Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_UNBIND_DEL'),
 				'title' => Loc::getMessage('LEAC_GRID_ACTION_ELEMENT_UNBIND_TITLE_DEL'),
 				'onclick' => 'BX.Lists["'.$this->arParams['JS_OBJECT'].'"].unBind("'.
 					$this->listGridId[$iblockId].'", "'.$elementId.'");'
-			);
+			];
 		}
 
 		return $actions;

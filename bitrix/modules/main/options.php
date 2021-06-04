@@ -128,7 +128,6 @@ $arAllOptions = array(
 		Array("server_name", GetMessage("MAIN_OPTION_SERVERNAME"), $SERVER_NAME, Array("text", 30)),
 		Array("cookie_name", GetMessage("MAIN_PREFIX"), "BITRIX_SM", Array("text", 30)),
 		Array("ALLOW_SPREAD_COOKIE", GetMessage("MAIN_OPTION_ALLOW_SPREAD_COOKIE"), "Y", Array("checkbox", "Y")),
-		Array("header_200", GetMessage("HEADER_200"), "N", Array("checkbox", "Y")),
 		Array("error_reporting", GetMessage("MAIN_ERROR_REPORTING"), E_COMPILE_ERROR|E_ERROR|E_CORE_ERROR|E_PARSE, Array("selectbox", Array(E_COMPILE_ERROR|E_ERROR|E_CORE_ERROR|E_PARSE=>GetMessage("MAIN_OPTION_ERROR1"), E_ALL^E_NOTICE=>GetMessage("MAIN_OPTION_ERROR2"), 0=>GetMessage("MAIN_OPTION_ERROR3")))),
 		Array("use_hot_keys", GetMessage("main_options_use_hot_keys"), "Y", Array("checkbox", "Y")),
 		Array("smile_gallery_id", GetMessage("MAIN_OPTIONS_SMILE_GALLERY_ID"), 0, Array("selectbox", $arSmileGallery)),
@@ -139,6 +138,8 @@ $arAllOptions = array(
 		Array("save_original_file_name", GetMessage("MAIN_OPTION_SAVE_ORIG_NAMES"), "N", Array("checkbox", "Y")),
 		Array("translit_original_file_name", GetMessage("MAIN_OPTION_TRANSLIT"), "N", Array("checkbox", "Y")),
 		Array("convert_original_file_name", GetMessage("MAIN_OPTION_FNAME_CONV_AUTO"), "Y", Array("checkbox", "Y")),
+		Array("control_file_duplicates", GetMessage("main_options_control_diplicates"), "N", Array("checkbox", "Y")),
+		Array("duplicates_max_size", GetMessage("main_options_diplicates_max_size") , "100", Array("text", "10")),
 		ModuleManager::isModuleInstalled('transformer')? Array("max_size_for_document_transformation", GetMessage("MAIN_OPTIONS_MAX_SIZE_FOR_DOCUMENT_TRANSFORMATION"), ModuleManager::isModuleInstalled('bitrix24')? 40 : 10, Array("text", "10")) : null,
 		ModuleManager::isModuleInstalled('transformer')? Array("max_size_for_video_transformation", GetMessage("MAIN_OPTIONS_MAX_SIZE_FOR_VIDEO_TRANSFORMATION"), "300", Array("text", "10")) : null,
 		Array("image_resize_quality", GetMessage("MAIN_OPTIONS_IMG_QUALITY"), "95", Array("text", "10")),
@@ -182,6 +183,8 @@ $arAllOptions = array(
 		Array("mail_event_bulk", GetMessage("main_option_mail_bulk"), "5", Array("text", 10)),
 		Array("mail_additional_parameters", GetMessage("MAIN_OPTION_MAIL_ADDITIONAL_PARAMETERS"), "", Array("text", 30)),
 		Array("mail_link_protocol", GetMessage("MAIN_OPTION_MAIL_LINK_PROTOCOL"), "", Array("text", 10)),
+		array('track_outgoing_emails_read', getMessage('MAIN_OPTION_MAIL_TRACK_READ'), 'Y', array('checkbox', 'Y')),
+		array('track_outgoing_emails_click', getMessage('MAIN_OPTION_MAIL_TRACK_CLICK'), 'Y', array('checkbox', 'Y')),
 
 		GetMessage("main_options_sms_title"),
 		Array("sms_default_service", GetMessage("main_options_sms_service"), "", Array("selectbox", $smsServices)),
@@ -213,6 +216,8 @@ $arAllOptions = array(
 		Array("event_log_logout", GetMessage("MAIN_EVENT_LOG_LOGOUT"), "N", Array("checkbox", "Y")),
 		Array("event_log_login_success", GetMessage("MAIN_EVENT_LOG_LOGIN_SUCCESS"), "N", Array("checkbox", "Y")),
 		Array("event_log_login_fail", GetMessage("MAIN_EVENT_LOG_LOGIN_FAIL"), "N", Array("checkbox", "Y")),
+		Array("event_log_permissions_fail", GetMessage("MAIN_EVENT_LOG_PERM_FAIL"), "N", Array("checkbox", "Y")),
+		Array("event_log_block_user", GetMessage("MAIN_OPT_EVENT_LOG_BLOCK"), "N", Array("checkbox", "Y")),
 		Array("event_log_register", GetMessage("MAIN_EVENT_LOG_REGISTER"), "N", Array("checkbox", "Y")),
 		Array("event_log_register_fail", GetMessage("MAIN_EVENT_LOG_REGISTER_FAIL"), "N", Array("checkbox", "Y")),
 		Array("event_log_password_request", GetMessage("MAIN_EVENT_LOG_PASSWORD_REQUEST"), "N", Array("checkbox", "Y")),
@@ -224,10 +229,11 @@ $arAllOptions = array(
 		Array("event_log_module_access", GetMessage("MAIN_EVENT_LOG_MODULE_ACCESS"), "N", Array("checkbox", "Y")),
 		Array("event_log_file_access", GetMessage("MAIN_EVENT_LOG_FILE_ACCESS"), "N", Array("checkbox", "Y")),
 		Array("event_log_task", GetMessage("MAIN_EVENT_LOG_TASK"), "N", Array("checkbox", "Y")),
-		Array("event_log_marketplace", GetMessage("MAIN_EVENT_LOG_MARKETPLACE"), "Y", Array("checkbox", "Y")),
+		Array("event_log_marketplace", GetMessage("MAIN_EVENT_LOG_MARKETPLACE"), "N", Array("checkbox", "Y")),
 
 		GetMessage("MAIN_OPT_PROFILE"),
 		Array("user_profile_history", GetMessage("MAIN_OPT_PROFILE_HYSTORY"), "N", Array("checkbox", "Y")),
+		Array("profile_history_cleanup_days", GetMessage("MAIN_OPT_HISTORY_DAYS"), "0", Array("text", 5)),
 	),
 	"update" => Array(
 		Array("update_devsrv", GetMessage("MAIN_OPTIONS_UPDATE_DEVSRV"), "N", Array("checkbox", "Y")),
@@ -250,7 +256,7 @@ $arAllOptions = array(
 	),
 );
 
-if (\Bitrix\Main\Analytics\SiteSpeed::isRussianSiteManager())
+if (\Bitrix\Main\Analytics\SiteSpeed::isOn())
 {
 	$arAllOptions["main"][] = GetMessage("MAIN_CATALOG_STAT_SETTINGS");
 	$arAllOptions["main"][] = array("gather_catalog_stat", GetMessage("MAIN_GATHER_CATALOG_STAT"), "Y", Array("checkbox", "Y"));
@@ -271,11 +277,12 @@ $imageEditorOptions["Y"] = GetMessage("MAIN_OPTION_IMAGE_EDITOR_PROXY_ENABLED_YE
 $imageEditorOptions["YWL"] = GetMessage("MAIN_OPTION_IMAGE_EDITOR_PROXY_ENABLED_YES_FROM_WHITE_LIST");
 $arAllOptions["main"][] = Array("imageeditor_proxy_enabled", GetMessage("MAIN_OPTION_IMAGE_EDITOR_PROXY_ENABLED"), "N", array("selectbox", $imageEditorOptions));
 
-$allowedHostsList = unserialize(COption::GetOptionString("main", "imageeditor_proxy_white_list"));
+$allowedHostsList = unserialize(COption::GetOptionString("main", "imageeditor_proxy_white_list"), ['allowed_classes' => false]);
 
 if (!is_array($allowedHostsList) || empty($allowedHostsList))
 {
-    $allowedHostsList[] = '';
+	$allowedHostsList = [];
+	$allowedHostsList[] = '';
 }
 
 $allowedWhiteListLabel = GetMessage("MAIN_OPTIONS_IMAGE_EDITOR_PROXY_WHITE_LIST");
@@ -290,24 +297,24 @@ $addAllowedHost = "
     <script>
         var whiteListValues = ".CUtil::phpToJsObject($allowedHostsList).";
         var firstWhiteListInputs = [].slice.call(document.querySelectorAll('input[name=\'imageeditor_proxy_white_list\']'));
-        
+
         if (firstWhiteListInputs.length)
         {
             firstWhiteListInputs.forEach(function(item, index) {
             	item.setAttribute('placeholder', '".htmlspecialcharsbx($allowedWhiteListPlaceholder)."');
             	item.name = 'imageeditor_proxy_white_list[]';
             	item.setAttribute('value', whiteListValues[index]);
-            	
+
             	var allowedHostRemoveButton = '<a href=\"javascript:void(0);\" onclick=\"removeAllowedHost(this)\" class=\"access-delete\"></a>';
                 item.parentElement.innerHTML += allowedHostRemoveButton;
             });
         }
-        
+
         function removeAllowedHost(button)
         {
         	var row = button.parentElement.parentElement;
         	var inputs = [].slice.call(document.querySelectorAll('input[name*=\'imageeditor_proxy_white_list\']'));
-        	
+
         	if (inputs.length > 1)
             {
             	if (row.firstElementChild.innerHTML)
@@ -318,22 +325,22 @@ $addAllowedHost = "
         	        button.parentElement.parentElement
         	    );
             }
-            else 
+            else
             {
                 var input = row.querySelector('input[type=\'text\']');
                 input.removeAttribute('value');
                 input.value = '';
             }
-        	
+
         }
-        
+
         function addProxyAllowedHost(button)
         {
         	var row = button
         	    .parentElement
         	    .parentElement
         	    .previousElementSibling;
-        	
+
         	if (row)
             {
                 var clonedRow = row.cloneNode(true);
@@ -342,7 +349,7 @@ $addAllowedHost = "
                 clonedInput.removeAttribute('value');
                 clonedInput.value = '';
                 row.parentElement.insertBefore(clonedRow, row.nextElementSibling);
-                
+
                 if (!clonedInput.parentElement.querySelector('.access-delete'))
                 {
                     var allowedHostRemoveButton = '<a href=\"javascript:void(0);\" onclick=\"removeAllowedHost(this)\" class=\"access-delete\"></a>';
@@ -350,37 +357,37 @@ $addAllowedHost = "
                 }
             }
         }
-        
+
         var proxyEnabled = document.querySelector('[name=\'imageeditor_proxy_enabled\']');
         if (proxyEnabled)
         {
             proxyEnabled.addEventListener('change', onProxyEnabledChange);
-            
+
             requestAnimationFrame(function() {
                onProxyEnabledChange({currentTarget: proxyEnabled});
             });
         }
-        
+
         function onProxyEnabledChange(event)
         {
             var inputs = [].slice.call(document.querySelectorAll('input[name*=\'imageeditor_proxy_white_list\']'));
-            
+
             inputs.forEach(function(item) {
                 item.disabled = event.currentTarget.value !== 'YWL';
             });
-            
+
             var button = document.querySelector('.adm-add-allowed-host');
-            
+
             if (event.currentTarget.value !== 'YWL')
             {
                 button.style.pointerEvents = 'none';
                 button.style.opacity = .4;
             }
-            else 
+            else
             {
             	button.removeAttribute('style');
             }
-        
+
         }
     </script>
 ";
@@ -392,12 +399,12 @@ $arAllOptions["main"][] = Array("", "", $addAllowedHost, Array("statichtml"));
 CJSCore::Init(array('access'));
 
 //show the public panel for users
-$arCodes = unserialize(COption::GetOptionString("main", "show_panel_for_users"));
+$arCodes = unserialize(COption::GetOptionString("main", "show_panel_for_users"), ['allowed_classes' => false]);
 if(!is_array($arCodes))
 	$arCodes = array();
 
 //hide the public panel for users
-$arHideCodes = unserialize(COption::GetOptionString("main", "hide_panel_for_users"));
+$arHideCodes = unserialize(COption::GetOptionString("main", "hide_panel_for_users"), ['allowed_classes' => false]);
 if(!is_array($arHideCodes))
 	$arHideCodes = array();
 
@@ -417,7 +424,7 @@ function InsertAccess(arRights, divId, hiddenName)
 			var pr = BX.Access.GetProviderPrefix(provider, id);
 			var newDiv = document.createElement('DIV');
 			newDiv.style.marginBottom = '4px';
-			newDiv.innerHTML = '<input type=\"hidden\" name=\"'+hiddenName+'\" value=\"'+id+'\">' + (pr? pr+': ':'') + arRights[provider][id].name + '&nbsp;<a href=\"javascript:void(0);\" onclick=\"DeleteAccess(this, \\''+id+'\\')\" class=\"access-delete\"></a>';
+			newDiv.innerHTML = '<input type=\"hidden\" name=\"'+hiddenName+'\" value=\"'+id+'\">' + (pr? pr+': ':'') + BX.util.htmlspecialchars(arRights[provider][id].name) + '&nbsp;<a href=\"javascript:void(0);\" onclick=\"DeleteAccess(this, \\''+id+'\\')\" class=\"access-delete\"></a>';
 			div.appendChild(newDiv);
 		}
 	}
@@ -523,6 +530,7 @@ $arAllOptions["auth"][] = array("new_user_agreement", GetMessage("MAIN_REGISTER_
 
 $arAllOptions["auth"][] = GetMessage("main_options_restrictions");
 $arAllOptions["auth"][] = Array("inactive_users_block_days", GetMessage("main_options_block_inactive"), "0", Array("text", 5));
+$arAllOptions["auth"][] = Array("secure_logout", GetMessage("main_options_secure_logout"), "N", Array("checkbox", "Y"));
 
 $arAllOptions["auth"][] = GetMessage("MAIN_OPTION_SESS");
 $arAllOptions["auth"][] = Array("session_expand", GetMessage("MAIN_OPTION_SESS_EXPAND"), "Y", Array("checkbox", "Y"));
@@ -541,7 +549,7 @@ $aTabs = array(
 $tabControl = new CAdminTabControl("tabControl", $aTabs);
 
 $SET_LICENSE_KEY = "";
-if($_SERVER["REQUEST_METHOD"]=="POST" && strlen($_POST["Update"])>0 && ($USER->CanDoOperation('edit_other_settings') && $USER->CanDoOperation('edit_groups')) && check_bitrix_sessid())
+if($_SERVER["REQUEST_METHOD"]=="POST" && $_POST["Update"] <> '' && ($USER->CanDoOperation('edit_other_settings') && $USER->CanDoOperation('edit_groups')) && check_bitrix_sessid())
 {
 	if(LICENSE_KEY !== $_POST["SET_LICENSE_KEY"])
 	{
@@ -580,13 +588,13 @@ if($_SERVER["REQUEST_METHOD"]=="POST" && strlen($_POST["Update"])>0 && ($USER->C
 
 		$subOrdGr = false;
 		$operations = CTask::GetOperations($tid);
-		if (strlen($tid) > 0 && (in_array($nID, $operations) || in_array($nID2, $operations)) && isset($_POST['subordinate_groups_'.$value["ID"]]))
+		if ($tid <> '' && (in_array($nID, $operations) || in_array($nID2, $operations)) && isset($_POST['subordinate_groups_'.$value["ID"]]))
 			$subOrdGr = $_POST['subordinate_groups_'.$value["ID"]];
 
 		CGroup::SetSubordinateGroups($value["ID"], $subOrdGr);
 
 		$rt = ($tid) ? CTask::GetLetter($tid) : '';
-		if (strlen($rt) > 0 && $rt != "NOT_REF")
+		if ($rt <> '' && $rt != "NOT_REF")
 			$APPLICATION->SetGroupRight($module_id, $value["ID"], $rt);
 		else
 			$APPLICATION->DelGroupRight($module_id, array($value["ID"]));
@@ -647,20 +655,19 @@ $tabControl->BeginNextTab();
 
 ShowParamsHTMLByArray($arAllOptions["auth"]);
 
-$tabControl->BeginNextTab();
-ShowParamsHTMLByArray($arAllOptions["event_log"]);
-?>
-
-<?if(COption::GetOptionString("main", "controller_member", "N")=="Y"):?>
+if(COption::GetOptionString("main", "controller_member", "N")=="Y")
+{
+	?>
 	<tr class="heading">
 		<td colspan="2"><b><?echo GetMessage("MAIN_OPTION_CTRL_REM")?></b></td>
 	</tr>
 	<?
 	ShowParamsHTMLByArray($arAllOptions["controller_auth"]);
-	?>
-<?endif?>
+}
 
-<?
+$tabControl->BeginNextTab();
+ShowParamsHTMLByArray($arAllOptions["event_log"]);
+
 $tabControl->BeginNextTab();
 ?>
 	<tr>
@@ -1055,7 +1062,7 @@ $tabControl->Begin();
 <?$tabControl->BeginNextTab();?>
 <?
 if(COption::GetOptionString("main", "controller_member", "N")!="Y"):
-	if(strlen($site_url)<=0)
+	if($site_url == '')
 		$site_url = ($APPLICATION->IsHTTPS()?"https://":"http://").$_SERVER['HTTP_HOST'];
 ?>
 	<script>
@@ -1180,7 +1187,7 @@ if(COption::GetOptionString("main", "controller_member", "N")!="Y"):
 	foreach (array("db", "files") as $name):
 		$res = array();
 		if (COption::GetOptionString("main_size", "~".$name."_params"))
-			$res = unserialize(COption::GetOptionString("main_size", "~".$name."_params"));
+			$res = unserialize(COption::GetOptionString("main_size", "~".$name."_params"), ['allowed_classes' => false]);
 		if ($res)
 		{
 			$res = array_merge(
@@ -1192,7 +1199,7 @@ if(COption::GetOptionString("main", "controller_member", "N")!="Y"):
 			$res = array("size" => COption::GetOptionString("main_size", "~".$name));
 		}
 		$res["size"] = (float)$res["size"];
-		$res["status"] = (($res["status"] == "d") && (intVal(time() - $res["time"]) < 86400)) ? "done" : ($res["status"] == "c" ? "c" : "");
+		$res["status"] = (($res["status"] == "d") && (intval(time() - $res["time"]) < 86400)) ? "done" : ($res["status"] == "c" ? "c" : "");
 		$res["size_in_per"] = ($diskSpace > 0) ? round(($res["size"]/$diskSpace), 2) : 0;
 		$arParam[$name] = $res;
 		$usedSpace += $res["size"];
@@ -1205,11 +1212,11 @@ if(COption::GetOptionString("main", "controller_member", "N")!="Y"):
 	</label></td></tr>
 	<tr><td><div class="pbar-mark-green"></div></td><td><input type="radio" name="size" id="files" value="files" onclick="CheckButtons(this);" /><input type="hidden" name="result_files" id="result_files" value="<?=$arParam["files"]["status"]?>" /> <label for="files"><?=GetMessage("MAIN_OPTION_SIZE_DISTR")?>: <span id="div_files"><?=round(($arParam["files"]["size"]/1048576), 2)?></span>Mb</label>
 	(<span id="div_time_files"><?=date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG)), $arParam["files"]["time"])?></span>)</td></tr></table><?
-	$usedSpace = intVal(($usedSpace/$diskSpace)*100);
+	$usedSpace = intval(($usedSpace/$diskSpace)*100);
 ?><div class="pbar-outer">
-		<div id="pb_db" class="pbar-inner-red<?=($arParam["db"]["status"] == "done" ? "" : "-error")?>" style="width:<?=intVal($arParam["db"]["size_in_per"]*350)?>px; padding-left:<?=intVal($arParam["db"]["size_in_per"]*350)?>px;">&nbsp;</div><div id="pb_files" class="pbar-inner-green<?=($arParam["files"]["status"] == "done" ? "" : "-error")?>" style="width:<?=intVal($arParam["files"]["size_in_per"]*350)?>px; padding-left:<?=intVal($arParam["files"]["size_in_per"]*350)?>px;">&nbsp;</div>
+		<div id="pb_db" class="pbar-inner-red<?=($arParam["db"]["status"] == "done" ? "" : "-error")?>" style="width:<?=intval($arParam["db"]["size_in_per"]*350)?>px; padding-left:<?=intval($arParam["db"]["size_in_per"]*350)?>px;">&nbsp;</div><div id="pb_files" class="pbar-inner-green<?=($arParam["files"]["status"] == "done" ? "" : "-error")?>" style="width:<?=intval($arParam["files"]["size_in_per"]*350)?>px; padding-left:<?=intval($arParam["files"]["size_in_per"]*350)?>px;">&nbsp;</div>
 </div>
-<div class="pbar-title-outer"><div class="pbar-title-inner"><?=str_replace(array("#USED_SPACE#", "#DISK_QUOTA#"), array("<span id=\"used_size\">".intVal($usedSpace)."</span>%", COption::GetOptionInt("main", "disk_space")." Mb"), GetMessage("MAIN_OPTION_SIZE_PROGRESS_BAR"))?></div></div><br />
+<div class="pbar-title-outer"><div class="pbar-title-inner"><?=str_replace(array("#USED_SPACE#", "#DISK_QUOTA#"), array("<span id=\"used_size\">".intval($usedSpace)."</span>%", COption::GetOptionInt("main", "disk_space")." Mb"), GetMessage("MAIN_OPTION_SIZE_PROGRESS_BAR"))?></div></div><br />
 	<input type="button" id="butt_start" value="<?=GetMessage("MAIN_OPTION_SIZE_RECOUNT")?>" <?=((!$USER->CanDoOperation('edit_other_settings')) ? "disabled": "onclick=\"StartReCount()\"")?>  class="adm-btn-save"/>
 	<input type="button" id="butt_cont" value="<?=GetMessage("MAIN_OPTION_SIZE_CONTINUE")?>" disabled="disabled" <?=((!$USER->CanDoOperation('edit_other_settings')) ? "disabled":  "onclick=\"StartReCount('from_the_last')\"")?> />
 	<input type="button" id="butt_stop" value="<?=GetMessage("MAIN_OPTION_SIZE_STOP")?>" disabled="disabled" <?=((!$USER->CanDoOperation('edit_other_settings')) ? "disabled": "onclick=\"StopReCount()\"")?> />
@@ -1218,7 +1225,7 @@ if(COption::GetOptionString("main", "controller_member", "N")!="Y"):
 <?$tabControl->End();?>
 <?if ($USER->CanDoOperation('edit_other_settings')):?>
 <script language="JavaScript">
-var result = {'stop':false, 'done':true, 'error':false, 'db':{'size': <?=intVal($arParam["db"]["size"])?>}, 'files':{'size':<?=intVal($arParam["files"]["size"])?>}};
+var result = {'stop':false, 'done':true, 'error':false, 'db':{'size': <?=intval($arParam["db"]["size"])?>}, 'files':{'size':<?=intval($arParam["files"]["size"])?>}};
 diskSpace = <?=$diskSpace?>;
 window.onStepDone = function(name){
 	if (name && diskSpace > 0)

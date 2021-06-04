@@ -6,11 +6,11 @@
  * @var CBitrixComponentTemplate $this
  * @var ForumCommentsComponent $this->__component
  */
-if ($arResult["ERROR_MESSAGE"] && strpos($arResult["ERROR_MESSAGE"], "MID=") !== false)
+if ($arResult["ERROR_MESSAGE"] && mb_strpos($arResult["ERROR_MESSAGE"], "MID=") !== false)
 {
 	$arResult["ERROR_MESSAGE"] = preg_replace(array("/\(MID\=\d+\)/is", "/\s\s/", "/\s\./"), array("", " ", "."), $arResult["ERROR_MESSAGE"]);
 }
-if ($arResult["OK_MESSAGE"] && strpos($arResult["OK_MESSAGE"], "MID=") !== false)
+if ($arResult["OK_MESSAGE"] && mb_strpos($arResult["OK_MESSAGE"], "MID=") !== false)
 {
 	$arResult["OK_MESSAGE"] = preg_replace(array("/\(MID\=\d+\)/is", "/\s\s/", "/\s\./"), array("", " ", "."), $arResult["OK_MESSAGE"]);
 }
@@ -22,18 +22,66 @@ $arParams["FORM_ID"] = "COMMENTS_".$arParams["form_index"];
 $arParams["jsObjName"] = "oLHE_FC".$arParams["form_index"];
 $arParams["LheId"] = "idLHE_FC".$arParams["form_index"];
 $arParams["tplID"] = 'COMMENT_'.$arParams["ENTITY_TYPE"].'_'.$arParams["form_index"];
-
+$visibleRecordsCount = 3;
 include_once(__DIR__."/functions.php");
 include_once(__DIR__."/../mobile_app/functions.php");
 
-$arResult["PUSH&PULL"] = false;
+$arResult["PUSH&PULL"] = isset($arResult["PUSH&PULL"]) ? $arResult["PUSH&PULL"] : false;
 
 $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 $post = array_merge($request->getQueryList()->toArray(), $request->getPostList()->toArray());
-$action = strtolower($post["comment_review"] == "Y" ? (strtolower($post['REVIEW_ACTION']) == "edit" ? "edit" : "add") : $post['REVIEW_ACTION']);
-
 if (!empty($arResult["MESSAGES"]))
 {
+	if ($arResult["NAV_RESULT"]->NavRecordCount > $visibleRecordsCount)
+	{
+		$allMessages = 0;
+		$regularMessages = 0;
+		$findMessageId = intval($arResult["MID"]);
+		$limitMessageCount = !is_array($request->get("FILTER"));
+		foreach($arResult["MESSAGES"] as $id => $message)
+		{
+			if ((int)$message["~SERVICE_TYPE"] <= 0)
+			{
+				$regularMessages++;
+			}
+			$allMessages++;
+
+			if ($limitMessageCount)
+			{
+				if ($findMessageId <= 0 && $regularMessages >= $visibleRecordsCount)
+				{
+					break;
+				}
+				elseif ($findMessageId > 0 && $id == $findMessageId)
+				{
+					if ($regularMessages >= $visibleRecordsCount)
+					{
+						break;
+					}
+					$findMessageId = 0;
+				}
+			}
+		}
+		$arResult["MESSAGES"] = array_slice($arResult["MESSAGES"], 0, $allMessages, true);
+		$arResult["VISIBLE_RECORDS_COUNT"] = count($arResult["MESSAGES"]);
+		$arResult["NAV_RESULT"]->bShowAll = $arResult["NAV_RESULT"]->NavRecordCount <= $regularMessages;
+		if ($limitMessageCount)
+		{
+			$arResult["NAV_RESULT"]->NavRecordCount += ($allMessages - $regularMessages);
+		}
+	}
+	else
+	{
+		$arResult["NAV_RESULT"]->nSelectedCount = $arResult["NAV_RESULT"]->NavRecordCount;
+		$arResult["NAV_RESULT"]->bShowAll = true;
+	}
+
+	array_walk($arResult["MESSAGES"], function(&$item) {
+		$item["COLLAPSED"] = ($item["~SERVICE_TYPE"] > 0 && $item["NEW"] !== "Y"? "Y" : "N");
+		return $item;
+	});
+
+
 	$arResult["NAV_STRING"] = GetPagePath(false, false);
 	if ($arResult["NAV_RESULT"])
 	{
@@ -52,7 +100,7 @@ if (!empty($arResult["MESSAGES"]))
 	foreach ($arResult["MESSAGES"] as $key => $res)
 	{
 		$arResult["MESSAGES"][$key] = forumCommentsCommentWeb($res, $arParams, $arResult, $this->__component);
-		if (intval($arResult["RESULT"]) == intval($res["ID"]))
+		if (in_array($arResult["ACTION"], ["hide", "show", "edit", "add"]) && intval($arResult["RESULT"]) == intval($res["ID"]))
 		{
 			if ($this->__component->prepareMobileData)
 			{
@@ -63,13 +111,13 @@ if (!empty($arResult["MESSAGES"]))
 					$this->__component
 				);
 			}
-			if (in_array($action, array('hide', 'show')))
+			if (in_array($arResult["ACTION"], array('hide', 'show')))
 			{
 				$action = "MODERATE";
 			}
 			else
 			{
-				$action = ($action == "edit" ? "EDIT" : "REPLY");
+				$action = ($arResult["ACTION"] == "edit" ? "EDIT" : "REPLY");
 			}
 
 			$arResult["PUSH&PULL"] = array(
@@ -79,7 +127,7 @@ if (!empty($arResult["MESSAGES"]))
 		}
 	}
 }
-if ($action == "del" && $arResult["RESULT"] > 0)
+if ($arResult["ACTION"] == "del" && $arResult["RESULT"] > 0)
 {
 	$arResult["PUSH&PULL"] = array(
 		"ID" => $arResult["RESULT"],

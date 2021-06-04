@@ -602,7 +602,6 @@ function JCAdminList(table_id)
 			div.id = "settings_float_div";
 			div.className = "settings-float-form";
 			div.style.position = 'absolute';
-			div.style.zIndex = 1000;
 			div.innerHTML = result;
 
 			var left = parseInt(document.body.scrollLeft + document.body.clientWidth/2 - div.offsetWidth/2);
@@ -976,7 +975,6 @@ function TabControl(name, unique_name, aTabs)
 			div.id = "settings_float_div";
 			div.className = "settings-float-form";
 			div.style.position = 'absolute';
-			div.style.zIndex = 1000;
 			div.innerHTML = result;
 
 			var left = parseInt(document.body.scrollLeft + document.body.clientWidth/2 - div.offsetWidth/2);
@@ -1403,7 +1401,7 @@ function JCUserOptions()
 
 		var sParam = this.GetParams();
 		if(sParam != '')
-			document.cookie = phpVars.cookiePrefix+"_LAST_SETTINGS=" + sParam + "&sessid="+phpVars.bitrix_sessid+"; expires=Thu, 31 Dec 2020 23:59:59 GMT; path=/;";
+			document.cookie = phpVars.cookiePrefix+"_LAST_SETTINGS=" + sParam + "&sessid="+phpVars.bitrix_sessid+"; expires=Thu, 31 Dec " + ((new Date()).getFullYear() + 1) + " 23:59:59 GMT; path=/;";
 
 		if(!this.bSend)
 		{
@@ -2280,12 +2278,28 @@ function Sync()
 		for(j = 0; j < selected_fields.length; j++)
 			delete arFields[selected_fields[j].value];
 	}
-	var save_button = document.getElementById('save_settings');
-	save_button.disabled = false;
+	var absentRequiredFields = [];
 	for(var name in arFields)
 	{
-		if(arFields[name].substring(0,1) == "*")
-			save_button.disabled = true;
+		if(arFields[name].substring(0,1) === "*")
+		{
+			absentRequiredFields.push(arFields[name].substring(1));
+		}
+	}
+	var save_button = document.getElementById('save_settings'),
+		saveErrorMessage = document.getElementById('save_settings_error'),
+		absentFieldList = document.getElementById('absent_required_fields');
+	if (absentRequiredFields.length > 0)
+	{
+		absentFieldList.innerHTML = absentRequiredFields.join('<br>');
+		saveErrorMessage.style.display = 'block';
+		save_button.disabled = true;
+	}
+	else
+	{
+		absentFieldList.innerHTML = '';
+		saveErrorMessage.style.display = 'none';
+		save_button.disabled = false;
 	}
 }
 

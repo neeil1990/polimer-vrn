@@ -32,7 +32,8 @@ class CListsLiveFeed
 
 		$params = serialize(array("ELEMENT_NAME" => $element['NAME']));
 
-		if(in_array($element['IBLOCK_CODE'], $listSystemIblockCode))
+		$element['NAME'] = htmlspecialcharsbx($element['NAME']);
+		if (in_array($element['IBLOCK_CODE'], $listSystemIblockCode))
 		{
 			$element['NAME'] = preg_replace_callback(
 				'#^[^\[\]]+?\[(\d+)\]#i',
@@ -48,7 +49,7 @@ class CListsLiveFeed
 					}
 					return $matches[0];
 				},
-				htmlspecialcharsbx($element['NAME'])
+				$element['NAME']
 			);
 		}
 
@@ -115,7 +116,7 @@ class CListsLiveFeed
 					<span class="bp-title-desc-icon">
 						<img src="'.$imageFile['src'].'" width="36" height="30" border="0" />
 					</span>
-					'.in_array($element['IBLOCK_CODE'], $listSystemIblockCode) ? $element['NAME'] : htmlspecialcharsbx($element['NAME']).'
+					'.$element['NAME'].'
 				</span>
 			';
 
@@ -200,6 +201,7 @@ class CListsLiveFeed
 
 		global $arSocNetAllowedSubscribeEntityTypesDesc;
 		$arSocNetAllowedSubscribeEntityTypesDesc[SONET_LISTS_NEW_POST_ENTITY] = array(
+			'USE_CB_FILTER' => 'Y',
 			'TITLE_LIST' => '',
 			'TITLE_ENTITY' => ''
 		);
@@ -266,6 +268,7 @@ class CListsLiveFeed
 					'',
 					Array(
 						'WORKFLOW_ID' => $fields['MESSAGE'],
+						'SITE_TEMPLATE_ID' => (isset($params['SITE_TEMPLATE_ID']) ? $params['SITE_TEMPLATE_ID'] : '')
 					),
 					null,
 					array('HIDE_ICONS' => 'Y')
@@ -401,7 +404,7 @@ class CListsLiveFeed
 							"PERMISSION" => 'Y',
 						);
 						$startMessageId = CForumMessage::Add($dataFields, false, array("SKIP_INDEXING" => "Y", "SKIP_STATISTIC" => "N"));
-						if (intVal($startMessageId) <= 0)
+						if (intval($startMessageId) <= 0)
 						{
 							CForumTopic::Delete($topicId);
 							$topicId = 0;
@@ -515,7 +518,7 @@ class CListsLiveFeed
 		{
 			if($user != 'SA')
 			{
-				$users[] = substr($user, 1);
+				$users[] = mb_substr($user, 1);
 			}
 		}
 		return $users;
@@ -857,11 +860,11 @@ class CListsLiveFeed
 			$params = unserialize($log["~PARAMS"]);
 			$title = $log["TITLE"]." - ".$params["ELEMENT_NAME"];
 			$entityName = GetMessage("LISTS_LF_COMMENT_MENTION_TITLE", Array("#PROCESS#" => $title));
-			$notifyMessage = GetMessage("LISTS_LF_COMMENT_MENTION" . (strlen($genderSuffix) > 0 ? "_" . $genderSuffix : ""), Array("#title#" => "<a href=\"#url#\" class=\"bx-notifier-item-action\">".$entityName."</a>"));
-			$notifyMessageOut = GetMessage("LISTS_LF_COMMENT_MENTION" . (strlen($genderSuffix) > 0 ? "_" . $genderSuffix : ""), Array("#title#" => $entityName)) . " (" . "#server_name##url#)";
+			$notifyMessage = GetMessage("LISTS_LF_COMMENT_MENTION" . ($genderSuffix <> '' ? "_" . $genderSuffix : ""), Array("#title#" => "<a href=\"#url#\" class=\"bx-notifier-item-action\">".$entityName."</a>"));
+			$notifyMessageOut = GetMessage("LISTS_LF_COMMENT_MENTION" . ($genderSuffix <> '' ? "_" . $genderSuffix : ""), Array("#title#" => $entityName)) . " (" . "#server_name##url#)";
 
 			$strPathToLogEntry = str_replace("#log_id#", $log["ID"], COption::GetOptionString("socialnetwork", "log_entry_page", "/company/personal/log/#log_id#/", SITE_ID));
-			$strPathToLogEntryComment = $strPathToLogEntry . (strpos($strPathToLogEntry, "?") !== false ? "&" : "?") . "commentID=" . $commentFields["ID"] . "#com" . $commentFields["ID"];
+			$strPathToLogEntryComment = $strPathToLogEntry . (mb_strpos($strPathToLogEntry, "?") !== false ? "&" : "?") . "commentID=" . $commentFields["ID"] . "#com" . $commentFields["ID"];
 
 			$return = array(
 				"URL" => $strPathToLogEntryComment,

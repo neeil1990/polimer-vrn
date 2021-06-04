@@ -38,6 +38,9 @@ class MainMailConfirmAjax
 				case 'deleteSender':
 					$result = (array) self::executeDelete($error);
 					break;
+				case 'sendersListCanDel':
+					$result = (array) self::executeSenderListCanDel($error);
+					break;
 				default:
 					$error = getMessage('MAIN_MAIL_CONFIRM_AJAX_ERROR');
 			}
@@ -58,9 +61,9 @@ class MainMailConfirmAjax
 		$isAdmin = Main\Loader::includeModule('bitrix24') ? \CBitrix24::isPortalAdmin($USER->getId()) : $USER->isAdmin();
 
 		$name   = trim($_REQUEST['name']);
-		$email  = strtolower(trim($_REQUEST['email']));
+		$email = mb_strtolower(trim($_REQUEST['email']));
 		$smtp   = $_REQUEST['smtp'];
-		$code   = strtolower(trim($_REQUEST['code']));
+		$code = mb_strtolower(trim($_REQUEST['code']));
 		$public = $isAdmin && $_REQUEST['public'] == 'Y';
 
 		if (!check_email($email, true))
@@ -78,8 +81,9 @@ class MainMailConfirmAjax
 			}
 
 			$smtp = array(
-				'server'   => strtolower(trim($smtp['server'])),
-				'port'     => strtolower(trim($smtp['port'])),
+				'server'   => mb_strtolower(trim($smtp['server'])),
+				'port'     => mb_strtolower(trim($smtp['port'])),
+				'protocol' => 'Y' == $smtp['ssl'] ? 'smtps' : 'smtp',
 				'login'    => $smtp['login'],
 				'password' => $smtp['password'],
 			);
@@ -113,6 +117,16 @@ class MainMailConfirmAjax
 			if (empty($smtp['password']))
 			{
 				$error = getMessage('MAIN_MAIL_CONFIRM_EMPTY_SMTP_PASSWORD');
+				return;
+			}
+			else if (preg_match('/^\^/', $smtp['password']))
+			{
+				$error = getMessage('MAIN_MAIL_CONFIRM_INVALID_SMTP_PASSWORD_CARET');
+				return;
+			}
+			else if (preg_match('/\x00/', $smtp['password']))
+			{
+				$error = getMessage('MAIN_MAIL_CONFIRM_INVALID_SMTP_PASSWORD_NULL');
 				return;
 			}
 		}
@@ -152,7 +166,7 @@ class MainMailConfirmAjax
 						$pending[$item['EMAIL']] = array();
 					}
 
-					$pending[$item['EMAIL']][$item['ID']] = strtolower($item['OPTIONS']['confirm_code']);
+					$pending[$item['EMAIL']][$item['ID']] = mb_strtolower($item['OPTIONS']['confirm_code']);
 				}
 			}
 		}
@@ -177,7 +191,14 @@ class MainMailConfirmAjax
 				$fields['OPTIONS']['smtp'] = $smtp;
 			}
 
-			return Main\Mail\Sender::add($fields);
+			$result = Main\Mail\Sender::add($fields);
+			if (!empty($result['error']))
+			{
+				$error = $result['error'];
+				return;
+			}
+
+			return $result;
 		}
 		else
 		{
@@ -225,7 +246,28 @@ class MainMailConfirmAjax
 
 		return [];
 	}
+	private static function executeSenderListCanDel(&$error)
+	{
+		global $USER;
 
+		$error = false;
+		if(is_object($USER) && ($userId = $USER->getId()) !== null)
+		{
+			$mailboxes = Main\Mail\Sender::prepareUserMailboxes($userId);
+			foreach ($mailboxes as $key => $box)
+			{
+				if(!(isset($box['can_delete']) && $box['can_delete']))
+				{
+					unset($mailboxes[$key]);
+				}
+			}
+			return [
+				'mailboxes'=> $mailboxes,
+			];
+		}
+		$error = getMessage('MAIN_MAIL_CONFIRM_AUTH');
+		return null;
+	}
 	private static function returnJson($data)
 	{
 		global $APPLICATION;

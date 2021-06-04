@@ -2,6 +2,7 @@
 namespace Bitrix\Lists;
 
 use Bitrix\Main;
+use Bitrix\Main\ModuleManager;
 
 Main\Loader::includeModule("iblock");
 Main\Loader::includeModule("bizproc");
@@ -146,7 +147,7 @@ class Importer
 		$datum = fread($f, filesize($filePath));
 		fclose($f);
 
-		if (substr($datum, 0, 10) === "compressed")
+		if (mb_substr($datum, 0, 10) === "compressed")
 			$datum = gzuncompress(Main\Text\BinaryString::getSubstring($datum, 10));
 
 		$len = intval(Main\Text\BinaryString::getSubstring($datum, 0, 10));
@@ -169,7 +170,7 @@ class Importer
 		if (empty($datum))
 			throw new Main\ArgumentNullException("datum");
 
-		if (substr($datum, 0, 10) === "compressed")
+		if (mb_substr($datum, 0, 10) === "compressed")
 			$datum = gzuncompress(Main\Text\BinaryString::getSubstring($datum, 10));
 
 		$len = intval(Main\Text\BinaryString::getSubstring($datum, 0, 10));
@@ -577,10 +578,11 @@ class Importer
 	 * @param string $lang This variable is the value language.
 	 * @return string
 	 * @throws Main\ArgumentNullException
+	 * @throws Main\IO\FileNotFoundException
 	 */
 	public static function onAgent($lang)
 	{
-		if(Main\Loader::includeModule("iblock") && Main\Loader::includeModule("bizproc"))
+		if (ModuleManager::isModuleInstalled("bizproc"))
 		{
 			self::installProcesses($lang);
 			return "";

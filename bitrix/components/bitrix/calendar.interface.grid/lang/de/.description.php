@@ -1,5 +1,5 @@
 <?
-$MESS["EVENT_CALENDAR2"] = "Terminkalender 2.0";
-$MESS["EVENT_CALENDAR_DESCRIPTION"] = "Eine Komponente zum Anzeigen des Terminkalenders.";
 $MESS["EVENT_CALENDAR"] = "Terminkalender";
+$MESS["EVENT_CALENDAR_GRID"] = "Benutzeroberfläche des Kalender-Grids";
+$MESS["EVENT_CALENDAR_GRID_DESCRIPTION"] = "Diese Komponente zeigt externe Elemente im Kalender-Grid an. API des Moduls kalender ist erforderlich.";
 ?>

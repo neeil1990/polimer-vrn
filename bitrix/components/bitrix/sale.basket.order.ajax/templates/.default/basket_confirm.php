@@ -26,7 +26,7 @@ if (!empty($arResult["ORDER"]))
 				</td>
 			</tr>
 			<?
-			if (strlen($arResult["PAY_SYSTEM"]["ACTION_FILE"]) > 0)
+			if ($arResult["PAY_SYSTEM"]["ACTION_FILE"] <> '')
 			{
 				?>
 				<tr>
@@ -48,9 +48,13 @@ if (!empty($arResult["ORDER"]))
 							if ($service)
 							{
 								$orderId = $arResult['ORDER_ID'];
+								$registry = \Bitrix\Sale\Registry::getInstance(\Bitrix\Sale\Registry::REGISTRY_TYPE_ORDER);
+
+								/** @var \Bitrix\Sale\Order $orderClass */
+								$orderClass = $registry->getOrderClassName();
 
 								/** @var \Bitrix\Sale\Order $order */
-								$order = \Bitrix\Sale\Order::load($orderId);
+								$order = $orderClass::load($orderId);
 
 								if ($order === null)
 								{
@@ -59,7 +63,7 @@ if (!empty($arResult["ORDER"]))
 										'filter' => array('ACCOUNT_NUMBER' => $orderId)
 									));
 
-									$order = \Bitrix\Sale\Order::load($data['ID']);
+									$order = $orderClass::load($data['ID']);
 								}
 
 								/** @var \Bitrix\Sale\PaymentCollection $paymentCollection */

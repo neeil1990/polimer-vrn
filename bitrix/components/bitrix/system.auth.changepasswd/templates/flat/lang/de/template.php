@@ -1,4 +1,4 @@
-<?
+<?php
 $MESS["AUTH_AUTH"] = "Anmeldung";
 $MESS["AUTH_CHANGE"] = "Passwort ändern";
 $MESS["AUTH_CHANGE_PASSWORD"] = "Passwort ändern";
@@ -10,4 +10,4 @@ $MESS["AUTH_SECURE_NOTE"] = "Das Passwort wird verschlüsselt, bevor es versende
 $MESS["change_pass_code"] = "Bestätigungscode";
 $MESS["change_pass_phone_number"] = "Telefon";
 $MESS["system_auth_captcha"] = "Geben Sie die Symbole ein, die Sie auf dem Bild sehen:";
-?>
+$MESS["system_change_pass_current_pass"] = "Aktuelles Passwort";

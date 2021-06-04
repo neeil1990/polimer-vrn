@@ -38,29 +38,31 @@ if (is_array($arResult["ITEMS_DB"]) && !empty($arResult["ITEMS_DB"])):
 ?>
 		<div class="mp_sc_container">
 			<div class="mp_lt_left_container">
-				<span class="mp_sc_ls_img">
 <?php
-		if($arResult["ITEMS"][$app["CODE"]]["ICON"]):
+		if(!empty($arResult["ITEMS"][$app["CODE"]]["ICON"])):
 ?>
-					<span><img src="<?=$arResult["ITEMS"][$app["CODE"]]["ICON"]?>" alt=""/></span>
+				<span class="mp_sc_ls_img">
+					<span><img src="<?=htmlspecialcharsbx($arResult["ITEMS"][$app["CODE"]]["ICON"])?>" alt=""/></span>
+				</span>
 <?php
 		else:
 ?>
+				<span class="mp_sc_ls_img">
 					<span class="mp_empty_icon"></span>
+				</span>
 <?php
 		endif;
 ?>
-				</span>
 				<a href="<?=$appUrl;?>" class="mp_sc_ls_shadow"></a>
 				<div class="mp_sc_ls_container">
 <?php
 		$itemName = $arResult["ITEMS"][$app["CODE"]]["NAME"]
 				? $arResult["ITEMS"][$app["CODE"]]["NAME"]
 				: $app["MENU_NAME"];
-		if(strlen($itemName) >= 48):
+		if(mb_strlen($itemName) >= 48):
 ?>
 					<a class="mp_sc_ls_title" href="<?=$appUrl;?>" title="<?=htmlspecialcharsbx($itemName)?>">
-						<?=htmlspecialcharsbx(substr($itemName, 0, 48)."...")?>
+						<?=htmlspecialcharsbx(mb_substr($itemName, 0, 48)."...")?>
 					</a>
 <?php
 		else:
@@ -85,12 +87,8 @@ if (is_array($arResult["ITEMS_DB"]) && !empty($arResult["ITEMS_DB"])):
 		else:
 			//additional info
 			if($app["ACTIVE"] == "Y" && is_array($app['APP_STATUS']) && $app['APP_STATUS']['PAYMENT_NOTIFY'] == 'Y'):
-				if($arResult['ADMIN'])
-				{
-					$app['APP_STATUS']['MESSAGE_SUFFIX'] .= '_A';
-				}
 ?>
-					<div class="mp_notify_message" style="margin-top:10px"><?=GetMessage('PAYMENT_MESSAGE'.$app['APP_STATUS']['MESSAGE_SUFFIX'], $app['APP_STATUS']['MESSAGE_REPLACE']);?></div>
+					<div class="mp_notify_message" style="margin-top:10px"><?=\Bitrix\Rest\AppTable::getStatusMessage($app['APP_STATUS']['MESSAGE_SUFFIX'], $app['APP_STATUS']['MESSAGE_REPLACE'])?></div>
 <?php
 			endif;
 		endif;

@@ -112,7 +112,7 @@ class Proxy
 			$hosts = Option::get('main', 'imageeditor_proxy_white_list', []);
 			if (is_string($hosts))
 			{
-				$hosts = unserialize($hosts);
+				$hosts = unserialize($hosts, ['allowed_classes' => false]);
 			}
 		}
 
@@ -194,14 +194,18 @@ class Proxy
 			$remoteHost === $currentHost)
 		{
 			$client = new HttpClient();
-			$contents = $client->get($this->uri->getUri());
 
-			$response->addHeader('Content-Type', $client->getContentType());
-			$response->flush($contents);
+			//prevents proxy to LAN
+			$client->setPrivateIp(false);
+
+			$contents = $client->get($this->uri->getUri());
+			if($contents !== false)
+			{
+				$response->addHeader('Content-Type', $client->getContentType());
+				$response->flush($contents);
+				return;
+			}
 		}
-		else
-		{
-			$response->setStatus(404)->flush();
-		}
+		$response->setStatus(404)->flush();
 	}
 }

@@ -32,35 +32,50 @@ class CIMMessageParam
 		$arToInsert = array();
 		foreach($params as $k1 => $v1)
 		{
-			$name = substr(trim($k1), 0, 100);
-			if(strlen($name))
+			$name = mb_substr(trim($k1), 0, 100);
+			if($name <> '')
 			{
 				if(is_object($v1) && $v1 instanceof \Bitrix\Im\Bot\Keyboard)
 				{
 					$v1 = array($v1);
 				}
-				else if(is_object($v1) && $v1 instanceof \Bitrix\Im\Bot\ContextMenu)
+				else
 				{
-					$v1 = array($v1);
-				}
-				else if(is_object($v1) && $v1 instanceof CIMMessageParamAttach)
-				{
-					$v1 = array($v1);
-				}
-				else if(is_object($v1) && $v1 instanceof \Bitrix\Main\Type\DateTime)
-				{
-					$v1 = array($v1->getTimestamp());
-				}
-				else if(is_array($v1) && \Bitrix\Main\Type\Collection::isAssociative($v1))
-				{
-					$v1 = array($v1);
-				}
-				else if (!is_array($v1))
-				{
-					$v1 = array($v1);
+					if(is_object($v1) && $v1 instanceof \Bitrix\Im\Bot\ContextMenu)
+					{
+						$v1 = array($v1);
+					}
+					else
+					{
+						if(is_object($v1) && $v1 instanceof CIMMessageParamAttach)
+						{
+							$v1 = array($v1);
+						}
+						else
+						{
+							if(is_object($v1) && $v1 instanceof \Bitrix\Main\Type\DateTime)
+							{
+								$v1 = array($v1->getTimestamp());
+							}
+							else
+							{
+								if(is_array($v1) && \Bitrix\Main\Type\Collection::isAssociative($v1))
+								{
+									$v1 = array($v1);
+								}
+								else
+								{
+									if(!is_array($v1))
+									{
+										$v1 = array($v1);
+									}
+								}
+							}
+						}
+					}
 				}
 
-				if (empty($v1))
+				if(empty($v1))
 				{
 					$arToDelete[$name] = array(
 						"=MESSAGE_ID" => $messageId,
@@ -71,60 +86,66 @@ class CIMMessageParam
 				{
 					foreach($v1 as $v2)
 					{
-						if (is_array($v2))
+						if(is_array($v2))
 						{
 							$value = \Bitrix\Main\Web\Json::encode($v2);
-							if(strlen($value) > 0 && strlen($value) < 60000)
+							if($value <> '' && mb_strlen($value) < 60000)
 							{
 								$key = md5($name.$value);
 								$arToInsert[$key] = array(
 									"MESSAGE_ID" => $messageId,
 									"PARAM_NAME" => $name,
-									"PARAM_VALUE" => isset($v2['ID'])? $v2['ID']: time(),
-									"PARAM_JSON" => $value,
-								);
-							}
-						}
-						else if(is_object($v2) && ($v2 instanceof \Bitrix\Im\Bot\Keyboard || $v2 instanceof \Bitrix\Im\Bot\ContextMenu))
-						{
-							$value = $v2->getJson();
-							if(strlen($value))
-							{
-								$key = md5($name.$value);
-								$arToInsert[$key] = array(
-									"MESSAGE_ID" => $messageId,
-									"PARAM_NAME" => $name,
-									"PARAM_VALUE" => "",
-									"PARAM_JSON" => $value,
-								);
-							}
-						}
-						else if(is_object($v2) && $v2 instanceof CIMMessageParamAttach)
-						{
-							$value = $v2->GetJSON();
-							$valueArray = $v2->GetArray();
-							if(strlen($value))
-							{
-								$key = md5($name.$value);
-								$arToInsert[$key] = array(
-									"MESSAGE_ID" => $messageId,
-									"PARAM_NAME" => $name,
-									"PARAM_VALUE" => $valueArray['ID'],
+									"PARAM_VALUE" => isset($v2['ID'])? $v2['ID'] : time(),
 									"PARAM_JSON" => $value,
 								);
 							}
 						}
 						else
 						{
-							$value = substr(trim($v2), 0, 100);
-							if(strlen($value))
+							if(is_object($v2) && ($v2 instanceof \Bitrix\Im\Bot\Keyboard || $v2 instanceof \Bitrix\Im\Bot\ContextMenu))
 							{
-								$key = md5($name.$value);
-								$arToInsert[$key] = array(
-									"MESSAGE_ID" => $messageId,
-									"PARAM_NAME" => $name,
-									"PARAM_VALUE" => $value,
-								);
+								$value = $v2->getJson();
+								if($value <> '')
+								{
+									$key = md5($name.$value);
+									$arToInsert[$key] = array(
+										"MESSAGE_ID" => $messageId,
+										"PARAM_NAME" => $name,
+										"PARAM_VALUE" => "",
+										"PARAM_JSON" => $value,
+									);
+								}
+							}
+							else
+							{
+								if(is_object($v2) && $v2 instanceof CIMMessageParamAttach)
+								{
+									$value = $v2->GetJSON();
+									$valueArray = $v2->GetArray();
+									if($value <> '')
+									{
+										$key = md5($name.$value);
+										$arToInsert[$key] = array(
+											"MESSAGE_ID" => $messageId,
+											"PARAM_NAME" => $name,
+											"PARAM_VALUE" => $valueArray['ID'],
+											"PARAM_JSON" => $value,
+										);
+									}
+								}
+								else
+								{
+									$value = mb_substr(trim($v2), 0, 100);
+									if($value <> '')
+									{
+										$key = md5($name.$value);
+										$arToInsert[$key] = array(
+											"MESSAGE_ID" => $messageId,
+											"PARAM_NAME" => $name,
+											"PARAM_VALUE" => $value,
+										);
+									}
+								}
 							}
 						}
 					}
@@ -142,7 +163,7 @@ class CIMMessageParam
 			));
 			while($ar = $messageParameters->fetch())
 			{
-				if (strlen($ar['PARAM_JSON']))
+				if ($ar['PARAM_JSON'] <> '')
 				{
 					$key = md5($ar["PARAM_NAME"].$ar["PARAM_JSON"]);
 				}
@@ -319,7 +340,7 @@ class CIMMessageParam
 		return true;
 	}
 
-	public static function DeleteAll($messageId)
+	public static function DeleteAll($messageId, $deleteWithTs = false)
 	{
 		$messageId = intval($messageId);
 		if ($messageId <= 0)
@@ -333,20 +354,23 @@ class CIMMessageParam
 		));
 		while ($parameterInfo = $messageParameters->fetch())
 		{
-			if ($parameterInfo['PARAM_NAME'] == 'TS')
+			if (!$deleteWithTs && $parameterInfo['PARAM_NAME'] == 'TS')
 				continue;
 
 			IM\Model\MessageParamTable::delete($parameterInfo['ID']);
 		}
 
-		self::UpdateTimestamp($messageId);
+		if (!$deleteWithTs)
+		{
+			self::UpdateTimestamp($messageId);
+		}
 
 		return true;
 	}
 
 	public static function DeleteByParam($paramName, $paramValue)
 	{
-		if (strlen($paramName) <= 0 || strlen($paramValue) <= 0 || $paramValue == 'TS')
+		if ($paramName == '' || $paramValue == '' || $paramValue == 'TS')
 		{
 			return false;
 		}
@@ -401,7 +425,7 @@ class CIMMessageParam
 		$filter = array(
 			'=MESSAGE_ID' => $messageId,
 		);
-		if ($paramName && strlen($paramName) > 0)
+		if ($paramName && $paramName <> '')
 		{
 			$filter['=PARAM_NAME'] = $paramName;
 		}
@@ -416,7 +440,7 @@ class CIMMessageParam
 				$ar['PARAM_VALUE'] = \Bitrix\Im\Text::decodeEmoji($ar['PARAM_VALUE']);
 			}
 
-			if (strlen($ar["PARAM_JSON"]))
+			if ($ar["PARAM_JSON"] <> '')
 			{
 				$value = \Bitrix\Main\Web\Json::decode($ar["PARAM_JSON"]);
 			}
@@ -457,7 +481,7 @@ class CIMMessageParam
 	public static function GetMessageIdByParam($paramName, $paramValue, $chatId = null)
 	{
 		$arResult = Array();
-		if (strlen($paramName) <= 0 || strlen($paramValue) <= 0)
+		if ($paramName == '' || $paramValue == '')
 		{
 			return $arResult;
 		}
@@ -489,7 +513,7 @@ class CIMMessageParam
 		$arDefault = self::GetDefault();
 		foreach($values as $key => $value)
 		{
-			if (in_array($key, Array('IS_DELETED', 'IS_EDITED', 'CAN_ANSWER', 'IMOL_QUOTE_MSG', 'SENDING', 'URL_ONLY')))
+			if (in_array($key, Array('IS_ERROR', 'IS_DELIVERED', 'IS_DELETED', 'IS_EDITED', 'CAN_ANSWER', 'IMOL_QUOTE_MSG', 'SENDING', 'URL_ONLY', 'LARGE_FONT')))
 			{
 				$arValues[$key] = in_array($value[0], Array('Y', 'N'))? $value[0]: $arDefault[$key];
 			}
@@ -497,7 +521,7 @@ class CIMMessageParam
 			{
 				$arValues[$key] = intval($value);
 			}
-			else if (in_array($key, Array('CHAT_ID', 'CHAT_MESSAGE', 'IMOL_VOTE_SID', 'IMOL_VOTE_USER', 'IMOL_VOTE_HEAD', 'SENDING_TS', 'IMOL_SID')))
+			else if (in_array($key, Array('CHAT_ID', 'CHAT_MESSAGE', 'IMOL_VOTE_SID', 'IMOL_VOTE_USER', 'IMOL_VOTE_HEAD', 'SENDING_TS', 'IMOL_SID', 'CRM_FORM_ID')))
 			{
 				$arValues[$key] = intval($value[0]);
 			}
@@ -561,9 +585,34 @@ class CIMMessageParam
 						$arValues[$key][$k] = $v;
 					}
 				}
-				else if (!is_array($value) && strlen($value) > 0)
+				else if (!is_array($value) && $value <> '')
 				{
 					$arValues[$key] = $value;
+				}
+				else
+				{
+					$arValues[$key] = $arDefault[$key];
+				}
+			}
+			else if ($key == 'NOTIFY')
+			{
+				if ($value === 'N')
+				{
+					$arValues[$key] = $value;
+				}
+				else if (is_array($value))
+				{
+					if (empty($value) || count($value) === 1 && $value[0] === 'N')
+					{
+						$arValues[$key] = 'N';
+					}
+					else
+					{
+						foreach ($value as $k => $v)
+						{
+							$arValues[$key][$k] = intval($v);
+						}
+					}
 				}
 				else
 				{
@@ -581,7 +630,19 @@ class CIMMessageParam
 					$arValues[$key] = $arDefault[$key];
 				}
 			}
-			else if ($key == 'TYPE' || $key == 'COMPONENT_ID' || $key == 'CLASS' || $key == 'IMOL_VOTE' || $key == 'IMOL_VOTE_TEXT' ||  $key == 'IMOL_VOTE_LIKE' ||  $key == 'IMOL_VOTE_DISLIKE' ||  $key == 'IMOL_FORM' ||  $key == 'IMOL_COMMENT_HEAD')
+			else if (
+				$key == 'TYPE' ||
+				$key == 'COMPONENT_ID' ||
+				$key == 'CLASS' ||
+				$key == 'IMOL_VOTE' ||
+				$key == 'IMOL_VOTE_TEXT' ||
+				$key == 'IMOL_VOTE_LIKE' ||
+				$key == 'IMOL_VOTE_DISLIKE' ||
+				$key == 'IMOL_FORM' ||
+				$key == 'IMOL_COMMENT_HEAD' ||
+				$key == 'IMOL_DATE_CLOSE_VOTE' ||
+				$key == 'IMOL_TIME_LIMIT_VOTE'
+			)
 			{
 				$arValues[$key] = isset($value[0])? $value[0]: '';
 			}
@@ -601,15 +662,7 @@ class CIMMessageParam
 			{
 				if (isset($value))
 				{
-					$arFileTmp = \CFile::ResizeImageGet(
-						$value[0],
-						array('width' => 100, 'height' => 100),
-						BX_RESIZE_IMAGE_EXACT,
-						false,
-						false,
-						true
-					);
-					$arValues[$key] = empty($arFileTmp['src'])? '': $arFileTmp['src'];
+					$arValues[$key] = CIMChat::GetAvatarImage($value[0], 200, false);
 				}
 				else
 				{
@@ -648,21 +701,23 @@ class CIMMessageParam
 
 	public static function GetDefault()
 	{
-		$arDefault = Array(
+		$arDefault = [
 			'TYPE' => '',
 			'COMPONENT_ID' => '',
 			'CODE' => '',
-			'FAVORITE' => Array(),
-			'LIKE' => Array(),
-			'FILE_ID' => Array(),
-			'URL_ID' => Array(),
+			'FAVORITE' => [],
+			'LIKE' => [],
+			'FILE_ID' => [],
+			'URL_ID' => [],
 			'URL_ONLY' => 'N',
-			'ATTACH' => Array(),
-			'LINK_ACTIVE' => Array(),
+			'ATTACH' => [],
+			'LINK_ACTIVE' => [],
+			'LARGE_FONT' => 'N',
+			'NOTIFY' => 'Y',
 			'MENU' => 'N',
 			'KEYBOARD' => 'N',
 			'KEYBOARD_UID' => 0,
-			'CONNECTOR_MID' => Array(),
+			'CONNECTOR_MID' => [],
 			'IS_ERROR' => 'N',
 			'IS_DELIVERED' => 'Y',
 			'IS_DELETED' => 'N',
@@ -677,9 +732,9 @@ class CIMMessageParam
 			'CHAT_ID' => 0,
 			'CHAT_MESSAGE' => 0,
 			'CHAT_LAST_DATE' => '',
-			'CHAT_USER' => Array(),
-			'DATE_TEXT' => Array(),
-			'DATE_TS' => Array(),
+			'CHAT_USER' => [],
+			'DATE_TEXT' => [],
+			'DATE_TS' => [],
 			'IMOL_VOTE' => '',
 			'IMOL_VOTE_TEXT' => '',
 			'IMOL_VOTE_LIKE' => '',
@@ -691,7 +746,10 @@ class CIMMessageParam
 			'IMOL_QUOTE_MSG' => 'N',
 			'IMOL_SID' => 0,
 			'IMOL_FORM' => '',
-		);
+			'CRM_FORM_VALUE' => '',
+			'IMOL_DATE_CLOSE_VOTE' => '',
+			'IMOL_TIME_LIMIT_VOTE' => '',
+		];
 
 		return $arDefault;
 	}
@@ -705,6 +763,7 @@ class CIMMessageParamAttach
 	const PROBLEM = "#df532d";
 	const TRANSPARENT = "TRANSPARENT";
 	const CHAT = "CHAT";
+	const TEXT_NODES_NAMES = ['NAME', 'LINK', 'MESSAGE', 'VALUE'];
 
 	private $result = Array();
 
@@ -730,15 +789,15 @@ class CIMMessageParamAttach
 	public function AddUser($params)
 	{
 		$add = Array();
-		if (!isset($params['NAME']) || strlen(trim($params['NAME'])) <= 0)
+		if (!isset($params['NAME']) || trim($params['NAME']) == '')
 			return false;
 
-		$add['NAME'] = htmlspecialcharsbx(trim($params['NAME']));
+		$add['NAME'] = self::removeNewLine($params['NAME']);
 		$add['AVATAR_TYPE'] = 'USER';
 
 		if (isset($params['NETWORK_ID']))
 		{
-			$add['NETWORK_ID'] = htmlspecialcharsbx(substr($params['NETWORK_ID'], 0,1)).intval(substr($params['NETWORK_ID'], 1));
+			$add['NETWORK_ID'] = htmlspecialcharsbx(mb_substr($params['NETWORK_ID'], 0, 1)).intval(mb_substr($params['NETWORK_ID'], 1));
 		}
 		else if (isset($params['USER_ID']) && intval($params['USER_ID']) > 0)
 		{
@@ -788,19 +847,19 @@ class CIMMessageParamAttach
 
 	public function AddLink($params)
 	{
-		$add = Array();
+		$result = Array();
 
 		if (isset($params['NETWORK_ID']) && isset($params['NAME']))
 		{
-			$add['NETWORK_ID'] = htmlspecialcharsbx(substr($params['NETWORK_ID'], 0,1)).intval(substr($params['NETWORK_ID'], 1));
+			$result['NETWORK_ID'] = htmlspecialcharsbx(mb_substr($params['NETWORK_ID'], 0, 1)).intval(mb_substr($params['NETWORK_ID'], 1));
 		}
 		else if (isset($params['USER_ID']) && intval($params['USER_ID']) > 0 && isset($params['NAME']))
 		{
-			$add['USER_ID'] = intval($params['USER_ID']);
+			$result['USER_ID'] = intval($params['USER_ID']);
 		}
 		else if (isset($params['CHAT_ID']) && intval($params['CHAT_ID']) > 0 && isset($params['NAME']))
 		{
-			$add['CHAT_ID'] = intval($params['CHAT_ID']);
+			$result['CHAT_ID'] = intval($params['CHAT_ID']);
 		}
 		else if (!isset($params['LINK']) || isset($params['LINK']) && !preg_match('#^(?:/|https?://)#', $params['LINK']))
 		{
@@ -809,17 +868,16 @@ class CIMMessageParamAttach
 
 		if (isset($params['NAME']))
 		{
-			$add['NAME'] = htmlspecialcharsbx(trim($params['NAME']));
+			$result['NAME'] = self::removeNewLine(trim($params['NAME']));
 		}
 		if (isset($params['LINK']))
 		{
-			$add['LINK'] = htmlspecialcharsbx($params['LINK']);
+			$result['LINK'] = htmlspecialcharsbx($params['LINK']);
 		}
 
 		if (isset($params['DESC']))
 		{
-			$params['DESC'] = htmlspecialcharsbx(str_replace(Array('<br>', '<br/>', '<br />'), '#BR#', trim($params['DESC'])));
-			$add['DESC'] = str_replace(array('#BR#', '[br]', '[BR]'), '<br/>', $params['DESC']);
+			$result['DESC'] = self::removeNewLine(trim($params['DESC']));
 		}
 
 		if (isset($params['HTML']))
@@ -828,14 +886,22 @@ class CIMMessageParamAttach
 			$sanitizer->SetLevel(CBXSanitizer::SECURE_LEVEL_MIDDLE);
 			$sanitizer->ApplyDoubleEncode(false);
 
-			$add['HTML'] = $sanitizer->SanitizeHtml($params['HTML']);
+			$result['HTML'] = $sanitizer->SanitizeHtml($params['HTML']);
 		}
 		else if (isset($params['PREVIEW']) && preg_match('#^(?:/|https?://)#', $params['PREVIEW']))
 		{
-			$add['PREVIEW'] = htmlspecialcharsbx($params['PREVIEW']);
+			$result['PREVIEW'] = htmlspecialcharsbx($params['PREVIEW']);
+			if (isset($params['WIDTH']) && intval($params['WIDTH']) > 0)
+			{
+				$result['WIDTH'] = intval($params['WIDTH']);
+			}
+			if (isset($params['HEIGHT']) && intval($params['HEIGHT']) > 0)
+			{
+				$result['HEIGHT'] = intval($params['HEIGHT']);
+			}
 		}
 
-		$this->result['BLOCKS'][]['LINK'] = Array($add);
+		$this->result['BLOCKS'][]['LINK'] = Array($result);
 
 		return true;
 	}
@@ -846,7 +912,7 @@ class CIMMessageParamAttach
 
 		if (isset($params['NETWORK_ID']) && isset($params['NAME']))
 		{
-			$add['NETWORK_ID'] = htmlspecialcharsbx(substr($params['NETWORK_ID'], 0,1)).intval(substr($params['NETWORK_ID'], 1));
+			$add['NETWORK_ID'] = htmlspecialcharsbx(mb_substr($params['NETWORK_ID'], 0, 1)).intval(mb_substr($params['NETWORK_ID'], 1));
 		}
 		else if (isset($params['USER_ID']) && intval($params['USER_ID']) > 0 && isset($params['NAME']))
 		{
@@ -863,7 +929,7 @@ class CIMMessageParamAttach
 
 		if (isset($params['NAME']))
 		{
-			$add['NAME'] = htmlspecialcharsbx(trim($params['NAME']));
+			$add['NAME'] = self::removeNewLine(trim($params['NAME']));
 		}
 		if (isset($params['LINK']))
 		{
@@ -872,8 +938,7 @@ class CIMMessageParamAttach
 
 		if (isset($params['DESC']))
 		{
-			$params['DESC'] = htmlspecialcharsbx(str_replace(Array('<br>', '<br/>', '<br />'), '#BR#', trim($params['DESC'])));
-			$add['DESC'] = str_replace(array('#BR#', '[br]', '[BR]'), '<br/>', $params['DESC']);
+			$add['DESC'] = self::removeNewLine(trim($params['DESC']));
 		}
 
 		if (isset($params['HTML']))
@@ -887,6 +952,10 @@ class CIMMessageParamAttach
 		else if (isset($params['PREVIEW']) && preg_match('#^(?:/|https?://)#', $params['PREVIEW']))
 		{
 			$add['PREVIEW'] = htmlspecialcharsbx($params['PREVIEW']);
+		}
+		else if (isset($params['EXTRA_IMAGE']) && preg_match('#^(?:/|https?://)#', $params['EXTRA_IMAGE']))
+		{
+			$add['EXTRA_IMAGE'] = htmlspecialcharsbx($params['EXTRA_IMAGE']);
 		}
 
 		$this->result['BLOCKS'][]['RICH_LINK'] = Array($add);
@@ -913,10 +982,11 @@ class CIMMessageParamAttach
 	public function AddMessage($message)
 	{
 		$message = trim($message);
-		if (strlen($message) <= 0)
+		if ($message == '')
 			return false;
 
-		$message = htmlspecialcharsbx(str_replace(Array('<br>', '<br/>', '<br />'), '#BR#', $message));
+		$message = nl2br($message);
+		$message = (str_replace(Array('<br>', '<br/>', '<br />', '#BR#'), '[BR]', $message));
 
 		$this->result['BLOCKS'][]['MESSAGE'] = $message;
 
@@ -933,15 +1003,24 @@ class CIMMessageParamAttach
 
 			if ($grid['DISPLAY'] != 'LINE')
 			{
-				if (!isset($grid['NAME']) || strlen(trim($grid['NAME'])) <= 0)
+				if (
+					!isset($grid['NAME']) && !isset($grid['VALUE'])
+					|| trim($grid['NAME']) == '' && trim($grid['VALUE']) == ''
+				)
+				{
 					continue;
+				}
 			}
 
-			if (isset($grid['DISPLAY']) && in_array($grid['DISPLAY'], Array('BLOCK', 'ROW', 'LINE', 'COLUMN')))
+			if (isset($grid['DISPLAY']) && in_array($grid['DISPLAY'], Array('BLOCK', 'LINE', 'CARD', 'ROW', 'COLUMN', 'TABLE')))
 			{
 				if ($grid['DISPLAY'] == 'COLUMN')
 				{
 					$grid['DISPLAY'] = 'ROW';
+				}
+				if ($grid['DISPLAY'] == 'CARD')
+				{
+					$grid['DISPLAY'] = 'LINE';
 				}
 				$result['DISPLAY'] = $grid['DISPLAY'];
 			}
@@ -950,9 +1029,10 @@ class CIMMessageParamAttach
 				$result['DISPLAY'] = 'BLOCK';
 			}
 
-			$result['NAME'] = htmlspecialcharsbx(trim($grid['NAME']));
+			$result['NAME'] = self::removeNewLine(trim($grid['NAME']));
 
-			$result['VALUE'] = htmlspecialcharsbx(str_replace(Array('<br>', '<br/>', '<br />'), '#BR#', trim($grid['VALUE'])));
+			$grid['VALUE'] = nl2br($grid['VALUE']);
+			$result['VALUE'] = (str_replace(Array('<br>', '<br/>', '<br />', '#BR#'), '[BR]', trim($grid['VALUE'])));
 
 			if (preg_match('/^#([a-fA-F0-9]){3}(([a-fA-F0-9]){3})?\b$/D', $grid['COLOR']))
 			{
@@ -1000,12 +1080,21 @@ class CIMMessageParamAttach
 			if (!isset($images['LINK']) || isset($images['LINK']) && !preg_match('#^(?:/|https?://)#', $images['LINK']))
 				continue;
 
-			if (isset($images['NAME']) && strlen(trim($images['NAME'])) > 0)
+			if (isset($images['NAME']) && trim($images['NAME']) <> '')
 			{
-				$result['NAME'] = htmlspecialcharsbx(trim($images['NAME']));
+				$result['NAME'] = (trim($images['NAME']));
 			}
 
 			$result['LINK'] = htmlspecialcharsbx($images['LINK']);
+
+			if (isset($images['WIDTH']) && intval($images['WIDTH']) > 0)
+			{
+				$result['WIDTH'] = intval($images['WIDTH']);
+			}
+			if (isset($images['HEIGHT']) && intval($images['HEIGHT']) > 0)
+			{
+				$result['HEIGHT'] = intval($images['HEIGHT']);
+			}
 
 			if (isset($images['PREVIEW']) && preg_match('#^(?:/|https?://)#', $images['PREVIEW']))
 			{
@@ -1036,9 +1125,9 @@ class CIMMessageParamAttach
 
 			$result['LINK'] = htmlspecialcharsbx($files['LINK']);
 
-			if (isset($files['NAME']) && strlen(trim($files['NAME'])) > 0)
+			if (isset($files['NAME']) && trim($files['NAME']) <> '')
 			{
-				$result['NAME'] = htmlspecialcharsbx(trim($files['NAME']));
+				$result['NAME'] = self::removeNewLine(trim($files['NAME']));
 			}
 
 			if (isset($files['SIZE']) && intval($files['SIZE']) > 0)
@@ -1071,10 +1160,6 @@ class CIMMessageParamAttach
 		{
 			$add['COLOR'] = $params['COLOR'];
 		}
-		else
-		{
-			$add['COLOR'] = '#c6c6c6';
-		}
 
 		$this->result['BLOCKS'][]['DELIMITER'] = $add;
 	}
@@ -1082,6 +1167,12 @@ class CIMMessageParamAttach
 	private static function decodeBbCode($message)
 	{
 		return \Bitrix\Im\Text::parse($message, Array('SAFE' => 'N'));
+	}
+
+	private static function removeNewLine($text)
+	{
+		$text = preg_replace('/\R/'.BX_UTF_PCRE_MODIFIER, ' ', $text);
+		return $text;
 	}
 
 	public static function GetAttachByJson($array)
@@ -1207,27 +1298,6 @@ class CIMMessageParamAttach
 			$attach = array($attach);
 		}
 
-		foreach ($attach as $attachId => $attachValue)
-		{
-			if (isset($attachValue['BLOCKS']))
-			{
-				foreach ($attachValue['BLOCKS'] as $blockId => $block)
-				{
-					if (isset($block['GRID']))
-					{
-						foreach ($block['GRID'] as $key => $value)
-						{
-							$attach[$attachId]['BLOCKS'][$blockId]['GRID'][$key]['VALUE'] = self::decodeBbCode($value['VALUE']);
-						}
-					}
-					else if (isset($block['MESSAGE']))
-					{
-						$attach[$attachId]['BLOCKS'][$blockId]['MESSAGE'] = self::decodeBbCode($block['MESSAGE']);
-					}
-				}
-			}
-		}
-
 		return $isCollection? $attach: $attach[0];
 	}
 
@@ -1260,7 +1330,30 @@ class CIMMessageParamAttach
 	public function GetJSON()
 	{
 		$result = \Bitrix\Main\Web\Json::encode($this->result);
-		return strlen($result) < 60000? $result: "";
+		return mb_strlen($result) < 60000? $result: "";
+	}
+
+	/**
+	 * Recursively goes through attach nodes and gets all the text nodes for search indexing
+	 * @param $attach
+	 *
+	 * @return array
+	 */
+	public static function GetTextForIndex($attach) : array
+	{
+		if($attach instanceof \CIMMessageParamAttach)
+		{
+			$attach = $attach->GetArray();
+		}
+		$textNodes = [];
+		array_walk_recursive($attach, function($item, $key) use(&$textNodes){
+			if(in_array($key, self::TEXT_NODES_NAMES))
+			{
+				$textNodes[] = $item;
+			}
+		});
+
+		return $textNodes;
 	}
 }
 
@@ -1293,7 +1386,9 @@ class CIMMessageLink
 
 		$linkParam = UrlPreview\UrlPreview::getMetadataAndHtmlByUrl($params['URL'], true, false);
 		if (!$linkParam)
+		{
 			return '[URL='.$params['URL'].']'.$params['TEXT'].'[/URL]';
+		}
 
 
 		$attach = self::formatAttach($linkParam);
@@ -1309,9 +1404,9 @@ class CIMMessageLink
 		{
 			$this->staticUrl[] = $params['URL'];
 
-			if (substr($params['URL'], -1) == '/')
+			if (mb_substr($params['URL'], -1) == '/')
 			{
-				$this->staticUrl[] = substr($params['URL'], 0, -1);
+				$this->staticUrl[] = mb_substr($params['URL'], 0, -1);
 			}
 		}
 
@@ -1413,9 +1508,14 @@ class CIMMessageLink
 				);
 				$linkParam['IMAGE_ID'] = empty($image['src'])? '': $image['src'];
 			}
-			else if (strlen($linkParam['IMAGE']) > 0)
+			else if ($linkParam['IMAGE'] <> '')
 			{
 				$linkParam['IMAGE_ID'] = $linkParam['IMAGE'];
+			}
+			else if (!empty($linkParam['EXTRA']['IMAGES']))
+			{
+				//we take only first extra image
+				$linkParam['EXTRA_IMAGE'] = $linkParam['EXTRA']['IMAGES'][0];
 			}
 			else
 			{
@@ -1427,7 +1527,8 @@ class CIMMessageLink
 				"NAME" => $linkParam['TITLE'],
 				"DESC" => $linkParam['DESCRIPTION'],
 				"LINK" => $linkParam['URL'],
-				"PREVIEW" => $linkParam['IMAGE_ID']
+				"PREVIEW" => $linkParam['IMAGE_ID'],
+				"EXTRA_IMAGE" => $linkParam['EXTRA_IMAGE'],
 			));
 		}
 		else if ($linkParam['TYPE'] == UrlPreview\UrlMetadataTable::TYPE_DYNAMIC)

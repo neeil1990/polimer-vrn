@@ -159,10 +159,8 @@ $dbrFProps = CIBlockProperty::GetList(
 $arProps = array();
 while($arFProps = $dbrFProps->GetNext())
 {
-	if(strlen($arFProps["USER_TYPE"])>0)
-		$arFProps["PROPERTY_USER_TYPE"] = CIBlockProperty::GetUserType($arFProps["USER_TYPE"]);
-	else
-		$arFProps["PROPERTY_USER_TYPE"] = array();
+	$arFProps["USER_TYPE"] = (string)$arFProps["USER_TYPE"];
+	$arFProps["PROPERTY_USER_TYPE"] = ($arFProps["USER_TYPE"] !== '' ? CIBlockProperty::GetUserType($arFProps["USER_TYPE"]) : array());
 
 	$arProps[] = $arFProps;
 }
@@ -179,7 +177,7 @@ if (!isset($by))
 	$by = 'NAME';
 if (!isset($order))
 	$order = 'ASC';
-$arOrder = (strtoupper($by) === "ID"? array($by => $order): array($by => $order, "ID" => "ASC"));
+$arOrder = (mb_strtoupper($by) === "ID"? array($by => $order): array($by => $order, "ID" => "ASC"));
 $lAdmin = new CAdminList($sTableID, $oSort);
 
 $lAdmin->InitFilter($arFilterFields);
@@ -204,7 +202,7 @@ elseif($IBLOCK_ID > 0)
 else
 	$arFilter["IBLOCK_ID"] = -1;
 
-if(intval($filter_section)<0 || strlen($filter_section)<=0)
+if(intval($filter_section)<0 || $filter_section == '')
 	unset($arFilter["SECTION_ID"]);
 elseif($filter_subsections=="Y")
 {
@@ -238,7 +236,7 @@ foreach($arProps as $prop)
 	else
 	{
 		$value = ${"find_el_property_".$prop["ID"]};
-		if(is_array($value) || strlen($value))
+		if(is_array($value) || mb_strlen($value))
 		{
 			if($value === "NOT_REF")
 				$value = false;
@@ -336,7 +334,7 @@ $lAdmin->NavText($rsData->GetNavPrint($arIBlock["ELEMENTS_NAME"]));
 
 function GetElementName($ID)
 {
-	$ID = IntVal($ID);
+	$ID = intval($ID);
 	static $cache = array();
 	if(!array_key_exists($ID, $cache) && $ID > 0)
 	{
@@ -347,7 +345,7 @@ function GetElementName($ID)
 }
 function GetSectionName($ID)
 {
-	$ID = IntVal($ID);
+	$ID = intval($ID);
 	static $cache = array();
 	if(!array_key_exists($ID, $cache) && $ID > 0)
 	{
@@ -358,7 +356,7 @@ function GetSectionName($ID)
 }
 function GetIBlockTypeID($IBLOCK_ID)
 {
-	$IBLOCK_ID = IntVal($IBLOCK_ID);
+	$IBLOCK_ID = intval($IBLOCK_ID);
 	static $cache = array();
 	if(!array_key_exists($IBLOCK_ID, $cache))
 	{
@@ -392,7 +390,12 @@ while($arRes = $rsData->GetNext())
 			$arRes["PROPERTY_".$aProp['ID']] = $arRes["PROPERTY_".$aProp['ID'].'_VALUE'];
 	}
 
-	$row =& $lAdmin->AddRow($arRes["ID"], $arRes);
+	$row =& $lAdmin->AddRow(
+		$arRes["ID"],
+		$arRes,
+		"javascript:SelEl('".CUtil::JSEscape($index)."', '".htmlspecialcharsbx(CUtil::JSEscape($arRes["~NAME"]), ENT_QUOTES)."')",
+		GetMessage("IBLOCK_ELSEARCH_SELECT")
+	);
 
 	$row->AddViewField("NAME", $arRes["NAME"].'<input type="hidden" name="n'.$arRes["ID"].'" id="index_'.$arRes["ID"].'" value="'.$index.'"><div style="display:none" id="name_'.$arRes["ID"].'">'.$arRes["NAME"].'</div>');
 	if ($arRes["MODIFIED_BY"] > 0)
@@ -432,7 +435,7 @@ while($arRes = $rsData->GetNext())
 		$row->AddViewField("LOCKED_USER_NAME", '');
 
 	$arProperties = array();
-	if(count($arSelectedProps) > 0)
+	if(!empty($arSelectedProps))
 	{
 		$rsProperties = CIBlockElement::GetProperty($IBLOCK_ID, $arRes["ID"]);
 		while($ar = $rsProperties->GetNext())
@@ -445,10 +448,7 @@ while($arRes = $rsData->GetNext())
 
 	foreach($arSelectedProps as $aProp)
 	{
-		if(strlen($aProp["USER_TYPE"])>0)
-			$arUserType = CIBlockProperty::GetUserType($aProp["USER_TYPE"]);
-		else
-			$arUserType = array();
+		$arUserType = $aProp['PROPERTY_USER_TYPE'];
 		$v = '';
 		foreach($arProperties[$aProp['ID']] as $property_value_id => $property_value)
 		{
@@ -456,7 +456,7 @@ while($arRes = $rsData->GetNext())
 			$VALUE_NAME = 'FIELDS['.$arRes["ID"].'][PROPERTY_'.$property_value['ID'].']['.$property_value['PROPERTY_VALUE_ID'].'][VALUE]';
 			$DESCR_NAME = 'FIELDS['.$arRes["ID"].'][PROPERTY_'.$property_value['ID'].']['.$property_value['PROPERTY_VALUE_ID'].'][DESCRIPTION]';
 			$res = '';
-			if(array_key_exists("GetAdminListViewHTML", $arUserType))
+			if(isset($arUserType["GetAdminListViewHTML"]))
 			{
 				$res = call_user_func_array($arUserType["GetAdminListViewHTML"],
 					array(
@@ -520,7 +520,6 @@ while($arRes = $rsData->GetNext())
 
 		if ($v != "")
 			$row->AddViewField("PROPERTY_".$aProp['ID'], $v);
-		unset($arSelectedProps[$aProp['ID']]["CACHE"]);
 	}
 
 	$row->AddActions(array(

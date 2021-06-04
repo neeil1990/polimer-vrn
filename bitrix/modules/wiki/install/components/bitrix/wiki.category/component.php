@@ -21,7 +21,7 @@ if(empty($arParams['SEF_MODE']))
 $arCache = array();
 if(empty($arParams['SOCNET_GROUP_ID']) && $arParams['IN_COMPLEX'] == 'Y')
 {
-	if (strpos($this->GetParent()->GetName(), 'socialnetwork') !== false &&
+	if (mb_strpos($this->GetParent()->GetName(), 'socialnetwork') !== false &&
 		!empty($this->GetParent()->arResult['VARIABLES']['group_id']))
 	{
 		$arParams['SOCNET_GROUP_ID'] = $this->GetParent()->arResult['VARIABLES']['group_id'];
@@ -33,29 +33,29 @@ if(empty($arParams['PATH_TO_POST']))
 	$arParams['PATH_TO_POST'] = htmlspecialcharsbx($APPLICATION->GetCurPage()."?$arParams[PAGE_VAR]=#wiki_name#");
 
 $arParams['PATH_TO_POST_EDIT'] = trim($arParams['PATH_TO_POST_EDIT']);
-if(strlen($arParams['PATH_TO_POST_EDIT'])<=0)
+if($arParams['PATH_TO_POST_EDIT'] == '')
 	$arParams['PATH_TO_POST_EDIT'] = htmlspecialcharsbx($APPLICATION->GetCurPage()."?$arParams[PAGE_VAR]=#wiki_name#");
 
 $arParams['PATH_TO_HISTORY'] = trim($arParams['PATH_TO_HISTORY']);
-if(strlen($arParams['PATH_TO_HISTORY'])<=0)
+if($arParams['PATH_TO_HISTORY'] == '')
 	$arParams['PATH_TO_HISTORY'] = htmlspecialcharsbx($APPLICATION->GetCurPage()."?$arParams[PAGE_VAR]=#wiki_name#");
 
 $arParams['PATH_TO_HISTORY_DIFF'] = trim($arParams['PATH_TO_HISTORY_DIFF']);
-if(strlen($arParams['PATH_TO_HISTORY_DIFF'])<=0)
+if($arParams['PATH_TO_HISTORY_DIFF'] == '')
 	$arParams['PATH_TO_HISTORY_DIFF'] = htmlspecialcharsbx($APPLICATION->GetCurPage()."?$arParams[PAGE_VAR]=#wiki_name#");
 
 $arParams['PATH_TO_DISCUSSION'] = trim($arParams['PATH_TO_DISCUSSION']);
-if(strlen($arParams['PATH_TO_DISCUSSION'])<=0)
+if($arParams['PATH_TO_DISCUSSION'] == '')
 	$arParams['PATH_TO_DISCUSSION'] = htmlspecialcharsbx($APPLICATION->GetCurPage()."?$arParams[PAGE_VAR]=#wiki_name#");
 
 $arParams['PATH_TO_CATEGORY'] = trim($arParams['PATH_TO_POST']);
 
 $arParams['PATH_TO_CATEGORIES'] = trim($arParams['PATH_TO_CATEGORIES']);
-if(strlen($arParams['PATH_TO_CATEGORIES'])<=0)
+if($arParams['PATH_TO_CATEGORIES'] == '')
 	$arParams['PATH_TO_CATEGORIES'] = htmlspecialcharsbx($APPLICATION->GetCurPage()."?$arParams[OPER_VAR]=categories");
 
 $arParams['PATH_TO_USER'] = trim($arParams['PATH_TO_USER']);
-if(strlen($arParams['PATH_TO_USER'])<=0)
+if($arParams['PATH_TO_USER'] == '')
 {
 	if ($arParams['IN_COMPLEX'] == 'Y' && $arParams['SEF_MODE'] == 'Y')
 		$arParams['PATH_TO_USER'] = $this->GetParent()->arParams['PATH_TO_USER'];
@@ -133,6 +133,8 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 		$arParams['ELEMENT_NAME'] = CWiki::GetDefaultPage($arParams['IBLOCK_ID']);
 
 	$arResult['ELEMENT'] = array();
+	$arResult['CATEGORIES'] = array();
+	$arResult['PAGES'] = array();
 	if (!empty($arParams['ELEMENT_NAME']) && ($arResult['ELEMENT'] = CWiki::GetElementByName($arParams['ELEMENT_NAME'], $arFilter)) != false)
 	{
 		$arParams['ELEMENT_ID'] = $arResult['ELEMENT']['ID'];
@@ -146,7 +148,7 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 
 	if (CWikiUtils::IsCategoryPage($arParams['ELEMENT_NAME'], $SERVICE_NAME))
 	{
-		$arParams['ELEMENT_NAME'] = strtolower(CWikiUtils::UnlocalizeCategoryName($arParams['ELEMENT_NAME']));
+		$arParams['ELEMENT_NAME'] = mb_strtolower(CWikiUtils::UnlocalizeCategoryName($arParams['ELEMENT_NAME']));
 		$arResult['CUR_CAT']['NAME'] = $SERVICE_NAME;
 		$arPagesFilter = array(
 				'IBLOCK_ID' => $arParams['IBLOCK_ID'],
@@ -155,7 +157,7 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 				);
 		$arSort = array('XML_ID' => 'ASC');
 
-		if($arParams['ELEMENT_NAME'] == strtolower("category:".GetMessage('WIKI_CATEGORY_ALL'))) //All Pages from all categories
+		if($arParams['ELEMENT_NAME'] == mb_strtolower("category:".GetMessage('WIKI_CATEGORY_ALL'))) //All Pages from all categories
 		{
 			$arPagesFilter['INCLUDE_SUBSECTIONS'] = 'Y';
 
@@ -164,7 +166,7 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 
 			$rsPagesElement = CIBlockElement::GetList($arSort, $arPagesFilter, false, false, Array());
 		}
-		elseif($arParams['ELEMENT_NAME'] == strtolower("category:".GetMessage('WIKI_CATEGORY_NOCAT'))) //Pages without categories
+		elseif($arParams['ELEMENT_NAME'] == mb_strtolower("category:".GetMessage('WIKI_CATEGORY_NOCAT'))) //Pages without categories
 		{
 			$arPagesFilter['INCLUDE_SUBSECTIONS'] = 'N';
 
@@ -202,14 +204,13 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 				$arFilter['<RIGHT_BORDER'] = $arCurCat['RIGHT_MARGIN'];
 
 				$dbList = CIBlockSection::GetList(Array('NAME'=>'ASC'), $arFilter, true);
-				$arResult['CATEGORIES'] = array();
 
 				$arCatName = array();
 				$arCatNameExists = array();
 				while($arCat = $dbList->GetNext())
 				{
 					$arCatName[] = 'category:'.$arCat['NAME'];
-					$arResult['CATEGORIES'][strtolower($arCat['NAME'])] = array(
+					$arResult['CATEGORIES'][mb_strtolower($arCat['NAME'])] = array(
 						'TITLE' => $arCat['NAME'],
 						'NAME' => $arCat['NAME'],
 						'CNT' => $arCat['ELEMENT_CNT'],
@@ -239,13 +240,13 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 
 					$rsElement = CIBlockElement::GetList(array(), $arFilter, false, false, Array());
 					while($arElement = $rsElement->GetNext())
-						$arCatNameExists[] = substr($arElement['NAME'], strpos($arElement['NAME'], ':') + 1);
+						$arCatNameExists[] = mb_substr($arElement['NAME'], mb_strpos($arElement['NAME'], ':') + 1);
 
 					if (!empty($arCatNameExists))
 					{
 						foreach ($arCatNameExists as $sCatName)
 						{
-							$sCatName = strtolower($sCatName);
+							$sCatName = mb_strtolower($sCatName);
 							if (isset($arResult['CATEGORIES'][$sCatName]))
 								$arResult['CATEGORIES'][$sCatName]['IS_RED'] = 'N';
 						}
@@ -268,7 +269,6 @@ if($this->StartResultCache(false, array($USER->GetGroups(), $arNavigation, $arCa
 
 		if(isset($rsPagesElement) && $rsPagesElement)
 		{
-			$arResult['PAGES'] = array();
 			$arPageNameExists = array();
 			$rsPagesElement->NavStart($arParams['PAGES_COUNT'], false);
 			$arResult['DB_LIST'] = &$rsPagesElement;

@@ -49,10 +49,13 @@ if (!CCatalog::IsUserExists())
 
 if (!function_exists('__CSVArrayMultiply'))
 {
-	function __CSVArrayMultiply(&$arResult, $arTuple, $arTemp = array())
+	function __CSVArrayMultiply($arTuple, $arTemp, &$csvFile, $currentFile)
 	{
 		if (empty($arTuple))
-			$arResult[] = $arTemp;
+		{
+			/** @var CCSVData $csvFile */
+			$csvFile->SaveFile($_SERVER["DOCUMENT_ROOT"].$currentFile, $arTemp);
+		}
 		else
 		{
 			$head = array_shift($arTuple);
@@ -62,14 +65,14 @@ if (!function_exists('__CSVArrayMultiply'))
 				if (empty($head))
 				{
 					$arTemp[count($arTemp)-1] = "";
-					__CSVArrayMultiply($arResult, $arTuple, $arTemp);
+					__CSVArrayMultiply($arTuple, $arTemp, $csvFile, $currentFile);
 				}
 				else
 				{
 					foreach ($head as &$value)
 					{
 						$arTemp[count($arTemp)-1] = $value;
-						__CSVArrayMultiply($arResult, $arTuple, $arTemp);
+						__CSVArrayMultiply($arTuple, $arTemp, $csvFile, $currentFile);
 					}
 					if (isset($value))
 						unset($value);
@@ -78,7 +81,7 @@ if (!function_exists('__CSVArrayMultiply'))
 			else
 			{
 				$arTemp[count($arTemp)-1] = $head;
-				__CSVArrayMultiply($arResult, $arTuple, $arTemp);
+				__CSVArrayMultiply($arTuple, $arTemp, $csvFile, $currentFile);
 			}
 		}
 	}
@@ -239,7 +242,7 @@ if (empty($arRunErrors))
 				$delimiter_r_char = " ";
 				break;
 			case "OTR":
-				$delimiter_r_char = (isset($delimiter_other_r) ? substr($delimiter_other_r, 0, 1) : '');
+				$delimiter_r_char = (isset($delimiter_other_r)? mb_substr($delimiter_other_r, 0, 1) : '');
 				break;
 			case "TZP":
 				$delimiter_r_char = ";";
@@ -247,7 +250,7 @@ if (empty($arRunErrors))
 		}
 	}
 
-	if (strlen($delimiter_r_char) != 1)
+	if (mb_strlen($delimiter_r_char) != 1)
 	{
 		$arRunErrors[] = GetMessage("CATI_NO_DELIMITER");
 	}
@@ -273,9 +276,9 @@ if (empty($arRunErrors))
 	else
 	{
 		$SETUP_FILE_NAME = Rel2Abs("/", $SETUP_FILE_NAME);
-		if (strtolower(substr($SETUP_FILE_NAME, strlen($SETUP_FILE_NAME)-4)) != ".csv")
+		if (mb_strtolower(mb_substr($SETUP_FILE_NAME, mb_strlen($SETUP_FILE_NAME) - 4)) != ".csv")
 			$SETUP_FILE_NAME .= ".csv";
-		if (0 !== strpos($SETUP_FILE_NAME, $strCatalogDefaultFolder))
+		if (0 !== mb_strpos($SETUP_FILE_NAME, $strCatalogDefaultFolder))
 		{
 			$arRunErrors[] = GetMessage('CES_ERROR_PATH_WITHOUT_DEFAUT');
 		}
@@ -305,7 +308,7 @@ if (empty($arRunErrors))
 			if ($export_files == 'Y')
 			{
 				$strExportPath = GetDirPath($SETUP_FILE_NAME);
-				$strFilePath = str_replace($strExportPath, '', substr($SETUP_FILE_NAME,0,-4)).'_files/';
+				$strFilePath = str_replace($strExportPath, '', mb_substr($SETUP_FILE_NAME, 0, -4)).'_files/';
 				if ($firstStep)
 				{
 					if (!CheckDirPath($_SERVER['DOCUMENT_ROOT'].$strExportPath.$strFilePath))
@@ -842,7 +845,6 @@ if (empty($arRunErrors))
 					}
 				}
 
-				$arResFields = array();
 				foreach ($arResSections as $arPath)
 				{
 					foreach ($arResPrices as $arPrice)
@@ -851,9 +853,9 @@ if (empty($arRunErrors))
 						foreach ($arNeedFields as $field_name)
 						{
 							if (strncmp($field_name, "IE_", 3) == 0)
-								$arTuple[] = $arIBlockElement["~".substr($field_name, 3)];
+								$arTuple[] = $arIBlockElement["~".mb_substr($field_name, 3)];
 							elseif (strncmp($field_name, "IP_PROP", 7) == 0)
-								$arTuple[] = $arPropsValues[intval(substr($field_name, 7))];
+								$arTuple[] = $arPropsValues[intval(mb_substr($field_name, 7))];
 							elseif (strncmp($field_name, "IC_", 3) == 0)
 							{
 								$strKey = $field_name;
@@ -861,21 +863,16 @@ if (empty($arRunErrors))
 							}
 							elseif (strncmp($field_name, 'CV_', 3) == 0)
 							{
-								$strKey = substr($field_name, 3);
+								$strKey = mb_substr($field_name, 3);
 								$arTuple[] = (isset($arPrice[$strKey]) ? $arPrice[$strKey] : '');
 							}
 							elseif (strncmp($field_name, 'CP_', 3) == 0)
 							{
-								$arTuple[] = (!empty($arResProducts) ? $arResProducts[substr($field_name, 3)] : '');
+								$arTuple[] = (!empty($arResProducts) ? $arResProducts[mb_substr($field_name, 3)] : '');
 							}
 						}
-						__CSVArrayMultiply($arResFields, $arTuple);
+						__CSVArrayMultiply($arTuple, [], $csvFile, $currentFile);
 					}
-				}
-
-				foreach ($arResFields as $arTuple)
-				{
-					$csvFile->SaveFile($_SERVER["DOCUMENT_ROOT"].$currentFile, $arTuple);
 				}
 
 				if ($MAX_EXECUTION_TIME > 0 && (getmicrotime() - START_EXEC_TIME) >= $MAX_EXECUTION_TIME)

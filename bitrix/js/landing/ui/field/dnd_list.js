@@ -25,7 +25,6 @@
 	var findParent = BX.Landing.Utils.findParent;
 	var offsetTop = BX.Landing.Utils.offsetTop;
 	var offsetLeft = BX.Landing.Utils.offsetLeft;
-	var Popup = BX.Landing.UI.Tool.Popup;
 
 
 	/**
@@ -209,7 +208,7 @@
 
 			if (!this.popup)
 			{
-				this.popup = new Popup({
+				this.popup = new BX.Main.Popup({
 					id: "catalog_blocks_list",
 					bindElement: this.addButton.layout,
 					content: this.itemsArea,
@@ -221,7 +220,8 @@
 
 				bind(this.popup.popupContainer, "mouseover", this.onMouseOver);
 				bind(this.popup.popupContainer, "mouseleave", this.onMouseLeave);
-				bind(top.document, "click", this.onDocumentClick.bind(this));
+				var rootWindow = BX.Landing.PageObject.getRootWindow();
+				bind(rootWindow.document, "click", this.onDocumentClick.bind(this));
 				append(
 					this.popup.popupContainer,
 					findParent(this.addButton.layout, {className: "landing-ui-panel-content-body-content"})
@@ -446,7 +446,7 @@
 			return create("div", {
 				props: {className: "landing-ui-field-dnd-value-placeholder"},
 				children: [
-					create("span", {html: BX.message("LANDING_FIELD_CATALOG_CONSTRUCTOR_PLACEHOLDER_TEXT")})
+					create("span", {html: BX.Landing.Loc.getMessage("LANDING_FIELD_CATALOG_CONSTRUCTOR_PLACEHOLDER_TEXT")})
 				]
 			})
 		},

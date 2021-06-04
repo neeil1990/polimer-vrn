@@ -6,7 +6,9 @@ use Bitrix\Sale\Location\Admin\GroupHelper as Helper;
 use Bitrix\Sale\Location\Admin\SearchHelper;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
+
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/sale/prolog.php');
 
 Loc::loadMessages(__FILE__);
@@ -28,7 +30,7 @@ try
 	$itemId = intval($_REQUEST['id']) ? intval($_REQUEST['id']) : false;
 
 	$sTableID = "tbl_entity";
-	$oSort = new CAdminSorting($sTableID, "SORT", "asc");
+	$oSort = new CAdminUiSorting($sTableID, "SORT", "asc");
 	$lAdmin = new CAdminUiList($sTableID, $oSort);
 
 	// get entity fields for columns & filter
@@ -42,7 +44,7 @@ try
 	{
 		if ($lang["DEF"] == "Y")
 		{
-			$quickSearchLangId = strtoupper($lang["LANGUAGE_ID"]);
+			$quickSearchLangId = mb_strtoupper($lang["LANGUAGE_ID"]);
 		}
 	}
 
@@ -267,27 +269,32 @@ if(empty($fatal))
 ?>
 
 <?//temporal code?>
-<?if(!CSaleLocation::locationProCheckEnabled())require($DOCUMENT_ROOT."/bitrix/modules/main/include/epilog_admin.php");?>
+<?if(!CSaleLocation::locationProCheckEnabled())require($DOCUMENT_ROOT."/bitrix/modules/main/include/epilog_admin.php");
+if (!$publicMode && \Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
+{
+	$APPLICATION->IncludeComponent("bitrix:sale.admin.page.stub", ".default");
+}
+else
+{
+	SearchHelper::checkIndexesValid();
 
-<?SearchHelper::checkIndexesValid();?>
-
-<?if(strlen($fatal)):?>
-	<?
-	$messageParams = array('MESSAGE' => $fatal, 'type' => 'ERROR');
-	if ($publicMode)
+	if($fatal <> '')
 	{
-		$messageParams["SKIP_PUBLIC_MODE"] = true;
+		$messageParams = array('MESSAGE' => $fatal, 'type' => 'ERROR');
+		if($publicMode)
+		{
+			$messageParams["SKIP_PUBLIC_MODE"] = true;
+		}
+		?>
+		<div class="error-message">
+			<? CAdminMessage::ShowMessage($messageParams) ?>
+		</div>
+		<?
 	}
-	?>
-	<div class="error-message">
-		<?CAdminMessage::ShowMessage($messageParams)?>
-	</div>
-
-<?else:?>
-
-	<?$lAdmin->DisplayFilter($filterFields);?>
-	<?$lAdmin->DisplayList();?>
-
-<?endif?>
-
-<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");?>
+	else
+	{
+		$lAdmin->DisplayFilter($filterFields);
+		$lAdmin->DisplayList();
+	}
+}
+require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");?>

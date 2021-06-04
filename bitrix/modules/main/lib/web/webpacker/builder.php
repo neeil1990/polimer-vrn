@@ -123,6 +123,11 @@ class Builder
 	{
 		foreach ($this->modules as $index => $module)
 		{
+			if ($module === 'main.core')
+			{
+				$module .= '.minimal';
+			}
+
 			if ($module === Converter::CORE_EXTENSION && !$this->hasCoreExtension())
 			{
 				continue;
@@ -201,12 +206,10 @@ class Builder
 		{
 			foreach ($properties as $propertyName => $propertyValue)
 			{
-				if ($propertyValue)
-				{
-					$profile->setProperty($propertyName, $propertyValue);
-				}
+				$profile->setProperty($propertyName, $propertyValue);
 			}
 		}
+		$profile->useAllLangs(!!self::getValueByKey($webPacker, Resource\Profile::USE_ALL_LANGS));
 		$profile->useLangCamelCase(!!self::getValueByKey($webPacker, Resource\Profile::USE_LANG_CAMEL_CASE));
 		$deleteLangPrefixes = self::getValueByKey($webPacker, Resource\Profile::DELETE_LANG_PREFIXES);
 		if (is_array($deleteLangPrefixes))
@@ -304,13 +307,26 @@ class Builder
 			}
 			else
 			{
-				$url = $server->getServerName();
+				$url = Option::get('main', 'server_name', null);
+				$url = $url ?: $server->getServerName();
+				if (!$url)
+				{
+					$defaultSites = \CAllSite::getDefList();
+					while($defaultSite = $defaultSites->fetch())
+					{
+						$url = $defaultSite['SERVER_NAME'];
+						if ($url)
+						{
+							break;
+						}
+					}
+				}
 			}
 		}
 
 		if (!$isRestored)
 		{
-			if (strpos($url, ':') === false && $server->getServerPort())
+			if (mb_strpos($url, ':') === false && $server->getServerPort())
 			{
 				if (!in_array($server->getServerPort(), array('80', '443')))
 				{
@@ -324,9 +340,9 @@ class Builder
 
 		$uri = new Uri($url);
 		$url = $uri->getLocator();
-		if (substr($url, -1) == '/')
+		if (mb_substr($url, -1) == '/')
 		{
-			$url = substr($url, 0, -1);
+			$url = mb_substr($url, 0, -1);
 		}
 
 		if ($canSave)

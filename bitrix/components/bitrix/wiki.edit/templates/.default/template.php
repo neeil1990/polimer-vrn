@@ -30,7 +30,7 @@ if(!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED!==true) die();
 	?>
 </script>
 <?
-if(strlen($arResult['ERROR_MESSAGE'])>0 && $arResult['WIKI_oper'] != 'delete'):
+if($arResult['ERROR_MESSAGE'] <> '' && $arResult['WIKI_oper'] != 'delete'):
 	?>
 	<div class="wiki-errors">
 		<div class="wiki-error-text">
@@ -39,7 +39,7 @@ if(strlen($arResult['ERROR_MESSAGE'])>0 && $arResult['WIKI_oper'] != 'delete'):
 	</div>
 	<?
 endif;
-if(strlen($arResult['FATAL_MESSAGE'])>0):
+if($arResult['FATAL_MESSAGE'] <> ''):
 	?>
 	<div class="wiki-errors">
 		<div class="wiki-error-text">
@@ -196,7 +196,7 @@ else:
 
 							$APPLICATION->IncludeComponent('bitrix:search.tags.input', '.default', $arSParams);
 						else:
-							?><input type="text" class="wiki-input" id="TAGS" tabindex="4" name="TAGS" size="30" value="<?=$arResult['ELEMENT']['~TAGS']?>"/><?
+							?><input type="text" class="wiki-input" id="TAGS" tabindex="4" name="TAGS" size="30" value="<?=htmlspecialcharsbx($arResult['ELEMENT']['~TAGS'])?>"/><?
 						endif?>
 					</div>
 				</div>

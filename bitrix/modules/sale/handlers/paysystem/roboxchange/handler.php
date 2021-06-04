@@ -1,5 +1,4 @@
 <?php
-
 namespace Sale\Handlers\PaySystem;
 
 use Bitrix\Main\Error;
@@ -12,40 +11,121 @@ use Bitrix\Sale\PriceMaths;
 
 Loc::loadMessages(__FILE__);
 
+/**
+ * Class RoboxchangeHandler
+ * @package Sale\Handlers\PaySystem
+ */
 class RoboxchangeHandler extends PaySystem\ServiceHandler
 {
+	public const TEMPLATE_TYPE_CHECKOUT = 'checkout';
+	public const TEMPLATE_TYPE_IFRAME = 'iframe';
+
+	protected const DEFAULT_TEMPLATE_NAME = 'template';
+
+	private const ANALYTICS_LABEL_RU_VALUE = 'api_1c-bitrix';
+	private const ANALYTICS_LABEL_KZ_VALUE = 'api_1c-bitrix_kz';
+
 	/**
 	 * @param Payment $payment
 	 * @param Request|null $request
 	 * @return PaySystem\ServiceResult
+	 * @throws \Bitrix\Main\ArgumentNullException
 	 */
 	public function initiatePay(Payment $payment, Request $request = null)
 	{
-		$test = '';
-		if ($this->isTestMode($payment))
-			$test = '_TEST';
-
-		$paymentShouldPay = (float)$this->getBusinessValue($payment, 'PAYMENT_SHOULD_PAY');
-
-		$signatureValue = md5(
-			$this->getBusinessValue($payment, 'ROBOXCHANGE_SHOPLOGIN').":".
-			$paymentShouldPay.":".
-			$this->getBusinessValue($payment, 'PAYMENT_ID').":".
-			$this->getBusinessValue($payment, 'ROBOXCHANGE_SHOPPASSWORD'.$test).':'.
-			'SHP_BX_PAYSYSTEM_CODE='.$payment->getPaymentSystemId().':'.
-			'SHP_HANDLER=ROBOXCHANGE'
-		);
-
-		$params = array(
+		$params = [
 			'URL' => $this->getUrl($payment, 'pay'),
 			'PS_MODE' => $this->service->getField('PS_MODE'),
-			'SIGNATURE_VALUE' => $signatureValue,
+			'SIGNATURE_VALUE' => $this->getSignatureValue($payment),
 			'BX_PAYSYSTEM_CODE' => $payment->getPaymentSystemId(),
-			'PAYMENT_SHOULD_PAY' => $paymentShouldPay,
-		);
+			'ROBOXCHANGE_ORDERDESCR' => $this->getOrderDescription($payment),
+			'PAYMENT_ID' => $this->getBusinessValue($payment, 'PAYMENT_ID'),
+			'SUM' => PriceMaths::roundPrecision($payment->getSum()),
+			'CURRENCY' => $payment->getField('CURRENCY'),
+			'OUT_SUM_CURRENCY' => $this->getOutSumCurrency($payment),
+			'ADDITIONAL_USER_FIELDS' => $this->getAdditionalUserFields($payment),
+		];
 		$this->setExtraParams($params);
 
-		return $this->showTemplate($payment, "template");
+		return $this->showTemplate($payment, $this->getTemplateName($payment));
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return array
+	 */
+	private function getAdditionalUserFields(Payment $payment): array
+	{
+		$countryCode = $this->getCountryCode($payment);
+
+		$additionalUserFields = [
+			'SHP_BX_PAYMENT_CODE' => $payment->getField('XML_ID'),
+			'SHP_BX_PAYSYSTEM_CODE' => $payment->getPaymentSystemId(),
+			'SHP_HANDLER' => 'ROBOXCHANGE',
+			'SHP_PARTNER' => $countryCode === 'RU' ? self::ANALYTICS_LABEL_RU_VALUE : self::ANALYTICS_LABEL_KZ_VALUE,
+		];
+		ksort($additionalUserFields);
+
+		return $additionalUserFields;
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return string
+	 */
+	private function getSignatureValue(Payment $payment): string
+	{
+		$passwordCode = 'ROBOXCHANGE_SHOPPASSWORD';
+		if ($this->isTestMode($payment))
+		{
+			$passwordCode .= '_TEST';
+		}
+
+		$shopPassword1 = (string)$this->getBusinessValue($payment, $passwordCode);
+
+		$signaturePartList = [
+			$this->getBusinessValue($payment, 'ROBOXCHANGE_SHOPLOGIN'),
+			(float)$payment->getSum(),
+			$this->getBusinessValue($payment, 'PAYMENT_ID'),
+		];
+
+		if ($outSumCurrency = $this->getOutSumCurrency($payment))
+		{
+			$signaturePartList[] = $outSumCurrency;
+		}
+
+		$signaturePartList[] = $shopPassword1;
+
+		foreach ($this->getAdditionalUserFields($payment) as $fieldName => $fieldValue)
+		{
+			$signaturePartList[] = implode('=', [$fieldName, $fieldValue]);
+		}
+
+		return md5(implode(':', $signaturePartList));
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return false|string
+	 */
+	private function getOrderDescription(Payment $payment)
+	{
+		return mb_substr($this->getBusinessValue($payment, 'ROBOXCHANGE_ORDERDESCR'), 0, 100);
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return string
+	 */
+	private function getTemplateName(Payment $payment): string
+	{
+		$templateType = (string)$this->getBusinessValue($payment, 'ROBOXCHANGE_TEMPLATE_TYPE');
+		if (empty($templateType) || $templateType === self::TEMPLATE_TYPE_CHECKOUT)
+		{
+			return static::DEFAULT_TEMPLATE_NAME;
+		}
+
+		return $templateType;
 	}
 
 	/**
@@ -53,7 +133,7 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 */
 	public static function getIndicativeFields()
 	{
-		return array('SHP_HANDLER' => 'ROBOXCHANGE');
+		return ['SHP_HANDLER' => 'ROBOXCHANGE'];
 	}
 
 	/**
@@ -61,10 +141,10 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 * @param $paySystemId
 	 * @return bool
 	 */
-	static protected function isMyResponseExtended(Request $request, $paySystemId)
+	protected static function isMyResponseExtended(Request $request, $paySystemId)
 	{
-		$id = $request->get('SHP_BX_PAYSYSTEM_CODE');
-		return $id == $paySystemId;
+		$id = (int)$request->get('SHP_BX_PAYSYSTEM_CODE');
+		return $id === (int)$paySystemId;
 	}
 
 	/**
@@ -72,28 +152,31 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 * @param $request
 	 * @return bool
 	 */
-	private function isCorrectHash(Payment $payment, Request $request)
+	private function isCorrectHash(Payment $payment, Request $request): bool
 	{
-		$test = '';
+		$passwordCode2 = 'ROBOXCHANGE_SHOPPASSWORD2';
 		if ($this->isTestMode($payment))
-			$test = '_TEST';
+		{
+			$passwordCode2 .= '_TEST';
+		}
 
-		$hash = md5($request->get('OutSum').":".$request->get('InvId').":".$this->getBusinessValue($payment, 'ROBOXCHANGE_SHOPPASSWORD2'.$test).':SHP_BX_PAYSYSTEM_CODE='.$payment->getPaymentSystemId().':SHP_HANDLER=ROBOXCHANGE');
+		$shopPassword2 = (string)$this->getBusinessValue($payment, $passwordCode2);
 
-		return ToUpper($hash) == ToUpper($request->get('SignatureValue'));
-	}
+		$signaturePartList = [
+			$request->get('OutSum'),
+			$request->get('InvId'),
+		];
 
-	/**
-	 * @param Payment $payment
-	 * @param Request $request
-	 * @return bool
-	 */
-	private function isCorrectSum(Payment $payment, Request $request)
-	{
-		$sum = PriceMaths::roundPrecision($request->get('OutSum'));
-		$paymentSum = PriceMaths::roundPrecision($this->getBusinessValue($payment, 'PAYMENT_SHOULD_PAY'));
+		$signaturePartList[] = $shopPassword2;
 
-		return $paymentSum == $sum;
+		foreach ($this->getAdditionalUserFields($payment) as $fieldName => $fieldValue)
+		{
+			$signaturePartList[] = implode('=', [$fieldName, $fieldValue]);
+		}
+
+		$hash = md5(implode(':', $signaturePartList));
+
+		return ToUpper($hash) === ToUpper($request->get('SignatureValue'));
 	}
 
 	/**
@@ -110,17 +193,21 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 */
 	protected function getUrlList()
 	{
-		return array(
-			'pay' => array(
+		return [
+			'pay' => [
 				self::ACTIVE_URL => 'https://auth.robokassa.ru/Merchant/Index.aspx'
-			)
-		);
+			]
+		];
 	}
 
 	/**
 	 * @param Payment $payment
 	 * @param Request $request
 	 * @return PaySystem\ServiceResult
+	 * @throws \Bitrix\Main\ArgumentNullException
+	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
+	 * @throws \Bitrix\Main\ArgumentTypeException
+	 * @throws \Bitrix\Main\ObjectException
 	 */
 	public function processRequest(Payment $payment, Request $request)
 	{
@@ -130,11 +217,8 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 		{
 			return $this->processNoticeAction($payment, $request);
 		}
-		else
-		{
-			PaySystem\Logger::addError('Roboxchange: processRequest: Incorrect hash');
-			$result->addError(new Error('Incorrect hash'));
-		}
+
+		$result->addError(new Error(Loc::getMessage('SALE_HPS_ROBOXCHANGE_INCORRECT_HASH')));
 
 		return $result;
 	}
@@ -143,8 +227,12 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 * @param Payment $payment
 	 * @param Request $request
 	 * @return PaySystem\ServiceResult
+	 * @throws \Bitrix\Main\ArgumentNullException
+	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
+	 * @throws \Bitrix\Main\ArgumentTypeException
+	 * @throws \Bitrix\Main\ObjectException
 	 */
-	private function processNoticeAction(Payment $payment, Request $request)
+	private function processNoticeAction(Payment $payment, Request $request): PaySystem\ServiceResult
 	{
 		$result = new PaySystem\ServiceResult();
 
@@ -152,40 +240,39 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 		$psStatusDescription .= "; ".Loc::getMessage('SALE_HPS_ROBOXCHANGE_RES_DATEPAY').": ".date("d.m.Y H:i:s");
 
 		if ($request->get("IncCurrLabel") !== null)
+		{
 			$psStatusDescription .= "; ".Loc::getMessage('SALE_HPS_ROBOXCHANGE_RES_PAY_TYPE').": ".$request->get("IncCurrLabel");
+		}
 
-		$fields = array(
+		$result->setPsData([
 			"PS_STATUS" => "Y",
 			"PS_STATUS_CODE" => "-",
 			"PS_STATUS_DESCRIPTION" => $psStatusDescription,
 			"PS_STATUS_MESSAGE" => Loc::getMessage('SALE_HPS_ROBOXCHANGE_RES_PAYED'),
-			"PS_SUM" => $request->get('OutSum'),
-			"PS_CURRENCY" => $this->getBusinessValue($payment, "PAYMENT_CURRENCY"),
+			"PS_SUM" => $payment->getSum(),
+			"PS_CURRENCY" => $payment->getField('CURRENCY'),
 			"PS_RESPONSE_DATE" => new DateTime(),
+		]);
+
+		PaySystem\Logger::addDebugInfo(
+			__CLASS__.': PS_CHANGE_STATUS_PAY='.$this->getBusinessValue($payment, 'PS_CHANGE_STATUS_PAY')
 		);
 
-		$result->setPsData($fields);
-
-		if ($this->isCorrectSum($payment, $request))
+		if ($this->getBusinessValue($payment, 'PS_CHANGE_STATUS_PAY') === 'Y')
 		{
 			$result->setOperationType(PaySystem\ServiceResult::MONEY_COMING);
-		}
-		else
-		{
-			PaySystem\Logger::addError('Roboxchange: processNoticeAction: Incorrect sum');
-			$result->addError(new Error('Incorrect sum'));
 		}
 
 		return $result;
 	}
 
 	/**
-	 * @param Payment $payment
+	 * @param Payment|null $payment
 	 * @return bool
 	 */
 	protected function isTestMode(Payment $payment = null)
 	{
-		return ($this->getBusinessValue($payment, 'PS_IS_TEST') == 'Y');
+		return $this->getBusinessValue($payment, 'PS_IS_TEST') === 'Y';
 	}
 
 	/**
@@ -193,13 +280,45 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 */
 	public function getCurrencyList()
 	{
-		return array('RUB');
+		return ['RUB', 'KZT', 'USD', 'EUR'];
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return string
+	 */
+	private function getOutSumCurrency(Payment $payment): string
+	{
+		$countryCode = $this->getCountryCode($payment);
+
+		$currency = (string)$payment->getField('CURRENCY');
+		$currency = ($currency === 'RUB') ? 'RUR' : $currency;
+
+		if (
+			($countryCode === 'RU' && $currency === 'RUR')
+			|| ($countryCode === 'KZ' && $currency === 'KZT')
+		)
+		{
+			$currency = '';
+		}
+
+		return $currency;
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return string
+	 */
+	private function getCountryCode(Payment $payment): string
+	{
+		$countryCode = (string)$this->getBusinessValue($payment, 'ROBOXCHANGE_COUNTRY_CODE');
+		return $countryCode ?: 'RU';
 	}
 
 	/**
 	 * @param PaySystem\ServiceResult $result
 	 * @param Request $request
-	 * @return mixed
+	 * @return mixed|string|void
 	 */
 	public function sendResponse(PaySystem\ServiceResult $result, Request $request)
 	{
@@ -216,39 +335,11 @@ class RoboxchangeHandler extends PaySystem\ServiceHandler
 	 */
 	public static function getHandlerModeList()
 	{
-		return array(
-			'' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_NO_CHOOSE'),
-			'WMR' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_WMRM_EMONEY'),
-			'AlfaBank' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_ALFABANKOCEANR_BANK'),
-			'BankCard' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_OCEANBANKOCEANR_BANK'),
-			'PhoneMegafon' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_MEGAFONR_MOBILE'),
-			'PhoneMTS' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_MTSR_MOBILE'),
-			'StoreEuroset' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_RAPIDAOCEANEUROSETR_OTHER'),
-			'PhoneTele2' => 'Tele2',
-			'PhoneBeeline' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_MMixplatBeelineRIBR'),
-			'BankRSB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_RussianStandardBankRIBR'),
-			'BankTrust' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSNationalBankTRUSTR'),
-			'BankTatfondbank' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSTatfondbankR'),
-			'BankPSB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_PSKBR'),
-			'HandyBank' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankMerchantOceanR'),
-			'HandyBankBO' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankBO'),
-			'StoreSvyaznoy' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_RapidaRIBSvyaznoyR'),
-			'HandyBankFB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankFB'),
-			'HandyBankFU' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankFU'),
-			'HandyBankKB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankKB'),
-			'HandyBankKSB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankKSB'),
-			'HandyBankLOB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankLOB'),
-			'HandyBankNSB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankNSB'),
-			'HandyBankTB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankTB'),
-			'HandyBankVIB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_HandyBankVIB'),
-			'BankMTEB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSMezhtopenergobankR'),
-			'BankMIN' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_MINBankR'),
-			'BankFBID' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSFederalBankForInnovationAndDevelopmentR'),
-			'BankInteza' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSIntezaR'),
-			'BankGorod' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSBankGorodR'),
-			'BankAVB' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BSSAvtovazbankR'),
-			'KUBank' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_KUBankR'),
-			'MobileRobokassa' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BANKOCEAN3CHECKR'),
-		);
+		return [
+			'bank_card' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_BANKCARD_MODE'),
+			'alfa_bank' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_ALFABANK_MODE'),
+			'apple_pay' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_APPLEPAY_MODE'),
+			'samsung_pay' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_SAMSUNGPAY_MODE'),
+		];
 	}
 }

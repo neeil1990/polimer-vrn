@@ -211,6 +211,20 @@ create table if not exists b_catalog_discount_module
   index IX_CAT_DSC_MOD(DISCOUNT_ID)
 );
 
+create table if not exists b_catalog_discount_entity
+(
+	ID int not null auto_increment,
+	DISCOUNT_ID int not null,
+	MODULE_ID varchar(50) not null,
+	ENTITY varchar(255) not null,
+	ENTITY_ID int null,
+	ENTITY_VALUE varchar(255) null,
+	FIELD_ENTITY varchar(255) not null,
+	FIELD_TABLE varchar(255) not null,
+	primary key (ID),
+	index IX_CAT_DSC_ENT_SEARCH(DISCOUNT_ID, MODULE_ID, ENTITY)
+);
+
 create table if not exists b_catalog_discount2product
 (
 	ID int not null auto_increment,
@@ -500,7 +514,6 @@ create table if not exists b_catalog_viewed_product
 	VIEW_COUNT INT NOT NULL DEFAULT 1,
 	RECOMMENDATION VARCHAR(40) NULL,
 	PRIMARY KEY (ID),
-	INDEX IX_CAT_V_PR_FUSER_ID (FUSER_ID),
 	INDEX IX_CAT_V_PR_VISIT(FUSER_ID, SITE_ID, DATE_VISIT DESC),
 	INDEX IX_CAT_V_PR_PRODUCT(FUSER_ID, SITE_ID, ELEMENT_ID),
 	INDEX IX_CAT_V_PR_PRODUCT_VISIT(ELEMENT_ID, DATE_VISIT)

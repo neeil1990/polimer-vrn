@@ -50,6 +50,11 @@ class CCatalogAdmin
 
 	public static function get_sections_menu($IBLOCK_TYPE_ID, $IBLOCK_ID, $DEPTH_LEVEL, $SECTION_ID, $arSectionsChain = false)
 	{
+		if (isset($_REQUEST["public_menu"]))
+		{
+			return [];
+		}
+
 		global $adminMenu;
 		if ($arSectionsChain === false)
 		{
@@ -57,9 +62,9 @@ class CCatalogAdmin
 			if (isset($_REQUEST['admin_mnu_menu_id']))
 			{
 				$menu_id = "menu_catalog_category_".$IBLOCK_ID."/";
-				if (strncmp($_REQUEST['admin_mnu_menu_id'], $menu_id, strlen($menu_id)) == 0)
+				if (strncmp($_REQUEST['admin_mnu_menu_id'], $menu_id, mb_strlen($menu_id)) == 0)
 				{
-					$rsSections = CIBlockSection::GetNavChain($IBLOCK_ID, substr($_REQUEST['admin_mnu_menu_id'], strlen($menu_id)), array('ID', 'IBLOCK_ID'));
+					$rsSections = CIBlockSection::GetNavChain($IBLOCK_ID, mb_substr($_REQUEST['admin_mnu_menu_id'], mb_strlen($menu_id)), array('ID', 'IBLOCK_ID'));
 					while ($arSection = $rsSections->Fetch())
 						$arSectionsChain[$arSection["ID"]] = $arSection["ID"];
 				}
@@ -75,7 +80,7 @@ class CCatalogAdmin
 				while ($arSection = $rsSections->Fetch())
 					$arSectionsChain[$arSection["ID"]] = $arSection["ID"];
 			}
-			if (isset($_REQUEST["public_menu"]) || (defined("PUBLIC_MODE") && PUBLIC_MODE == 1))
+			if (defined("PUBLIC_MODE") && PUBLIC_MODE == 1)
 			{
 				$arSectionsChain = array();
 				$rsSections = CIBlockSection::GetList(array(), array("IBLOCK_ID" => $IBLOCK_ID), false, array("ID"));
@@ -195,6 +200,8 @@ class CCatalogAdmin
 		if (!Loader::includeModule('iblock'))
 			return;
 
+		$publicMenu = isset($_REQUEST["public_menu"]);
+
 		$aMenu = array(
 			"text" => Loc::getMessage("CAT_MENU_ROOT"),
 			"title" => "",
@@ -204,32 +211,29 @@ class CCatalogAdmin
 		);
 		$arCatalogs = array();
 		$arCatalogSku = array();
-		$rsCatalog = CCatalog::GetList(
-			array(),
-			array(),
-			false,
-			false,
-			array('IBLOCK_ID', 'PRODUCT_IBLOCK_ID')
-		);
-		while ($ar = $rsCatalog->Fetch())
+		$iterator = Catalog\CatalogIblockTable::getList([
+			'select' => ['IBLOCK_ID', 'PRODUCT_IBLOCK_ID']
+		]);
+		while ($row = $iterator->fetch())
 		{
-			$ar["PRODUCT_IBLOCK_ID"] = (int)$ar["PRODUCT_IBLOCK_ID"];
-			$ar["IBLOCK_ID"] = (int)$ar["IBLOCK_ID"];
-			if ($ar["PRODUCT_IBLOCK_ID"] > 0)
+			$row["PRODUCT_IBLOCK_ID"] = (int)$row["PRODUCT_IBLOCK_ID"];
+			$row["IBLOCK_ID"] = (int)$row["IBLOCK_ID"];
+			if ($row["PRODUCT_IBLOCK_ID"] > 0)
 			{
-				$arCatalogs[$ar["PRODUCT_IBLOCK_ID"]] = 1;
-				$arCatalogSku[$ar["PRODUCT_IBLOCK_ID"]] = $ar["IBLOCK_ID"];
+				$arCatalogs[$row["PRODUCT_IBLOCK_ID"]] = true;
+				$arCatalogSku[$row["PRODUCT_IBLOCK_ID"]] = $row["IBLOCK_ID"];
 			}
 			else
 			{
-				$arCatalogs[$ar["IBLOCK_ID"]] = 1;
+				$arCatalogs[$row["IBLOCK_ID"]] = true;
 			}
 		}
+		unset($row, $iterator);
 		if (empty($arCatalogs))
 			return;
 
 		//TODO: replace this hack to api
-		if (isset($_REQUEST["public_menu"]) && Loader::includeModule("crm"))
+		if ($publicMenu && Loader::includeModule("crm"))
 		{
 			$defaultCrmIblock = CCrmCatalog::GetDefaultID();
 			$iterator = Iblock\IblockTable::getList([
@@ -252,52 +256,86 @@ class CCatalogAdmin
 		if (empty($listIblockId))
 			return;
 
+		$defaultProductsName = Loc::getMessage('CAT_MENU_PRODUCT_LIST_EXT');
+		$defaultSectionsName = Loc::getMessage('CAT_MENU_PRODUCT_SECTION_LIST');
+		$defaultMixedName = Loc::getMessage('CAT_MENU_PRODUCT_MIXED_LIST');
+
 		$rsIBlocks = CIBlock::GetList(
 			array("SORT" => "ASC", "NAME" => "ASC"),
 			array('ID' => $listIblockId, "MIN_PERMISSION" => "S")
 		);
 		$sortCount = 0.01;
-		$totalCount = (isset($_REQUEST["public_menu"]) ? $rsIBlocks->SelectedRowsCount() : 0);
+		$totalCount = ($publicMenu ? $rsIBlocks->SelectedRowsCount() : 0);
 		while ($arIBlock = $rsIBlocks->Fetch())
 		{
-			if (CIBlock::GetAdminListMode($arIBlock["ID"]) == 'C')
-				$url = "cat_product_list.php";
-			else
-				$url = "cat_product_admin.php";
+			$mixedList = CIBlock::GetAdminListMode($arIBlock["ID"]) == Iblock\IblockTable::LIST_MODE_COMBINED;
+			$url = ($mixedList ? 'cat_product_list.php' : 'cat_product_admin.php');
 
-			$arItems = array(
-				array(
-					"text" => Loc::getMessage("CAT_MENU_PRODUCT_LIST"),
-					"url" => $url."?lang=".LANGUAGE_ID."&IBLOCK_ID=".$arIBlock["ID"]."&type=".urlencode($arIBlock["IBLOCK_TYPE_ID"]).'&find_section_section=-1',
-					"more_url" => array(
-						CIBlock::GetAdminElementListLink($arIBlock["ID"], array("find_section_section" => -1)),
-						CIBlock::GetAdminElementEditLink($arIBlock["ID"], null),
-						"cat_product_list.php?IBLOCK_ID=".$arIBlock["ID"].'&find_section_section=-1',
-						"cat_product_edit.php?IBLOCK_ID=".$arIBlock["ID"],
-					),
-					"title" => "",
-					"page_icon" => "iblock_page_icon_elements",
-					"items_id" => "menu_catalog_goods_".$arIBlock["ID"],
-					"module_id" => "catalog",
-					"sort" => 202+$sortCount,
+			if ($mixedList)
+			{
+				$productsName = $defaultMixedName;
+				$sectionsName = '';
+			}
+			else
+			{
+				$productsName = (string)CIBlock::GetArrayByID($arIBlock['ID'], 'ELEMENTS_NAME');
+				if ($productsName === '')
+				{
+					$productsName = $defaultProductsName;
+				}
+				$sectionsName = (string)CIBlock::GetArrayByID($arIBlock['ID'], 'SECTIONS_NAME');
+				if ($sectionsName === '')
+				{
+					$sectionsName = $defaultSectionsName;
+				}
+			}
+
+			$arItems = [];
+			$arItems[] = [
+				"text" => htmlspecialcharsbx($productsName),
+				"url" => ($mixedList
+					? $url."?IBLOCK_ID=".$arIBlock["ID"]."&type=".urlencode($arIBlock["IBLOCK_TYPE_ID"]).'&lang='.LANGUAGE_ID.'&find_section_section=0&SECTION_ID=0&apply_filter=Y'
+					: $url."?IBLOCK_ID=".$arIBlock["ID"]."&type=".urlencode($arIBlock["IBLOCK_TYPE_ID"]).'&lang='.LANGUAGE_ID.'&find_section_section=-1'
 				),
-				array(
-					"text" => htmlspecialcharsEx(CIBlock::GetArrayByID($arIBlock["ID"], "SECTIONS_NAME")),
+				"more_url" => [
+					$url."?IBLOCK_ID=".$arIBlock["ID"]."&type=".urlencode($arIBlock["IBLOCK_TYPE_ID"]).'&lang='.LANGUAGE_ID,
+					CIBlock::GetAdminElementListLink($arIBlock["ID"], ["find_section_section" => -1]),
+					CIBlock::GetAdminElementEditLink($arIBlock["ID"], null),
+					"cat_product_list.php?IBLOCK_ID=".$arIBlock["ID"].'&find_section_section=-1',
+					"cat_product_edit.php?IBLOCK_ID=".$arIBlock["ID"],
+				],
+				"title" => "",
+				"page_icon" => "iblock_page_icon_elements",
+				"items_id" => "menu_catalog_goods_".$arIBlock["ID"],
+				"module_id" => "catalog",
+				"sort" => 202+$sortCount,
+			];
+			if (!$mixedList)
+			{
+				$arItems[] = [
+					"text" => htmlspecialcharsbx($sectionsName),
 					"url" => "cat_section_admin.php?lang=".LANGUAGE_ID."&type=".$arIBlock["IBLOCK_TYPE_ID"]."&IBLOCK_ID=".
 						$arIBlock["ID"]."&find_section_section=0&SECTION_ID=0&apply_filter=Y",
-					"more_url" => array(
-						CIBlock::GetAdminElementListLink($arIBlock["ID"], array("find_section_section" => 0)),
+					"more_url" => [
+						CIBlock::GetAdminElementListLink($arIBlock["ID"], ["find_section_section" => 0]),
 						"cat_section_admin.php?lang=".LANGUAGE_ID."IBLOCK_ID=".$arIBlock["ID"]."&find_section_section=0&SECTION_ID=0",
-						CIBlock::GetAdminSectionEditLink($arIBlock["ID"], 0, array('catalog' => null)),
-					),
+						CIBlock::GetAdminSectionEditLink($arIBlock["ID"], 0, ['catalog' => null]),
+					],
 					"title" => "",
 					"page_icon" => "iblock_page_icon_sections",
 					"items_id" => "menu_catalog_category_".$arIBlock["ID"],
 					"module_id" => "catalog",
 					"items" => CCatalogAdmin::get_sections_menu($arIBlock["IBLOCK_TYPE_ID"], $arIBlock["ID"], 1, 0),
 					"sort" => 203+$sortCount,
-				),
-			);
+					"ajax_options" => ($publicMenu ? [
+						"module_id" => "catalog",
+						"params" => [
+							"iblock_id" => $arIBlock["ID"],
+							"section_id" => 0
+						]
+					] : [])
+				];
+			}
 			if(CIBlockRights::UserHasRightTo($arIBlock["ID"], $arIBlock["ID"], "iblock_edit"))
 			{
 				$arItems[] = array(
@@ -352,7 +390,7 @@ class CCatalogAdmin
 				);
 			}
 
-			if (isset($_REQUEST["public_menu"]))
+			if ($publicMenu)
 				$text = ($totalCount > 1 ? htmlspecialcharsEx($arIBlock["NAME"]) : Loc::getMessage("CAT_MENU_ROOT_TITLE"));
 			else
 				$text = htmlspecialcharsEx($arIBlock["NAME"]);
@@ -369,6 +407,7 @@ class CCatalogAdmin
 			);
 			$sortCount += $sortCount + 0.01;
 		}
+		unset($arIBlock, $rsIBlocks);
 
 		/** @global CUser $USER */
 		global $USER;
@@ -444,38 +483,12 @@ class CCatalogAdmin
 		unset($showMarketplaceLink, $aMenu);
 	}
 
-	public static function OnAdminListDisplay(&$obList)
-	{
-		global $USER;
-
-		if(!preg_match("/^tbl_catalog_section_/", $obList->table_id))
-			return;
-
-		if(!is_object($USER) || !$USER->CanDoOperation("clouds_upload"))
-			return;
-		/** @var CAdminList $obList */
-		foreach($obList->aRows as $obRow)
-		{
-			/*
-			$obRow->aActions[] = array("SEPARATOR"=>true);
-			$tmpVar = CIBlock::ReplaceDetailUrl($obRow->arRes["SECTION_PAGE_URL"], $obRow->arRes, true, "S");
-			$obRow->aActions[] = array(
-				"ICON" => "view",
-				"TEXT" => Loc::getMessage("CAT_ACT_MENU_VIEW_SECTION"),
-				"ACTION" => $obList->ActionRedirect(htmlspecialcharsbx($tmpVar)),
-			);*/
-			$tmpVar = CIBlock::GetAdminElementListLink($obRow->arRes["IBLOCK_ID"], array(
-				"find_section_section" => $obRow->arRes["ID"],
-				"SECTION_ID" => $obRow->arRes["ID"],
-				"apply_filter" => "y",
-			));
-			$obRow->aActions[] = array(
-				"ICON" => "list",
-				"TEXT" => CIBlock::GetArrayByID($obRow->arRes["IBLOCK_ID"], "ELEMENTS_NAME"),
-				"ONCLICK" => $obList->ActionRedirect($tmpVar),
-			);
-		}
-	}
+	/**
+	 * @deprecated deprecated since catalog 20.0.100
+	 *
+	 * @param CAdminUiList $obList
+	 */
+	public static function OnAdminListDisplay(&$obList) {}
 
 	public static function OnBuildSaleMenu(/** @noinspection PhpUnusedParameterInspection */&$arGlobalMenu, &$arModuleMenu)
 	{

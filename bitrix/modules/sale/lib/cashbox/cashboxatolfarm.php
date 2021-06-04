@@ -30,6 +30,12 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 	const RESPONSE_HTTP_CODE_401 = 401;
 	const RESPONSE_HTTP_CODE_200 = 200;
 
+	const CODE_VAT_0 = 'vat0';
+	const CODE_VAT_10 = 'vat10';
+	const CODE_VAT_20 = 'vat20';
+
+	protected const MAX_NAME_LENGTH = 128;
+
 	/**
 	 * @param Check $check
 	 * @return array
@@ -63,7 +69,7 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 		if (is_string($phone))
 		{
 			if ($phone[0] === '7')
-				$phone = substr($phone, 1);
+				$phone = mb_substr($phone, 1);
 		}
 		else
 		{
@@ -102,7 +108,7 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 			$vat = $this->getValueFromSettings('VAT', $item['vat']);
 
 			$result['receipt']['items'][] = array(
-				'name' => $item['name'],
+				'name' => mb_substr($item['name'], 0, self::MAX_NAME_LENGTH),
 				'price' => (float)$item['price'],
 				'sum' => (float)$item['sum'],
 				'quantity' => $item['quantity'],
@@ -154,7 +160,9 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 		$result = array();
 
 		if (!$data['uuid'])
+		{
 			return $result;
+		}
 
 		$checkInfo = CheckManager::getCheckInfoByExternalUuid($data['uuid']);
 
@@ -249,10 +257,33 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 	/**
 	 * @param Check $check
 	 * @return Result
-	 * @throws Main\NotImplementedException
 	 * @throws Main\SystemException
 	 */
 	public function printImmediately(Check $check)
+	{
+		$checkQuery = $this->buildCheckQuery($check);
+		$validateResult = $this->validateCheckQuery($checkQuery);
+		if (!$validateResult->isSuccess())
+		{
+			return $validateResult;
+		}
+
+		$operation = 'sell';
+		if ($check::getCalculatedSign() === Check::CALCULATED_SIGN_CONSUMPTION)
+		{
+			$operation = 'sell_refund';
+		}
+
+		return $this->registerCheck($operation, $checkQuery);
+	}
+
+	/**
+	 * @param $operation
+	 * @param array $check
+	 * @return Result
+	 * @throws Main\SystemException
+	 */
+	protected function registerCheck($operation, array $check)
 	{
 		$printResult = new Result();
 
@@ -267,19 +298,13 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 			}
 		}
 
-		$checkQuery = static::buildCheckQuery($check);
-		$validateResult = $this->validate($checkQuery);
-		if (!$validateResult->isSuccess())
-		{
-			return $validateResult;
-		}
+		$url = $this->getRequestUrl(static::OPERATION_CHECK_REGISTRY, $token, ['CHECK_TYPE' => $operation]);
 
-		$operation = $check::getCalculatedSign() === Check::CALCULATED_SIGN_INCOME ? 'sell' : 'sell_refund';
-		$url = $this->getRequestUrl(static::OPERATION_CHECK_REGISTRY, $token, array('CHECK_TYPE' => $operation));
-
-		$result = $this->send(static::REQUEST_TYPE_POST, $url, $checkQuery);
+		$result = $this->send(static::REQUEST_TYPE_POST, $url, $check);
 		if (!$result->isSuccess())
+		{
 			return $result;
+		}
 
 		$response = $result->getData();
 		if ($response['http_code'] === static::RESPONSE_HTTP_CODE_401)
@@ -292,9 +317,11 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 			}
 
 			$url = $this->getRequestUrl(static::OPERATION_CHECK_REGISTRY, $token, array('CHECK_TYPE' => $operation));
-			$result = $this->send(static::REQUEST_TYPE_POST, $url, $checkQuery);
+			$result = $this->send(static::REQUEST_TYPE_POST, $url, $check);
 			if (!$result->isSuccess())
+			{
 				return $result;
+			}
 
 			$response = $result->getData();
 		}
@@ -331,15 +358,24 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 	 */
 	public function check(Check $check)
 	{
+		return $this->checkByUuid(
+			$check->getField('EXTERNAL_UUID')
+		);
+	}
+
+	protected function checkByUuid($uuid)
+	{
 		$url = $this->getRequestUrl(
 			static::OPERATION_CHECK_CHECK,
 			$this->getAccessToken(),
-			array('EXTERNAL_UUID' => $check->getField('EXTERNAL_UUID'))
+			['EXTERNAL_UUID' => $uuid]
 		);
 
 		$result = $this->send(static::REQUEST_TYPE_GET, $url);
 		if (!$result->isSuccess())
+		{
 			return $result;
+		}
 
 		$response = $result->getData();
 		if ($response['http_code'] === static::RESPONSE_HTTP_CODE_401)
@@ -354,15 +390,19 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 			$url = $this->getRequestUrl(
 				static::OPERATION_CHECK_CHECK,
 				$this->getAccessToken(),
-				array('EXTERNAL_UUID' => $check->getField('EXTERNAL_UUID'))
+				['EXTERNAL_UUID' => $uuid]
 			);
 
 			$result = $this->send(static::REQUEST_TYPE_GET, $url);
 			if (!$result->isSuccess())
+			{
 				return $result;
+			}
 
 			$response = $result->getData();
 		}
+
+		$response['uuid'] = $uuid;
 
 		if ($response['status'] === 'wait')
 		{
@@ -377,7 +417,7 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 	 * @param array $checkData
 	 * @return Result
 	 */
-	protected function validate(array $checkData)
+	protected function validateCheckQuery(array $checkData)
 	{
 		$result = new Result();
 
@@ -416,10 +456,7 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 			$http->disableSslVerification();
 			$data = $this->encode($data);
 
-			if (Manager::DEBUG_MODE === true)
-			{
-				Internals\CashboxErrLogTable::add(array('MESSAGE' => $data, 'DATE_INSERT' => new Main\Type\DateTime()));
-			}
+			Logger::addDebugInfo($data);
 
 			$response = $http->post($url, $data);
 		}
@@ -430,16 +467,15 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 
 		if ($response !== false)
 		{
-			if (Manager::DEBUG_MODE === true)
-			{
-				Internals\CashboxErrLogTable::add(array('MESSAGE' => $response, 'DATE_INSERT' => new Main\Type\DateTime()));
-			}
+			Logger::addDebugInfo($response);
 
 			try
 			{
 				$response = $this->decode($response);
 				if (!is_array($response))
-					$response = array();
+				{
+					$response = [];
+				}
 
 				$response['http_code'] = $http->getStatus();
 				$result->addData($response);
@@ -546,16 +582,21 @@ class CashboxAtolFarm extends Cashbox implements IPrintImmediately, ICheckable
 
 		if (Main\Loader::includeModule('catalog'))
 		{
-			$dbRes = Catalog\VatTable::getList(array('filter' => array('ACTIVE' => 'Y')));
+			$dbRes = Catalog\VatTable::getList(['filter' => ['ACTIVE' => 'Y']]);
 			$vatList = $dbRes->fetchAll();
 			if ($vatList)
 			{
-				$defaultVat = array(0 => 'vat0', 10 => 'vat10', 18 => 'vat18', 20 => 'vat20');
+				$defaultVatList = [
+					0 => self::CODE_VAT_0,
+					10 => self::CODE_VAT_10,
+					20 => self::CODE_VAT_20
+				];
+
 				foreach ($vatList as $vat)
 				{
 					$value = '';
-					if (isset($defaultVat[(int)$vat['RATE']]))
-						$value = $defaultVat[(int)$vat['RATE']];
+					if (isset($defaultVatList[(int)$vat['RATE']]))
+						$value = $defaultVatList[(int)$vat['RATE']];
 
 					$settings['VAT']['ITEMS'][(int)$vat['ID']] = array(
 						'TYPE' => 'STRING',

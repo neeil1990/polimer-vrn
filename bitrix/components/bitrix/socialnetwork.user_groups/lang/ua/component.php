@@ -11,9 +11,9 @@ $MESS["SONET_C36_EDIT_ENTRIES"] = "Теми груп";
 $MESS["SONET_C36_PAGE_TITLE2_1"] = "Мої групи";
 $MESS["SONET_C36_PAGE_TITLE2_2"] = "архівні групи";
 $MESS["SONET_C36_PAGE_TITLE2_3"] = "групи екстранет";
-$MESS["SONET_C36_PAGE_TITLE2_1_PROJECT"] = "Мої проекти";
-$MESS["SONET_C36_PAGE_TITLE1_PROJECT"] = "Проекти";
-$MESS["SONET_C36_PAGE_TITLE2_PROJECT"] = "Проекти";
+$MESS["SONET_C36_PAGE_TITLE2_1_PROJECT"] = "Мої проєкти";
+$MESS["SONET_C36_PAGE_TITLE1_PROJECT"] = "Проєкти";
+$MESS["SONET_C36_PAGE_TITLE2_PROJECT"] = "Проєкти";
 $MESS["SONET_C36_PAGE_TITLE2_4"] = "Обране";
-$MESS["SONET_C36_PAGE_TITLE_COMMON"] = "Групи та проекти";
+$MESS["SONET_C36_PAGE_TITLE_COMMON"] = "Групи та проєкти";
 ?>

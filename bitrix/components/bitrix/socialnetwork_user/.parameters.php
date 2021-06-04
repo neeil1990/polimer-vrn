@@ -19,12 +19,12 @@ $tmp_site_id = (
 
 if ($tmp_site_id)
 {
-	$tmp_site_id = substr(preg_replace("/[^a-z0-9_]/i", "", $tmp_site_id), 0, 2);
+	$tmp_site_id = mb_substr(preg_replace("/[^a-z0-9_]/i", "", $tmp_site_id), 0, 2);
 
 	$dbSite = CSite::GetByID($tmp_site_id);
 	if ($arSite = $dbSite->Fetch())
 	{
-		$site_dir = (strlen($arSite["DIR"]) > 0 ? trim($arSite["DIR"]) : "/");
+		$site_dir = ($arSite["DIR"] <> '' ? trim($arSite["DIR"]) : "/");
 	}
 
 	$dbSiteTemplate = CSite::GetTemplateList($tmp_site_id);
@@ -43,7 +43,7 @@ $userProp = array();
 if (!empty($arRes))
 {
 	foreach ($arRes as $key => $val)
-		$userProp[$val["FIELD_NAME"]] = (strLen($val["EDIT_FORM_LABEL"]) > 0 ? $val["EDIT_FORM_LABEL"] : $val["FIELD_NAME"]);
+		$userProp[$val["FIELD_NAME"]] = ($val["EDIT_FORM_LABEL"] <> '' ? $val["EDIT_FORM_LABEL"] : $val["FIELD_NAME"]);
 }
 
 $userPropEdit = $userProp1 = CSocNetUser::GetFields(true);
@@ -379,94 +379,118 @@ $arComponentParameters = array(
 			"VALUE" => "Y",
 			"DEFAULT" =>(IsModuleInstalled("intranet") ? "N" : "Y"),
 			"PARENT" => "VISUAL",
-		),
-		"USER_FIELDS_MAIN" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_FIELDS_MAIN"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"USER_PROPERTY_MAIN" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_PROPERTY_MAIN"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"USER_FIELDS_CONTACT" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_FIELDS_CONTACT"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"USER_PROPERTY_CONTACT" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_PROPERTY_CONTACT"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"USER_FIELDS_PERSONAL" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_FIELDS_PERSONAL"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"USER_PROPERTY_PERSONAL" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_PROPERTY_PERSONAL"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"SET_NAV_CHAIN" => Array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_SET_NAVCHAIN"),
-			"TYPE" => "CHECKBOX",
-			"DEFAULT" => "Y"
-		),
-		"PATH_TO_GROUP" => Array(
-			"NAME" => GetMessage("SONET_PATH_TO_GROUP"),
-			"TYPE" => "STRING",
-			"MULTIPLE" => "N",
-			"DEFAULT" => "",
-			"COLS" => 25,
-			"PARENT" => "URL_TEMPLATES",
-		),
-		"PATH_TO_GROUP_SUBSCRIBE" => Array(
-			"NAME" => GetMessage("SONET_PATH_TO_GROUP_SUBSCRIBE"),
-			"TYPE" => "STRING",
-			"MULTIPLE" => "N",
-			"DEFAULT" => "",
-			"COLS" => 25,
-			"PARENT" => "URL_TEMPLATES",
-		),
+		)
+	)
+);
 
-		"PATH_TO_GROUP_SEARCH" => Array(
-			"NAME" => GetMessage("SONET_PATH_TO_GROUP_SEARCH"),
-			"TYPE" => "STRING",
-			"MULTIPLE" => "N",
-			"DEFAULT" => "",
-			"COLS" => 25,
-			"PARENT" => "URL_TEMPLATES",
-		),
-		"PATH_TO_SEARCH_EXTERNAL" => Array(
-			"NAME" => GetMessage("SONET_PATH_TO_SEARCH_EXTERNAL"),
-			"TYPE" => "STRING",
-			"MULTIPLE" => "N",
-			"DEFAULT" => "",
-			"COLS" => 25,
-			"PARENT" => "URL_TEMPLATES",
-		),
+$viewFields = \Bitrix\Main\Config\Option::get("intranet", "user_profile_view_fields", false, $tmp_site_id);
+$editFields = \Bitrix\Main\Config\Option::get("intranet", "user_profile_edit_fields", false, $tmp_site_id);
+
+if ($viewFields === false)
+{
+	$arComponentParameters["PARAMETERS"]["ALLOWALL_USER_PROFILE_FIELDS"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_ALLOWALL_USER_PROFILE_FIELDS"),
+		"TYPE" => "CHECKBOX",
+		"MULTIPLE" => "N",
+		"VALUE" => "Y",
+		"DEFAULT" =>(IsModuleInstalled("bitrix24") ? "Y" : "N"),
+		"REFRESH" => "Y",
+	);
+}
+
+if (
+	$arCurrentValues["ALLOWALL_USER_PROFILE_FIELDS"] != 'Y'
+	&& $viewFields === false
+)
+{
+	$arComponentParameters["PARAMETERS"]["USER_FIELDS_MAIN"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_FIELDS_MAIN"),
+		"TYPE" => "LIST",
+		"VALUES" => $userProp1,
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array(),
+	);
+	$arComponentParameters["PARAMETERS"]["USER_PROPERTY_MAIN"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_PROPERTY_MAIN"),
+		"TYPE" => "LIST",
+		"VALUES" => $userProp,
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array(),
+	);
+	$arComponentParameters["PARAMETERS"]["USER_FIELDS_CONTACT"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_FIELDS_CONTACT"),
+		"TYPE" => "LIST",
+		"VALUES" => $userProp1,
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array(),
+	);
+	$arComponentParameters["PARAMETERS"]["USER_PROPERTY_CONTACT"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_PROPERTY_CONTACT"),
+		"TYPE" => "LIST",
+		"VALUES" => $userProp,
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array(),
+	);
+	$arComponentParameters["PARAMETERS"]["USER_FIELDS_PERSONAL"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_FIELDS_PERSONAL"),
+		"TYPE" => "LIST",
+		"VALUES" => $userProp1,
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array(),
+	);
+	$arComponentParameters["PARAMETERS"]["USER_PROPERTY_PERSONAL"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_USER_PROPERTY_PERSONAL"),
+		"TYPE" => "LIST",
+		"VALUES" => $userProp,
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array(),
+	);
+}
+$arComponentParameters["PARAMETERS"]["SET_NAV_CHAIN"] = Array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_SET_NAVCHAIN"),
+	"TYPE" => "CHECKBOX",
+	"DEFAULT" => "Y"
+);
+$arComponentParameters["PARAMETERS"]["PATH_TO_GROUP"] = Array(
+	"NAME" => GetMessage("SONET_PATH_TO_GROUP"),
+	"TYPE" => "STRING",
+	"MULTIPLE" => "N",
+	"DEFAULT" => "",
+	"COLS" => 25,
+	"PARENT" => "URL_TEMPLATES",
+);
+$arComponentParameters["PARAMETERS"]["PATH_TO_GROUP_SUBSCRIBE"] = Array(
+	"NAME" => GetMessage("SONET_PATH_TO_GROUP_SUBSCRIBE"),
+	"TYPE" => "STRING",
+	"MULTIPLE" => "N",
+	"DEFAULT" => "",
+	"COLS" => 25,
+	"PARENT" => "URL_TEMPLATES",
+);
+$arComponentParameters["PARAMETERS"]["PATH_TO_GROUP_SEARCH"] = Array(
+	"NAME" => GetMessage("SONET_PATH_TO_GROUP_SEARCH"),
+	"TYPE" => "STRING",
+	"MULTIPLE" => "N",
+	"DEFAULT" => "",
+	"COLS" => 25,
+	"PARENT" => "URL_TEMPLATES",
+);
+$arComponentParameters["PARAMETERS"]["PATH_TO_SEARCH_EXTERNAL"] = Array(
+	"NAME" => GetMessage("SONET_PATH_TO_SEARCH_EXTERNAL"),
+	"TYPE" => "STRING",
+	"MULTIPLE" => "N",
+	"DEFAULT" => "",
+	"COLS" => 25,
+	"PARENT" => "URL_TEMPLATES",
+);
 /*
 		"AJAX_LONG_TIMEOUT" => array(
 			"PARENT" => "ADDITIONAL_SETTINGS",
@@ -476,91 +500,93 @@ $arComponentParameters = array(
 		),
 		"AJAX_MODE" => Array(),
 */
-		"EDITABLE_FIELDS"=>array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_EDITABLE_FIELDS"),
-			"TYPE" => "LIST",
-			"VALUES" => array_merge($userPropEdit, $userProp),
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array('LOGIN', 'NAME', 'SECOND_NAME', 'LAST_NAME', 'EMAIL', 'PERSONAL_BIRTHDAY', 'PERSONAL_CITY', 'PERSONAL_COUNTRY', 'PERSONAL_FAX', 'PERSONAL_GENDER', 'PERSONAL_ICQ', 'PERSONAL_MAILBOX', 'PERSONAL_MOBILE', 'PERSONAL_PAGER', 'PERSONAL_PHONE', 'PERSONAL_PHOTO', 'PERSONAL_STATE', 'PERSONAL_STREET', 'PERSONAL_WWW', 'PERSONAL_ZIP'),
-		),
-		"SHOW_YEAR" => Array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_SHOW_YEAR"),
-			"TYPE" => "LIST",
-			"VALUES" => array(
-				"Y" => GetMessage("SONET_SHOW_YEAR_VALUE_Y"),
-				"M" => GetMessage("SONET_SHOW_YEAR_VALUE_M"),
-				"N" => GetMessage("SONET_SHOW_YEAR_VALUE_N")
-			),
-			"MULTIPLE" => "N",
-			"DEFAULT" => "Y"
-		),
-		"USER_FIELDS_SEARCH_SIMPLE" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_FIELDS_SEARCH_SIMPLE"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array("PERSONAL_GENDER", "PERSONAL_CITY"),
-		),
-		"USER_PROPERTIES_SEARCH_SIMPLE" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_PROPERTIES_SEARCH_SIMPLE"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"USER_FIELDS_SEARCH_ADV" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_FIELDS_SEARCH_ADV"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array("PERSONAL_GENDER", "PERSONAL_CITY", "PERSONAL_COUNTRY"),
-		),
-		"USER_PROPERTIES_SEARCH_ADV" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_USER_PROPERTIES_SEARCH_ADV"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"SONET_USER_FIELDS_LIST" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_SONET_USER_FIELDS_LIST"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array("PERSONAL_GENDER", "PERSONAL_BIRTHDAY", "PERSONAL_CITY"),
-		),
-		"SONET_USER_PROPERTY_LIST" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_SONET_USER_PROPERTY_LIST"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
-		"SONET_USER_FIELDS_SEARCHABLE" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_SONET_USER_FIELDS_SEARCHABLE"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp1,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array("NAME", "SECOND_NAME", "LAST_NAME", "LOGIN", "PERSONAL_BIRTHDAY", "PERSONAL_BIRTHDAY_YEAR", "PERSONAL_BIRTHDAY_DAY", "PERSONAL_PROFESSION", "PERSONAL_GENDER", "PERSONAL_COUNTRY", "PERSONAL_STATE", "PERSONAL_CITY", "PERSONAL_ZIP", "PERSONAL_STREET", "PERSONAL_MAILBOX", "WORK_COMPANY", "WORK_DEPARTMENT", "WORK_POSITION", "WORK_COUNTRY", "WORK_STATE", "WORK_CITY", "WORK_ZIP", "WORK_STREET", "WORK_MAILBOX"),
-		),
-		"SONET_USER_PROPERTY_SEARCHABLE" => array(
-			"PARENT" => "ADDITIONAL_SETTINGS",
-			"NAME" => GetMessage("SONET_SONET_USER_PROPERTY_SEARCHABLE"),
-			"TYPE" => "LIST",
-			"VALUES" => $userProp,
-			"MULTIPLE" => "Y",
-			"DEFAULT" => array(),
-		),
+if ($editFields === false)
+{
+	$arComponentParameters["PARAMETERS"]["EDITABLE_FIELDS"] = array(
+		"PARENT" => "ADDITIONAL_SETTINGS",
+		"NAME" => GetMessage("SONET_EDITABLE_FIELDS"),
+		"TYPE" => "LIST",
+		"VALUES" => array_merge($userPropEdit, $userProp),
+		"MULTIPLE" => "Y",
+		"DEFAULT" => array('LOGIN', 'NAME', 'SECOND_NAME', 'LAST_NAME', 'EMAIL', 'PERSONAL_BIRTHDAY', 'PERSONAL_CITY', 'PERSONAL_COUNTRY', 'PERSONAL_FAX', 'PERSONAL_GENDER', 'PERSONAL_ICQ', 'PERSONAL_MAILBOX', 'PERSONAL_MOBILE', 'PERSONAL_PAGER', 'PERSONAL_PHONE', 'PERSONAL_PHOTO', 'PERSONAL_STATE', 'PERSONAL_STREET', 'PERSONAL_WWW', 'PERSONAL_ZIP'),
+	);
+}
+
+$arComponentParameters["PARAMETERS"]["SHOW_YEAR"] = Array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_SHOW_YEAR"),
+	"TYPE" => "LIST",
+	"VALUES" => array(
+		"Y" => GetMessage("SONET_SHOW_YEAR_VALUE_Y"),
+		"M" => GetMessage("SONET_SHOW_YEAR_VALUE_M"),
+		"N" => GetMessage("SONET_SHOW_YEAR_VALUE_N")
 	),
+	"MULTIPLE" => "N",
+	"DEFAULT" => "Y"
+);
+$arComponentParameters["PARAMETERS"]["USER_FIELDS_SEARCH_SIMPLE"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_USER_FIELDS_SEARCH_SIMPLE"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp1,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array("PERSONAL_GENDER", "PERSONAL_CITY"),
+);
+$arComponentParameters["PARAMETERS"]["USER_PROPERTIES_SEARCH_SIMPLE"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_USER_PROPERTIES_SEARCH_SIMPLE"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array(),
+);
+$arComponentParameters["PARAMETERS"]["USER_FIELDS_SEARCH_ADV"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_USER_FIELDS_SEARCH_ADV"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp1,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array("PERSONAL_GENDER", "PERSONAL_CITY", "PERSONAL_COUNTRY"),
+);
+$arComponentParameters["PARAMETERS"]["USER_PROPERTIES_SEARCH_ADV"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_USER_PROPERTIES_SEARCH_ADV"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array(),
+);
+$arComponentParameters["PARAMETERS"]["SONET_USER_FIELDS_LIST"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_SONET_USER_FIELDS_LIST"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp1,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array("PERSONAL_GENDER", "PERSONAL_BIRTHDAY", "PERSONAL_CITY"),
+);
+$arComponentParameters["PARAMETERS"]["SONET_USER_PROPERTY_LIST"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_SONET_USER_PROPERTY_LIST"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array(),
+);
+$arComponentParameters["PARAMETERS"]["SONET_USER_FIELDS_SEARCHABLE"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_SONET_USER_FIELDS_SEARCHABLE"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp1,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array("NAME", "SECOND_NAME", "LAST_NAME", "LOGIN", "PERSONAL_BIRTHDAY", "PERSONAL_BIRTHDAY_YEAR", "PERSONAL_BIRTHDAY_DAY", "PERSONAL_PROFESSION", "PERSONAL_GENDER", "PERSONAL_COUNTRY", "PERSONAL_STATE", "PERSONAL_CITY", "PERSONAL_ZIP", "PERSONAL_STREET", "PERSONAL_MAILBOX", "WORK_COMPANY", "WORK_DEPARTMENT", "WORK_POSITION", "WORK_COUNTRY", "WORK_STATE", "WORK_CITY", "WORK_ZIP", "WORK_STREET", "WORK_MAILBOX"),
+);
+$arComponentParameters["PARAMETERS"]["SONET_USER_PROPERTY_SEARCHABLE"] = array(
+	"PARENT" => "ADDITIONAL_SETTINGS",
+	"NAME" => GetMessage("SONET_SONET_USER_PROPERTY_SEARCHABLE"),
+	"TYPE" => "LIST",
+	"VALUES" => $userProp,
+	"MULTIPLE" => "Y",
+	"DEFAULT" => array(),
 );
 
 if (CModule::IncludeModule("intranet"))
@@ -993,7 +1019,7 @@ if(CModule::IncludeModule("iblock"))
 			"PARENT" => "WEBDAV_SETTINGS",
 			"NAME" => str_replace("#upload_max_filesize#", ini_get('upload_max_filesize'), GetMessage("SONET_UPLOAD_MAX_FILESIZE")),
 			"TYPE" => "STRING",
-			"DEFAULT" => intVal(ini_get('upload_max_filesize')));
+			"DEFAULT" => intval(ini_get('upload_max_filesize')));
 		$arComponentParameters["PARAMETERS"]["FILES_UPLOAD_MAX_FILE"] = array(
 			"PARENT" => "WEBDAV_SETTINGS",
 			"NAME" => GetMessage("SONET_UPLOAD_MAX_FILE"),
@@ -1019,8 +1045,8 @@ if(CModule::IncludeModule("iblock"))
 					{
 						do
 						{
-							$arForum[intVal($res["ID"])] = $res["NAME"];
-							$fid = intVal($res["ID"]);
+							$arForum[intval($res["ID"])] = $res["NAME"];
+							$fid = intval($res["ID"]);
 						}while ($res = $db_res->GetNext());
 					}
 				}
@@ -1251,7 +1277,7 @@ if (CModule::IncludeModule("forum"))
 		while (($file = readdir($directory)) !== false)
 		{
 			if ($file != "." && $file != ".." && is_dir($dir.$file))
-				$arThemes[$file] = (!empty($arThemesMessages[$file]) ? $arThemesMessages[$file] : strtoupper(substr($file, 0, 1)).strtolower(substr($file, 1)));
+				$arThemes[$file] = (!empty($arThemesMessages[$file]) ? $arThemesMessages[$file] : mb_strtoupper(mb_substr($file, 0, 1)).mb_strtolower(mb_substr($file, 1)));
 		}
 		closedir($directory);
 	endif;
@@ -1608,7 +1634,7 @@ if(!empty($arIBlockType) || CModule::IncludeModule("iblock"))
 			"PARENT" => "PHOTO_SETTINGS",
 			"NAME" => str_replace("#upload_max_filesize#", ini_get('upload_max_filesize'), GetMessage("SONET_UPLOAD_MAX_FILESIZE")),
 			"TYPE" => "STRING",
-			"DEFAULT" => intVal(ini_get('upload_max_filesize')));
+			"DEFAULT" => intval(ini_get('upload_max_filesize')));
 
 		$arComponentParameters["PARAMETERS"]["PHOTO_USE_RATING"] = array(
 			"PARENT" => "PHOTO_SETTINGS",
@@ -1716,8 +1742,8 @@ if(!empty($arIBlockType) || CModule::IncludeModule("iblock"))
 						{
 							do
 							{
-								$arForum[intVal($res["ID"])] = $res["NAME"];
-								$fid = intVal($res["ID"]);
+								$arForum[intval($res["ID"])] = $res["NAME"];
+								$fid = intval($res["ID"]);
 							}while ($res = $db_res->GetNext());
 						}
 					}
@@ -1919,19 +1945,19 @@ if (is_dir($dir) && $directory = opendir($dir)):
 	while (($file = readdir($directory)) !== false)
 	{
 		if ($file != "." && $file != ".." && is_dir($dir.$file))
-			$arSMThemes[$file] = (!empty($arSMThemesMessages[$file]) ? $arSMThemesMessages[$file] : strtoupper(substr($file, 0, 1)).strtolower(substr($file, 1)));
+			$arSMThemes[$file] = (!empty($arSMThemesMessages[$file]) ? $arSMThemesMessages[$file] : mb_strtoupper(mb_substr($file, 0, 1)).mb_strtolower(mb_substr($file, 1)));
 	}
 	closedir($directory);
 endif;
 
-if (strpos($site_template, "bright") === 0)
+if (mb_strpos($site_template, "bright") === 0)
 {
 	$DefaultSMTheme = "grey";
 }
 else
 {
 	$theme_id = ($tmp_site_id && CModule::IncludeModule('extranet') && CExtranet::IsExtranetSite($tmp_site_id) ? COption::GetOptionString("main", "wizard_".$site_template."_theme_id_extranet") : COption::GetOptionString("main", "wizard_".$site_template."_theme_id"));
-	$DefaultSMTheme = (strlen($theme_id) > 0 ? $theme_id : "grey");
+	$DefaultSMTheme = ($theme_id <> '' ? $theme_id : "grey");
 }
 
 $arComponentParameters["PARAMETERS"]["SM_THEME"] = Array(

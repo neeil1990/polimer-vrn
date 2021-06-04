@@ -5,6 +5,7 @@ use Bitrix\Main\Grid\Panel;
 use Bitrix\Main\UI\Filter\Options;
 use Bitrix\Main\Grid\Context;
 use Bitrix\Main\UI\PageNavigation;
+use Bitrix\Main\Grid;
 
 class CAdminUiList extends CAdminList
 {
@@ -56,11 +57,11 @@ class CAdminUiList extends CAdminList
 
 		if (!Context::isInternalRequest()
 			&& !(isset($_REQUEST["clear_nav"]) && $_REQUEST["clear_nav"] === "Y")
-			&& isset($_SESSION["ADMIN_PAGINATION_DATA"])
-			&& isset($_SESSION["ADMIN_PAGINATION_DATA"][$this->table_id])
+			&& isset(\Bitrix\Main\Application::getInstance()->getSession()["ADMIN_PAGINATION_DATA"])
+			&& isset(\Bitrix\Main\Application::getInstance()->getSession()["ADMIN_PAGINATION_DATA"][$this->table_id])
 		)
 		{
-			$paginationData = $_SESSION["ADMIN_PAGINATION_DATA"][$this->table_id];
+			$paginationData = \Bitrix\Main\Application::getInstance()->getSession()["ADMIN_PAGINATION_DATA"][$this->table_id];
 			if (isset($paginationData["PAGE_NUM"]))
 			{
 				$pageNum = (int)$paginationData["PAGE_NUM"];
@@ -74,11 +75,11 @@ class CAdminUiList extends CAdminList
 
 		if (Context::isInternalRequest())
 		{
-			if (!isset($_SESSION["ADMIN_PAGINATION_DATA"]))
+			if (!isset(\Bitrix\Main\Application::getInstance()->getSession()["ADMIN_PAGINATION_DATA"]))
 			{
-				$_SESSION["ADMIN_PAGINATION_DATA"] = array();
+				\Bitrix\Main\Application::getInstance()->getSession()["ADMIN_PAGINATION_DATA"] = array();
 			}
-			$_SESSION["ADMIN_PAGINATION_DATA"][$this->table_id] = array("PAGE_NUM" => $nav->getCurrentPage());
+			\Bitrix\Main\Application::getInstance()->getSession()["ADMIN_PAGINATION_DATA"][$this->table_id] = array("PAGE_NUM" => $nav->getCurrentPage());
 		}
 
 		return $nav;
@@ -205,11 +206,11 @@ class CAdminUiList extends CAdminList
 										{
 											foreach ($matchKeys as $matchKey)
 											{
-												if (!is_string($matchKey) || strlen(trim($matchKey)) == 0)
+												if (!is_string($matchKey) || trim($matchKey) == '')
 												{
 													continue;
 												}
-												if (strpos($matchKey, "[") === false && strpos($matchKey, "]") === false)
+												if (mb_strpos($matchKey, "[") === false && mb_strpos($matchKey, "]") === false)
 												{
 													$listPreparedKeys[] = $matchKey;
 												}
@@ -223,7 +224,7 @@ class CAdminUiList extends CAdminList
 								unset($arrays[$i]["FIELDS"][$id][$key]);
 							}
 
-							if(($c = substr($key, 0, 1)) == '~' || $c == '=')
+							if(($c = mb_substr($key, 0, 1)) == '~' || $c == '=')
 							{
 								unset($arrays[$i]["FIELDS"][$id][$key]);
 							}
@@ -246,22 +247,21 @@ class CAdminUiList extends CAdminList
 			[$key => $this->prepareCustomKey(array_shift($keys), $keys)]);
 	}
 
+	/**
+	 * @return array|false
+	 */
 	public function GroupAction()
 	{
-		if (!check_bitrix_sessid())
+		$this->PrepareAction();
+
+		if ($this->GetAction() === null)
 		{
 			return false;
 		}
 
-		if (is_array($_REQUEST["action"]))
+		if (!check_bitrix_sessid())
 		{
-			foreach ($_REQUEST["action"] as $actionKey => $actionValue)
-				$_REQUEST[$actionKey] = $actionValue;
-		}
-		if (!empty($_REQUEST["action_button_".$this->table_id]))
-		{
-			$_REQUEST["action"] = $_REQUEST["action_button_".$this->table_id];
-			$_REQUEST["action_button"] = $_REQUEST["action_button_".$this->table_id];
+			return false;
 		}
 
 		if (!empty($_REQUEST["bxajaxid"]))
@@ -270,19 +270,49 @@ class CAdminUiList extends CAdminList
 			$adminSidePanelHelper->setSkipResponse(true);
 		}
 
-		if ((empty($_REQUEST["action_all_rows_".$this->table_id]) ||
-				$_REQUEST["action_all_rows_".$this->table_id] === "N") && isset($_REQUEST["ID"]))
+		if (!$this->IsGroupActionToAll())
 		{
-			if(!is_array($_REQUEST["ID"]))
-				$arID = array($_REQUEST["ID"]);
-			else
-				$arID = $_REQUEST["ID"];
-
-			return $arID;
+			$arID = $this->GetGroupIds();
+			if ($arID === null)
+			{
+				$arID = false;
+			}
 		}
 		else
 		{
-			return array("");
+			$arID = array("");
+		}
+
+		return $arID;
+	}
+
+	/**
+	 * Returns true if the user has set the flag "To all" in the list.
+	 *
+	 * @return bool
+	 */
+	public function IsGroupActionToAll()
+	{
+		return (
+			isset($_REQUEST["action_all_rows_".$this->table_id])
+			&& $_REQUEST["action_all_rows_".$this->table_id] === 'Y'
+		);
+	}
+
+	/**
+	 * @return void
+	 */
+	protected function PrepareAction()
+	{
+		if (isset($_REQUEST["action"]) && is_array($_REQUEST["action"]))
+		{
+			foreach ($_REQUEST["action"] as $actionKey => $actionValue)
+				$_REQUEST[$actionKey] = $actionValue;
+		}
+		if (!empty($_REQUEST["action_button_".$this->table_id]))
+		{
+			$_REQUEST["action"] = $_REQUEST["action_button_".$this->table_id];
+			$_REQUEST["action_button"] = $_REQUEST["action_button_".$this->table_id];
 		}
 	}
 
@@ -310,12 +340,6 @@ class CAdminUiList extends CAdminList
 		return $this->ActionAjaxPostGrid($postParams);
 	}
 
-	public function AddGroupActionTable($arActions, $arParams = array())
-	{
-		$this->arActions = $arActions;
-		$this->arActionsParams = $arParams;
-	}
-
 	public function ActionAjaxPostGrid($postParams)
 	{
 		return "BX.Main.gridManager.getById('".$this->table_id."').instance.reloadTable('POST', ".
@@ -339,19 +363,19 @@ class CAdminUiList extends CAdminList
 
 		foreach ($filterData as $fieldId => $fieldValue)
 		{
-			if ((is_array($fieldValue) && empty($fieldValue)) || (is_string($fieldValue) && strlen($fieldValue) <= 0))
+			if ((is_array($fieldValue) && empty($fieldValue)) || (is_string($fieldValue) && $fieldValue == ''))
 			{
 				continue;
 			}
 
-			if (substr($fieldId, -5) == "_from")
+			if (mb_substr($fieldId, -5) == "_from")
 			{
-				$realFieldId = substr($fieldId, 0, strlen($fieldId)-5);
+				$realFieldId = mb_substr($fieldId, 0, mb_strlen($fieldId) - 5);
 				if (!array_key_exists($realFieldId, $filterable))
 				{
 					continue;
 				}
-				if (substr($realFieldId, -2) == "_1")
+				if (mb_substr($realFieldId, -2) == "_1")
 				{
 					$arFilter[$realFieldId] = $fieldValue;
 				}
@@ -364,16 +388,16 @@ class CAdminUiList extends CAdminList
 					$arFilter[$filterPrefix.$realFieldId] = trim($fieldValue);
 				}
 			}
-			elseif (substr($fieldId, -3) == "_to")
+			elseif (mb_substr($fieldId, -3) == "_to")
 			{
-				$realFieldId = substr($fieldId, 0, strlen($fieldId)-3);
+				$realFieldId = mb_substr($fieldId, 0, mb_strlen($fieldId) - 3);
 				if (!array_key_exists($realFieldId, $filterable))
 				{
 					continue;
 				}
-				if (substr($realFieldId, -2) == "_1")
+				if (mb_substr($realFieldId, -2) == "_1")
 				{
-					$realFieldId = substr($realFieldId, 0, strlen($realFieldId)-2);
+					$realFieldId = mb_substr($realFieldId, 0, mb_strlen($realFieldId) - 2);
 					$arFilter[$realFieldId."_2"] = $fieldValue;
 				}
 				else
@@ -410,9 +434,10 @@ class CAdminUiList extends CAdminList
 		$error = "";
 		foreach ($this->arGroupErrors as $groupError)
 		{
-			$error .= " ".$groupError;
+			$error .= " ".$groupError[0];
 		}
-		return $error;
+
+		return trim($error);
 	}
 
 	public function setContextSettings(array $settings)
@@ -420,39 +445,44 @@ class CAdminUiList extends CAdminList
 		$this->contextSettings = $settings;
 	}
 
-	public function AddAdminContextMenu($aContext=array(), $bShowExcel=true, $bShowSettings=true)
+	protected function GetSystemContextMenu(array $config = []): array
 	{
+		$result = [];
 		/** @global CMain $APPLICATION */
 		global $APPLICATION;
 
-		$aAdditionalMenu = array();
-
-		if ($bShowExcel)
+		if (isset($config['excel']))
 		{
 			if ($this->contextSettings["pagePath"])
 			{
 				$pageParam = (!empty($_GET) ? http_build_query($_GET, "", "&") : "");
 				$pagePath = $this->contextSettings["pagePath"]."?".$pageParam;
-				$pageParams = array("mode" => "excel");
+				$pageParams = ["mode" => "excel"];
 				if ($this->isPublicMode)
 					$pageParams["public"] = "y";
 				$link = CHTTP::urlAddParams($pagePath, $pageParams);
 			}
 			else
 			{
-				$link = CHTTP::urlAddParams($APPLICATION->GetCurPageParam(), array("mode" => "excel"));
+				$link = CHTTP::urlAddParams($APPLICATION->GetCurPageParam(), ["mode" => "excel"]);
 			}
 			$link = CHTTP::urlDeleteParams($link, ["apply_filter"]);
-			$aAdditionalMenu[] = array(
+			$result[] = [
 				"TEXT" => "Excel",
 				"TITLE" => GetMessage("admin_lib_excel"),
 				"LINK" => $link,
 				"GLOBAL_ICON"=>"adm-menu-excel",
-			);
+			];
 		}
+		return $result;
+	}
 
-		if (count($aContext) > 0 || count($aAdditionalMenu) > 0)
-			$this->context = new CAdminUiContextMenu($aContext, $aAdditionalMenu);
+	protected function InitContextMenu(array $menu = [], array $additional = []): void
+	{
+		if (!empty($menu) || !empty($additional))
+		{
+			$this->context = new CAdminUiContextMenu($menu, $additional);
+		}
 	}
 
 	private function GetGroupAction()
@@ -466,7 +496,7 @@ class CAdminUiList extends CAdminList
 	public function &AddRow($id = false, $arRes = Array(), $link = false, $title = false)
 	{
 		$row = new CAdminUiListRow($this->aHeaders, $this->table_id);
-		$row->id = $id;
+		$row->id = ($id ? $id : randString(4));
 		$row->arRes = $arRes;
 		if ($this->isPublicMode)
 		{
@@ -566,7 +596,7 @@ class CAdminUiList extends CAdminList
 					?>
 				</div>
 			<?
-			$APPLICATION->AddViewContent("inside_pagetitle", ob_get_clean());
+			$APPLICATION->AddViewContent("inside_pagetitle", ob_get_clean(), 600);
 		}
 		else
 		{
@@ -689,6 +719,8 @@ class CAdminUiList extends CAdminList
 		}
 	}
 
+	public function ShowActionTable() {}
+
 	public function DisplayList($arParams = array())
 	{
 		$arParams = array_change_key_case($arParams, CASE_UPPER);
@@ -763,7 +795,7 @@ class CAdminUiList extends CAdminList
 			"HANDLE_RESPONSE_ERRORS" => true
 		);
 
-		$actionPanel = $arParams["ACTION_PANEL"] ? $arParams["ACTION_PANEL"] : $this->GetGroupAction();
+		$actionPanel = (isset($arParams["ACTION_PANEL"]) ? $arParams["ACTION_PANEL"] : $this->GetGroupAction());
 		if ($actionPanel)
 		{
 			$gridParameters["ACTION_PANEL"] = $actionPanel;
@@ -849,11 +881,22 @@ class CAdminUiList extends CAdminList
 			{
 				$gridRow["default_action"] = array();
 				if ($this->isPublicMode)
-					$gridRow["default_action"]["onclick"] = "BX.adminSidePanel.onOpenPage('".$row->link."');";
+				{
+					$skipUrlModificationEnabled = ($arParams['SKIP_URL_MODIFICATION'] ?? false) === true;
+					$skipUrlModification = $skipUrlModificationEnabled && mb_strpos($row->link, '/bitrix/admin/') === false
+						? 'true'
+						: 'false';
+					$gridRow["default_action"]["onclick"] = "BX.adminSidePanel.onOpenPage('".$row->link."', ".$skipUrlModification.");";
+				}
 				else
+				{
 					$gridRow["default_action"]["href"] = htmlspecialcharsback($row->link);
+				}
+
 				if ($row->title)
+				{
 					$gridRow["default_action"]["title"] = $row->title;
+				}
 			}
 			else
 			{
@@ -873,6 +916,8 @@ class CAdminUiList extends CAdminList
 				$listEditable[$fieldId] = false;
 			}
 
+			$disableEditColumns = array();
+
 			foreach ($gridColumns as $columnId)
 			{
 				$field = $row->aFields[$columnId];
@@ -886,10 +931,35 @@ class CAdminUiList extends CAdminList
 				{
 					switch ($field["edit"]["type"])
 					{
+						case "file":
+							if ($fileArray = CFile::getFileArray($value))
+								$editValue = $fileArray["SRC"];
+							break;
 						case "html":
 							$editValue = $field["edit"]["value"];
 							break;
+						case "money":
+							$moneyAttributes = $field["edit"]["attributes"];
+							$editValue = [
+								'PRICE' => $moneyAttributes['PRICE'],
+								'CURRENCY' => $moneyAttributes['CURRENCY'],
+								'ATTRIBUTES' => $moneyAttributes['ATTRIBUTES'],
+							];
+
+							if (is_array($moneyAttributes['HIDDEN']))
+							{
+								$editValue['HIDDEN'] = [];
+								foreach ($moneyAttributes['HIDDEN'] as $hiddenItem)
+								{
+									$editValue['HIDDEN'][$hiddenItem['NAME']] = $hiddenItem['VALUE'];
+								}
+							}
+							break;
 					}
+				}
+				else
+				{
+					$disableEditColumns[$columnId] = false;
 				}
 
 				$gridRow["data"][$columnId] = $editValue;
@@ -909,10 +979,12 @@ class CAdminUiList extends CAdminList
 								$value = htmlspecialcharsex($field["edit"]["values"][$value]);
 							break;
 						case "file":
-							$value = $value ? CFileInput::Show("fileInput_".$value, $value, $field["view"]["showInfo"], $field["view"]["inputs"]) : "";
+							$value = $value ? CFileInput::Show("fileInput_".$value, $value,
+								$field["view"]["showInfo"], $field["view"]["inputs"]) : "";
 							break;
 						case "html":
-							$value = (strlen(trim($field["view"]["value"])) > 0 ? $field["view"]["value"] : (is_array($value) ? "" : $value));
+							$value = (trim($field["view"]["value"]) <> '' ?
+								$field["view"]["value"] : (is_array($value) ? "" : $value));
 							break;
 						default:
 							$value = htmlspecialcharsex($value);
@@ -925,8 +997,11 @@ class CAdminUiList extends CAdminList
 				}
 
 				$gridRow["columns"][$columnId] = $value;
-				$gridRow["editable"] = $listEditable;
 			}
+			$gridRow["editable"] = $listEditable;
+			if (!empty($disableEditColumns))
+				$gridRow["editableColumns"] = $disableEditColumns;
+
 			$gridParameters["ROWS"][] = $gridRow;
 		}
 
@@ -1022,8 +1097,20 @@ class CAdminUiList extends CAdminList
 					"items" => $field["edit"]["values"]
 				);
 				break;
+			case "file":
+				$editable = array(
+					"TYPE" => Types::IMAGE,
+				);
+				break;
 			case "html":
 				$editable = array("TYPE" => Types::CUSTOM, "HTML" => $field["edit"]["value"]);
+				break;
+			case "money":
+				$editable = array(
+					"TYPE" => Types::MONEY,
+					"CURRENCY_LIST" => $field["edit"]["attributes"]["CURRENCY_LIST"],
+					"HTML_ENTITY" => $field["edit"]["attributes"]["HTML_ENTITY"] ?? false,
+				);
 				break;
 			default:
 				$editable = array("TYPE" => Types::TEXT);
@@ -1161,7 +1248,7 @@ class CAdminUiListActionPanel
 					]
 				]
 			]
-	 	];
+		];
 	 */
 	public function setActionSections(array $actionSections, $listKeyForDelete = [])
 	{
@@ -1217,6 +1304,17 @@ class CAdminUiListActionPanel
 		$this->mapTypesAndHandlers = array_merge($this->mapTypesAndHandlers, $mapTypesAndHandlers);
 	}
 
+	/**
+	 * @return array
+	 */
+	private function getDefaultApplyAction()
+	{
+		return ["JS" => "BX.adminUiList.SendSelected('{$this->tableId}')"];
+	}
+
+	/**
+	 * @return array
+	 */
 	private function getItems()
 	{
 		$items = [];
@@ -1241,6 +1339,9 @@ class CAdminUiListActionPanel
 		return $items;
 	}
 
+	/**
+	 * @return array
+	 */
 	private function getActionSections()
 	{
 		if (isset($this->inputActions["edit"]) && isset($this->actionSections[$this->mapTypesAndSections["edit"]]))
@@ -1270,6 +1371,12 @@ class CAdminUiListActionPanel
 		return $this->actionSections;
 	}
 
+	/**
+	 * @param array &$actionSections
+	 * @param string $actionKey
+	 * @param string|array $action
+	 * @return void
+	 */
 	private function setActionSection(array &$actionSections, $actionKey, $action)
 	{
 		if (is_array($action))
@@ -1314,6 +1421,11 @@ class CAdminUiListActionPanel
 		}
 	}
 
+	/**
+	 * @param string $actionKey
+	 * @param array $action
+	 * @return array
+	 */
 	private function getButtonActionData($actionKey, $action)
 	{
 		$onChange = $action["action"] ? [
@@ -1327,6 +1439,11 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param string $actionKey
+	 * @param array $action
+	 * @return array
+	 */
 	private function getSelectActionData($actionKey, $action)
 	{
 		$internalOnchange = [];
@@ -1395,7 +1512,7 @@ class CAdminUiListActionPanel
 								[
 									"ACTION" => Panel\Actions::CALLBACK,
 									"DATA" => [
-										["JS" => "BX.adminUiList.SendSelected('{$this->tableId}')"]
+										$this->getDefaultApplyAction()
 									]
 								]
 							]
@@ -1422,6 +1539,11 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param string $actionKey
+	 * @param array $action
+	 * @return array
+	 */
 	private function getCustomJsActionData($actionKey, $action)
 	{
 		return [
@@ -1434,6 +1556,11 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param string $actionKey
+	 * @param array $action
+	 * @return array
+	 */
 	private function getBaseActionData($actionKey, $action)
 	{
 		return [
@@ -1446,6 +1573,11 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param string $actionKey
+	 * @param array $action
+	 * @return array
+	 */
 	private function getHtmlActionData($actionKey, $action)
 	{
 		return [
@@ -1455,6 +1587,11 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param string $actionKey
+	 * @param array $action
+	 * @return array
+	 */
 	private function getMultiControlActionData($actionKey, array $action)
 	{
 		return [
@@ -1464,8 +1601,17 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param string $jsCallback
+	 * @return array
+	 */
 	private function getApplyButtonCreationAction($jsCallback = "")
 	{
+		$action = $this->getDefaultApplyAction();
+		if ($jsCallback != '')
+		{
+			$action["JS"] = $jsCallback;
+		}
 		return [
 			"ACTION" => Panel\Actions::CREATE,
 			"DATA" => [
@@ -1475,10 +1621,7 @@ class CAdminUiListActionPanel
 							[
 								"ACTION" => Panel\Actions::CALLBACK,
 								"DATA" => [
-									[
-										"JS" => $jsCallback ? $jsCallback :
-											"BX.adminUiList.SendSelected('{$this->tableId}')"
-									]
+									$action
 								]
 							]
 						]
@@ -1488,6 +1631,10 @@ class CAdminUiListActionPanel
 		];
 	}
 
+	/**
+	 * @param $array
+	 * @return bool
+	 */
 	private function isAssociativeArray($array)
 	{
 		if (!is_array($array) || empty($array))
@@ -1503,7 +1650,7 @@ class CAdminUiListActionPanel
 	 */
 	private static function prepareAction(array &$action)
 	{
-		$action["type"] = (!empty($action["type"]) ? strtolower($action["type"]) : "base");
+		$action["type"] = (!empty($action["type"])? mb_strtolower($action["type"]) : "base");
 		if ($action["type"] == "select")
 		{
 			if (!isset($action["controlName"]) && isset($action["name"]))
@@ -1544,6 +1691,11 @@ class CAdminUiListRow extends CAdminListRow
 		{
 			if (isset($action["SEPARATOR"]))
 				continue;
+
+			if (empty($action["ACTION"]) && !empty($action["ONCLICK"]))
+			{
+				$action["ACTION"] = $action["ONCLICK"];
+			}
 
 			if (!empty($action["LINK"]) && empty($action["ACTION"]))
 			{
@@ -1732,35 +1884,37 @@ class CAdminUiContextMenu extends CAdminContextMenu
 
 		\Bitrix\Main\UI\Extension::load(["ui.buttons", "ui.buttons.icons"]);
 
-		if ($this->isPublicMode): ob_start(); ?>
-		<div class="pagetitle-container pagetitle-align-right-container" style="padding-right: 12px;">
-		<? else: ?>
-		<? if (!$this->isShownFilterContext): ?>
-			<div class="adm-toolbar-panel-container">
-				<div class="adm-toolbar-panel-flexible-space">
-					<? $this->showBaseButton(); ?>
-				</div>
-		<? endif ?>
-		<div class="adm-toolbar-panel-align-right">
-		<? endif;
-
-		$this->showActionButton();
-
-		if ($this->isShownFilterContext || $this->isPublicMode)
-		{
-			$this->showBaseButton();
-		}
-
-		?>
-		</div>
-		<? if (!$this->isShownFilterContext && !$this->isPublicMode): ?>
-		</div>
-		<? endif;
-
 		if ($this->isPublicMode)
 		{
 			global $APPLICATION;
+			ob_start();
+			?><div
+				class="pagetitle-container pagetitle-align-right-container"
+				style="margin-right: 12px"
+			><?php
+				$this->showBaseButton();
+			?></div><?php
 			$APPLICATION->AddViewContent("inside_pagetitle", ob_get_clean());
+
+			ob_start();
+			?><div class="pagetitle-container pagetitle-align-right-container"><?php
+				$this->showActionButton();
+			?></div><?php
+			$APPLICATION->AddViewContent("inside_pagetitle", ob_get_clean(), 700);
+		}
+		elseif ($this->isShownFilterContext)
+		{
+			?><div class="adm-toolbar-panel-align-right"><?php
+				$this->showActionButton();
+				$this->showBaseButton();
+			?></div><?php
+		}
+		else
+		{
+			?><div class="adm-toolbar-panel-container">
+				<div class="adm-toolbar-panel-flexible-space"><?php $this->showBaseButton(); ?></div>
+				<div class="adm-toolbar-panel-align-right"><?php $this->showActionButton(); ?></div>
+			</div><?php
 		}
 	}
 
@@ -1806,25 +1960,26 @@ class CAdminUiContextMenu extends CAdminContextMenu
 				$menuUrl = "BX.adminList.ShowMenu(this, ".HtmlFilter::encode(
 					CAdminPopup::PhpToJavaScript($items)).");";
 			}
+			$buttonId = !empty($firstItem["ID"]) ? "id=\"" . $firstItem["ID"] . "\"" : "";
 			if (!empty($items)):?>
 				<? if (!empty($firstItem["ONCLICK"])): ?>
-					<div class="ui-btn-double ui-btn-primary">
-						<button onclick="<?=HtmlFilter::encode($firstItem["ONCLICK"])?>" class="ui-btn-main">
+					<div class="ui-btn-split ui-btn-primary">
+						<button <?=$buttonId?> onclick="<?=HtmlFilter::encode($firstItem["ONCLICK"])?>" class="ui-btn-main">
 							<?=HtmlFilter::encode($firstItem["TEXT"])?>
 						</button>
 						<button onclick="<?=$menuUrl?>" class="ui-btn-extra"></button>
 					</div>
 				<? else: ?>
 					<? if (isset($firstItem["DISABLE"])): ?>
-						<div class="ui-btn-double ui-btn-primary">
-							<button onclick="<?=$menuUrl?>" class="ui-btn-main">
+						<div class="ui-btn-split ui-btn-primary">
+							<button <?=$buttonId?> onclick="<?=$menuUrl?>" class="ui-btn-main">
 								<?=HtmlFilter::encode($firstItem["TEXT"])?>
 							</button>
 							<button onclick="<?=$menuUrl?>" class="ui-btn-extra"></button>
 						</div>
 					<? else: ?>
-						<div class="ui-btn-double ui-btn-primary">
-							<a href="<?=HtmlFilter::encode($firstItem["LINK"])?>" class="ui-btn-main">
+						<div class="ui-btn-split ui-btn-primary">
+							<a <?=$buttonId?> href="<?=HtmlFilter::encode($firstItem["LINK"])?>" class="ui-btn-main">
 								<?=HtmlFilter::encode($firstItem["TEXT"])?>
 							</a>
 							<button onclick="<?=$menuUrl?>" class="ui-btn-extra"></button>
@@ -1833,15 +1988,39 @@ class CAdminUiContextMenu extends CAdminContextMenu
 				<? endif; ?>
 			<? else:?>
 				<? if (!empty($firstItem["ONCLICK"])): ?>
-					<button class="ui-btn ui-btn-primary" onclick="<?=HtmlFilter::encode($firstItem["ONCLICK"])?>">
+					<button <?=$buttonId?> class="ui-btn ui-btn-primary" onclick="<?=HtmlFilter::encode($firstItem["ONCLICK"])?>">
 						<?=HtmlFilter::encode($firstItem["TEXT"])?>
 					</button>
 				<? else: ?>
-					<a class="ui-btn ui-btn-primary" href="<?=HtmlFilter::encode($firstItem["LINK"])?>">
+					<a <?=$buttonId?> class="ui-btn ui-btn-primary" href="<?=HtmlFilter::encode($firstItem["LINK"])?>">
 						<?=HtmlFilter::encode($firstItem["TEXT"])?>
 					</a>
 				<? endif; ?>
 			<?endif;
 		}
+	}
+}
+
+class CAdminUiSorting extends CAdminSorting
+{
+	/**
+	 * @return array
+	 */
+	protected function getUserSorting()
+	{
+		$result = [
+			'by' => null,
+			'order' => null
+		];
+		$gridOptions = new Grid\Options($this->table_id);
+		$sorting = $gridOptions->getSorting();
+		if (!empty($sorting['sort']))
+		{
+			$order = reset($sorting['sort']);
+			$result['by'] = key($sorting['sort']);
+			$result['order'] = mb_strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
+		}
+
+		return $result;
 	}
 }

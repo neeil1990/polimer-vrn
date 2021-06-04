@@ -10,13 +10,14 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_50.1.NEW_YEAR_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(),
 	'nodes' => array(
 		'.landing-block-node-card-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_50.1.NEW_YEAR_NODES_LANDINGBLOCKNODECARD_IMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 1920, 'height' => 1280),
+			'dimensions' => array('width' => 1920, 'height' => 1080),
 		),
 		'.landing-block-node-card-title' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_50.1.NEW_YEAR_NODES_LANDINGBLOCKNODECARDTITLE'),

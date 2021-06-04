@@ -33,7 +33,15 @@ class CBPGetListsDocumentActivity
 	public function Execute()
 	{
 		$documentType = $this->DocumentType;
-		$documentId = [$documentType[0], $documentType[1], $this->ElementId];
+		$elementId = $this->ElementId;
+
+		//check for Multiple values
+		if (is_array($elementId))
+		{
+			$elementId = array_shift($elementId);
+		}
+
+		$documentId = [$documentType[0], $documentType[1], $elementId];
 
 		$documentService = $this->workflow->GetService("DocumentService");
 
@@ -253,7 +261,7 @@ class CBPGetListsDocumentActivity
 		$documentService = CBPRuntime::GetRuntime(true)->GetService("DocumentService");
 		$fields = $documentService->GetDocumentFields($documentType);
 
-		$listFields = static::getVisibleFieldsList(substr($documentType[2], 7));
+		$listFields = static::getVisibleFieldsList(mb_substr($documentType[2], 7));
 
 		$options = [];
 
@@ -275,7 +283,7 @@ class CBPGetListsDocumentActivity
 		$result = array();
 		foreach ($listFields as $key => $field)
 		{
-			if (strpos($key, 'PROPERTY_') === 0)
+			if (mb_strpos($key, 'PROPERTY_') === 0)
 			{
 				if (!empty($field['CODE']))
 					$key = 'PROPERTY_'.$field['CODE'];
@@ -292,7 +300,7 @@ class CBPGetListsDocumentActivity
 		$documentService = CBPRuntime::GetRuntime()->GetService("DocumentService");
 		$documentFields = $documentService->GetDocumentFields($documentType);
 
-		$listFields = static::getVisibleFieldsList(substr($documentType[2], 7));
+		$listFields = static::getVisibleFieldsList(mb_substr($documentType[2], 7));
 		$map = [];
 		foreach ($fields as $field)
 		{

@@ -28,6 +28,15 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 		$params['SET_TITLE'] = !(isset($params['SET_TITLE']) && $params['SET_TITLE'] == 'N');
 		$params['BACK_URL'] = (isset($_REQUEST['back_url']) && $_REQUEST['back_url'][0] === '/' && $_REQUEST['back_url'][1] !== '/') ? (string)$_REQUEST['back_url'] : null;
 
+		if (!isset($params['MODULE_ID']) && !defined('MODULE_ID') && !empty($params['ID']))
+		{
+			$tpl = \Bitrix\Bizproc\WorkflowTemplateTable::getList([
+				'filter' => ['=ID' => $params['ID']],
+				'select' => ['MODULE_ID', 'ENTITY', 'DOCUMENT_TYPE']
+			])->fetch();
+			list($params['MODULE_ID'], $params['ENTITY'], $params['DOCUMENT_TYPE']) = array_values($tpl);
+		}
+
 		if (!isset($params['MODULE_ID']) && defined('MODULE_ID'))
 		{
 			$params['MODULE_ID'] = MODULE_ID;
@@ -83,11 +92,11 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 
 		$this->arResult['DOCUMENT_TYPE'] = $this->arParams['DOCUMENT_TYPE'];
 
-		$document_type = $this->arResult['DOCUMENT_TYPE'];
+		$documentType = $this->arResult['DOCUMENT_TYPE'];
 
 		$canWrite = false;
 
-		$ID = IntVal($this->arResult['ID']);
+		$ID = intval($this->arResult['ID']);
 		if($ID > 0)
 		{
 			$dbTemplatesList = CBPWorkflowTemplateLoader::GetList([], ["ID" =>$ID]);
@@ -99,11 +108,13 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 					$arTemplate["DOCUMENT_TYPE"]
 				);
 
-				$document_type = $arTemplate["DOCUMENT_TYPE"][2];
+				$documentType = $arTemplate["DOCUMENT_TYPE"][2];
 
 				$workflowTemplateName = $arTemplate["NAME"];
 				$workflowTemplateDescription = $arTemplate["DESCRIPTION"];
 				$workflowTemplateAutostart = $arTemplate["AUTO_EXECUTE"];
+				$workflowTemplateIsSystem = $arTemplate["IS_SYSTEM"];
+				$workflowTemplateSort = $arTemplate["SORT"];
 				$arWorkflowTemplate = $arTemplate["TEMPLATE"];
 				$arWorkflowParameters = $arTemplate["PARAMETERS"];
 				$arWorkflowVariables = $arTemplate["VARIABLES"];
@@ -117,7 +128,7 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 
 		if($ID <= 0)
 		{
-			if(!$document_type)
+			if(!$documentType)
 			{
 				$APPLICATION->AuthForm(Loc::getMessage("ACCESS_DENIED")." ".Loc::getMessage("BIZPROC_WFEDIT_ERROR_TYPE"));
 			}
@@ -125,12 +136,14 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 			$canWrite = CBPDocument::CanUserOperateDocumentType(
 				CBPCanUserOperateOperation::CreateWorkflow,
 				$GLOBALS["USER"]->GetID(),
-				[MODULE_ID, ENTITY, $document_type]
+				[MODULE_ID, ENTITY, $documentType]
 			);
 
 			$workflowTemplateName = Loc::getMessage("BIZPROC_WFEDIT_DEFAULT_TITLE");
 			$workflowTemplateDescription = '';
 			$workflowTemplateAutostart = 1;
+			$workflowTemplateIsSystem = 'N';
+			$workflowTemplateSort = 10;
 
 			if ($_GET['init'] == 'statemachine')
 			{
@@ -181,9 +194,9 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 
 			if($_REQUEST['saveuserparams']=='Y')
 			{
-				$d = serialize($_POST['USER_PARAMS']);
+				$d = is_array($_POST['USER_PARAMS']) ? serialize($_POST['USER_PARAMS']) : null;
 				$maxLength = 16777215;//pow(2, 24) - 1; //mysql mediumtext column length
-				if (\Bitrix\Main\Text\BinaryString::getLength($d) > $maxLength)
+				if (!$d || \Bitrix\Main\Text\BinaryString::getLength($d) > $maxLength)
 				{
 				?><!--SUCCESS--><script>
 					alert('<?=GetMessageJS("BIZPROC_USER_PARAMS_SAVE_ERROR")?>');
@@ -195,7 +208,7 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 			}
 
 			$arFields = [
-				"DOCUMENT_TYPE" => [MODULE_ID, ENTITY, $document_type],
+				"DOCUMENT_TYPE" => [MODULE_ID, ENTITY, $documentType],
 				//		"ACTIVE" 		=> $_POST["ACTIVE"],
 				"AUTO_EXECUTE" 	=> $_POST["workflowTemplateAutostart"],
 				"NAME" 			=> $_POST["workflowTemplateName"],
@@ -204,6 +217,8 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 				"PARAMETERS"	=> $_POST["arWorkflowParameters"],
 				"VARIABLES" 	=> $_POST["arWorkflowVariables"],
 				"CONSTANTS" 	=> $_POST["arWorkflowConstants"],
+				"IS_SYSTEM" 	=> $_POST["workflowTemplateIsSystem"] ?? 'N',
+				"SORT" 	=> $_POST["workflowTemplateSort"] ?? 10,
 				"USER_ID"		=> intval($USER->GetID()),
 				"MODIFIER_USER" => new CBPWorkflowTemplateUser(CBPWorkflowTemplateUser::CurrentUser),
 			];
@@ -312,9 +327,14 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 
 				try
 				{
+					if ($ID > 0 && $workflowTemplateAutostart == \CBPDocumentEventType::Automation)
+					{
+						$_POST["import_template_autostart"] = \CBPDocumentEventType::Automation;
+					}
+
 					$r = CBPWorkflowTemplateLoader::ImportTemplate(
 						$ID,
-						[MODULE_ID, ENTITY, $document_type],
+						[MODULE_ID, ENTITY, $documentType],
 						$_POST["import_template_autostart"],
 						$_POST["import_template_name"],
 						$_POST["import_template_description"],
@@ -329,7 +349,7 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 			?>
 			<script>
 				<?if (intval($r) <= 0):?>
-				alert('<?= GetMessageJS("BIZPROC_WFEDIT_IMPORT_ERROR").(strlen($errTmp) > 0 ? ": ".CUtil::JSEscape($errTmp) : "" ) ?>');
+				alert('<?= GetMessageJS("BIZPROC_WFEDIT_IMPORT_ERROR").($errTmp <> '' ? ": ".CUtil::JSEscape($errTmp) : "" ) ?>');
 				<?else:?>
 				<?$ID = $r;?>
 				<?endif;
@@ -355,7 +375,7 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 
 		$runtime = CBPRuntime::GetRuntime();
 		$runtime->StartRuntime();
-		$arAllActivities = $runtime->SearchActivitiesByType("activity", [MODULE_ID, ENTITY, $document_type]);
+		$arAllActivities = $runtime->SearchActivitiesByType("activity", [MODULE_ID, ENTITY, $documentType]);
 
 		foreach ($arAllActivities as $activity)
 		{
@@ -366,7 +386,7 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 		}
 		$arAllActGroups['other'] = Loc::getMessage("BIZPROC_WFEDIT_CATEGORY_OTHER");
 
-		$this->arResult['DOCUMENT_TYPE'] = $document_type;
+		$this->arResult['DOCUMENT_TYPE'] = $documentType;
 
 		$this->arResult['ACTIVITY_GROUPS'] = $arAllActGroups;
 		$this->arResult['ACTIVITIES'] = $arAllActivities;
@@ -374,15 +394,18 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 		$this->arResult['TEMPLATE_NAME'] = $workflowTemplateName;
 		$this->arResult['TEMPLATE_DESC'] = $workflowTemplateDescription;
 		$this->arResult['TEMPLATE_AUTOSTART'] = $workflowTemplateAutostart;
+		$this->arResult['TEMPLATE_IS_SYSTEM'] = $workflowTemplateIsSystem;
+		$this->arResult['TEMPLATE_SORT'] = $workflowTemplateSort;
 		$this->arResult['TEMPLATE'] = $arWorkflowTemplate;
 		$this->arResult['TEMPLATE_CHECK_STATUS'] = CBPWorkflowTemplateLoader::checkTemplateActivities($arWorkflowTemplate);
 		$this->arResult['PARAMETERS'] = $arWorkflowParameters;
 		$this->arResult['VARIABLES'] = $arWorkflowVariables;
 		$this->arResult['CONSTANTS'] = $arWorkflowConstants;
+		$this->arResult['GLOBAL_CONSTANTS'] = \Bitrix\Bizproc\Workflow\Type\GlobalConst::getAll();
 
 		/** @var CBPDocumentService $documentService */
 		$documentService = $runtime->getDocumentService();
-		$this->arResult['DOCUMENT_FIELDS'] = $documentService->GetDocumentFields([MODULE_ID, ENTITY, $document_type]);
+		$this->arResult['DOCUMENT_FIELDS'] = $documentService->GetDocumentFields([MODULE_ID, ENTITY, $documentType]);
 
 		$this->arResult["ID"] = $ID;
 
@@ -393,7 +416,14 @@ class BizprocWorkflowEditComponent extends \CBitrixComponent
 			$userParamsStr = $defUserParamsStr;
 		}
 
-		$this->arResult["USER_PARAMS"] = unserialize($userParamsStr);
+		$userParams = unserialize($userParamsStr, ['allowed_classes' => false]);
+		if (empty($userParams) || !is_array($userParams))
+		{
+			$userParams = ['SNIPPETS' => []];
+		}
+
+		$this->arResult["USER_PARAMS"] = $userParams;
+		$this->arResult["DOCUMENT_TYPE_SIGNED"] = \CBPDocument::signDocumentType([MODULE_ID, ENTITY, $documentType]);
 
 		if ($this->arParams['SET_TITLE'])
 		{

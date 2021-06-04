@@ -17,9 +17,7 @@ Class blog extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -93,6 +91,50 @@ Class blog extends CModule
 		return $errors;
 	}
 
+	public static function installMailUserFields(&$errors = [])
+	{
+		global $APPLICATION;
+
+		if (!\Bitrix\Main\ModuleManager::isModuleInstalled('mail'))
+		{
+			return;
+		}
+
+		$rsUserType = \CUserTypeEntity::getList(
+			array(),
+			array(
+				'ENTITY_ID'  => 'BLOG_POST',
+				'FIELD_NAME' => 'UF_MAIL_MESSAGE',
+			)
+		);
+		if (!$rsUserType->fetch())
+		{
+			$userType = new \CUserTypeEntity();
+			$intID = $userType->add(array(
+				'ENTITY_ID'     => 'BLOG_POST',
+				'FIELD_NAME'    => 'UF_MAIL_MESSAGE',
+				'USER_TYPE_ID'  => 'mail_message',
+				'XML_ID'        => '',
+				'SORT'          => 100,
+				'MULTIPLE'      => 'N',
+				'MANDATORY'     => 'N',
+				'SHOW_FILTER'   => 'N',
+				'SHOW_IN_LIST'  => 'N',
+				'EDIT_IN_LIST'  => 'Y',
+				'IS_SEARCHABLE' => 'N',
+			));
+			if (false == $intID)
+			{
+				if ($strEx = $APPLICATION->getException())
+				{
+					$errors[] = $strEx->getString();
+				}
+			}
+		}
+
+		return $errors;
+	}
+
 	function InstallUserFields($id = "all")
 	{
 		global $USER_FIELD_MANAGER;
@@ -101,6 +143,10 @@ Class blog extends CModule
 		if($id == 'disk' || $id == 'all')
 		{
 			self::installDiskUserFields();
+		}
+		if ($id == 'mail' || $id == 'all')
+		{
+			self::installMailUserFields($errors);
 		}
 		if($id == 'all')
 		{
@@ -245,7 +291,7 @@ Class blog extends CModule
 
 		RegisterModule("blog");
 		RegisterModuleDependences("search", "OnReindex", "blog", "CBlogSearch", "OnSearchReindex");
-		RegisterModuleDependences("main", "OnUserDelete", "blog", "CBlogUser", "Delete");
+		RegisterModuleDependences("main", "OnUserDelete", "blog", "\Bitrix\Blog\BlogUser", "onUserDelete");
 		RegisterModuleDependences("main", "OnSiteDelete", "blog", "CBlogSitePath", "DeleteBySiteID");
 
 		RegisterModuleDependences("socialnetwork", "OnSocNetGroupDelete", "blog", "CBlogSoNetPost", "OnGroupDelete");
@@ -315,7 +361,7 @@ Class blog extends CModule
 			CSearch::DeleteIndex("blog");
 
 		UnRegisterModuleDependences("search", "OnReindex", "blog", "CBlogSearch", "OnSearchReindex");
-		UnRegisterModuleDependences("main", "OnUserDelete", "blog", "CBlogUser", "Delete");
+		UnRegisterModuleDependences("main", "OnUserDelete", "blog", "\Bitrix\Blog\BlogUser", "onUserDelete");
 		UnRegisterModuleDependences("main", "OnSiteDelete", "blog", "CBlogSitePath", "DeleteBySiteID");
 
 		UnRegisterModuleDependences("socialnetwork", "OnSocNetGroupDelete", "blog", "CBlogSoNetPost", "OnGroupDelete");
@@ -379,7 +425,11 @@ Class blog extends CModule
 				"ENTITY_ID" => "BLOG_COMMENT",
 				"FIELD_NAME" => "UF_BLOG_COMM_URL_PRV",
 				"XML_ID" => "UF_BLOG_COMM_URL_PRV",
-			)
+			),
+			'UF_MAIL_MESSAGE' => array(
+				'ENTITY_ID'  => 'BLOG_POST',
+				'FIELD_NAME' => 'UF_MAIL_MESSAGE',
+			),
 		);
 
 		foreach ($arFields as $fieldName => $arField)
@@ -516,7 +566,7 @@ Class blog extends CModule
 	function DoInstall()
 	{
 		global $APPLICATION, $step;
-		$step = IntVal($step);
+		$step = intval($step);
 		if ($step < 2)
 			$APPLICATION->IncludeAdminFile(GetMessage("BLOG_INSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/blog/install/step1.php");
 		elseif($step==2)
@@ -533,7 +583,7 @@ Class blog extends CModule
 	function DoUninstall()
 	{
 		global $APPLICATION, $step;
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 			$APPLICATION->IncludeAdminFile(GetMessage("BLOG_INSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/blog/install/unstep1.php");
 		elseif($step==2)

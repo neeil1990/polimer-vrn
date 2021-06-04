@@ -1,10 +1,9 @@
 <?
 use Bitrix\Main;
 use Bitrix\Translate;
+use Bitrix\Main\Localization\LanguageTable;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Text\Encoding;
-
-Loc::loadLanguageFile(__FILE__);
 
 
 $arLangDirs = NULL;
@@ -22,6 +21,7 @@ $arSearchParam = NULL;
  * @global array $arLangDirs
  *
  * @return void
+ * @deprecated
  */
 function GetLangDirs($arDirs, $showTranslationDifferences = false)
 {
@@ -52,30 +52,34 @@ function GetLangDirs($arDirs, $showTranslationDifferences = false)
  *
  * @param string $path
  * @param bool $subDirs Recursively pass through into sub folders.
- * @param string[] $restrictLanguageList Restrict language list.
+ * @param string[] $restructLanguageList Restrict language list.
  *
  * @global array $arDirs
  * @global array $arFiles
  *
  * @return bool
+ * @deprecated
  */
 function GetTDirList($path, $subDirs = false, $restructLanguageList = array())
 {
 	global $arDirs, $arFiles;
 
-	$fullPath = Translate\Path::tidy(Main\Application::getDocumentRoot(). '/'. $path. '/');
+	$fullPath = Translate\IO\Path::tidy(Main\Application::getDocumentRoot(). '/'. $path. '/');
 
 	if (preg_match('|^' . preg_quote(realpath(Main\Application::getDocumentRoot() . '/upload'), '|') . '|i' . BX_UTF_PCRE_MODIFIER, $fullPath))
 	{
 		return false;
 	}
 
-	$isLang = Translate\Path::isLangDir($path);
+	$isLang = Translate\IO\Path::isLangDir($path);
 
 	if ($isLang)
 	{
-		$langId = Translate\Path::extractLangId($path);
-		if (Main\Localization\Translation::useTranslationRepository() && in_array($langId, Translate\Translation::getTranslationRepositoryLanguages()))
+		$langId = Translate\IO\Path::extractLangId($path);
+		if (
+			Main\Localization\Translation::useTranslationRepository() &&
+			in_array($langId, Translate\Config::getTranslationRepositoryLanguages())
+		)
 		{
 			$fullPath = Main\Localization\Translation::convertLangPath($fullPath, $langId);
 		}
@@ -89,13 +93,13 @@ function GetTDirList($path, $subDirs = false, $restructLanguageList = array())
 		$fullPath = realpath($fullPath);
 	}
 
-	$fullPath = Translate\Path::tidy($fullPath);
+	$fullPath = Translate\IO\Path::tidy($fullPath);
 
 
 	$handle = @opendir($fullPath);
 	if($handle)
 	{
-		$parent = Translate\Path::tidy('/'. $path. '/');
+		$parent = Translate\IO\Path::tidy('/'. $path. '/');
 		$absParent = Main\Localization\Translation::convertLangPath(Main\Application::getDocumentRoot(). $parent, $langId);
 
 		$arList = array();
@@ -113,7 +117,7 @@ function GetTDirList($path, $subDirs = false, $restructLanguageList = array())
 			{
 				continue;
 			}
-			if (!$isDir && (substr($file, -4) !== '.php'))
+			if (!$isDir && (mb_substr($file, -4) !== '.php'))
 			{
 				continue;
 			}
@@ -128,18 +132,18 @@ function GetTDirList($path, $subDirs = false, $restructLanguageList = array())
 			);
 			if (!$isDir)
 			{
-				$arList[$pathPrepared]['LANG'] = $isLang ? Translate\Path::extractLangId($pathPrepared) : '';
+				$arList[$pathPrepared]['LANG'] = $isLang ? Translate\IO\Path::extractLangId($pathPrepared) : '';
 			}
 
 			if (!$isDir && $isLang && Main\Localization\Translation::useTranslationRepository())
 			{
-				foreach (Translate\Translation::getTranslationRepositoryLanguages() as $langId)
+				foreach (Translate\Config::getTranslationRepositoryLanguages() as $langId)
 				{
 					if (!empty($restructLanguageList) && !in_array($langId, $restructLanguageList))
 					{
 						continue;
 					}
-					$langParent = Translate\Path::replaceLangId($arList[$pathPrepared]['PARENT'], $langId);
+					$langParent = Translate\IO\Path::replaceLangId($arList[$pathPrepared]['PARENT'], $langId);
 					$langPathPrepared = $langParent . $arList[$pathPrepared]['FILE'];
 
 					$langPath = Main\Localization\Translation::convertLangPath(Main\Application::getDocumentRoot(). $langPathPrepared, $langId);
@@ -177,9 +181,9 @@ function GetTDirList($path, $subDirs = false, $restructLanguageList = array())
 				//dir is lang if any of it's children is lang
 				$isLang = $isLang || $arr['IS_LANG'];
 			}
-			elseif(Translate\Path::isLangDir($pathPrepared))
+			elseif(Translate\IO\Path::isLangDir($pathPrepared))
 			{
-				if(substr($arr['FILE'], -4) == '.php')
+				if(mb_substr($arr['FILE'], -4) == '.php')
 				{
 					$arFiles[] = $arr;
 				}
@@ -196,11 +200,12 @@ function GetTDirList($path, $subDirs = false, $restructLanguageList = array())
  *
  * @param string $filterKeyIndex Phrase key code.
  * @param string $targetEncoding Target encoding.
- * @param string[] $restrictLanguageList Restrict language list.
+ * @param string[] $restructLanguageList Restrict language list.
  *
  * @global array $arFiles
  *
  * @return array
+ * @deprecated
  */
 function GetTCSVArray($filterKeyIndex, $targetEncoding = '', $restructLanguageList = array())
 {
@@ -215,7 +220,7 @@ function GetTCSVArray($filterKeyIndex, $targetEncoding = '', $restructLanguageLi
 	 */
 	foreach ($arFiles as $file)
 	{
-		$key = Translate\Path::replaceLangId($file['PATH'], '#LANG_ID#');
+		$key = Translate\IO\Path::replaceLangId($file['PATH'], '#LANG_ID#');
 		if ($key != $filterKeyIndex)
 		{
 			continue;
@@ -227,7 +232,7 @@ function GetTCSVArray($filterKeyIndex, $targetEncoding = '', $restructLanguageLi
 		}
 		else
 		{
-			$langId = Translate\Path::extractLangId($file['PATH']);
+			$langId = Translate\IO\Path::extractLangId($file['PATH']);
 		}
 
 		if (!empty($restructLanguageList) && !in_array($langId, $restructLanguageList))
@@ -283,13 +288,14 @@ function GetTCSVArray($filterKeyIndex, $targetEncoding = '', $restructLanguageLi
  * @param string $encodingIn
  * @param bool $rewriteMode
  * @param bool $mergeMode
- * @param string[] $errors
+ * @param string[] &$errors
  * @return bool
+ * @deprecated
  */
 function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors)
 {
-	$languageList = Translate\Translation::getEnabledLanguages();
-	$isUtfMode = Translate\Translation::isUtfMode();
+	$languageList = Translate\Config::getEnabledLanguages();
+	$isUtfMode = Translate\Config::isUtfMode();
 	$useTranslationRepository = Main\Localization\Translation::useTranslationRepository();
 
 
@@ -298,7 +304,7 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 	$fileIndex = null;
 	$keyIndex = null;
 
-	$csvFile = new Translate\CsvFile($filePath);
+	$csvFile = new Translate\IO\CsvFile($filePath);
 	if (!$csvFile->openLoad())
 	{
 		$errors[] = Loc::getMessage('TR_TOOLS_ERROR_EMPTY_FILE');
@@ -311,9 +317,9 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 	}
 
 	$csvFile
-		->setFieldsType(Translate\CsvFile::FIELDS_TYPE_WITH_DELIMITER)
+		->setFieldsType(Translate\IO\CsvFile::FIELDS_TYPE_WITH_DELIMITER)
 		->setFirstHeader(false)
-		->setFieldDelimiter(Translate\CsvFile::DELIMITER_TZP);
+		->setFieldDelimiter(Translate\IO\CsvFile::DELIMITER_TZP);
 
 	$rowHead = $csvFile->fetch();
 	if (
@@ -432,7 +438,7 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 				}
 				else
 				{
-					$encodingOut = Translate\Translation::getCultureEncoding($languageId);
+					$encodingOut = Translate\Config::getCultureEncoding($languageId);
 					if (!$encodingOut)
 					{
 						$encodingOut = Main\Localization\Translation::getCurrentEncoding();
@@ -502,7 +508,7 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 
 	foreach ($phraseList as $fileIndex => $translationList)
 	{
-		if (Translate\Path::isLangDir($fileIndex, true) !== true)
+		if (Translate\IO\Path::isLangDir($fileIndex, true) !== true)
 		{
 			$errors[] = Loc::getMessage('TR_TOOLS_ERROR_FILE_NOT_LANG', array('%FILE%' => $fileIndex));
 			continue;
@@ -514,7 +520,7 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 				continue;
 			}
 
-			$rawFile = Translate\Path::replaceLangId($fileIndex, $languageId);
+			$rawFile = Translate\IO\Path::replaceLangId($fileIndex, $languageId);
 			$file = Rel2Abs('/', $rawFile);
 			if ($file !== $rawFile)
 			{
@@ -529,7 +535,7 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 
 			if (Main\Localization\Translation::useTranslationRepository())
 			{
-				if (in_array($languageId, Translate\Translation::getTranslationRepositoryLanguages()))
+				if (in_array($languageId, Translate\Config::getTranslationRepositoryLanguages()))
 				{
 					$fullPath = Main\Localization\Translation::convertLangPath($fullPath, $languageId);
 				}
@@ -543,7 +549,7 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
 				$fullPath = realpath($fullPath);
 			}
 
-			$fullPath = Translate\Path::tidy($fullPath);
+			$fullPath = Translate\IO\Path::tidy($fullPath);
 
 			$MESS = [];
 			if (!$rewriteMode && file_exists($fullPath))
@@ -596,12 +602,13 @@ function SaveTCSVFile($filePath, $encodingIn, $rewriteMode, $mergeMode, &$errors
  * @global array $arFiles
  * @global array $arDirFiles
  * @global array $arLangDirFiles
+ * @deprecated
  */
 function GetTLangFiles($path, $IS_LANG_DIR = false)
 {
 	global $arTLangs, $arFiles, $arDirFiles, $arLangDirFiles;
 
-	if (is_dir(Translate\Path::tidy($_SERVER["DOCUMENT_ROOT"]."/".$path."/")))
+	if (is_dir(Translate\IO\Path::tidy($_SERVER["DOCUMENT_ROOT"]."/".$path."/")))
 	{
 		if ($IS_LANG_DIR)
 		{
@@ -609,8 +616,8 @@ function GetTLangFiles($path, $IS_LANG_DIR = false)
 			{
 				foreach ($arTLangs as $lng)
 				{
-					$path = Translate\Path::replaceLangId($path, $lng);
-					$path_l = strlen($path);
+					$path = Translate\IO\Path::replaceLangId($path, $lng);
+					$path_l = mb_strlen($path);
 
 					/** @global array $arFiles */
 					/** @var array $arr */
@@ -628,7 +635,7 @@ function GetTLangFiles($path, $IS_LANG_DIR = false)
 		{
 			if (is_array($arLangDirFiles))
 			{
-				$path_l = strlen($path);
+				$path_l = mb_strlen($path);
 
 				foreach ($arLangDirFiles as $arr)
 				{
@@ -644,21 +651,34 @@ function GetTLangFiles($path, $IS_LANG_DIR = false)
 	{
 		foreach ($arTLangs as $lng)
 		{
-			$arDirFiles[] = Translate\Path::replaceLangId($path, $lng);
+			$arDirFiles[] = Translate\IO\Path::replaceLangId($path, $lng);
 		}
 	}
 }
 
 /**
- * @param string $file Path
- * @param int $count Count of coincidences
+ * @param array $arFile Path
+ * @param int &$count Count of coincidences
  *
  * @return bool
  * @throws Main\IO\FileNotFoundException
+ * @deprecated
  */
 function TSEARCH($arFile, &$count)
 {
 	global $arSearchParam;
+
+	if (isset($arFile['LANG']))
+	{
+		$langId = $arFile['LANG'];
+	}
+	else
+	{
+		$langId = Translate\IO\Path::extractLangId($arFile['PATH']);
+	}
+
+	$sourceEncoding = Main\Localization\Translation::getSourceEncoding($langId);
+	$targetEncoding = Main\Localization\Translation::getCurrentEncoding();
 
 	$MESS = [];
 	include $arFile['FULL_PATH'];
@@ -672,7 +692,7 @@ function TSEARCH($arFile, &$count)
 	$_phrase = $phrase = $arSearchParam['search'];
 	if (!$arSearchParam['bCaseSens'])
 	{
-		$_phrase = strtolower($arSearchParam['search']);
+		$_phrase = mb_strtolower($arSearchParam['search']);
 	}
 	$I_PCRE_MODIFIER = $arSearchParam['bCaseSens'] ? '' : 'i';
 
@@ -693,24 +713,30 @@ function TSEARCH($arFile, &$count)
 	$count = 0;
 	foreach ($MESS as $_sMn =>  $_sMe)
 	{
+		if ($targetEncoding != '' && $sourceEncoding != $targetEncoding)
+		{
+			$errorMessage = '';
+			$_sMe = Encoding::convertEncoding($_sMe, $sourceEncoding, $targetEncoding, $errorMessage);
+		}
+
 		$__sMe = $_sMe;
 		$__sMn = $_sMn;
 		if (!$arSearchParam['bCaseSens'])
 		{
-			$__sMe = strtolower($_sMe);
-			$__sMn = strtolower($_sMn);
+			$__sMe = mb_strtolower($_sMe);
+			$__sMn = mb_strtolower($_sMn);
 		}
 
 		$_bSearch = false;
 
 		if ($_bMessage)
 		{
-			if (strpos($__sMe, $_phrase) !== false)
+			if (mb_strpos($__sMe, $_phrase) !== false)
 					$_bSearch = true;
 		}
 		if ($_bMnemonic)
 		{
-			if (strpos($__sMn, $_phrase) !== false)
+			if (mb_strpos($__sMn, $_phrase) !== false)
 				$_bSearch = true;
 		}
 
@@ -773,6 +799,7 @@ function TSEARCH($arFile, &$count)
  * @param $langFile
  *
  * @return bool
+ * @deprecated
  */
 function TR_BACKUP($langFile)
 {
@@ -781,13 +808,13 @@ function TR_BACKUP($langFile)
 		return true;
 	}
 
-	$langId = Translate\Path::extractLangId($langFile);
+	$langId = Translate\IO\Path::extractLangId($langFile);
 
-	$fullPath = Translate\Path::tidy(Main\Application::getDocumentRoot(). $langFile);
+	$fullPath = Translate\IO\Path::tidy(Main\Application::getDocumentRoot(). $langFile);
 
 	if (Main\Localization\Translation::useTranslationRepository())
 	{
-		if (in_array($langId, Translate\Translation::getTranslationRepositoryLanguages()))
+		if (in_array($langId, Translate\Config::getTranslationRepositoryLanguages()))
 		{
 			$fullPath = Main\Localization\Translation::convertLangPath($fullPath, $langId);
 		}
@@ -801,14 +828,14 @@ function TR_BACKUP($langFile)
 		$fullPath = realpath($fullPath);
 	}
 
-	$fullPath = Translate\Path::tidy($fullPath);
+	$fullPath = Translate\IO\Path::tidy($fullPath);
 	if (!file_exists($fullPath))
 	{
 		return true;
 	}
 
-	$endpointBackupFolder = Main\Application::getDocumentRoot(). \Bitrix\Translate\BACKUP_PATH. '/'. dirname($langFile). '/';
-	CheckDirPath($endpointBackupFolder);
+	$endpointBackupFolder = Translate\Config::getBackupFolder(). '/'. dirname($langFile). '/';
+	Translate\IO\Path::checkCreatePath($endpointBackupFolder);
 	if (!file_exists($endpointBackupFolder) || !is_dir($endpointBackupFolder))
 	{
 		return false;
@@ -835,61 +862,26 @@ function TR_BACKUP($langFile)
 
 
 /**
- * Class CTranslateEventHandlers
+ * @deprecated
  */
 class CTranslateEventHandlers
 {
-	public static function TranslatOnPanelCreate()
+	/**
+	 * @deprecated
+	 */
+	function TranslatOnPanelCreate()
 	{
-		global $APPLICATION, $USER;
+		\UnRegisterModuleDependences('main', 'OnPanelCreate', 'translate', 'CTranslateEventHandlers', 'TranslatOnPanelCreate');
+		\RegisterModuleDependences('main', 'OnPanelCreate', 'translate', '\\Bitrix\\Translate\\Ui\\Panel', 'onPanelCreate');
 
-		if ($APPLICATION->GetGroupRight("translate") <= Translate\Permission::DENY)
-			return;
-
-		if (!$USER->IsAuthorized())
-			return;
-
-		$show_button = (string)Main\Config\Option::get('translate', 'BUTTON_LANG_FILES');
-
-		if ($show_button == 'Y')
-		{
-			$cmd = 'Y';
-			$checked = 'N';
-			if (isset($_SESSION['SHOW_LANG_FILES']))
-			{
-				$cmd = $_SESSION['SHOW_LANG_FILES'] == 'Y' ? 'N' : 'Y';
-				$checked = $_SESSION['SHOW_LANG_FILES'] == 'Y' ? 'Y' : 'N';
-			}
-
-			$url = $APPLICATION->GetCurPageParam("show_lang_files=".$cmd, array('show_lang_files'));
-			$arMenu = array(
-				array(
-					"TEXT"=> Loc::getMessage("TRANSLATE_SHOW_LANG_FILES_TEXT"),
-					"TITLE"=> Loc::getMessage("TRANSLATE_SHOW_LANG_FILES_TITLE"),
-					"CHECKED"=>($checked == "Y"),
-					"LINK"=>$url,
-					"DEFAULT"=>false,
-				));
-
-			$APPLICATION->AddPanelButton(array(
-				"HREF"=> '',
-				"ID"=>"translate",
-				"ICON" => "bx-panel-translate-icon",
-				"ALT"=> Loc::getMessage('TRANSLATE_ICON_ALT'),
-				"TEXT"=> Loc::getMessage('TRANSLATE_ICON_TEXT'),
-				"MAIN_SORT"=>"1000",
-				"SORT"=> 50,
-				"MODE"=>array("configure"),
-				"MENU" => $arMenu,
-				"HINT" => array(
-					'TITLE' => Loc::getMessage('TRANSLATE_ICON_TEXT'),
-					'TEXT' => Loc::getMessage('TRANSLATE_ICON_HINT'),
-				),
-			));
-		}
+		\Bitrix\Translate\Ui\Panel::onPanelCreate();
 	}
 }
 
+
+/**
+ * @deprecated
+ */
 class CTranslateUtils
 {
 	const LANGUAGES_DEFAULT = 0;
@@ -943,13 +935,13 @@ class CTranslateUtils
 			$newCode = $code;
 		$langDir = $fileName = "";
 		$filePath = $fileFrom;
-		while(($slashPos = strrpos($filePath, "/")) !== false)
+		while(($slashPos = mb_strrpos($filePath, "/")) !== false)
 		{
-			$filePath = substr($filePath, 0, $slashPos);
+			$filePath = mb_substr($filePath, 0, $slashPos);
 			if(is_dir($filePath."/lang"))
 			{
 				$langDir = $filePath."/lang";
-				$fileName = substr($fileFrom, $slashPos);
+				$fileName = mb_substr($fileFrom, $slashPos);
 				break;
 			}
 		}
@@ -957,13 +949,13 @@ class CTranslateUtils
 		{
 			$langDirTo = $fileNameTo = "";
 			$filePath = $fileTo;
-			while(($slashPos = strrpos($filePath, "/")) !== false)
+			while(($slashPos = mb_strrpos($filePath, "/")) !== false)
 			{
-				$filePath = substr($filePath, 0, $slashPos);
+				$filePath = mb_substr($filePath, 0, $slashPos);
 				if(is_dir($filePath."/lang"))
 				{
 					$langDirTo = $filePath."/lang";
-					$fileNameTo = substr($fileTo, $slashPos);
+					$fileNameTo = mb_substr($fileTo, $slashPos);
 					break;
 				}
 			}
@@ -1006,7 +998,7 @@ class CTranslateUtils
 
 	public static function FindAndCopy($sourceDir, $lang, $pattern, $destinationFile)
 	{
-		$insideLangDir = (strpos($sourceDir."/", "/lang/".$lang."/") !== false);
+		$insideLangDir = (mb_strpos($sourceDir."/", "/lang/".$lang."/") !== false);
 
 		foreach(scandir($sourceDir) as $file)
 		{
@@ -1119,30 +1111,30 @@ class CTranslateUtils
  * @global int $Counter
  *
  * @return void
+ * @deprecated
  */
-//function GetPhraseCounters($arCommon, $path, $key, $enabledLanguages)
 function GetPhraseCounters($arCommon, $entry, $enabledLanguages)
 {
 	global $arCommonCounter, $Counter;
 	$Counter++;
 
 	$path = $entry["PATH"];
-	$key = Translate\Path::removeLangId($path, $enabledLanguages);
+	$key = Translate\IO\Path::removeLangId($path, $enabledLanguages);
 
 
 	$arDirFiles = array();
 
 	// is directory
-	//if (is_dir(Translate\Path::tidy($_SERVER["DOCUMENT_ROOT"]."/".$path."/")))
+	//if (is_dir(Translate\IO\Path::tidy($_SERVER["DOCUMENT_ROOT"]."/".$path."/")))
 	if ($entry['IS_DIR'] === 'Y')
 	{
-		if (\Bitrix\Translate\Path::isLangDir($path))
+		if (\Bitrix\Translate\IO\Path::isLangDir($path))
 		{
 			// files array for directory language
 			foreach ($enabledLanguages as $lng)
 			{
-				$path = \Bitrix\Translate\Path::replaceLangId($path, $lng);
-				$pathLength = strlen($path);
+				$path = \Bitrix\Translate\IO\Path::replaceLangId($path, $lng);
+				$pathLength = mb_strlen($path);
 
 				foreach($arCommon as $arr)
 				{
@@ -1157,7 +1149,7 @@ function GetPhraseCounters($arCommon, $entry, $enabledLanguages)
 		{
 			if (is_array($arCommon))
 			{
-				$pathLength = strlen($path);
+				$pathLength = mb_strlen($path);
 				// array files for directory
 				foreach ($arCommon as $arr)
 				{
@@ -1173,9 +1165,9 @@ function GetPhraseCounters($arCommon, $entry, $enabledLanguages)
 	{
 		foreach ($enabledLanguages as $lng)
 		{
-			//$arDirFiles[] = \Bitrix\Translate\Path::replaceLangId($path, $lng);
-			$path = \Bitrix\Translate\Path::replaceLangId($path, $lng);
-			$pathLength = strlen($path);
+			//$arDirFiles[] = \Bitrix\Translate\IO\Path::replaceLangId($path, $lng);
+			$path = \Bitrix\Translate\IO\Path::replaceLangId($path, $lng);
+			$pathLength = mb_strlen($path);
 
 			foreach($arCommon as $arr)
 			{
@@ -1197,13 +1189,13 @@ function GetPhraseCounters($arCommon, $entry, $enabledLanguages)
 			$file_lang = $arMatch[1];
 			if(in_array($file_lang, $enabledLanguages))
 			{
-				if(substr($file, -4) != '.php')
+				if(mb_substr($file, -4) != '.php')
 				{
 					continue;
 				}
 				$MESS = array();
 				include $file;
-				$fileName = \Bitrix\Translate\Path::removeLangId($fpath, $enabledLanguages);
+				$fileName = \Bitrix\Translate\IO\Path::removeLangId($fpath, $enabledLanguages);
 				$arFilesLng[$fileName][$file_lang] = array_keys($MESS);
 			}
 		}
@@ -1251,6 +1243,7 @@ function GetPhraseCounters($arCommon, $entry, $enabledLanguages)
  * @param array $errorCollection
  *
  * @return bool
+ * @deprecated
  */
 function removePhrasesByMasterFile($masterLanguage, $listIds, &$errorCollection)
 {
@@ -1363,10 +1356,11 @@ function removePhrasesByMasterFile($masterLanguage, $listIds, &$errorCollection)
  *
  * @return bool
  * @throws Main\IO\FileNotFoundException
+ * @deprecated
  */
 function saveTranslationFile($langFileName, $phrases, &$errorCollection)
 {
-	$langId = Translate\Path::extractLangId($langFileName);
+	$langId = Translate\IO\Path::extractLangId($langFileName);
 
 	// sort phrases by key, except russian
 	if ($langId != 'ru')
@@ -1377,8 +1371,8 @@ function saveTranslationFile($langFileName, $phrases, &$errorCollection)
 	$content = '';
 	foreach ($phrases as $phraseId => $phrase)
 	{
-		$phrase = str_replace(["\n\r", "\r"], ["\n", ''], $phrase);
-		$row = "\$MESS['". EscapePHPString($phraseId). "'] = \"". EscapePHPString($phrase). "\"";
+		$phrase = str_replace(["\r\n", "\r"], ["\n", ''], $phrase);
+		$row = "\$MESS[\"". EscapePHPString($phraseId). "\"] = \"". EscapePHPString($phrase). "\"";
 		$content .= "\n". $row. ';';
 	}
 	unset($phraseId, $phrase, $row);
@@ -1389,10 +1383,10 @@ function saveTranslationFile($langFileName, $phrases, &$errorCollection)
 	}
 	else
 	{
-		$fullPath = Translate\Path::tidy(Main\Application::getDocumentRoot(). $langFileName);
+		$fullPath = Translate\IO\Path::tidy(Main\Application::getDocumentRoot(). $langFileName);
 		if (Main\Localization\Translation::useTranslationRepository())
 		{
-			if (in_array($langId, Translate\Translation::getTranslationRepositoryLanguages()))
+			if (in_array($langId, Translate\Config::getTranslationRepositoryLanguages()))
 			{
 				$fullPath = Main\Localization\Translation::convertLangPath($fullPath, $langId);
 			}
@@ -1402,9 +1396,9 @@ function saveTranslationFile($langFileName, $phrases, &$errorCollection)
 		//if ($checkFullPath === false)
 
 
-		$file = new Translate\File(Translate\Path::tidy($fullPath));
+		$file = new Translate\IO\File(Translate\IO\Path::tidy($fullPath));
 
-		if (strlen($content) > 0)
+		if ($content <> '')
 		{
 			if ($file->putContents('<?'. $content. "\n?". '>') === false)
 			{

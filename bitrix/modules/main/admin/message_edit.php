@@ -42,7 +42,7 @@ $aTabs = array(
 );
 $tabControl = new CAdminTabControl("tabControl", $aTabs);
 
-if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin && check_bitrix_sessid())
+if($REQUEST_METHOD=="POST" && ($save <> '' || $apply <> '')&& $isAdmin && check_bitrix_sessid())
 {
 	if(!$isUserHavePhpAccess)
 	{
@@ -64,7 +64,7 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin &
 		$ADDITIONAL_FIELD_tmp = array();
 		foreach($ADDITIONAL_FIELD['NAME'] as $AddFieldNum => $addFieldName)
 		{
-			if(strlen($addFieldName)>0)
+			if($addFieldName <> '')
 			{
 				if(isset($ADDITIONAL_FIELD['VALUE'][$AddFieldNum]))
 					$addFieldValue = $ADDITIONAL_FIELD['VALUE'][$AddFieldNum];
@@ -118,34 +118,61 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin &
 	}
 	else
 	{
-		//Delete checked
-		if(is_array($FILES_del))
+		// Delete files
+		$FILE_ID_tmp = array();
+		//New files
+		$arFiles = array();
+
+		//update files
+		if(is_array($_FILES["FILES"]))
 		{
-			$FILE_ID_tmp = array();
+			foreach($_FILES["FILES"] as $attribute=>$files)
+			{
+				if(is_array($files))
+				{
+					foreach($files as $index=>$value)
+					{
+						$arFiles[$index][$attribute]=$value;
+					}
+				}
+			}
+
+			foreach($arFiles as $index => $file)
+			{
+				if(!is_uploaded_file($file["tmp_name"]))
+				{
+					unset($arFiles[$index]);
+				}
+				else if ($index > 0)
+				{
+					$FILE_ID_tmp[] = intval($index);
+				}
+			}
+		}
+
+		//Delete checked
+		if(!empty($FILES_del) && is_array($FILES_del))
+		{
 			foreach($FILES_del as $file=>$fileMarkDel)
 			{
 				$file = intval($file);
 				if($file>0)
 					$FILE_ID_tmp[] = $file;
 			}
-
-			if(count($FILE_ID_tmp)>0)
-			{
-				$deleteFileDb = \Bitrix\Main\Mail\Internal\EventMessageAttachmentTable::getList(array(
-					'select' => array('FILE_ID'),
-					'filter' => array('EVENT_MESSAGE_ID' => $ID, 'FILE_ID' => $FILE_ID_tmp),
-				));
-				while($arDeleteFile = $deleteFileDb->fetch())
-				{
-					CFile::Delete($arDeleteFile["FILE_ID"]);
-					\Bitrix\Main\Mail\Internal\EventMessageAttachmentTable::delete($ID);
-				}
-			}
 		}
 
-
-		//New files
-		$arFiles = array();
+		if(count($FILE_ID_tmp)>0)
+		{
+			$deleteFileDb = \Bitrix\Main\Mail\Internal\EventMessageAttachmentTable::getList(array(
+				'select' => array('EVENT_MESSAGE_ID', 'FILE_ID'),
+				'filter' => array('=EVENT_MESSAGE_ID' => $ID, '=FILE_ID' => $FILE_ID_tmp),
+			));
+			while($deleteFile = $deleteFileDb->fetch())
+			{
+				CFile::Delete($deleteFile["FILE_ID"]);
+				\Bitrix\Main\Mail\Internal\EventMessageAttachmentTable::delete($deleteFile);
+			}
+		}
 
 		//Brandnew
 		if(is_array($_FILES["NEW_FILE"]))
@@ -205,7 +232,7 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin &
 				{
 					if(
 						is_array($file)
-						&& strlen($file["tmp_name"]) > 0
+						&& $file["tmp_name"] <> ''
 						&& $APPLICATION->GetFileAccessPermission($file["tmp_name"]) >= "W"
 					)
 					{
@@ -217,7 +244,7 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin &
 
 		foreach($arFiles as $file)
 		{
-			if(strlen($file["name"])>0 and intval($file["size"])>0)
+			if($file["name"] <> '' and intval($file["size"])>0)
 			{
 				$resultInsertAttachFile = false;
 				$file["MODULE_ID"] = "main";
@@ -236,7 +263,7 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin &
 			}
 		}
 	
-		if (strlen($save)>0)
+		if ($save <> '')
 		{
 			if (!empty($_REQUEST["type"]))
 				LocalRedirect(BX_ROOT."/admin/type_edit.php?EVENT_NAME=".$EVENT_NAME."&lang=".LANGUAGE_ID);
@@ -249,8 +276,8 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0)&& $isAdmin &
 }
 
 $arEventMessageFile = array();
-$str_ACTIVE="Y";
-$str_EVENT_NAME=$EVENT_NAME;
+$str_ACTIVE = "Y";
+$str_EVENT_NAME = $_REQUEST["EVENT_NAME"];
 $em = CEventMessage::GetByID($ID);
 if(!$em->ExtractEditFields("str_"))
 {
@@ -285,7 +312,6 @@ $arMailSiteTemplate = array();
 $mailSiteTemplateDb = CSiteTemplate::GetList(null, array('TYPE' => 'mail'));
 while($mailSiteTemplate = $mailSiteTemplateDb->GetNext())
 	$arMailSiteTemplate[] = $mailSiteTemplate;
-
 
 if(!$isUserHavePhpAccess)
 {
@@ -393,7 +419,7 @@ if ($e = $APPLICATION->GetException())
 if($message)
 	echo $message->Show();
 
-if(strlen($strError)>0)
+if($strError <> '')
 	CAdminMessage::ShowMessage(Array("MESSAGE"=>$strError, "HTML"=>true, "TYPE"=>"ERROR"));
 
 $tabControl->Begin();
@@ -643,7 +669,7 @@ $tabControl->BeginNextTab();
 	$arAttachedImagePlaceHolders = array();
 	foreach($arEventMessageFile as $arFile)
 	{
-		if(substr($arFile['CONTENT_TYPE'], 0, 5) == 'image')
+		if(mb_substr($arFile['CONTENT_TYPE'], 0, 5) == 'image')
 		{
 			$arAttachedImagePlaceHolders[] = $arFile;
 		}
@@ -671,7 +697,11 @@ $tabControl->BeginNextTab();
 	?>
 	<tr>
 		<td align="left" colspan="2"><br><b><?=GetMessage("AVAILABLE_FIELDS")?></b><br><br>
-			<?echo ReplaceVars(nl2br(trim($type_DESCRIPTION)."\r\n".$str_def));?></td>
+			<?echo ReplaceVars(nl2br(trim($type_DESCRIPTION)."\r\n".$str_def));?>
+			<?=BeginNote()?>
+				<?echo GetMessage("main_message_edit_html_note")?>
+			<?=EndNote()?>
+		</td>
 	</tr>
 	
 	<?

@@ -1,42 +1,49 @@
 <?php
 namespace Bitrix\Main\Data;
 
+use Bitrix\Main\Data\LocalStorage;
+
 class CacheEngineApc
-	implements ICacheEngine, ICacheEngineStat
+	implements ICacheEngine, ICacheEngineStat, LocalStorage\Storage\CacheEngineInterface
 {
 	private $sid = "BX";
 	//cache stats
 	private $written = false;
 	private $read = false;
 
-	protected $useLock = true;
+	protected $useLock = false;
 	protected $ttlMultiplier = 2;
 	protected static $locks = array();
 
 	/**
 	 * Engine constructor.
-	 *
+	 * @param array $options Cache options.
 	 */
-	public function __construct()
+	public function __construct($options = [])
 	{
-		$cacheConfig = \Bitrix\Main\Config\Configuration::getValue("cache");
+		$config = \Bitrix\Main\Config\Configuration::getValue("cache");
 
-		if ($cacheConfig && is_array($cacheConfig))
+		if ($config && is_array($config))
 		{
-			if (isset($cacheConfig["use_lock"]))
+			if (isset($config["use_lock"]))
 			{
-				$this->useLock = (bool)$cacheConfig["use_lock"];
+				$this->useLock = (bool)$config["use_lock"];
 			}
 
-			if (isset($cacheConfig["sid"]) && ($cacheConfig["sid"] != ""))
+			if (isset($config["sid"]) && ($config["sid"] != ""))
 			{
-				$this->sid = $cacheConfig["sid"];
+				$this->sid = $config["sid"];
 			}
 
-			if (isset($cacheConfig["ttl_multiplier"]) && $this->useLock)
+			if (isset($config["ttl_multiplier"]) && $this->useLock)
 			{
-				$this->ttlMultiplier = (integer)$cacheConfig["ttl_multiplier"];
+				$this->ttlMultiplier = (integer)$config["ttl_multiplier"];
 			}
+		}
+
+		if (!empty($options) && isset($options['actual_data']))
+		{
+			$this->useLock = !((bool) $options['actual_data']);
 		}
 
 		$this->sid .= !$this->useLock;
@@ -187,17 +194,21 @@ class CacheEngineApc
 	public function clean($baseDir, $initDir = false, $filename = false)
 	{
 		$key = false;
-		if (strlen($filename))
+		if($filename <> '')
 		{
 			$baseDirVersion = apc_fetch($this->sid.$baseDir);
-			if ($baseDirVersion === false)
+			if($baseDirVersion === false)
+			{
 				return;
+			}
 
-			if ($initDir !== false)
+			if($initDir !== false)
 			{
 				$initDirVersion = apc_fetch($baseDirVersion."|".$initDir);
-				if ($initDirVersion === false)
+				if($initDirVersion === false)
+				{
 					return;
+				}
 			}
 			else
 			{
@@ -209,11 +220,13 @@ class CacheEngineApc
 		}
 		else
 		{
-			if (strlen($initDir))
+			if($initDir <> '')
 			{
 				$baseDirVersion = apc_fetch($this->sid.$baseDir);
-				if ($baseDirVersion === false)
+				if($baseDirVersion === false)
+				{
 					return;
+				}
 
 				apc_delete($baseDirVersion."|".$initDir);
 			}
@@ -222,6 +235,7 @@ class CacheEngineApc
 				apc_delete($this->sid.$baseDir);
 			}
 		}
+
 		$this->unlock($baseDir, $initDir, $key."~");
 	}
 
@@ -240,13 +254,17 @@ class CacheEngineApc
 	{
 		$baseDirVersion = apc_fetch($this->sid.$baseDir);
 		if ($baseDirVersion === false)
+		{
 			return false;
+		}
 
 		if ($initDir !== false)
 		{
 			$initDirVersion = apc_fetch($baseDirVersion."|".$initDir);
 			if ($initDirVersion === false)
+			{
 				return false;
+			}
 		}
 		else
 		{
@@ -270,7 +288,7 @@ class CacheEngineApc
 				}
 			}
 
-			$this->read = strlen($allVars);
+			$this->read = mb_strlen($allVars);
 			$allVars = unserialize($allVars);
 		}
 
@@ -295,7 +313,9 @@ class CacheEngineApc
 		{
 			$baseDirVersion = md5(mt_rand());
 			if (!apc_store($this->sid.$baseDir, $baseDirVersion))
+			{
 				return;
+			}
 		}
 
 		if ($initDir !== false)
@@ -305,7 +325,9 @@ class CacheEngineApc
 			{
 				$initDirVersion = md5(mt_rand());
 				if (!apc_store($baseDirVersion."|".$initDir, $initDirVersion))
+				{
 					return;
+				}
 			}
 		}
 		else
@@ -314,7 +336,7 @@ class CacheEngineApc
 		}
 
 		$allVars = serialize($allVars);
-		$this->written = strlen($allVars);
+		$this->written = mb_strlen($allVars);
 
 		$key = $baseDirVersion."|".$initDirVersion."|".$filename;
 		apc_store($key, $allVars, intval($TTL) * $this->ttlMultiplier);

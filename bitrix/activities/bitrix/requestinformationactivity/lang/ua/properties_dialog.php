@@ -1,16 +1,6 @@
 <?
-$MESS["BPRIA_PD_APPROVERS"] = "Заповнюють співробітники";
-$MESS["BPRIA_PD_TYPE"] = "Тип затвердження";
-$MESS["BPRIA_PD_TYPE_ALL"] = "Всі співробітники";
-$MESS["BPRIA_PD_TYPE_ANY"] = "Будь-який співробітник";
-$MESS["BPRIA_PD_TYPE_VOTE"] = "Голосування співробітників";
-$MESS["BPRIA_PD_NAME"] = "Назва завдання";
-$MESS["BPRIA_PD_DESCR"] = "Опис завдання";
-$MESS["BPRIA_PD_PERCENT"] = "Більш скількох відсотків голосів необхідно для ухвалення рішення";
-$MESS["BPRIA_PD_WAIT"] = "Очікувати, щоб проголосували всі зазначені співробітники";
 $MESS["BPSFA_PD_YES"] = "Так";
 $MESS["BPSFA_PD_NO"] = "Ні";
-$MESS["BPSFA_PD_CHANGE"] = "Змінити";
 $MESS["BPSFA_PD_DELETE"] = "Видалити";
 $MESS["BPSFA_PD_EMPTY_TITLE"] = "Не вказано назву поля";
 $MESS["BPSFA_PD_EMPTY_NAME"] = "Не зазначений код поля";
@@ -32,20 +22,5 @@ $MESS["BPSFA_PD_SAVE_HINT"] = "Зберегти поле";
 $MESS["BPSFA_PD_CANCEL_HINT"] = "Вийти без збереження";
 $MESS["BP_WF_UP"] = "Вище";
 $MESS["BP_WF_DOWN"] = "Нижче";
-$MESS["BPAR_PD_TASK_BUTTON_MESSAGE"] = "Текст кнопки в завданні";
-$MESS["BPAR_PD_SHOW_COMMENT"] = "Показувати поле введення коментаря";
-$MESS["BPAR_PD_COMMENT_LABEL_MESSAGE"] = "Мітка для поля коментаря";
-$MESS["BPSFA_PD_SET_STATUS_MESSAGE"] = "Встановити текст статуса";
-$MESS["BPSFA_PD_STATUS_MESSAGE"] = "Текст статуса";
 $MESS["BPSFA_PD_WRONG_NAME"] = "Код поля може містити тільки латинські букви і цифри, та не може починатися з цифри";
-$MESS["BPRIA_PD_ACCESS_CONTROL"] = "Обмежити доступ";
-$MESS["BPSFA_PD_TIMEOUT_DURATION"] = "Період очікування інформації";
-$MESS["BPSFA_PD_TIMEOUT_DURATION_HINT"] = "По закінченні періоду завдання буде автоматично завершено. Порожнє значення або 0 - відсутність періоду.";
-$MESS["BPSFA_PD_TIME_D"] = "днів";
-$MESS["BPSFA_PD_TIME_H"] = "годин";
-$MESS["BPSFA_PD_TIME_M"] = "хвилин";
-$MESS["BPSFA_PD_TIME_S"] = "секунд";
 $MESS["BPSFA_PD_TIMEOUT_LIMIT"] = "Мінімальний період очікування";
-$MESS["BPAR_PD_COMMENT_REQUIRED"] = "Обов'язковість коментаря";
-$MESS["BPSFA_PD_DELEGATION_TYPE"] = "Тип делегування";
-?>

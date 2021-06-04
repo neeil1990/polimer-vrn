@@ -58,7 +58,11 @@
 		this.context = params.context || "DESKTOP";
 		this.design = params.design || "DESKTOP";
 
-		if (this.context == 'FULLSCREEN' || this.context == 'POPUP-FULLSCREEN' || this.context == 'PAGE' || this.context == 'DIALOG' || this.context == 'LINES')
+		if (this.context == 'SLIDER')
+		{
+			this.content = BX.create('div', {});
+		}
+		else if (this.context == 'FULLSCREEN' || this.context == 'POPUP-FULLSCREEN' || this.context == 'PAGE' || this.context == 'DIALOG' || this.context == 'LINES')
 		{
 			if (this.context == 'FULLSCREEN' || this.context == 'PAGE' || this.context == 'POPUP-FULLSCREEN')
 			{
@@ -76,6 +80,7 @@
 				this.popup = BX('workarea-popup');
 				this.content = BX('workarea-content');
 			}
+
 			if (this.popup)
 			{
 				BX.addClass(this.popup, 'bx-im-fullscreen-closed');
@@ -143,17 +148,41 @@
 			document.body.insertBefore(this.content, document.body.firstChild);
 		}
 
+		this.withMenu = false;
+		if (this.context === 'DESKTOP' || this.context === 'FULLSCREEN')
+		{
+			BX.addClass(this.content, 'bx-desktop-appearance-show-menu');
+			this.withMenu = true;
+		}
+
 		if (
 			BX.desktop
 			&& BX.desktop.apiReady
 			&& (
 				navigator.userAgent.toLowerCase().indexOf('linux') > 0 && !BX.desktop.enableInVersion(29)
 				|| navigator.userAgent.toLowerCase().indexOf('linux') < 0 && !BX.desktop.enableInVersion(37)
+				|| ["11.0.20.53"].includes(BX.desktop.clientVersion.join('.'))
 			)
 		)
 		{
-			BX.PULL.tryConnectSet(null, false);
+			document.body.classList.remove('bx-messenger-dark');
+			document.documentElement.style = "background: #fff";
 			BX.desktop.notSupported();
+			BX.desktop.apiReady = false;
+			BX.desktop.disableLogin = true;
+
+			return false;
+		}
+
+		if (
+			BX.desktop
+			&& BX.desktop.apiReady
+			&& !this.BXIM.ppServerStatus
+		)
+		{
+			document.body.classList.remove('bx-messenger-dark');
+			document.documentElement.style = "background: #fff";
+			BX.desktop.withoutPushServer();
 			BX.desktop.apiReady = false;
 			BX.desktop.disableLogin = true;
 
@@ -225,26 +254,40 @@
 		return true;
 	}
 
-	MessengerWindow.prototype.adjustSize = function (width, height)
+	MessengerWindow.prototype.adjustSize = function (width, height, skipTimeout)
 	{
 		if (this.context == 'POPUP-FULLSCREEN' && BX.hasClass(this.popup, 'bx-im-fullscreen-closed'))
 		{
 			return false;
 		}
+
 		var innerWidth = 0;
 		var innerHeight = 0;
 
-		var setFirstHeight = false;
-		if (this.contentBodyWindow)
+		if (this.context == 'SLIDER')
+		{
+			innerHeight = this.content.parentNode? this.content.parentNode.offsetHeight: this.initHeight;
+			innerWidth = this.content.offsetWidth;
+
+			if (!skipTimeout)
+			{
+				clearTimeout(this.sliderResizeTimeout);
+				this.sliderResizeTimeout = setTimeout(function () {
+					BX.MessengerWindow.adjustSize(undefined, undefined, true);
+					BXIM.desktop.adjustSize();
+				}, 300);
+			}
+		}
+		else if (this.contentBodyWindow)
 		{
 			if (!this.popupFullscreenSizeTop && !this.popupFullscreenSizeBottom)
 			{
-				var popupPos = BX.pos(BX.MessengerWindow.content.parentNode);
+				var popupPos = BX.pos(this.content.parentNode);
 				this.popupFullscreenSizeTop = popupPos.top;
 				this.popupFullscreenSizeBottom = window.innerHeight-popupPos.top-popupPos.height;
 			}
 			innerHeight = Math.max(window.innerHeight-this.popupFullscreenSizeTop-this.popupFullscreenSizeBottom, this.initHeight);
-			innerWidth = BX.MessengerWindow.content.offsetWidth;
+			innerWidth = this.content.offsetWidth;
 		}
 		else if (this.contentFullWindow)
 		{
@@ -259,7 +302,7 @@
 			catch (e)
 			{
 				setTimeout(function(){
-					BX.MessengerWindow.adjustSize(width, height);
+					this.adjustSize(width, height);
 				}, 500);
 			}
 			innerWidth = Math.max(this.content.offsetWidth, this.minWidth);
@@ -268,7 +311,7 @@
 
 		if (BX.desktop && BX.desktop.apiReady && (!width || !height) && (innerHeight < this.minHeight || innerWidth < this.minWidth))
 		{
-			BXDesktopWindow.SetProperty("clientSize", { Width: this.width, Height: this.height});
+			//BXDesktopWindow.SetProperty("clientSize", { Width: this.width, Height: this.height});
 			return false;
 		}
 
@@ -309,6 +352,7 @@
 			})];
 		}
 		this.popupConfirm = new BX.PopupWindow('bx-desktop-confirm', null, {
+			targetContainer: document.body,
 			zIndex: 200,
 			autoHide: buttons === false,
 			buttons : buttons,
@@ -494,7 +538,7 @@
 
 		this.content.innerHTML = '';
 		this.content.appendChild(
-			this.contentBox = BX.create("div", { props : { className : 'bx-desktop-appearance'}, style: {minHeight: this.minHeight+'px'}, children: [
+			this.contentBox = BX.create("div", { props : { className : 'bx-desktop-appearance '+(this.BXIM.settings.enableDarkTheme? 'bx-messenger-dark': '')}, style: {minHeight: this.minHeight+'px'}, children: [
 				this.contentMenu = BX.create("div", { props : { className : 'bx-desktop-appearance-menu'}, children: [
 					this.contentAvatar = BX.create("div", { props : { className : 'bx-desktop-appearance-avatar'}}),
 					this.contentTab = BX.create("div", { props : { className : 'bx-desktop-appearance-tab'}})
@@ -633,16 +677,18 @@
 				counter.innerHTML = value? '<span class="bx-desktop-tab-counter-digit">'+value+'</span>': '';
 		}
 
-		if (BX.desktop && BX.desktop.apiReady)
-		{
-			BX.desktop.updateTabBadge();
-		}
+		//if (BX.desktop && BX.desktop.apiReady)
+		//{
+		//	BX.desktop.updateTabBadge();
+		//}
 	}
 
 	MessengerWindow.prototype.setTabContent = function (tabId, content)
 	{
 		if (!this.tabItems[tabId])
+		{
 			return false;
+		}
 
 		if (BX('bx-desktop-tab-content-'+tabId))
 		{
@@ -684,10 +730,12 @@
 
 		if (params)
 		{
+			params = BX.clone(params);
+
 			if (!params.gender)
 				params.gender = 'M';
 
-			if (!params.avatar || !params.profile)
+			if (!params.avatar)
 				params.avatar = '';
 
 			this.userInfo = params;
@@ -708,7 +756,7 @@
 
 		this.contentAvatar.innerHTML = '';
 		this.contentAvatar.appendChild(
-			BX.create('a', { attrs : { href : this.userInfo.profile, title : BX.util.htmlspecialcharsback(this.userInfo.name), target: "_blank" }, props : { className : "bx-desktop-avatar" }, events: events, children: [
+			BX.create('a', { attrs : { href : this.userInfo.profile, title : BX.util.htmlspecialcharsback(this.userInfo.name), target: "_blank", "data-slider-ignore-autobinding": "true" }, props : { className : "bx-desktop-avatar" }, events: events, children: [
 				BX.create('img', { attrs : { src : this.userInfo.avatar, style: (BX.MessengerCommon.isBlankAvatar(this.userInfo.avatar)? 'background-color: '+this.userInfo.color: '')}, props : { className : "bx-desktop-avatar-img bx-desktop-avatar-img-default" }})
 			]})
 		);
@@ -738,12 +786,18 @@
 			return true;
 		else if (this.context == 'POPUP-FULLSCREEN' && !BX.hasClass(this.popup, 'bx-im-fullscreen-closed'))
 			return true;
+		else if (this.context == 'SLIDER' && BX.MessengerSlider.isOpen())
+			return true;
 
 		return false;
 	}
 
 	MessengerWindow.prototype.backgroundChange = function()
 	{
+		if (!this.backgroundSelector)
+		{
+			return;
+		}
 		var backgroundImage = this.backgroundSelector.value;
 		if (backgroundImage == 'transparent')
 		{
@@ -768,6 +822,11 @@
 		}
 	}
 
+	MessengerWindow.prototype.setZIndex = function(zindex)
+	{
+		BX.style(this.popup, 'z-index', zindex);
+	};
+
 	MessengerWindow.prototype.showPopup = function(dialogId)
 	{
 		if (this.isPopupShow())
@@ -784,7 +843,7 @@
 		BX.removeClass(this.popup, 'bx-im-fullscreen-closing');
 		BX.removeClass(this.popup, 'bx-im-fullscreen-closed');
 		this.adjustSize();
-		this.BXIM.desktop.initHeight = BX.MessengerWindow.content.offsetHeight;
+		this.BXIM.desktop.initHeight = this.content.offsetHeight;
 
 		this.popupTimeout = setTimeout(BX.delegate(function(){
 			BX.removeClass(this.popup, 'bx-im-fullscreen-opening');
@@ -794,7 +853,7 @@
 		if (BX.SidePanel && BX.SidePanel.Instance.getTopSlider())
 		{
 			var zIndex = BX.SidePanel.Instance.getTopSlider().getZindex();
-			BX.style(this.popup, 'z-index', zIndex+1);
+			this.setZIndex(zIndex+1);
 		}
 
 		BX.onCustomEvent(this, 'OnMessengerWindowShowPopup', [dialogId]);
@@ -842,11 +901,14 @@
 
 	MessengerWindow.prototype.storageSet = function(params)
 	{
-		if (params.key == 'imFullscreenBackground')
-		{
-			this.backgroundSelector.value = params.value;
-			this.backgroundChange();
-		}
+		if (!this.backgroundSelector)
+			return false;
+
+		if (params.key != 'imFullscreenBackground')
+			return false;
+
+		this.backgroundSelector.value = params.value;
+		this.backgroundChange();
 	};
 
 	BX.MessengerWindow = new MessengerWindow();

@@ -1,6 +1,8 @@
 <?
 namespace Bitrix\Sale\Helpers\Order\Builder;
 
+use Bitrix\Sale\Property;
+use Bitrix\Sale\PropertyValue;
 use Bitrix\Sale\Shipment;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\Error;
@@ -307,6 +309,8 @@ abstract class OrderBuilder
 
 	public function buildShipments()
 	{
+		$orderPropsCountBefore = count($this->order->getPropertyCollection());
+
 		if(!isset($this->formData["SHIPMENT"]) || !is_array($this->formData["SHIPMENT"]))
 		{
 			$this->createEmptyShipment();
@@ -328,11 +332,19 @@ abstract class OrderBuilder
 			$isNew = ($shipmentId <= 0);
 			$deliveryService = null;
 
+			if (!isset($item['DEDUCTED']) || $item['DEDUCTED'] !== 'Y')
+			{
+				$item['DEDUCTED'] = 'N';
+			}
+
+			$extraServices = ($item['EXTRA_SERVICES']) ? $item['EXTRA_SERVICES'] : array();
+
 			$settableShipmentFields = $this->getSettableShipmentFields();
 			if(count($settableShipmentFields)>0)
 			{
 				//for backward compatibility
 				$product = $item['PRODUCT'];
+				$storeId = $item['DELIVERY_STORE_ID'];
 				$item = array_intersect_key($item, array_flip($settableShipmentFields));
 				$item['PRODUCT'] = $product;
 			}
@@ -380,7 +392,7 @@ abstract class OrderBuilder
 
 						$products[] = array(
 							'AMOUNT' => $systemShipmentItem->getQuantity(),
-							'BASKET_CODE' => $product->getBasketCode()
+							'BASKET_CODE' => $product->getBasketCode(),
 						);
 					}
 				}
@@ -400,15 +412,13 @@ abstract class OrderBuilder
 				}
 			}
 
-			$extraServices = ($item['EXTRA_SERVICES']) ? $item['EXTRA_SERVICES'] : array();
-
 			$shipmentFields = array(
 				'COMPANY_ID' => (isset($item['COMPANY_ID']) && intval($item['COMPANY_ID']) > 0) ? intval($item['COMPANY_ID']) : 0,
 				'DEDUCTED' => $item['DEDUCTED'],
 				'DELIVERY_DOC_NUM' => $item['DELIVERY_DOC_NUM'],
 				'TRACKING_NUMBER' => $item['TRACKING_NUMBER'],
 				'CURRENCY' => $this->order->getCurrency(),
-				'COMMENTS' => $item['COMMENTS']
+				'COMMENTS' => $item['COMMENTS'],
 			);
 
 			if(isset($item['ACCOUNT_NUMBER']) && $item['ACCOUNT_NUMBER']<>'')
@@ -437,16 +447,22 @@ abstract class OrderBuilder
 
 			foreach($dateFields as $fieldName)
 			{
-				if(isset($item[$fieldName]) && is_string($item[$fieldName]))
+				if(isset($item[$fieldName]))
 				{
-					try
+					if (is_string($item[$fieldName]))
 					{
-						$shipmentFields[$fieldName] = new Date($item[$fieldName]);
+						try
+						{
+							$shipmentFields[$fieldName] = new Date($item[$fieldName]);
+						}
+						catch (ObjectException $exception)
+						{
+							$this->errorsContainer->addError(new Error('Wrong field "'.$fieldName.'"'));
+						}
 					}
-					catch (ObjectException $exception)
+					elseif ($item[$fieldName] instanceof Date)
 					{
-						$this->errorsContainer->addError(new Error('Wrong field "'.$fieldName.'"'));
-						$hasError = true;
+						$shipmentFields[$fieldName] = $item[$fieldName];
 					}
 				}
 			}
@@ -502,7 +518,7 @@ abstract class OrderBuilder
 				$this->errorsContainer->addErrors($setFieldsResult->getErrors());
 			}
 
-			$shipment->setStoreId($item['DELIVERY_STORE_ID']);
+			$shipment->setStoreId((int)$storeId);
 
 			if($item['DEDUCTED'] == 'N' && $products !== null)
 			{
@@ -517,25 +533,33 @@ abstract class OrderBuilder
 			$fields = array(
 				'CUSTOM_PRICE_DELIVERY' => $item['CUSTOM_PRICE_DELIVERY'] === 'Y' ? 'Y' : 'N',
 				'ALLOW_DELIVERY' => $item['ALLOW_DELIVERY'],
-				'PRICE_DELIVERY' => (float)str_replace(',', '.', $item['PRICE_DELIVERY'])
+				'PRICE_DELIVERY' => (float)str_replace(',', '.', $item['PRICE_DELIVERY']),
+				'EXPECTED_PRICE_DELIVERY' => isset($item['EXPECTED_PRICE_DELIVERY']) ? (float)$item['EXPECTED_PRICE_DELIVERY'] : null,
 			);
 
 			if(isset($item['BASE_PRICE_DELIVERY']))
 			{
 				$fields['BASE_PRICE_DELIVERY'] = (float)str_replace(',', '.', $item['BASE_PRICE_DELIVERY']);
 			}
+
 			$shipment = $this->delegate->setShipmentPriceFields($shipment, $fields);
 
 			if($deliveryService && !empty($item['ADDITIONAL']))
 			{
 				$modifiedShipment = $deliveryService->processAdditionalInfoShipmentEdit($shipment, $item['ADDITIONAL']);
 
-				if($modifiedShipment && get_class($modifiedShipment) == Registry::ENTITY_SHIPMENT)
+				$registry = Registry::getInstance(Registry::REGISTRY_TYPE_ORDER);
+				if ($modifiedShipment && get_class($modifiedShipment) == $registry->getShipmentClassName())
 				{
 					$shipment = $modifiedShipment;
 				}
 			}
 		}
+
+		/**
+		 * Set properties again and recalculate delivery in case we've got new properties available
+		 */
+		$this->delegate->recalculateDeliveryPrice($orderPropsCountBefore, $this->order);
 
 		return $this;
 	}
@@ -649,12 +673,13 @@ abstract class OrderBuilder
 				$tmp = array(
 					'BASKET_CODE' => $basketCode,
 					'AMOUNT' => $items['AMOUNT'],
-					'ORDER_DELIVERY_BASKET_ID' => isset($items['ORDER_DELIVERY_BASKET_ID']) ? $items['ORDER_DELIVERY_BASKET_ID']:0,
+					'ORDER_DELIVERY_BASKET_ID' => isset($items['ORDER_DELIVERY_BASKET_ID']) ? $items['ORDER_DELIVERY_BASKET_ID'] : 0,
 					'XML_ID' => $items['XML_ID'],
+					'IS_SUPPORTED_MARKING_CODE' => $items['IS_SUPPORTED_MARKING_CODE'],
 				);
 				$idsFromForm[$basketCode] = array();
 
-				if ($items['BARCODE_INFO'] && $useStoreControl)
+				if ($items['BARCODE_INFO'] && ($useStoreControl || $items['IS_SUPPORTED_MARKING_CODE'] == 'Y'))
 				{
 					foreach ($items['BARCODE_INFO'] as $item)
 					{
@@ -667,7 +692,7 @@ abstract class OrderBuilder
 						$tmp['BARCODE'] = array(
 							'ORDER_DELIVERY_BASKET_ID' => $items['ORDER_DELIVERY_BASKET_ID'],
 							'STORE_ID' => $item['STORE_ID'],
-							'QUANTITY' => ($basketItem->isBarcodeMulti()) ? 1 : $item['QUANTITY']
+							'QUANTITY' => ($basketItem->isBarcodeMulti() || $basketItem->isSupportedMarkingCode()) ? 1 : $item['QUANTITY'],
 						);
 
 						$barcodeCount = 0;
@@ -676,28 +701,36 @@ abstract class OrderBuilder
 							foreach ($item['BARCODE'] as $barcode)
 							{
 								$idsFromForm[$basketCode]['BARCODE_IDS'][$barcode['ID']] = true;
+
 								if ($barcode['ID'] > 0)
-									$tmp['BARCODE']['ID'] = $barcode['ID'];
+								{
+									$tmp['BARCODE']['ID'] = (int)$barcode['ID'];
+								}
 								else
+								{
 									unset($tmp['BARCODE']['ID']);
-								$tmp['BARCODE']['BARCODE'] = $barcode['VALUE'];
+								}
+
+								$tmp['BARCODE']['BARCODE'] = (string)$barcode['VALUE'];
+								$tmp['BARCODE']['MARKING_CODE'] = (string)$barcode['MARKING_CODE'];
 								$shippingItems[] = $tmp;
 								$barcodeCount++;
 							}
 						}
-						elseif (!$basketItem->isBarcodeMulti())
+						elseif (!$basketItem->isBarcodeMulti() && !$basketItem->isSupportedMarkingCode())
 						{
 							$shippingItems[] = $tmp;
 							continue;
 						}
 
 
-						if ($basketItem->isBarcodeMulti())
+						if ($basketItem->isBarcodeMulti() || $basketItem->isSupportedMarkingCode())
 						{
 							while ($barcodeCount < $item['QUANTITY'])
 							{
 								unset($tmp['BARCODE']['ID']);
 								$tmp['BARCODE']['BARCODE'] = '';
+								$tmp['BARCODE']['MARKING_CODE'] = '';
 								$shippingItems[] = $tmp;
 								$barcodeCount++;
 							}
@@ -709,7 +742,6 @@ abstract class OrderBuilder
 					$shippingItems[] = $tmp;
 				}
 			}
-
 		}
 
 		// DELETE FROM COLLECTION
@@ -771,7 +803,7 @@ abstract class OrderBuilder
 						$result->addError(
 							new Error(
 								Loc::getMessage('SALE_HLP_ORDERBUILDER_SHIPMENT_ITEM_ERROR',[
-									'#ID#' => $shippingItem['ORDER_DELIVERY_BASKET_ID']
+									'#ID#' => $shippingItem['ORDER_DELIVERY_BASKET_ID'],
 								])
 							)
 						);
@@ -832,16 +864,25 @@ abstract class OrderBuilder
 			$this->order->setMathActionOnly(false);
 
 			if (!$setFieldResult->isSuccess())
+			{
 				$result->addErrors($setFieldResult->getErrors());
-
-			$r = $this->setBarcodeShipmentItem($shipmentItem, $params);
-			if($r->isSuccess() == false)
-				$result->addErrors($r->getErrors());
-
-			$setFieldResult = $shipmentItem->setField('QUANTITY', $params['AMOUNT']);
-			if (!$setFieldResult->isSuccess())
-				$result->addErrors($setFieldResult->getErrors());
+			}
 		}
+
+		$r = $this->setBarcodeShipmentItem($shipmentItem, $params);
+
+		if($r->isSuccess() == false)
+		{
+			$result->addErrors($r->getErrors());
+		}
+
+		$setFieldResult = $shipmentItem->setField('QUANTITY', $params['AMOUNT']);
+
+		if (!$setFieldResult->isSuccess())
+		{
+			$result->addErrors($setFieldResult->getErrors());
+		}
+
 		return $result;
 	}
 
@@ -852,13 +893,13 @@ abstract class OrderBuilder
 
 		$useStoreControl = Configuration::useStoreControl();
 
-		if (!empty($params['BARCODE']) && $useStoreControl)
+		if (!empty($params['BARCODE']) && ($useStoreControl || $params['IS_SUPPORTED_MARKING_CODE'] == 'Y' ))
 		{
 			$barcode = $params['BARCODE'];
 
 			/** @var \Bitrix\Sale\ShipmentItemStoreCollection $shipmentItemStoreCollection */
 			$shipmentItemStoreCollection = $shipmentItem->getShipmentItemStoreCollection();
-			if (!$basketItem->isBarcodeMulti())
+			if (!$basketItem->isBarcodeMulti() && !$basketItem->isSupportedMarkingCode())
 			{
 				/** @var Result $r */
 				$r = $shipmentItemStoreCollection->setBarcodeQuantityFromArray($params);
@@ -966,6 +1007,11 @@ abstract class OrderBuilder
 			if($isNew)
 			{
 				$paymentItem = $paymentCollection->createItem();
+				if (isset($paymentData['CURRENCY']) && !empty($paymentData['CURRENCY']) && $paymentData['CURRENCY'] !== $this->order->getCurrency())
+				{
+					$paymentData["SUM"] = \CCurrencyRates::ConvertCurrency($paymentData["SUM"], $paymentData["CURRENCY"], $this->order->getCurrency());
+					$paymentData['CURRENCY'] = $this->order->getCurrency();
+				}
 			}
 			else
 			{
@@ -1088,11 +1134,11 @@ abstract class OrderBuilder
 				if(!empty($paymentFields['PAID']))
 				{
 					$setResult = $paymentItem->setPaid($paymentFields['PAID']);
-				}
 
-				if(!$setResult->isSuccess())
-				{
-					$this->errorsContainer->addErrors($setResult->getErrors());
+					if(!$setResult->isSuccess())
+					{
+						$this->errorsContainer->addErrors($setResult->getErrors());
+					}
 				}
 			}
 		}
@@ -1235,7 +1281,7 @@ abstract class OrderBuilder
 
 	public function getFormData($fieldName = '')
 	{
-		if(strlen($fieldName) > 0)
+		if($fieldName <> '')
 		{
 			$result = isset($this->formData[$fieldName]) ? $this->formData[$fieldName]:null;
 		}
@@ -1269,7 +1315,7 @@ abstract class OrderBuilder
 
 			$res = \Bitrix\Sale\Internals\PersonTypeTable::getList(array(
 				'order' => array('SORT' => 'ASC', 'NAME' => 'ASC'),
-				'filter' => array('=ACTIVE' => 'Y', '=PERSON_TYPE_SITE.SITE_ID' => $siteId)
+				'filter' => array('=ACTIVE' => 'Y', '=PERSON_TYPE_SITE.SITE_ID' => $siteId),
 			));
 
 			while ($personType = $res->fetch())

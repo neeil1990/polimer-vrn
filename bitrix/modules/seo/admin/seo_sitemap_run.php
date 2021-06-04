@@ -51,7 +51,7 @@ if(!is_array($arSitemap))
 }
 else
 {
-	$arSitemap['SETTINGS'] = unserialize($arSitemap['SETTINGS']);
+	$arSitemap['SETTINGS'] = unserialize($arSitemap['SETTINGS'], ['allowed_classes' => false]);
 
 	$arSitemapSettings = array(
 		'SITE_ID' => $arSitemap['SITE_ID'],
@@ -103,7 +103,7 @@ function seoSitemapGetFilesData($PID, $arSitemap, $arCurrentDir, $sitemapFile)
 	}
 	else
 	{
-		$len = strlen($arCurrentDir['ITEM_PATH']);
+		$len = mb_strlen($arCurrentDir['ITEM_PATH']);
 		if(!empty($arSitemap['SETTINGS']['DIR']))
 		{
 			foreach($arSitemap['SETTINGS']['DIR'] as $dirKey => $checked)
@@ -418,11 +418,11 @@ if($_REQUEST['action'] == 'sitemap_run' && check_bitrix_sessid())
 					}
 					else
 					{
-						if(strlen($arCurrentIBlock['LIST_PAGE_URL']) <= 0)
+						if($arCurrentIBlock['LIST_PAGE_URL'] == '')
 							$arSitemap['SETTINGS']['IBLOCK_LIST'][$iblockId] = 'N';
-						if(strlen($arCurrentIBlock['SECTION_PAGE_URL']) <= 0)
+						if($arCurrentIBlock['SECTION_PAGE_URL'] == '')
 							$arSitemap['SETTINGS']['IBLOCK_SECTION'][$iblockId] = 'N';
-						if(strlen($arCurrentIBlock['DETAIL_PAGE_URL']) <= 0)
+						if($arCurrentIBlock['DETAIL_PAGE_URL'] == '')
 							$arSitemap['SETTINGS']['IBLOCK_ELEMENT'][$iblockId] = 'N';
 
 						$NS['IBLOCK_LASTMOD'] = max($NS['IBLOCK_LASTMOD'], MakeTimeStamp($arCurrentIBlock['TIMESTAMP_X']));
@@ -629,7 +629,7 @@ if($_REQUEST['action'] == 'sitemap_run' && check_bitrix_sessid())
 							'PROCESSED' => SitemapRuntimeTable::PROCESSED,
 						));
 
-						if($arSitemap['SETTINGS']['IBLOCK_LIST'][$iblockId] == 'Y' && strlen($arCurrentIBlock['LIST_PAGE_URL']) > 0)
+						if($arSitemap['SETTINGS']['IBLOCK_LIST'][$iblockId] == 'Y' && $arCurrentIBlock['LIST_PAGE_URL'] <> '')
 						{
 							$NS['IBLOCK'][$iblockId]['I']++;
 

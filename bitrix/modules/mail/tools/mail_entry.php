@@ -44,7 +44,7 @@ try
 	{
 		if (empty($to['user']) || empty($to['host']))
 			continue;
-		if (strtolower($hostname) != strtolower($to['host']))
+		if (mb_strtolower($hostname) != mb_strtolower($to['host']))
 			continue;
 		if (preg_match('/^no-?reply$/i', $to['user']))
 			continue;
@@ -74,17 +74,20 @@ try
 		);
 		$jpegTypes = array('image/pjpeg', 'image/jpeg', 'image/jpg', 'image/jpe');
 
+		$tmpDir = \CTempFile::getDirectoryName(6);
+		checkDirPath($tmpDir);
+
 		foreach ($message['attachments'] as &$item)
 		{
 			$itemId = $item['uniqueId'];
-			$fileId = md5($item['checksum'].$item['length']);
+			$fileId = $item['uniqueId'] = md5($item['checksum'].$item['length']);
 
 			$item['fileName'] = trim(trim(trim($item['fileName']), '.'));
 			if (empty($item['fileName']))
 			{
 				$item['fileName'] = $fileId;
 
-				if (strpos($item['contentType'], 'message/') === 0)
+				if (mb_strpos($item['contentType'], 'message/') === 0)
 					$item['fileName'] .= '.eml';
 			}
 
@@ -95,23 +98,31 @@ try
 
 				if (is_set($imageExts, $item['contentType']))
 				{
-					$extPos = strrpos($item['fileName'], '.');
-					$ext    = substr($item['fileName'], $extPos);
+					$extPos = mb_strrpos($item['fileName'], '.');
+					$ext = mb_substr($item['fileName'], $extPos);
 
 					if ($extPos === false || !in_array($ext, $imageExts[$item['contentType']]))
 						$item['fileName'] .= $imageExts[$item['contentType']][0];
 				}
 			}
 
-			$message['files'][$fileId] = array_merge(
+			$file = array_merge(
 				empty($_FILES[$itemId]) ? $emptyFile : $_FILES[$itemId],
 				array(
 					'name' => $item['fileName'],
-					'type' => $item['contentType']
+					'type' => $item['contentType'],
 				)
 			);
 
-			$item['uniqueId'] = $fileId;
+			if (is_uploaded_file($file['tmp_name']) && $file['size'] > 0)
+			{
+				$uploadFile = $tmpDir . md5(mt_rand().$file['name']);
+				move_uploaded_file($file['tmp_name'], $uploadFile);
+
+				$file['tmp_name'] = $uploadFile;
+			}
+
+			$message['files'][$fileId] = $file;
 		}
 		unset($item);
 	}

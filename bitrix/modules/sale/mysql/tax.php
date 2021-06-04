@@ -1,5 +1,6 @@
 <?
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/general/tax.php");
+
+require_once __DIR__."/../general/tax.php";
 
 class CSaleTax extends CAllSaleTax
 {
@@ -16,7 +17,7 @@ class CSaleTax extends CAllSaleTax
 			"VALUES(".$arInsert[1].", ".$DB->GetNowFunction().")";
 		$DB->Query($strSql, false, "File: ".__FILE__."<br>Line: ".__LINE__);
 
-		$ID = IntVal($DB->LastID());
+		$ID = intval($DB->LastID());
 
 		return $ID;
 	}

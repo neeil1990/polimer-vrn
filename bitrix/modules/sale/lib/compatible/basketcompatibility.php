@@ -700,10 +700,6 @@ class BasketCompatibility extends Internals\EntityCompatibility
 
 		$registry = Sale\Registry::getInstance(static::getRegistryType());
 
-		foreach(GetModuleEvents("sale", "OnBeforeBasketUpdateAfterCheck", true) as $event)
-			if (ExecuteModuleEventEx($event, array($id, &$fields))===false)
-				return false;
-
 		/** @var Sale\Result $itemResult */
 		$itemResult = static::loadEntityFromBasket($id);
 		if ($itemResult->isSuccess())
@@ -1003,6 +999,12 @@ class BasketCompatibility extends Internals\EntityCompatibility
 
 			/** @var Sale\Result $r */
 			$r = $basket->save();
+
+			if ($r->isSuccess())
+			{
+				Sale\BasketComponentHelper::clearFUserBasketQuantity($itemDat['FUSER_ID'], $itemDat['LID']);
+				Sale\BasketComponentHelper::clearFUserBasketPrice($itemDat['FUSER_ID'], $itemDat['LID']);
+			}
 		}
 
 		if (!$r->isSuccess())
@@ -1014,7 +1016,7 @@ class BasketCompatibility extends Internals\EntityCompatibility
 	}
 
 	/**
-	 * @internal 
+	 * @internal
 	 * @return array
 	 */
 	public static function getAliasFields()

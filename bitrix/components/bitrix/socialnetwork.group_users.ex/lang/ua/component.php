@@ -4,6 +4,6 @@ $MESS["SONET_P_USER_NO_GROUP"] = "Група не знайдена";
 $MESS["SONET_GUE_NO_PERMS"] = "У вас немає прав на перегляд цієї групи";
 $MESS["SONET_GUE_PAGE_TITLE"] = "Учасники групи";
 $MESS["SONET_GUE_NAME_TEMPLATE_DEFAULT"] = "#NOBR##LAST_NAME##NAME##/NOBR#";
-$MESS["SONET_GUE_NO_PERMS_PROJECT"] = "У вас немає прав на перегляд цього проекту";
-$MESS["SONET_GUE_PAGE_TITLE_PROJECT"] = "Учасники проекту";
+$MESS["SONET_GUE_NO_PERMS_PROJECT"] = "У вас немає прав на перегляд цього проєкту";
+$MESS["SONET_GUE_PAGE_TITLE_PROJECT"] = "Учасники проєкту";
 ?>

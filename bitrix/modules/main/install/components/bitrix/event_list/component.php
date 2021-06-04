@@ -12,7 +12,10 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
  */
 
 if(!$USER->CanDoOperation('view_event_log'))
-	$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
+{
+	ShowError(GetMessage("ACCESS_DENIED"));
+	return;
+}
 
 /** @var CEventMain[] $arModuleObjects */
 $arModuleObjects = array();
@@ -142,7 +145,7 @@ if (is_array($arResult["ActiveFeatures"]) && count($arResult["ActiveFeatures"]) 
 	// for date
 	if (
 		array_key_exists("flt_date_datesel", $_REQUEST)
-		&& strlen($_REQUEST["flt_date_datesel"]) > 0
+		&& $_REQUEST["flt_date_datesel"] <> ''
 	)
 	{
 		$_REQUEST["flt_date_datesel"] = htmlspecialcharsbx($_REQUEST["flt_date_datesel"]);
@@ -227,7 +230,7 @@ if (is_array($arResult["ActiveFeatures"]) && count($arResult["ActiveFeatures"]) 
 
 	if (
 		array_key_exists("flt_ip", $_REQUEST)
-		&& strlen($_REQUEST["flt_ip"]) > 0
+		&& $_REQUEST["flt_ip"] <> ''
 	)
 	{
 		$ip = htmlspecialcharsbx($_REQUEST["flt_ip"]);
@@ -236,12 +239,12 @@ if (is_array($arResult["ActiveFeatures"]) && count($arResult["ActiveFeatures"]) 
 
 	function CheckFilter()
 	{
-		if(strlen($_REQUEST["flt_date_from"])>0)
+		if($_REQUEST["flt_date_from"] <> '')
 		{
 			if(!CheckDateTime($_REQUEST["flt_date_from"], CSite::GetDateFormat("FULL")))
 				return false;
 		}
-		if(strlen($_REQUEST["flt_date_to"])>0)
+		if($_REQUEST["flt_date_to"] <> '')
 		{
 			if(!CheckDateTime($_REQUEST["flt_date_to"], CSite::GetDateFormat("FULL")))
 				return false;
@@ -288,7 +291,7 @@ if (is_array($arResult["ActiveFeatures"]) && count($arResult["ActiveFeatures"]) 
 				);
 				if($arUser = $rsUser->GetNext())
 				{
-					if (in_array($arUser["EXTERNAL_AUTH_ID"], array("bot", "email", "controller", "replica", "imconnector")))
+					if (in_array($arUser["EXTERNAL_AUTH_ID"], array("bot", "email", "__controller", "replica", "imconnector")))
 					{
 						continue;
 					}
@@ -320,7 +323,7 @@ if (is_array($arResult["ActiveFeatures"]) && count($arResult["ActiveFeatures"]) 
 
 					if (in_array($row['AUDIT_TYPE_ID'], array("PAGE_EDIT", "PAGE_ADD", "PAGE_DELETE")))
 					{
-						$path = unserialize($row["DESCRIPTION"]);
+						$path = unserialize($row["DESCRIPTION"], ['allowed_classes' => false]);
 						$path = $path["path"];
 						if ($path)
 						{

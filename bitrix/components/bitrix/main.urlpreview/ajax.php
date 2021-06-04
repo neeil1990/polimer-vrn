@@ -8,7 +8,7 @@ define('BX_SECURITY_SESSION_READONLY', true);
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_before.php');
 global $USER, $APPLICATION;
 
-if(!check_bitrix_sessid())
+if(!$USER->IsAuthorized() || !check_bitrix_sessid())
 	die();
 
 if($_REQUEST['action'] === 'attachUrlPreview')
@@ -28,8 +28,8 @@ if($_REQUEST['action'] === 'attachUrlPreview')
 	{
 		$urlPattern = "~^
 				(https?://|//)?       # protocol (optional)
-				(([\w-]+:)?([\w-]+)@)?    # basic auth
-				([\w-\.]+?)               # hostname or ip address
+				(([\w\-]+:)?([\w\-]+)@)?    # basic auth
+				([\w\-\.]+?)               # hostname or ip address
 				(:[0-9]+)?                # a port (optional)
 				(/?|/\S+|\?\S*|\#\S*)   # a /, nothing, a / with something, a query or a fragment
 			$~ixu";

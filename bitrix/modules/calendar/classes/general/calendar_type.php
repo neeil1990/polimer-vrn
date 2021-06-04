@@ -1,4 +1,6 @@
 <?
+use Bitrix\Main\Loader;
+
 class CCalendarType
 {
 	private static
@@ -50,9 +52,9 @@ class CCalendarType
 				$filter_keys = array_keys($arFilter);
 				for($i=0, $l = count($filter_keys); $i<$l; $i++)
 				{
-					$n = strtoupper($filter_keys[$i]);
+					$n = mb_strtoupper($filter_keys[$i]);
 					$val = $arFilter[$filter_keys[$i]];
-					if(is_string($val) && strlen($val) <= 0)
+					if(is_string($val) && $val == '')
 						continue;
 					if ($n == 'XML_ID')
 					{
@@ -81,10 +83,10 @@ class CCalendarType
 
 			$strOrderBy = '';
 			foreach($arOrder as $by=>$order)
-				if(isset($arFields[strtoupper($by)]))
-					$strOrderBy .= $arFields[strtoupper($by)]["FIELD_NAME"].' '.(strtolower($order) == 'desc' ? 'desc' : 'asc').',';
+				if(isset($arFields[mb_strtoupper($by)]))
+					$strOrderBy .= $arFields[mb_strtoupper($by)]["FIELD_NAME"].' '.(mb_strtolower($order) == 'desc' ? 'desc' : 'asc').',';
 
-			if(strlen($strOrderBy) > 0)
+			if($strOrderBy <> '')
 				$strOrderBy = "ORDER BY ".rtrim($strOrderBy, ",");
 
 			$strSqlSearch = GetFilterSqlSearch($arSqlSearch);
@@ -233,7 +235,7 @@ class CCalendarType
 
 		foreach($arTaskPerm as $accessCode => $taskId)
 		{
-			$arInsert = $DB->PrepareInsert("b_calendar_access", array("ACCESS_CODE" => $accessCode, "TASK_ID" => intVal($taskId), "SECT_ID" => $type));
+			$arInsert = $DB->PrepareInsert("b_calendar_access", array("ACCESS_CODE" => $accessCode, "TASK_ID" => intval($taskId), "SECT_ID" => $type));
 			$strSql = "INSERT INTO b_calendar_access(".$arInsert[0].") VALUES(".$arInsert[1].")";
 			$DB->Query($strSql , false, "File: ".__FILE__."<br>Line: ".__LINE__);
 		}
@@ -271,7 +273,13 @@ class CCalendarType
 		if ((!$USER || !is_object($USER)) || $USER->CanDoOperation('edit_php'))
 			return true;
 
+		if (!$userId)
+			$userId = CCalendar::GetCurUserId();
+
 		if (($xmlId == 'group' || $xmlId == 'user' || CCalendar::IsBitrix24()) && CCalendar::IsSocNet() && CCalendar::IsSocnetAdmin())
+			return true;
+
+		if (CCalendar::IsBitrix24() && Loader::includeModule('bitrix24') && \CBitrix24::isPortalAdmin($userId))
 			return true;
 
 		return in_array($operation, self::GetOperations($xmlId, $userId));

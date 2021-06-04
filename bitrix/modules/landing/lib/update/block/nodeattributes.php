@@ -1,5 +1,4 @@
-<?
-
+<?php
 namespace Bitrix\Landing\Update\Block;
 
 
@@ -20,7 +19,7 @@ final class NodeAttributes extends Stepper
 	const STOP_EXECUTING = false;
 	const OPTION_NAME = 'blocks_attrs_update';
 	const OPTION_STATUS_NAME = 'blocks_attrs_update_status';
-	const STEP_PORTION = 10;    //count of block CODES to step
+	const STEP_PORTION = 1;    //count of block CODES to step
 	
 	protected static $moduleId = 'landing';
 	protected $dataToUpdate = array();
@@ -47,9 +46,15 @@ final class NodeAttributes extends Stepper
 			$params = array();
 			foreach (Option::getForModule('landing') as $key => $option)
 			{
-				if (strpos($key, self::OPTION_NAME) === 0 && $key != self::OPTION_STATUS_NAME)
+				if (mb_strpos($key, self::OPTION_NAME) === 0 && $key != self::OPTION_STATUS_NAME)
 				{
 					$option = ($option !== '' ? @unserialize($option) : array());
+					
+					if(!isset($option['BLOCKS']))
+					{
+						Option::delete('landing', array('name' => $key));
+						continue;
+					}
 
 //					save params
 					$params[$key] = $option['PARAMS'];
@@ -87,7 +92,7 @@ final class NodeAttributes extends Stepper
 			$this->status['UPDATER_ID'] = '';
 			$this->status['PARAMS'] = $params;
 			
-			Option::set('landing', self::OPTION_STATUS_NAME, $this->status);
+			Option::set('landing', self::OPTION_STATUS_NAME, serialize($this->status));
 		}
 	}
 	
@@ -122,14 +127,9 @@ final class NodeAttributes extends Stepper
 	
 	public function execute(array &$result)
 	{
-//		dbg
-//		self::log('UPDATER START');
 //		nothing to update
 		$this->loadCurrentStatus();
 
-//		dbg
-		self::log('UPDATER START', $this->status);
-		
 		if (!$this->status['COUNT'])
 		{
 			self::finish();
@@ -140,9 +140,6 @@ final class NodeAttributes extends Stepper
 //		find option. If nothing - we update all
 		$this->status['UPDATER_ID'] = $this->getUpdaterUniqueId();
 
-//		dbg
-//		self::log('unique id', $this->status['UPDATER_ID']);
-		
 		if (!$this->status['UPDATER_ID'])
 		{
 			self::finish();
@@ -158,9 +155,6 @@ final class NodeAttributes extends Stepper
 			$this->finishOption();
 		}
 
-//		dbg
-		self::log('UPDATER before CONTINUE (status)', $this->status);
-		
 		$result['count'] = $this->status['COUNT'];
 		$result['steps'] = $this->status['STEPS'];
 		
@@ -173,9 +167,6 @@ final class NodeAttributes extends Stepper
 	 */
 	private static function finish()
 	{
-//		dbg
-		self::log('UPDATER FINISH');
-		
 		self::clearOptions();
 		self::removeCustomEvents();
 	}
@@ -190,7 +181,7 @@ final class NodeAttributes extends Stepper
 	{
 		foreach (Option::getForModule('landing') as $key => $option)
 		{
-			if (strpos($key, self::OPTION_NAME) === 0)
+			if (mb_strpos($key, self::OPTION_NAME) === 0)
 			{
 				Option::delete('landing', array('name' => $key));
 			}
@@ -210,15 +201,8 @@ final class NodeAttributes extends Stepper
 	
 	private function collectBlocks()
 	{
-//		dbg
-//		self::log('');
-		
 		$this->dataToUpdate = Option::get(self::$moduleId, $this->getOptionName());
 		$this->dataToUpdate = ($this->dataToUpdate !== '' ? @unserialize($this->dataToUpdate) : array());
-
-//		dbg
-		self::log('data to update collected', $this->dataToUpdate);
-		
 		$this->codesToStep = array_unique(array_keys($this->dataToUpdate['BLOCKS']));
 		$this->codesToStep = array_slice($this->codesToStep, 0, self::STEP_PORTION);
 
@@ -266,25 +250,17 @@ final class NodeAttributes extends Stepper
 //			save sites ID for current blocks to reset cache later
 			$this->sitesToUpdate[$row['ID']] = $row['SITE_ID'];
 		}
-
-//		dbg
-//		self::log('blocks to update are found');
 	}
-	
+
 	
 	private function processBlocks()
 	{
-//		dbg
-		self::log('process blocks start');
-		
 		$this->collectBlocks();
 		
 		foreach ($this->blocksToUpdate as $code => $blocks)
 		{
 			foreach ($blocks as $block)
 			{
-//				dbg
-//				self::log('update BLOCK BEFORE (check exist data)', array('code' => $code));
 				if (is_array($this->dataToUpdate['BLOCKS'][$code]) && !empty($this->dataToUpdate['BLOCKS'][$code]))
 				{
 					$this->updateBlock($block);
@@ -308,26 +284,9 @@ final class NodeAttributes extends Stepper
 	
 	private function updateBlock(Block $block)
 	{
-//		dbg
-		self::log('update BLOCK START', array(
-			'code' => $block->getCode(),
-			'id' => $block->getId(),
-			'dataToUpdate' => $this->dataToUpdate['BLOCKS'][$block->getCode()],
-		));
-		
 		$code = $block->getCode();
 		$doc = $block->getDom();
 
-//		save to journal
-		$eventLog = new \CEventLog;
-		$eventLog->Add(array(
-			"SEVERITY" => $eventLog::SEVERITY_SECURITY,
-			"AUDIT_TYPE_ID" => 'LANDING_BLOCK_BEFORE_UPDATE',
-			"MODULE_ID" => "landing",
-			"ITEM_ID" => 'landing_block_' . $block->getId(),
-			"DESCRIPTION" => $doc->getInnerHTML(),
-		));
-		
 		foreach ($this->dataToUpdate['BLOCKS'][$code]['NODES'] as $selector => $rules)
 		{
 			$resultList = $doc->querySelectorAll($selector);
@@ -459,7 +418,7 @@ final class NodeAttributes extends Stepper
 				{
 					$innerHtml = $resultNode->getInnerHTML();
 					$innerHtml = preg_replace($rules['REPLACE_CONTENT']['regexp'], $rules['REPLACE_CONTENT']['replace'], $innerHtml);
-					if(strlen($innerHtml) > 0)
+					if($innerHtml <> '')
 					{
 						$resultNode->setInnerHTML($innerHtml);
 					}
@@ -513,9 +472,6 @@ final class NodeAttributes extends Stepper
 				}
 			}
 		}
-
-//		dbg
-//		self::log('update block before save content');
 		$block->saveContent($doc->saveHTML());
 
 //		updates COMPONENTS params
@@ -533,8 +489,6 @@ final class NodeAttributes extends Stepper
 			$this->dataToUpdate['BLOCKS'][$code]['CLEAR_PHP'] == 'Y'
 		)
 		{
-//			dbg
-			self::log('update block before clear PHP');
 			$content = $block->getContent();
 			$content = preg_replace('/<\?.*\?>/s', '', $content);
 			$block->saveContent($content);
@@ -546,28 +500,15 @@ final class NodeAttributes extends Stepper
 			is_numeric($this->dataToUpdate['BLOCKS'][$code]['SET_SORT'])
 		)
 		{
-//			dbg
-			self::log('update block before set sort');
 			$block->setSort($this->dataToUpdate['BLOCKS'][$code]['SET_SORT']);
 		}
 
-//		dbg
-//		self::log('update block before save');
 		$block->save();
-
-//		dbg
-		self::log('update BLOCK FINISH', array('code' => $block->getCode()));
 	}
 	
 	
 	private function finishStep()
 	{
-//		dbg
-		self::log('finish STEP (codes to step)', array(
-			'codesToStep' => $this->codesToStep,
-			'status' => $this->status,
-		));
-
 //		processed blocks must be removed from data
 		foreach ($this->codesToStep as $code)
 		{
@@ -583,17 +524,11 @@ final class NodeAttributes extends Stepper
 //		clean cloud sites cache only if needed
 		$this->updateSites();
 
-//		dbg
-//		self::log('UPDATER FINISH OPTION before', array('optionName' => $this->getOptionName()));
-
 //		finish current updater id, try next
 		Option::delete('landing', array('name' => $this->getOptionName()));
 		$this->status['SITES_TO_UPDATE'] = array();
 		$this->status['UPDATER_ID'] = '';
 		Option::set('landing', self::OPTION_STATUS_NAME, serialize($this->status));
-
-//		dbg
-		self::log('UPDATER FINISH OPTION', array('optionName' => $this->getOptionName(), 'status' => $this->status));
 	}
 	
 	
@@ -694,135 +629,32 @@ final class NodeAttributes extends Stepper
 	
 	/**
 	 * Update form domain, when updated b24 connector
-	 * F.e., when user remove and new portal
-	 * Other method, because different params
-	 *
 	 * @param Event $event
+	 * @deprecated
 	 */
 	public static function updateFormDomainByConnector($event)
 	{
-		self::updateFormDomain();
+		trigger_error(
+			"Now using embedded forms, no need domain. You must remove updateFormDomainByConnector() call",
+			E_USER_WARNING
+		);
 	}
 	
 	/**
 	 * Set data for NodeUpdater to updating form domain
 	 *
 	 * @param array $domains
-	 * @throws \Bitrix\Main\ArgumentException
-	 * @throws \Bitrix\Main\ArgumentNullException
-	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
-	 * @throws \Bitrix\Main\ObjectPropertyException
-	 * @throws \Bitrix\Main\SystemException
+	 * @deprecated
 	 */
 	public static function updateFormDomain($domains = array())
 	{
-//		method may call from event or manual
-		if (is_array($domains) && $domains['new_domain'])
-		{
-			$newDomain = $domains['new_domain'];
-		}
-		else
-		{
-			$newDomain = Form::getOriginalFormDomain();
-		}
-
-//		something wrong
-		if (!$newDomain)
-		{
-			return;
-		}
-
-//		find all CRM FORM blocks
-		$toUpdater = array(
-			'PARAMS' => array(
-				'UPDATE_PUBLISHED_SITES' => 'Y',
-				'BLOCKS' => array(),
-			),
+		trigger_error(
+			"Now using embedded forms, no need domain. You must remove updateFormDomain() call",
+			E_USER_WARNING
 		);
-
-//		collect form blocks by content
-		$resBlock = BlockTable::getList(array(
-			'filter' => array(
-				'DELETED' => 'N',
-				'%=CONTENT' => '%data-b24form-original-domain%',
-			),
-			'select' => array('ID', 'CODE'),
-		));
-		foreach ($resBlock as $block)
-		{
-			$toUpdater['BLOCKS'][$block['CODE']] = array(
-				'NODES' => array(
-					'.bitrix24forms ' => array(
-						'ATTRS_ADD' => array('data-b24form-original-domain' => $newDomain),
-					),
-				),
-			);
-		}
-
-//		register UPDATER
-		$updaterUniqueId = time();
-		while (true)
-		{
-			if (\Bitrix\Main\Config\Option::get('landing', self::OPTION_NAME . $updaterUniqueId) == '')
-			{
-				break;
-			}
-			$updaterUniqueId++;
-		}
-		\Bitrix\Main\Config\Option::set('landing', self::OPTION_NAME . $updaterUniqueId, serialize($toUpdater));
-		\Bitrix\Main\Update\Stepper::bindClass('\Bitrix\Landing\Update\Block\NodeAttributes', 'landing', 10);
 	}
-	
+
 	/**
-	 * Do nothing for fix bug.
-	 * @return string
-	 */
-//	dbg: try to fix. May del this
-//	public static function execAgent()
-//	{
-//		return '';
-//	}
-	
-	/**
-	 * @param $name
-	 * @param array $data
-	 * @throws \Bitrix\Main\Db\SqlQueryException
-	 *
-	 * @return void
-	 */
-	private static function log($name, $data = array())
-	{
-//		only for clouds
-		if (!Manager::isB24())
-		{
-			return;
-		}
-		
-		$data = serialize($data);
-		
-		$connection = \Bitrix\Main\Application::getConnection();
-		if (!$connection->isTableExists('b_landing_nodeupdater_log'))
-		{
-			$connection->query("
-				CREATE TABLE `b_landing_nodeupdater_log` (
-				  `ID` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-				  `NAME` varchar(255) NULL,
-				  `DATA` text NULL,
-				  `DATE` timestamp NULL DEFAULT NOW()
-				);
-			");
-			
-		}
-		$name = $connection->getSqlHelper()->forSql($name);
-		$data = $connection->getSqlHelper()->forSql($data);
-		$query = "INSERT INTO `b_landing_nodeupdater_log` (`NAME`, `DATA`) VALUES ('$name', '$data');";
-		$dbRes = $connection->query($query);
-	}
-	
-	
-	/**
-	 * Code for updater.php see in landing/dev/updater
+	 * Code for updater.php see in landing/dev/updater/nodeattributesupdaters.pph
 	 */
 }
-
-?>

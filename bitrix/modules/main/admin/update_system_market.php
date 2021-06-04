@@ -25,19 +25,19 @@ if(in_array(LANGUAGE_ID, array("ru", "ua", "bg")))
 	$show = "all";
 	$moduleCode = "";
 
-	if(strlen($_REQUEST["show"]) > 0 && in_array($_REQUEST["show"], $arShow))
+	if($_REQUEST["show"] <> '' && in_array($_REQUEST["show"], $arShow))
 		$show = $_REQUEST["show"];
-	elseif(strlen($_SESSION["mp_show"]) > 0 && in_array($_SESSION["mp_show"], $arShow))
+	elseif($_SESSION["mp_show"] <> '' && in_array($_SESSION["mp_show"], $arShow))
 		$show = $_SESSION["mp_show"];
 
-	if(strlen($_REQUEST["sort"]) > 0 && in_array($_REQUEST["sort"], $arSort))
+	if($_REQUEST["sort"] <> '' && in_array($_REQUEST["sort"], $arSort))
 		$sort = $_REQUEST["sort"];
-	elseif(strlen($_SESSION["mp_sort"]) > 0 && in_array($_SESSION["mp_sort"], $arSort))
+	elseif($_SESSION["mp_sort"] <> '' && in_array($_SESSION["mp_sort"], $arSort))
 		$sort = $_SESSION["mp_sort"];
 
 	if(intval($_REQUEST["category"]) > 0)
 		$category = intval($_REQUEST["category"]);
-	if(strlen($_REQUEST["module"]) > 0)
+	if($_REQUEST["module"] <> '')
 	{
 		$moduleCode = $_REQUEST["module"];
 		$moduleCode = preg_replace("/[^a-zA-Z0-9.]/is", "", $moduleCode);
@@ -95,7 +95,7 @@ else
 	{
 		foreach($arClientModules as $k => $v)
 		{
-			if(strpos($k, ".") !== false)
+			if(mb_strpos($k, ".") !== false)
 				$m[htmlspecialcharsbx($k)] = $v["IS_DEMO"];
 		}
 	}
@@ -103,11 +103,11 @@ else
 	$url = "solutions/";
 	if(intval($category) > 0)
 		$url = "solutions/category/".intval($category)."/";
-	if(strlen($_REQUEST["search_mp"]) > 0)
+	if($_REQUEST["search_mp"] <> '')
 	{
 		$url = "search/";
 	}
-	if(strlen($moduleCode) > 0)
+	if($moduleCode <> '')
 	{
 		$url = "solutions/".htmlspecialcharsbx($moduleCode)."/";
 	}
@@ -145,8 +145,8 @@ else
 
 	if(intval($_REQUEST["PAGEN_1"]) > 0)
 		$arFields["PAGEN_1"] = intval($_REQUEST["PAGEN_1"]);
-	if(strlen($_REQUEST["search_mp"]) > 0)
-		$arFields["q"] = $APPLICATION->ConvertCharset(htmlspecialcharsbx($_REQUEST["search_mp"]), SITE_CHARSET, "windows-1251");
+	if($_REQUEST["search_mp"] <> '')
+		$arFields["q"] = \Bitrix\Main\Text\Encoding::convertEncoding(htmlspecialcharsbx($_REQUEST["search_mp"]), SITE_CHARSET, "windows-1251");
 
 	$getData = "";
 	if (is_array($arFields))
@@ -162,10 +162,9 @@ else
 				$getData .= urlencode($k).'='.urlencode($v)."&";
 		}
 	}
-	// $getData = $APPLICATION->ConvertCharset($getData, SITE_CHARSET, "windows-1251");
 
 	$sectionName = GetMessage("USM_ALL");
-	if(strlen($_REQUEST["search_mp"]) > 0)
+	if($_REQUEST["search_mp"] <> '')
 		$sectionName = GetMessage("USM_SEARCH");
 	
 	$arModules = array();
@@ -173,7 +172,7 @@ else
 	{
 		if(in_array($ht->status, array("200")))
 		{
-			$res = $APPLICATION->ConvertCharset($res, "windows-1251", SITE_CHARSET);
+			$res = \Bitrix\Main\Text\Encoding::convertEncoding($res, "windows-1251", SITE_CHARSET);
 
 			require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/classes/general/xml.php");
 			$objXML = new CDataXML();
@@ -185,7 +184,7 @@ else
 				if(!empty($arResult["modules"]["#"]))
 				{
 					$arModules = $arResult["modules"]["#"]["items"][0]["#"]["item"];
-					if(strlen($arResult["modules"]["#"]["categoryName"][0]["#"]) > 0)
+					if($arResult["modules"]["#"]["categoryName"][0]["#"] <> '')
 						$sectionName = $arResult["modules"]["#"]["categoryName"][0]["#"];
 				}
 			}
@@ -220,9 +219,9 @@ else
 			</div>
 			<div class="mp-list-div">
 				<?
-				if(count($arModules) > 0)
+				if(is_array($arModules) && count($arModules) > 0)
 				{
-					if(strlen($moduleCode) <=0)
+					if($moduleCode == '')
 					{
 						$inRow = 0;
 						?>
@@ -290,7 +289,7 @@ else
 						}
 						$arM["canDemo"] = (($arM["freeModule"] == "D" && $arM["installed"] != "Y") ? "Y" : "N");
 
-						if(strlen($moduleCode) <=0)
+						if($moduleCode == '')
 						{
 							if($inRow++%3==0)
 							{
@@ -388,7 +387,7 @@ else
 									</div>
 									<div class="mp-item">
 										<p class="mp-title"><?=GetMessage("USM_DEVELOPER")?></p>
-										<p><?if(strlen($arM["partner"]["href"]) > 0):?>
+										<p><?if($arM["partner"]["href"] <> ''):?>
 											<a href="<?=htmlspecialcharsbx($arM["partner"]["href"])?>" target="_blank"><?=htmlspecialcharsbx($arM["partner"]["name"])?></a>
 											<?else:?>
 												<?=htmlspecialcharsbx($arM["partner"]["name"])?>
@@ -399,7 +398,7 @@ else
 										<p class="mp-title"><?=GetMessage("USM_DATE_ADD")?></p>
 										<p><?=$arM["date"]?></p>
 									</div>
-									<?if(strlen($arM["version"]) > 0):?>
+									<?if($arM["version"] <> ''):?>
 										<div class="mp-item">
 											<p class="mp-title"><?=GetMessage("USM_VERSION")?></p>
 											<p><?=$arM["version"]?></p>
@@ -460,7 +459,7 @@ else
 												?><a href="<?=$arM["urlInstall"]?>" target="_blank" class="adm-btn"><?=GetMessage("USM_TEST")?></a><?
 											}
 										}
-										if(strlen($arM["demoLink"]) > 0)
+										if($arM["demoLink"] <> '')
 										{
 											?><a class="adm-btn" href="<?=htmlspecialcharsbx($arM["demoLink"])?>" target="_blank"><?=GetMessage("USM_ONLINE_DEMO")?></a><?
 										}
@@ -511,7 +510,7 @@ else
 									if(!empty($arM["action"]))
 									{
 										$tabControl1->BeginNextTab();
-										if(strlen($arM["action"]["descr"]) > 0)
+										if($arM["action"]["descr"] <> '')
 											echo "<div>".$arM["action"]["descr"]."</div>";
 										echo $arM["action"]["date"];
 									}
@@ -779,7 +778,7 @@ else
 						}
 					}
 
-					if(strlen($moduleCode) <=0)
+					if($moduleCode == '')
 					{
 						if($inRow !=0 || $inRow!=3)
 						{
@@ -799,9 +798,9 @@ else
 	</div>
 	<?
 
-	if(strlen($arResult["modules"]["#"]["navData"][0]["#"]) > 0)
+	if($arResult["modules"]["#"]["navData"][0]["#"] <> '')
 	{
-		$dat = unserialize($arResult["modules"]["#"]["navData"][0]["#"]);
+		$dat = unserialize($arResult["modules"]["#"]["navData"][0]["#"], ['allowed_classes' => false]);
 		if(intval($dat["NavPageCount"]) > 1)
 		{
 			$dbRes = new CDBResult;
@@ -825,7 +824,7 @@ else
 		die();
 	}
 
-	if($_REQUEST["instadm"] == "Y" && check_bitrix_sessid() && strlen($moduleCode) > 0 && !empty($arM))
+	if($_REQUEST["instadm"] == "Y" && check_bitrix_sessid() && $moduleCode <> '' && !empty($arM))
 	{
 		CAdminNotify::Add(array(
 		    'MODULE_ID' => 'main',

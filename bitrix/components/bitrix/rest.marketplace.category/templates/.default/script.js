@@ -5,94 +5,174 @@ BX.namespace("BX.Rest.Markeplace.Category");
 BX.Rest.Markeplace.Category = {
 	init: function (params)
 	{
-		if (typeof params === "object" && params)
-		{
-			this.ajaxPath = params.ajaxPath || "";
-			this.pageCount = Number(params.pageCount) || "";
-			this.currentPage = Number(params.currentPage) || "";
-			this.filterId = params.filterId || "";
-		}
+		this.signedParameters = params.signedParameters || {};
+		this.filterId = params.filterId;
 
-		if (BX.type.isDomNode(BX("mp-more-button")))
+		this.leftMenuItems = BX.findChildren(BX("mp-left-menu"), {attribute : {"bx-role" : "mp-left-menu-item"}}, true);
+
+		if (BX('mp-top-menu'))
 		{
-			BX.bind(BX("mp-more-button"), "click", function () {
-				this.loadPage();
-			}.bind(this));
+			var items = BX.findChildren(BX("mp-top-menu"), {tagName : "A"}, true), i;
+			for (i = 0; i <= items.length; i++)
+			{
+				items[i].href = BX.util.add_url_param(items[i].href, {"IFRAME" : "Y"});
+			}
 		}
+		this.initEvents();
+		BX.Rest.Markeplace.Category.Page = this;
 	},
 
 	initEvents: function()
 	{
-		BX.addCustomEvent('BX.Main.Filter:apply', this.onApplyFilter);
+		BX.addCustomEvent('BX.Main.Filter:apply', this.onApplyFilter.bind(this));
+		BX.addCustomEvent('BX.Main.Filter:clickMPMenu', this.clickMPMenu.bind(this));
+		BX.addCustomEvent('BX.Main.Filter:clickMPAllLink', this.clickMPAllLink.bind(this));
 	},
+	clickMPAllLink : function(nodeMenu)
+	{
+		var Filter = BX.Main.filterManager.getById(this.filterId);
+		if (!(Filter instanceof BX.Main.Filter))
+		{
+			return;
+		}
 
+		var role = nodeMenu.getAttribute("data-role");
+		var FilterApi = Filter.getApi();
+
+		if (role === 'sale-out')
+		{
+			FilterApi.setFields({ SALE_OUT : 'Y'});
+		}
+
+		FilterApi.apply();
+	},
+	clickMPMenu : function(nodeMenu)
+	{
+		var Filter = BX.Main.filterManager.getById(this.filterId);
+		if (!(Filter instanceof BX.Main.Filter))
+		{
+			return;
+		}
+
+		var category = nodeMenu.getAttribute("bx-mp-left-menu-item");
+		var FilterApi = Filter.getApi();
+		FilterApi.setFields({ CATEGORY : category});
+		Filter.__marketplaceFilter = {
+			filterMode : nodeMenu.getAttribute("bx-filter-mode"),
+			filterValue : nodeMenu.getAttribute("bx-filter-value")
+		};
+
+		FilterApi.apply();
+	},
 	onApplyFilter: function (id, data, ctx, promise, params)
 	{
-		if (id !== BX.Rest.Markeplace.Category.filterId)
+		if (id !== this.filterId)
+		{
 			return;
+		}
 
+		if (this.leftMenuItems && this.leftMenuItems.length > 0)
+		{
+			var item, activeItem = ctx.getFilterFieldsValues()["CATEGORY"], i;
+			for (i = 0; i < this.leftMenuItems.length; i++)
+			{
+				item = this.leftMenuItems[i];
+				if (item.getAttribute("bx-mp-left-menu-item") != activeItem)
+					BX.removeClass(item.parentNode, "ui-sidepanel-menu-active");
+				else if (!BX.hasClass(item.parentNode, "ui-sidepanel-menu-active"))
+					BX.addClass(item.parentNode, "ui-sidepanel-menu-active");
+			}
+		}
 		params.autoResolve = false;
-
+		this.reloadPage(ctx.__marketplaceFilter, promise);
+		delete ctx.__marketplaceFilter;
+	},
+	reloadPage : function(filter, promise)
+	{
 		var loader = new BX.Loader({
 			target: BX("mp-category-block"),
 			offset: {top: "150px"}
 		});
+
 		loader.show();
 
-		BX.ajax({
-			method: 'POST',
-			dataType: 'html',
-			url: BX.Rest.Markeplace.Category.ajaxPath,
-			data: {
-				action: "setFilter",
-				sessid: BX.bitrix_sessid()
-			},
-			onsuccess: BX.proxy(function (html) {
-				BX("mp-category-block").innerHTML = html;
+		BX.ajax.runComponentAction(
+			"bitrix:rest.marketplace.category",
+			"getPage",
+			{
+				mode: "class",
+				data: filter,
+				signedParameters: this.signedParameters
+			}).then(
+			function(data)
+			{
+				var ob = BX.processHTML(data.data, false);
+				BX("mp-category-block").innerHTML = ob.HTML;
+				setTimeout(BX.ajax.processScripts, 500, ob.SCRIPT);
 				loader.hide();
-
-				promise.fulfill();
-			}, this),
-			onfailure: function () {
-				promise.reject();
+				if (promise)
+				{
+					promise.fulfill();
+				}
+			},
+			function()
+			{
+				loader.hide();
+				if (promise)
+				{
+					promise.reject();
+				}
 			}
+		);
+	}
+};
+BX.Rest.Markeplace.Category.Items = {
+	init: function (params)
+	{
+		this.pageCount = Number(params.pageCount);
+		this.currentPageNumber = Number(params.currentPageNumber);
+		this.filter = params.filter || {};
 
-		});
+		if (BX.type.isDomNode(BX("mp-more-button")))
+		{
+			BX.bind(BX("mp-more-button"), "click", function () { this.loadPage(); }.bind(this));
+		}
 	},
 
 	loadPage: function ()
 	{
-		if (this.pageCount <= this.currentPage)
+		if (this.pageCount <= this.currentPageNumber)
+		{
 			return;
+		}
 
 		BX.addClass(BX("mp-more-button"), "ui-btn-clock");
 
-		var url = this.ajaxPath;
-		url += ((this.ajaxPath.indexOf("?") === -1) ? "?" : "&") + "nav-apps=page-" + ++this.currentPage;
-
-		BX.ajax({
-			method: 'POST',
-			dataType: 'json',
-			url: url,
-			data: {
-				action: "loadPage",
-				sessid: BX.bitrix_sessid()
-			},
-			onsuccess: BX.proxy(function (json)
+		BX.ajax.runComponentAction(
+			"bitrix:rest.marketplace.category",
+			"getNextPage",
 			{
-				for (var item in json)
+				mode: "class",
+				data: this.filter,
+				navigation : {page : (++this.currentPageNumber)},
+				signedParameters: BX.Rest.Markeplace.Category.Page.signedParameters
+			}).then(
+			function(data)
+			{
+				for (var item in data.data)
 				{
-					if(json.hasOwnProperty(item))
-						window.gridTile.appendItem(json[item]);
+					if (data.data.hasOwnProperty(item))
+					{
+						window.gridTile.appendItem(data.data[item]);
+					}
 				}
-
 				BX.removeClass(BX("mp-more-button"), "ui-btn-clock");
-				if (this.pageCount === this.currentPage)
+				if (this.pageCount === this.currentPageNumber)
 				{
 					BX.remove(BX("mp-more-button"));
 				}
-			}, this)
-		});
+			}.bind(this)
+		);
 	}
 };
 
@@ -111,16 +191,23 @@ BX.Rest.Marketplace.TileGrid.Item = function(options)
 
 	this.title = options.NAME;
 	this.developer = options.PARTNER_NAME;
+	this.shortDesc = options.SHORT_DESC;
+	this.secondaryDesc = options.SECONDARY_DESC;
 	this.image = options.ICON;
+	this.onclick = options.ONCLICK;
+	this.feedback = options.FEEDBACK === 'Y';
 	this.layout = {
 		container: null,
+		secondaryDesc: null,
 		image: null,
+		labels: null,
 		title: null,
 		clipTitle: null,
 		company: null,
 		controls: null,
 		buttonAction: null,
-		price: null
+		price: null,
+		feedback: null
 	};
 	this.currency = options.currency;
 	this.period = options.period;
@@ -130,6 +217,7 @@ BX.Rest.Marketplace.TileGrid.Item = function(options)
 	this.installed = options.INSTALLED === "Y";
 	this.url = options.URL;
 	this.promo = options.PROMO === "Y";
+	this.labels = options.LABELS;
 	this.recommended = options.recommended;
 	this.top = options.top;
 };
@@ -144,11 +232,26 @@ BX.Rest.Marketplace.TileGrid.Item.prototype =
 		if(this.layout.container)
 			return this.layout.container;
 
+		if(this.feedback)
+		{
+			this.getFeedbackContent();
+		}
+		else
+		{
+			this.getApplicationContent();
+		}
+
+		return this.layout.container;
+	},
+
+	getApplicationContent: function()
+	{
 		this.layout.container = BX.create('div', {
 			props: {
 				className: 'mp-item'
 			},
 			children: [
+				this.getLabels(),
 				this.getImage(),
 				BX.create('div', {
 					props: {
@@ -156,15 +259,43 @@ BX.Rest.Marketplace.TileGrid.Item.prototype =
 					},
 					children: [
 						this.getTitle(),
-						this.getDeveloper(),
+						this.getDesc(),
 						this.getControls()
 					]
 				}),
 				this.getStatus()
 			]
 		});
+	},
 
-		return this.layout.container;
+	getFeedbackContent: function()
+	{
+		this.layout.container = BX.create('div', {
+			props: {
+				className: 'mp-item mp-fb-item'
+			},
+			children: [
+				BX.create('div', {
+					props: {
+						className: 'mp-item-fb-content'
+					},
+					children: [
+						this.getTitle(),
+						this.getDesc(),
+						this.getSecondaryDesc()
+					]
+				}),
+				BX.create('div', {
+					props: {
+						className: 'mp-item-aside'
+					},
+					children: [
+						this.getImage(),
+						this.getControls()
+					]
+				}),
+			]
+		});
 	},
 
 	getStatus: function()
@@ -258,10 +389,78 @@ BX.Rest.Marketplace.TileGrid.Item.prototype =
 		return this.layout.image;
 	},
 
+	getLabels: function()
+	{
+		if (this.layout.labels !== null)
+			return this.layout.labels;
+		this.layout.labels = "";
+		if (BX.type.isArray(this.labels))
+		{
+			var i, j, res = [], color;
+			for (j = 0; j < Math.min(this.labels.length, 5); j++)
+			{
+				i = this.labels[j];
+				i["COLOR"] = BX.type.isNotEmptyString(i["COLOR"]) ? i["COLOR"] : "";
+				res.push(BX.create('div', {
+					props: {
+						className: 'mp-badge-ribbon-box' + (i["COLOR"] !== "" && i["COLOR"].substring(0, 1) !== "#" ? (" mp-badge-ribbon-box-" + i["COLOR"]) : "")
+					},
+					children: [
+						BX.create('span', {
+							props: {
+								className: 'mp-badge-ribbon-item',
+							},
+							style : (i["COLOR"].substring(0, 1) === "#" ? {backgroundColor : i["COLOR"]} : {}),
+							children: [
+								BX.create('textNode', {
+									text: i["TEXT"]}),
+								BX.create('span', {
+									props: {
+										className: 'mp-badge-ribbon-item-after'
+									},
+									style : (i["COLOR"].substring(0, 1) === "#" ? {borderColor : [i["COLOR"], 'transparent', i["COLOR"], i["COLOR"]].join(' ')} : {})
+								})
+							]
+						})
+					]
+				}));
+			}
+			if (res.length > 0)
+			{
+				this.layout.labels = BX.create('div', {
+					props: {
+						className: 'mp-badge-ribbon-wrap'
+					},
+					children: res
+				});
+			}
+		}
+		return this.layout.labels;
+	},
+
+	getClickEvent: function()
+	{
+		if (!!this.onclick && this.onclick !== '')
+		{
+			return new Function('', this.onclick);
+		}
+		else
+		{
+			return BX.delegate(
+				function () {
+					BX.SidePanel.Instance.open(this.url);
+				},
+				this
+			);
+		}
+	},
+
 	getTitle: function()
 	{
-		if(this.layout.title)
+		if (this.layout.title)
+		{
 			return this.layout.title;
+		}
 
 		this.layout.title = BX.create('div', {
 			props: {
@@ -273,30 +472,55 @@ BX.Rest.Marketplace.TileGrid.Item.prototype =
 				})
 			],
 			events: {
-				click: function ()
-				{
-					BX.SidePanel.Instance.open(this.url);
-				}.bind(this)
+				click: this.getClickEvent()
 			}
 		});
 
 		return this.layout.title;
 	},
 
-	getDeveloper: function()
+	getDesc: function()
 	{
-		if(this.layout.developer)
-			return this.layout.developer;
+		if(this.layout.desc)
+			return this.layout.desc;
 
-		this.layout.developer = BX.create('div', {
+		this.layout.desc = BX.create('div', {
 			props: {
 				className: 'mp-item-developer'
 			},
-			text: this.developer
+			text: this.shortDesc ? this.shortDesc : this.developer
 		});
 
-		return this.layout.developer;
+		return this.layout.desc;
 	},
+
+	getSecondaryDesc: function()
+	{
+		if(this.layout.secondaryDesc)
+			return this.layout.secondaryDesc;
+
+		this.layout.secondaryDesc = BX.create('div', {
+			props: {
+				className: 'mp-item-desc-box'
+			},
+			children: [
+				BX.create('div', {
+					props: {
+						className: 'mp-item-desc'
+					},
+					text: this.secondaryDesc
+				}),
+				BX.create('div', {
+					props: {
+						className: 'mp-item-desc-icon'
+					}
+				})
+			]
+		});
+
+		return this.layout.secondaryDesc;
+	},
+
 
 	getControls: function()
 	{
@@ -315,24 +539,11 @@ BX.Rest.Marketplace.TileGrid.Item.prototype =
 			children: [
 				this.layout.buttonAction = BX.create('div', {
 					props: {
-						className: 'ui-btn ui-btn-xs ui-btn-light-border ui-btn-round'
+						className: 'ui-btn ui-btn-xs ui-btn-secondary ui-btn-round'
 					},
 					text: this.action,
 					events: {
-						mouseenter: function()
-						{
-							BX.removeClass(this.layout.buttonAction, 'ui-btn ui-btn-xs ui-btn-light-border ui-btn-round');
-							BX.addClass(this.layout.buttonAction, 'ui-btn ui-btn-xs ui-btn-primary ui-btn-hover ui-btn-round')
-						}.bind(this),
-						mouseleave: function()
-						{
-							BX.removeClass(this.layout.buttonAction, 'ui-btn ui-btn-xs ui-btn-primary ui-btn-hover ui-btn-round');
-							BX.addClass(this.layout.buttonAction, 'ui-btn ui-btn-xs ui-btn-light-border ui-btn-round');
-						}.bind(this),
-						click: function ()
-						{
-							BX.SidePanel.Instance.open(this.url + '?html=Y');
-						}.bind(this)
+						click: this.getClickEvent()
 					}
 				}),
 				this.layout.price = BX.create('div', {

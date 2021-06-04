@@ -13,12 +13,14 @@ CREATE TABLE b_im_chat(
 	CALL_TYPE smallint(1) DEFAULT 0,
 	CALL_NUMBER varchar(20) NULL,
 	ENTITY_TYPE varchar(50) NULL,
-  ENTITY_ID varchar(255) NULL,
+	ENTITY_ID varchar(255) NULL,
 	ENTITY_DATA_1 varchar(255) null,
 	ENTITY_DATA_2 varchar(255) null,
 	ENTITY_DATA_3 varchar(255) null,
 	DISK_FOLDER_ID int(18) null,
 	MESSAGE_COUNT int(18) DEFAULT 0,
+	USER_COUNT int(18) DEFAULT 0,
+	PREV_MESSAGE_ID int(18) null,
 	LAST_MESSAGE_ID int(18) null,
 	LAST_MESSAGE_STATUS varchar(50) DEFAULT 'received',
 	DATE_CREATE datetime null,
@@ -67,6 +69,12 @@ CREATE TABLE b_im_message(
 	KEY IX_IM_MESS_8 (NOTIFY_TYPE, DATE_CREATE)
 );
 
+CREATE TABLE b_im_message_index(
+	MESSAGE_ID int(11) NOT NULL,
+	SEARCH_CONTENT mediumtext null,
+	PRIMARY KEY (MESSAGE_ID)
+);
+
 CREATE TABLE b_im_message_param
 (
 	ID int(18) not null auto_increment,
@@ -102,6 +110,7 @@ CREATE TABLE b_im_status
 	MOBILE_LAST_DATE datetime null,
 	EVENT_ID int(18) null,
 	EVENT_UNTIL_DATE datetime null,
+	INVITED char(1) default 'N',
 	PRIMARY KEY (USER_ID),
 	INDEX IX_IM_STATUS_EUD (EVENT_UNTIL_DATE)
 );
@@ -141,6 +150,8 @@ CREATE TABLE b_im_recent(
 	ITEM_RID int(18) DEFAULT 0,
 	ITEM_OLID int(18) DEFAULT 0,
 	PINNED char(1) DEFAULT 'N',
+	UNREAD char(1) DEFAULT 'N',
+	DATE_MESSAGE datetime null,
 	DATE_UPDATE datetime null,
 	PRIMARY KEY (USER_ID, ITEM_TYPE, ITEM_ID),
 	KEY IX_IM_REC_1 (ITEM_TYPE, ITEM_ID),
@@ -269,10 +280,12 @@ CREATE TABLE b_im_alias
 (
 	ID int(18) not null auto_increment,
 	ALIAS varchar(255) not null,
+	DATE_CREATE datetime,
 	ENTITY_TYPE varchar(255) not null,
 	ENTITY_ID varchar(255) not null,
 	PRIMARY KEY PK_B_IM_ALIAS (ID),
-	UNIQUE UX_B_IM_ALIAS (ALIAS)
+	UNIQUE UX_B_IM_ALIAS (ALIAS),
+	INDEX IX_IM_ALIAS_1 (ENTITY_TYPE, ENTITY_ID)
 );
 
 CREATE TABLE b_im_external_avatar
@@ -300,17 +313,21 @@ CREATE TABLE b_im_call
 	TYPE int,
 	INITIATOR_ID int,
 	IS_PUBLIC char(1) not null default 'N',
-	PUBLIC_ID varchar(128),
-	PROVIDER varchar(128),
+	PUBLIC_ID varchar(32),
+	PROVIDER varchar(32),
 	ENTITY_TYPE varchar(32),
-	ENTITY_ID varchar(255),
+	ENTITY_ID varchar(32),
 	PARENT_ID int,
 	STATE varchar(50),
 	START_DATE datetime,
 	END_DATE datetime,
+	CHAT_ID int,
+	LOG_URL varchar(2000),
 
 	PRIMARY KEY PK_B_IM_CALL(ID),
-	UNIQUE KEY IX_B_IM_CALL_PID(PUBLIC_ID)
+	UNIQUE KEY IX_B_IM_CALL_PID(PUBLIC_ID),
+	INDEX IX_B_IM_CALL_ENT_ID(ENTITY_TYPE, ENTITY_ID, TYPE, PROVIDER, END_DATE, ID),
+	INDEX IX_B_IM_CALL_CHAT_ID(CHAT_ID)
 );
 
 CREATE TABLE b_im_call_user
@@ -318,7 +335,68 @@ CREATE TABLE b_im_call_user
 	CALL_ID int not null,
 	USER_ID int not null,
 	STATE varchar(50),
+	FIRST_JOINED datetime,
 	LAST_SEEN datetime,
+	IS_MOBILE char(1),
+	SHARED_SCREEN char(1),
+	RECORDED char(1),
 
 	PRIMARY KEY PK_B_IM_CALL_USER(CALL_ID, USER_ID)
+);
+
+CREATE TABLE b_im_permission (
+	ID int(18) not null auto_increment,
+	CHAT_ID int(18) DEFAULT 0,
+	USER_ID int(18) DEFAULT 0,
+	DATE_CREATE datetime not null,
+	AUTHOR_ID int(18) DEFAULT 0,
+	PERM_USER_PROMOTE char(1) DEFAULT 'N',
+	PERM_CHAT_INFO char(1) DEFAULT 'N',
+	PERM_USER_ADD char(1) DEFAULT 'N',
+	PERM_USER_REMOVE char(1) DEFAULT 'N',
+	PERM_MESSAGE_SEND char(1) DEFAULT 'N',
+	PERM_MESSAGE_EDIT char(1) DEFAULT 'N',
+	PERM_MESSAGE_DELETE char(1) DEFAULT 'N',
+	PERM_MESSAGE_RICH char(1) DEFAULT 'N',
+	PERM_MESSAGE_PIN char(1) DEFAULT 'N',
+	PERM_MESSAGE_POLL char(1) DEFAULT 'N',
+	PRIMARY KEY PK_B_IM_PERMISSION (ID),
+	KEY IX_IM_PERM_1 (CHAT_ID, USER_ID)
+);
+
+CREATE TABLE b_im_permission_duration (
+	ID int(18) not null auto_increment,
+	PERMISSION_ID int(18) DEFAULT 0,
+	DATE_REMOVE datetime not null,
+	PRIMARY KEY PK_B_IM_PERMISSION_DURATION (ID),
+	KEY IX_IM_PERM_DUR_1 (PERMISSION_ID),
+	KEY IX_IM_PERM_DUR_2 (DATE_REMOVE)
+);
+
+CREATE TABLE b_im_permission_log (
+	ID int(18) not null auto_increment,
+	CHAT_ID int(18) DEFAULT 0,
+	USER_ID int(18) not null,
+	TEXT char(1) DEFAULT 'N',
+	DATE_CREATE datetime not null,
+	PRIMARY KEY PK_B_IM_PERMISSION_LOG (ID),
+	KEY IX_IM_PERM_LOG_1 (CHAT_ID, USER_ID),
+	KEY IX_IM_PERM_LOG_2 (DATE_CREATE)
+);
+
+CREATE TABLE b_im_block_user(
+	ID int(18) not null auto_increment,
+	CHAT_ID int(18) not null,
+	USER_ID int(18) not null,
+	PRIMARY KEY PK_B_IM_BLOCK_USER (ID)
+);
+
+CREATE TABLE b_im_conference(
+	ID int(18) not null auto_increment,
+	ALIAS_ID int(18) not null,
+	PASSWORD text,
+	INVITATION text,
+	CONFERENCE_START datetime,
+	CONFERENCE_END datetime,
+	PRIMARY KEY PK_B_IM_CONFERENCE(ID)
 );

@@ -9,8 +9,9 @@ use Bitrix\Main\Type\Date;
 use Bitrix\Seo\Analytics\Internals\Page;
 use Bitrix\Seo\Retargeting\Response;
 use Bitrix\Seo\Retargeting\Services\ResponseVkontakte;
+use Bitrix\Seo\Retargeting\IRequestDirectly;
 
-class AccountVkontakte extends \Bitrix\Seo\Analytics\Account
+class AccountVkontakte extends \Bitrix\Seo\Analytics\Account implements IRequestDirectly
 {
 	const TYPE_CODE = 'vkontakte';
 
@@ -460,12 +461,12 @@ class AccountVkontakte extends \Bitrix\Seo\Analytics\Account
 			if($post['post_type'] == 'post_ads' && isset($post['attachments']) && is_array($post['attachments']) && count($post['attachments']) == 1)
 			{
 				$attachment = reset($post['attachments']);
-				if($attachment['type'] != 'link' || strpos($attachment['link']['url'], 'vk.com') !== false)
+				if($attachment['type'] != 'link' || mb_strpos($attachment['link']['url'], 'vk.com') !== false)
 				{
 					continue;
 				}
 				$data = [];
-				if(isset($params['phone']) && !empty($params['phone']) && strpos($attachment['link']['url'], 'tel:') === 0)
+				if(isset($params['phone']) && !empty($params['phone']) && mb_strpos($attachment['link']['url'], 'tel:') === 0)
 				{
 					$data = [
 						'owner_id' => $post['owner_id'],

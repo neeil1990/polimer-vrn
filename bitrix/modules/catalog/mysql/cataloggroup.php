@@ -33,9 +33,9 @@ class CCatalogGroup extends CAllCatalogGroup
 		return false;
 	}
 
-	function Add($arFields)
+	public static function Add($arFields)
 	{
-		global $DB, $CACHE_MANAGER, $stackCacheManager;
+		global $DB, $CACHE_MANAGER;
 
 		foreach(GetModuleEvents("catalog", "OnBeforeGroupAdd", true) as $arEvent)
 		{
@@ -43,7 +43,7 @@ class CCatalogGroup extends CAllCatalogGroup
 				return false;
 		}
 
-		if (!CCatalogGroup::CheckFields("ADD", $arFields, 0))
+		if (!static::CheckFields("ADD", $arFields, 0))
 			return false;
 
 		if ($arFields["BASE"] == "Y")
@@ -103,7 +103,7 @@ class CCatalogGroup extends CAllCatalogGroup
 			$CACHE_MANAGER->Clean("catalog_group_perms");
 		}
 
-		$stackCacheManager->Clear("catalog_discount");
+		Catalog\GroupTable::getEntity()->cleanCache();
 
 		foreach(GetModuleEvents("catalog", "OnGroupAdd", true) as $arEvent)
 		{
@@ -118,9 +118,9 @@ class CCatalogGroup extends CAllCatalogGroup
 		return $groupID;
 	}
 
-	function Update($ID, $arFields)
+	public static function Update($ID, $arFields)
 	{
-		global $DB, $CACHE_MANAGER, $stackCacheManager;
+		global $DB, $CACHE_MANAGER;
 
 		$ID = (int)$ID;
 		if ($ID <= 0)
@@ -132,7 +132,7 @@ class CCatalogGroup extends CAllCatalogGroup
 				return false;
 		}
 
-		if (!CCatalogGroup::CheckFields("UPDATE", $arFields, $ID))
+		if (!static::CheckFields("UPDATE", $arFields, $ID))
 			return false;
 
 		$strUpdate = $DB->PrepareUpdate("b_catalog_group", $arFields);
@@ -201,7 +201,7 @@ class CCatalogGroup extends CAllCatalogGroup
 			$CACHE_MANAGER->Clean("catalog_group_perms");
 		}
 
-		$stackCacheManager->Clear("catalog_discount");
+		Catalog\GroupTable::getEntity()->cleanCache();
 
 		foreach(GetModuleEvents("catalog", "OnGroupUpdate", true) as $arEvent)
 		{
@@ -211,15 +211,15 @@ class CCatalogGroup extends CAllCatalogGroup
 		return true;
 	}
 
-	function Delete($ID)
+	public static function Delete($ID)
 	{
-		global $DB, $CACHE_MANAGER, $stackCacheManager, $APPLICATION;
+		global $DB, $CACHE_MANAGER, $APPLICATION;
 
 		$ID = (int)$ID;
 		if ($ID <= 0)
 			return false;
 
-		if ($res = CCatalogGroup::GetByID($ID))
+		if ($res = static::GetByID($ID))
 		{
 			if ($res["BASE"] != "Y")
 			{
@@ -240,12 +240,11 @@ class CCatalogGroup extends CAllCatalogGroup
 					$CACHE_MANAGER->Clean("catalog_group_perms");
 				}
 
-				$stackCacheManager->Clear("catalog_discount");
-
 				$DB->Query("DELETE FROM b_catalog_price WHERE CATALOG_GROUP_ID = ".$ID);
 				$DB->Query("DELETE FROM b_catalog_group2group WHERE CATALOG_GROUP_ID = ".$ID);
 				$DB->Query("DELETE FROM b_catalog_group_lang WHERE CATALOG_GROUP_ID = ".$ID);
 				Catalog\RoundingTable::deleteByPriceType($ID);
+				Catalog\GroupTable::getEntity()->cleanCache();
 				return $DB->Query("DELETE FROM b_catalog_group WHERE ID = ".$ID, true);
 			}
 			else

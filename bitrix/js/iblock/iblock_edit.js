@@ -1,3 +1,5 @@
+BX.namespace('BX.IBlock');
+
 /*
  * arParams
  *		PREFIX - prefix for vars
@@ -370,7 +372,7 @@ JCIBlockAccess.prototype.InsertRights = function(obSelected)
 					row.cells[0].align = 'right';
 					row.cells[0].style.textAlign = 'right';
 					row.cells[0].style.verticalAlign = 'middle';
-					row.cells[0].innerHTML = BX.Access.GetProviderName(provider)+' '+obSelected[provider][id].name+':'+'<input type="hidden" name="'+this.variable_name+'[][RIGHT_ID]" value=""><input type="hidden" name="'+this.variable_name+'[][GROUP_CODE]" value="'+id+'">';
+					row.cells[0].innerHTML = BX.Access.GetProviderName(provider)+' '+BX.Text.encode(obSelected[provider][id].name)+':'+'<input type="hidden" name="'+this.variable_name+'[][RIGHT_ID]" value=""><input type="hidden" name="'+this.variable_name+'[][GROUP_CODE]" value="'+id+'">';
 					row.cells[1].align = 'left';
 					row.cells[1].innerHTML = this.sSelect + ' ' + '<a href="javascript:void(0);" onclick="JCIBlockAccess.DeleteRow(this, \''+id+'\', \''+this.variable_name+'\')" class="access-delete"></a><span title="'+BX.message('langApplyTitle')+'" id="overwrite_'+id+'"></span>';
 
@@ -486,7 +488,12 @@ JCIBlockAccess.DeleteRow = function(ob, id, variable_name)
 	BX.Access.DeleteSelected(id, variable_name);
 };
 
-function addNewRow(tableID, row_to_clone)
+BX.IBlock.Tools = function()
+{
+
+};
+
+BX.IBlock.Tools.addNewRow = function(tableID, row_to_clone)
 {
 	var tbl = document.getElementById(tableID);
 	var cnt = tbl.rows.length;
@@ -565,7 +572,7 @@ function addNewRow(tableID, row_to_clone)
 	{
 		for(var i = 0; i < code.length; i++)
 		{
-			if(code[i] != '')
+			if(code[i] !== '')
 			{
 				s = code[i].substring(8, code[i].length-9);
 				jsUtils.EvalGlobal(s);

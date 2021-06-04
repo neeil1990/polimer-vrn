@@ -6,6 +6,7 @@ $pathLang = BX_ROOT.'/modules/main';
 //WARNING: Don't use CUserOptions here! CJSCore::Init can be called from php_interface/init.php where no $USER exists
 
 $amChartsPath = '/bitrix/js/main/amcharts/3.21/';
+$amCharts4Path = '/bitrix/js/main/amcharts/4.8.5/';
 
 $arJSCoreConfig = array(
 	'ajax' => array(
@@ -33,7 +34,7 @@ $arJSCoreConfig = array(
 	'autosave' => array(
 		'js' => $pathJS.'/core_autosave.js',
 		'lang' => $pathLang.'/js_core_autosave.php',
-		'rel' => array('ajax'),
+		'rel' => array('ajax', 'main.pageobject'),
 	),
 	'fx' => array(
 		'js' => $pathJS.'/core_fx.js',
@@ -49,9 +50,7 @@ $arJSCoreConfig = array(
 		'rel' => array('webrtc_adapter')
 	),
 	'popup' => array(
-		'js' => $pathJS.'/core_popup.js',
-		'css' => $pathCSS.'/core_popup.css',
-		'rel' => array('ui.fonts.opensans')
+		'rel' => array('main.popup')
 	),
 	'tags' => array(
 		'js' => $pathJS.'/core_tags.js',
@@ -90,7 +89,8 @@ $arJSCoreConfig = array(
 		'js' => $pathJS.'/core_window.js',
 		//'css' => $pathCSS.'/core_window.css',
 		'css' => $pathCSSPanel.'/popup.css',
-		'rel' => array('ajax'),
+		'rel' => array('ajax', 'main.pageobject'),
+		'lang' => $pathLang.'/js_core.php',
 	),
 	'access' => array(
 		'js' => $pathJS.'/core_access.js',
@@ -120,8 +120,7 @@ $arJSCoreConfig = array(
 		'rel' => array('main.date', 'popup'),
 	),
 	'ls' => array(
-		'js' => $pathJS.'/core_ls.js',
-		'rel' => array('json')
+		'js' => $pathJS.'/core_ls.js'
 	),
 	'db' => array(
 		'js' => $pathJS.'/core_db.js',
@@ -131,7 +130,7 @@ $arJSCoreConfig = array(
 	),
 	'fc' => array(
 		'js' => $pathJS . '/core_frame_cache.js',
-		'rel' => array('db','ajax', 'ls', 'fx')
+		'rel' => array('ui.dexie','ajax', 'ls', 'fx')
 	),
 	'avatar_editor' => array(
 		'js' => $pathJS.'/core_avatar_editor.js',
@@ -169,11 +168,9 @@ $arJSCoreConfig = array(
 		'lang' => $pathLang.'/js_site_speed.php',
 		'rel' => array('amcharts_serial', 'ajax', "date")
 	),
-	'qrcode' => array(
-		'js' => array(
-			'/bitrix/js/main/qrcode/qrcode.js'
-		)
-	),
+	'qrcode' => [
+		'rel' => ['main.qrcode']
+	],
 	'fileinput' => array(
 		'js' => $pathJS.'/core_fileinput.js',
 		'css' => $pathCSS.'/core_fileinput.css',
@@ -231,21 +228,7 @@ $arJSCoreConfig = array(
 		'js' => $pathJS.'/core_dragdrop.js'
 	),
 	'kanban' => array(
-		'js'  => array(
-			'/bitrix/js/main/kanban/grid.js',
-			'/bitrix/js/main/kanban/column.js',
-			'/bitrix/js/main/kanban/item.js',
-			'/bitrix/js/main/kanban/dropzone-area.js',
-			'/bitrix/js/main/kanban/dropzone.js',
-			'/bitrix/js/main/kanban/utils.js'
-		),
-		'css' => array(
-			'/bitrix/js/main/kanban/css/kanban.css',
-		),
-		'lang' => $pathLang.'/js/kanban.php',
-		'rel' => array('color_picker', 'dnd'),
-		'bundle_js' => 'kanban',
-		'bundle_css' => 'kanban'
+		'rel' => array('main.kanban'),
 	),
 	'color_picker' => array(
 		'js'  => array(
@@ -279,7 +262,7 @@ $arJSCoreConfig = array(
 			'/bitrix/js/main/sidepanel/slider.js'
 		),
 		'css' => '/bitrix/js/main/sidepanel/css/sidepanel.css',
-		'rel' => array('ajax', 'fx'),
+		'rel' => array('ajax', 'fx', 'main.pageobject'),
 		'lang' => $pathLang.'/js/sidepanel.php',
 		'bundle_js' => 'sidepanel',
 		'bundle_css' => 'sidepanel'
@@ -336,8 +319,9 @@ $arJSCoreConfig = array(
 		'rel' => array('popup'),
 	),
 	'loader' => array(
-		'js' => '/bitrix/js/main/loader/loader.js',
-		'css' => '/bitrix/js/main/loader/loader.css'
+		'rel' => [
+			'main.loader'
+		]
 	),
 	'phone_auth' => array(
 		'js' => $pathJS.'/core_phone_auth.js',
@@ -354,15 +338,13 @@ $arJSCoreConfig = array(
 	'promise' => array(
 		'js' => $pathJS.'/core_promise.js',
 		'skip_core' => true,
-		'autoload' => true,
 	),
 	'loadext' => array(
 		'js' => array(
 			'/bitrix/js/main/loadext/loadext.js',
 			'/bitrix/js/main/loadext/extension.js',
 		),
-		'rel' => array('main.polyfill.promise', 'ajax'),
-		'autoload' => true,
+		'rel' => array('main.polyfill.promise'),
 	),
 
 	/* external libs */
@@ -391,11 +373,13 @@ $arJSCoreConfig = array(
 		'skip_core' => true,
 	),
 	'json' => array(
-		'js' => '/bitrix/js/main/json/json2.min.js',
+		// Deleted as unnecessary
+		// 'js' => '/bitrix/js/main/json/json2.min.js',
 		'skip_core' => true,
 	),
 	'json_src' => array(
-		'js' => '/bitrix/js/main/json/json2.js',
+		// Deleted as unnecessary
+		// 'js' => '/bitrix/js/main/json/json2.js',
 		'skip_core' => true,
 	),
 	'amcharts' => array(
@@ -440,6 +424,31 @@ $arJSCoreConfig = array(
 		'rel' => array('amcharts'),
 		'skip_core' => true,
 	),
+	'amcharts4_core' => array(
+		'js' => [
+			$amCharts4Path.'core.js',
+			$amCharts4Path.'init.js',
+		],
+		'skip_core' => true,
+	),
+	'amcharts4' => array(
+		'js' => [
+			$amCharts4Path.'charts.js',
+		],
+		'skip_core' => true,
+		'rel' => array('amcharts4_core')
+	),
+	'amcharts4_theme_animated' => array(
+		'js' => [
+			$amCharts4Path.'themes/animated.js',
+		],
+		'skip_core' => true,
+		'rel' => array('amcharts4_core')
+	),
+	'amcharts4_maps' => array(
+		'js' => $amCharts4Path.'maps.js',
+		'skip_core' => true,
+	),
 	'lamejs' => array(
 		'js' => '/bitrix/js/main/recorder/recorder.js'
 	),
@@ -448,12 +457,21 @@ $arJSCoreConfig = array(
 \Bitrix\Main\Page\Asset::getInstance()->addJsKernelInfo(
 	'main',
 	array(
-		'/bitrix/js/main/core/core.js', '/bitrix/js/main/core/core_ajax.js', '/bitrix/js/main/json/json2.min.js',
-		'/bitrix/js/main/core/core_ls.js', '/bitrix/js/main/core/core_promise.js', '/bitrix/js/main/core/core_popup.js', '/bitrix/js/main/core/core_tooltip.js',
-		'/bitrix/js/main/date/main.date.js', '/bitrix/js/main/core/core_date.js', '/bitrix/js/main/core/core_timer.js', '/bitrix/js/main/core/core_fx.js',
-		'/bitrix/js/main/core/core_window.js', '/bitrix/js/main/core/core_autosave.js', '/bitrix/js/main/rating_like.js',
-		'/bitrix/js/main/session.js', '/bitrix/js/main/dd.js', '/bitrix/js/main/utils.js',
-		'/bitrix/js/main/core/core_dd.js', '/bitrix/js/main/core/core_webrtc.js',
+		'/bitrix/js/main/pageobject/pageobject.js',
+		'/bitrix/js/main/core/core.js',
+		'/bitrix/js/main/core/core_tooltip.js',
+		'/bitrix/js/main/date/main.date.js',
+		'/bitrix/js/main/core/core_date.js',
+		'/bitrix/js/main/core/core_timer.js',
+		'/bitrix/js/main/core/core_fx.js',
+		'/bitrix/js/main/core/core_window.js',
+		'/bitrix/js/main/core/core_autosave.js',
+		'/bitrix/js/main/rating_like.js',
+		'/bitrix/js/main/session.js',
+		'/bitrix/js/main/dd.js',
+		'/bitrix/js/main/utils.js',
+		'/bitrix/js/main/core/core_dd.js',
+		'/bitrix/js/main/core/core_webrtc.js',
 		'/bitrix/js/main/core/core_uf.js'
 	)
 );
@@ -461,8 +479,9 @@ $arJSCoreConfig = array(
 \Bitrix\Main\Page\Asset::getInstance()->addCssKernelInfo(
 	'main',
 	array(
-		'/bitrix/js/main/core/css/core.css', '/bitrix/js/main/core/css/core_popup.css',
-		'/bitrix/js/main/core/css/core_tooltip.css', '/bitrix/js/main/core/css/core_date.css',
+		'/bitrix/js/main/core/css/core.css',
+		'/bitrix/js/main/core/css/core_tooltip.css',
+		'/bitrix/js/main/core/css/core_date.css',
 		'/bitrix/js/main/core/css/core_uf.css'
 	)
 );

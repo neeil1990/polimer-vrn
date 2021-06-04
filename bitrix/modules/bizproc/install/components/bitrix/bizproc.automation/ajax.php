@@ -7,7 +7,7 @@ define("DisableEventsCheck", true);
 
 $siteId = '';
 if (isset($_REQUEST['site_id']) && is_string($_REQUEST['site_id']))
-	$siteId = substr(preg_replace('/[^a-z0-9_]/i', '', $_REQUEST['site_id']), 0, 2);
+	$siteId = mb_substr(preg_replace('/[^a-z0-9_]/i', '', $_REQUEST['site_id']), 0, 2);
 
 if (!$siteId)
 	define('SITE_ID', $siteId);
@@ -29,7 +29,24 @@ if (!$curUser || !$curUser->IsAuthorized() || !check_bitrix_sessid() || $_SERVER
 	die();
 }
 
+$jsonDataMap = ['robot_json' => 'robot', 'form_data_json' => 'form_data', 'triggers_json' => 'triggers', 'templates_json' => 'templates'];
+$jsonValues = [];
+
+foreach ($jsonDataMap as $k => $v)
+{
+	if (isset($_REQUEST[$k]))
+	{
+		$jsonValues[$v] = \Bitrix\Main\Web\Json::decode($_REQUEST[$k]);
+		unset($_REQUEST[$k]);
+	}
+}
+
 CUtil::JSPostUnescape();
+
+foreach ($jsonValues as $k => $v)
+{
+	$_REQUEST[$k] = $v;
+}
 
 $action = !empty($_REQUEST['ajax_action']) ? $_REQUEST['ajax_action'] : null;
 
@@ -37,7 +54,7 @@ if (empty($action))
 	die('Unknown action!');
 
 $APPLICATION->ShowAjaxHead();
-$action = strtoupper($action);
+$action = mb_strtoupper($action);
 
 $sendResponse = function($data, array $errors = array(), $plain = false)
 {
@@ -62,8 +79,7 @@ $sendResponse = function($data, array $errors = array(), $plain = false)
 	}
 
 	echo \Bitrix\Main\Web\Json::encode($result);
-	CMain::FinalActions();
-	die();
+	\Bitrix\Main\Application::getInstance()->end();
 };
 $sendError = function($error) use ($sendResponse)
 {
@@ -78,8 +94,7 @@ $sendHtmlResponse = function($html)
 	}
 	header('Content-Type: text/html; charset='.LANG_CHARSET);
 	echo $html;
-	CMain::FinalActions();
-	die();
+	\CMain::FinalActions();
 };
 
 CBitrixComponent::includeComponentClass('bitrix:bizproc.automation');
@@ -161,7 +176,9 @@ switch ($action)
 
 		$robotData = isset($_REQUEST['robot']) && is_array($_REQUEST['robot']) ? $_REQUEST['robot'] : null;
 		if (!$robotData)
+		{
 			$sendError('Empty robot data.');
+		}
 
 		$context = isset($_REQUEST['context']) && is_array($_REQUEST['context']) ? $_REQUEST['context'] : null;
 
@@ -174,7 +191,7 @@ switch ($action)
 				'DOCUMENT_TYPE' => $documentType,
 				'DOCUMENT_CATEGORY_ID' => $documentCategoryId,
 				'ROBOT_DATA' => $robotData,
-				'REQUEST' => $_REQUEST['form_name'],
+				'REQUEST' => $_REQUEST,
 				'CONTEXT' => $context
 			)
 		);
@@ -191,7 +208,7 @@ switch ($action)
 		if (!$robotData)
 			$sendError('Empty robot data.');
 
-		$requestData = isset($_POST['form_data']) && is_array($_POST['form_data']) ? $_POST['form_data'] : array();
+		$requestData = isset($_REQUEST['form_data']) && is_array($_REQUEST['form_data']) ? $_REQUEST['form_data'] : [];
 
 		$template = new \Bitrix\Bizproc\Automation\Engine\Template($documentType);
 		$saveResult = $template->saveRobotSettings($robotData, $requestData);
@@ -223,21 +240,38 @@ switch ($action)
 		$updatedTriggers = [];
 		$triggers = isset($_REQUEST['triggers']) && is_array($_REQUEST['triggers']) ? $_REQUEST['triggers'] : [];
 
+		$target->prepareTriggersToSave($triggers);
 		$updatedTriggers = $target->setTriggers($triggers);
+		$templateParameters = $target->extractTemplateParameters($triggers);
 
 		$updatedTemplates = array();
 		foreach ($templates as $templateData)
 		{
-			$template = new \Bitrix\Bizproc\Automation\Engine\Template($documentType, $templateData['DOCUMENT_STATUS']);
+			$template = null;
+			if ($templateData['ID'])
+			{
+				$tpl = Bitrix\Bizproc\Workflow\Template\Entity\WorkflowTemplateTable::getById($templateData['ID'])->fetchObject();
+				if ($tpl)
+				{
+					$template = \Bitrix\Bizproc\Automation\Engine\Template::createByTpl($tpl);
+				}
+			}
+
+			if (!$template)
+			{
+				$template = new \Bitrix\Bizproc\Automation\Engine\Template($documentType, $templateData['DOCUMENT_STATUS']);
+			}
 
 			if (empty($templateData['IS_EXTERNAL_MODIFIED']))
 			{
 				$robots = isset($templateData['ROBOTS']) && is_array($templateData['ROBOTS']) ? $templateData['ROBOTS'] : array();
 
-				$result = $template->save($robots, $curUser->GetID());
+				$result = $template->save($robots, $curUser->GetID(), [
+					'PARAMETERS' => $templateParameters[$template->getDocumentStatus()] ?? []
+				]);
 				if ($result->isSuccess())
 				{
-					$updatedTemplates[] = $template->toArray();
+					$updatedTemplates[] = BizprocAutomationComponent::getTemplateViewData($template->toArray(), $documentType);
 				}
 				else
 				{
@@ -250,17 +284,9 @@ switch ($action)
 			}
 		}
 
+		$target->prepareTriggersToShow($updatedTriggers);
 		$sendResponse(array('templates' => $updatedTemplates, 'triggers' => $updatedTriggers), $errors);
 
-		break;
-
-	case 'GET_DESTINATION_DATA':
-		//Check permissions.
-		$checkConfigWritePerms();
-
-		CBitrixComponent::includeComponentClass('bitrix:bizproc.automation');
-		$result = \BizprocAutomationComponent::getDestinationData($documentType);
-		$sendResponse($result);
 		break;
 
 	case 'GET_LOG':

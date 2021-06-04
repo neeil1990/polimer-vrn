@@ -46,7 +46,7 @@
 		if (!BX.Landing.UI.Panel.Icon.instance)
 		{
 			BX.Landing.UI.Panel.Icon.instance = new BX.Landing.UI.Panel.Icon("icon_panel", {
-				title: BX.message("LANDING_ICONS_SLIDER_TITLE")
+				title: BX.Landing.Loc.getMessage("LANDING_ICONS_SLIDER_TITLE")
 			});
 		}
 

@@ -6,8 +6,10 @@ use Bitrix\Main\Config\Option;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Forum\MessageTable;
+use Bitrix\Main\Web\Json;
 use Bitrix\Socialnetwork\LogCommentTable;
-use Bitrix\Socialnetwork\LogTable;
+use Bitrix\Main\ORM\Fields\Relations\Reference;
+use Bitrix\Main\ORM\Query\Join;
 
 Loc::loadMessages(__FILE__);
 
@@ -15,6 +17,8 @@ final class ForumPost extends Provider
 {
 	const PROVIDER_ID = 'FORUM_POST';
 	const CONTENT_TYPE_ID = 'FORUM_POST';
+
+	public static $auxCommentsCache = [];
 
 	public static function getId()
 	{
@@ -31,7 +35,8 @@ final class ForumPost extends Provider
 			'report_comment',
 			'photo_comment',
 			'wiki_comment',
-			'lists_new_element_comment'
+			'lists_new_element_comment',
+			'crm_activity_add_comment'
 		);
 	}
 
@@ -50,25 +55,31 @@ final class ForumPost extends Provider
 		)
 		{
 			$res = MessageTable::getList(array(
-				'filter' => array(
+				'filter' => [
 					'=ID' => $messageId
-				),
-				'select' => array('ID', 'POST_MESSAGE')
+				],
+				'select' => [ 'ID', 'POST_MESSAGE', 'SERVICE_TYPE', 'SERVICE_DATA' ]
 			));
 			if ($message = $res->fetch())
 			{
 				$logId = false;
 
 				$res = LogCommentTable::getList(array(
-					'filter' => array(
+					'filter' => [
 						'SOURCE_ID' => $messageId,
 						'@EVENT_ID' => $this->getEventId(),
-					),
-					'select' => array('ID', 'LOG_ID', 'SHARE_DEST')
+					],
+					'select' => [ 'ID', 'LOG_ID', 'SHARE_DEST', 'MESSAGE', 'EVENT_ID', 'RATING_TYPE_ID' ]
 				));
+				$auxData = [];
 				if ($logComentFields = $res->fetch())
 				{
-					$logId = intval($logComentFields['LOG_ID']);
+					$auxData = [
+						'ID' => (int)$logComentFields['ID'],
+						'LOG_ID' => (int)$logComentFields['LOG_ID'],
+						'SHARE_DEST' => $logComentFields['SHARE_DEST'],
+					];
+					$logId = (int)($logComentFields['LOG_ID']);
 				}
 
 				if ($logId)
@@ -105,8 +116,24 @@ final class ForumPost extends Provider
 						$this->setSourceTitle(truncateText($title, 100));
 						$this->setSourceAttachedDiskObjects($this->getAttachedDiskObjects($messageId));
 						$this->setSourceDiskObjects($this->getDiskObjects($messageId, $this->cloneDiskObjects));
-						$this->setSourceOriginalText($message['POST_MESSAGE']);
-						$this->setSourceAuxData($logComentFields);
+
+						if (
+							in_array($message['SERVICE_TYPE'], \Bitrix\Forum\Comments\Service\Manager::getTypesList())
+							&& !empty($logComentFields)
+						)
+						{
+							$this->setSourceOriginalText($logComentFields['MESSAGE']);
+							$auxData['SHARE_DEST'] = '';
+							$auxData['EVENT_ID'] = $logComentFields['EVENT_ID'];
+							$auxData['SOURCE_ID'] = $messageId;
+							$auxData['RATING_TYPE_ID'] = $logComentFields['RATING_TYPE_ID'];
+						}
+						else
+						{
+							$this->setSourceOriginalText($message['POST_MESSAGE']);
+						}
+
+						$this->setSourceAuxData($auxData);
 					}
 				}
 			}
@@ -192,7 +219,7 @@ final class ForumPost extends Provider
 			}
 			else
 			{
-				$res = LogTable::getList(array(
+				$res = self::$logTable::getList(array(
 					'filter' => array(
 						'ID' => $logId
 					),
@@ -206,10 +233,12 @@ final class ForumPost extends Provider
 					if (in_array($logEntryFields['EVENT_ID'], $providerTasksTask->getEventId()))
 					{
 						$provider = $providerTasksTask;
-						$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+						$provider->setEntityId((int)$logEntryFields[($logEntryFields['EVENT_ID'] === 'crm_activity_add' ? 'RATING_ENTITY_ID' : 'SOURCE_ID')]);
 						$provider->setLogId($logId);
 						$provider->initSourceFields();
-						$entityUrl = $provider->getLiveFeedUrl().'?commentId='.$this->getEntityId().'#com'.$this->getEntityId();
+
+						$postUrl = $provider->getLiveFeedUrl();
+						$entityUrl = $postUrl.(mb_strpos($postUrl, '?') === false ? '?' : '&').'commentId='.$this->getEntityId().'#com'.$this->getEntityId();
 					}
 
 					if (!$provider)
@@ -218,10 +247,12 @@ final class ForumPost extends Provider
 						if (in_array($logEntryFields['EVENT_ID'], $providerCalendarEvent->getEventId()))
 						{
 							$provider = $providerCalendarEvent;
-							$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+							$provider->setEntityId((int)$logEntryFields['SOURCE_ID']);
 							$provider->setLogId($logId);
 							$provider->initSourceFields();
-							$entityUrl = $provider->getLiveFeedUrl().'?commentId='.$this->getEntityId().'#com'.$this->getEntityId();
+
+							$postUrl = $provider->getLiveFeedUrl();
+							$entityUrl = $postUrl.(mb_strpos($postUrl, '?') === false ? '?' : '&').'commentId='.$this->getEntityId().'#com'.$this->getEntityId();
 						}
 					}
 
@@ -231,7 +262,7 @@ final class ForumPost extends Provider
 						if (in_array($logEntryFields['EVENT_ID'], $providerTimemanEntry->getEventId()))
 						{
 							$provider = $providerTimemanEntry;
-							$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+							$provider->setEntityId((int)$logEntryFields['SOURCE_ID']);
 							$provider->setLogId($logId);
 							$provider->initSourceFields();
 							$entityUrl = $provider->getLiveFeedUrl();
@@ -244,7 +275,7 @@ final class ForumPost extends Provider
 						if (in_array($logEntryFields['EVENT_ID'], $providerTimemanReport->getEventId()))
 						{
 							$provider = $providerTimemanReport;
-							$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+							$provider->setEntityId((int)$logEntryFields['SOURCE_ID']);
 							$provider->setLogId($logId);
 							$provider->initSourceFields();
 							$entityUrl = $provider->getLiveFeedUrl();
@@ -257,7 +288,7 @@ final class ForumPost extends Provider
 						if (in_array($logEntryFields['EVENT_ID'], $providerPhotogalleryPhoto->getEventId()))
 						{
 							$provider = $providerPhotogalleryPhoto;
-							$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+							$provider->setEntityId((int)$logEntryFields['SOURCE_ID']);
 							$provider->setLogId($logId);
 							$provider->initSourceFields();
 							$entityUrl = $provider->getLiveFeedUrl();
@@ -270,7 +301,7 @@ final class ForumPost extends Provider
 						if (in_array($logEntryFields['EVENT_ID'], $providerWiki->getEventId()))
 						{
 							$provider = $providerWiki;
-							$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+							$provider->setEntityId((int)($logEntryFields['SOURCE_ID']));
 							$provider->setLogId($logId);
 							$provider->initSourceFields();
 							$entityUrl = $provider->getLiveFeedUrl();
@@ -283,7 +314,7 @@ final class ForumPost extends Provider
 						if (in_array($logEntryFields['EVENT_ID'], $providerListsItem->getEventId()))
 						{
 							$provider = $providerListsItem;
-							$provider->setEntityId(intval($logEntryFields['SOURCE_ID']));
+							$provider->setEntityId((int)($logEntryFields['SOURCE_ID']));
 							$provider->setLogId($logId);
 							$provider->initSourceFields();
 							$entityUrl = $provider->getLiveFeedUrl().'?commentId='.$this->getEntityId().'#com'.$this->getEntityId();
@@ -297,10 +328,10 @@ final class ForumPost extends Provider
 						{
 							if (
 								!empty($logEntryFields["PARAMS"])
-								&& unserialize($logEntryFields["PARAMS"])
+								&& unserialize($logEntryFields["PARAMS"], ['allowed_classes' => false])
 							)
 							{
-								$paramsList = unserialize($logEntryFields["PARAMS"]);
+								$paramsList = unserialize($logEntryFields["PARAMS"], ['allowed_classes' => false]);
 								if (!empty($paramsList["PATH_TO_MESSAGE"]))
 								{
 									$entityUrl = \CComponentEngine::makePathFromTemplate($paramsList["PATH_TO_MESSAGE"], array("MID" => $this->getEntityId()));
@@ -320,7 +351,7 @@ final class ForumPost extends Provider
 		return $result;
 	}
 
-	public function getSuffix()
+	public function getSuffix($defaultValue = '')
 	{
 		$logEventId = $this->getLogEventId();
 
@@ -374,38 +405,43 @@ final class ForumPost extends Provider
 				return 'LISTS_NEW_ELEMENT';
 			}
 		}
-		return '';
+		elseif (!empty ($defaultValue))
+		{
+			return $defaultValue;
+		}
+
+		return '2';
 	}
 
 	public function add($params = array())
 	{
-		global $USER, $DB;
+		global $USER;
 
 		static $parser = null;
 
 		$siteId = (
 			isset($params['SITE_ID'])
-			&& strlen($params['SITE_ID']) > 0
+			&& $params['SITE_ID'] <> ''
 				? $params['SITE_ID']
 				: SITE_ID
 		);
 
 		$authorId = (
 			isset($params['AUTHOR_ID'])
-			&& intval($params['AUTHOR_ID']) > 0
-				? intval($params['AUTHOR_ID'])
+			&& (int)$params['AUTHOR_ID'] > 0
+				? (int)$params['AUTHOR_ID']
 				: $USER->getId()
 		);
 
 		$message = (
 			isset($params['MESSAGE'])
-			&& strlen($params['MESSAGE']) > 0
+			&& $params['MESSAGE'] <> ''
 			? $params['MESSAGE']
 			: ''
 		);
 
 		if (
-			strlen($message) <= 0
+			$message == ''
 			|| !Loader::includeModule('forum')
 		)
 		{
@@ -442,12 +478,24 @@ final class ForumPost extends Provider
 			$authorId
 		);
 
-		$forumComment = $feed->add(array(
+		$forumMessageFields = [
 			'POST_MESSAGE' => $message,
 			'AUTHOR_ID' => $authorId,
 			'USE_SMILES' => 'Y',
-			'AUX' => (isset($params['AUX']) && $params['AUX'] == 'Y' ? $params['AUX'] : 'N')
-		));
+			'AUX' => (isset($params['AUX']) && $params['AUX'] === 'Y' ? $params['AUX'] : 'N')
+		];
+
+		if ($message === \Bitrix\Socialnetwork\CommentAux\CreateTask::getPostText())
+		{
+			$forumMessageFields['SERVICE_TYPE'] = \Bitrix\Forum\Comments\Service\Manager::TYPE_TASK_CREATED;
+			$forumMessageFields['SERVICE_DATA'] = Json::encode(isset($params['AUX_DATA']) && is_array($params['AUX_DATA']) ? $params['AUX_DATA'] : []);
+			$forumMessageFields['POST_MESSAGE'] = \Bitrix\Forum\Comments\Service\Manager::find([
+				'SERVICE_TYPE' => \Bitrix\Forum\Comments\Service\Manager::TYPE_TASK_CREATED
+			])->getText($forumMessageFields['SERVICE_DATA']);
+			$params['SHARE_DEST'] = '';
+		}
+
+		$forumComment = $feed->add($forumMessageFields);
 
 		if (!$forumComment)
 		{
@@ -456,7 +504,7 @@ final class ForumPost extends Provider
 
 		$sonetCommentId = false;
 
-		if ($params['AUX'] == 'Y')
+		if ($params['AUX'] === 'Y')
 		{
 			if ($parser === null)
 			{
@@ -475,7 +523,7 @@ final class ForumPost extends Provider
 				"RATING_TYPE_ID" => "FORUM_POST",
 				"RATING_ENTITY_ID" => $forumComment['ID'],
 				"USER_ID" => $authorId,
-				"=LOG_DATE" => $DB->currentTimeFunction(),
+				"=LOG_DATE" => \CDatabase::currentTimeFunction(),
 			);
 
 			if (!empty($params['SHARE_DEST']))
@@ -509,19 +557,19 @@ final class ForumPost extends Provider
 
 		$siteId = (
 			isset($params['SITE_ID'])
-			&& strlen($params['SITE_ID']) > 0
+			&& $params['SITE_ID'] <> ''
 				? $params['SITE_ID']
 				: SITE_ID
 		);
 
 		if (isset($params['type']))
 		{
-			if ($params['type'] == 'TK')
+			if ($params['type'] === 'TK')
 			{
 				$result = Option::get('tasks', 'task_forum_id', 0, $siteId);
 
 				if (
-					intval($result) <= 0
+					(int)$result <= 0
 					&& Loader::includeModule('forum')
 				)
 				{
@@ -533,15 +581,15 @@ final class ForumPost extends Provider
 					));
 					if ($forumFields = $res->fetch())
 					{
-						$result = intval($forumFields['ID']);
+						$result = (int)$forumFields['ID'];
 					}
 				}
 			}
-			elseif ($params['type'] == 'WF')
+			elseif ($params['type'] === 'WF')
 			{
 				$result = Option::get('bizproc', 'forum_id', 0, $siteId);
 
-				if (intval($result) <= 0)
+				if ((int)$result <= 0)
 				{
 					$res = ForumTable::getList(array(
 						'filter' => array(
@@ -551,16 +599,16 @@ final class ForumPost extends Provider
 					));
 					if ($forumFields = $res->fetch())
 					{
-						$result = intval($forumFields['ID']);
+						$result = (int)$forumFields['ID'];
 					}
 				}
 			}
-			elseif (in_array($params['type'], array('TE', 'TR')))
+			elseif (in_array($params['type'], array('TM', 'TR')))
 			{
 				$result = Option::get('timeman', 'report_forum_id', 0, $siteId);
 			}
 			elseif (
-				$params['type'] == 'EV'
+				$params['type'] === 'EV'
 				&& Loader::includeModule('calendar')
 			)
 			{
@@ -568,7 +616,7 @@ final class ForumPost extends Provider
 				$result = $calendarSettings["forum_id"];
 			}
 			elseif (
-				$params['type'] == 'PH'
+				$params['type'] === 'PH'
 				&& Loader::includeModule('forum')
 			)
 			{
@@ -580,10 +628,10 @@ final class ForumPost extends Provider
 				));
 				if ($forumFields = $res->fetch())
 				{
-					$result = intval($forumFields['ID']);
+					$result = (int)$forumFields['ID'];
 				}
 			}
-			elseif ($params['type'] == 'IBLOCK')
+			elseif ($params['type'] === 'IBLOCK')
 			{
 				$result = Option::get('wiki', 'socnet_forum_id', 0, $siteId);
 			}
@@ -597,7 +645,7 @@ final class ForumPost extends Provider
 				));
 				if ($forumFields = $res->fetch())
 				{
-					$result = intval($forumFields['ID']);
+					$result = (int)$forumFields['ID'];
 				}
 			}
 		}
@@ -697,7 +745,7 @@ final class ForumPost extends Provider
 			return $result;
 		}
 
-		$res = LogTable::getList(array(
+		$res = self::$logTable::getList(array(
 			'filter' => array(
 				'ID' => $logId
 			),
@@ -706,7 +754,7 @@ final class ForumPost extends Provider
 		if (
 			($logFields = $res->fetch())
 			&& (!empty($logFields['EVENT_ID']))
-			&& (intval($logFields['SOURCE_ID']) > 0)
+			&& ((int)$logFields['SOURCE_ID'] > 0)
 		)
 		{
 			$this->setLogEventId($logFields['EVENT_ID']);
@@ -716,8 +764,8 @@ final class ForumPost extends Provider
 			{
 				$result = array(
 					"type" => "TK",
-					"id" => intval($logFields['SOURCE_ID']),
-					"xml_id" => "TASK_".intval($logFields['SOURCE_ID'])
+					"id" => (int)$logFields['SOURCE_ID'],
+					"xml_id" => "TASK_".(int)$logFields['SOURCE_ID']
 				);
 			}
 
@@ -728,8 +776,8 @@ final class ForumPost extends Provider
 				{
 					$result = array(
 						"type" => "EV",
-						"id" => intval($logFields['SOURCE_ID']),
-						"xml_id" => "EVENT_".intval($logFields['SOURCE_ID'])
+						"id" => (int)$logFields['SOURCE_ID'],
+						"xml_id" => "EVENT_".(int)$logFields['SOURCE_ID']
 					);
 				}
 			}
@@ -741,8 +789,8 @@ final class ForumPost extends Provider
 				{
 					$result = array(
 						"type" => "DEFAULT",
-						"id" => intval($logFields['SOURCE_ID']),
-						"xml_id" => "TOPIC_".intval($logFields['SOURCE_ID'])
+						"id" => (int)$logFields['SOURCE_ID'],
+						"xml_id" => "TOPIC_".(int)$logFields['SOURCE_ID']
 					);
 				}
 			}
@@ -753,9 +801,9 @@ final class ForumPost extends Provider
 				if (in_array($logFields['EVENT_ID'], $providerTimemanEntry->getEventId()))
 				{
 					$result = array(
-						"type" => "TE",
-						"id" => intval($logFields['SOURCE_ID']),
-						"xml_id" => "TIMEMAN_ENTRY_".intval($logFields['SOURCE_ID'])
+						"type" => "TM",
+						"id" => (int)$logFields['SOURCE_ID'],
+						"xml_id" => "TIMEMAN_ENTRY_".(int)$logFields['SOURCE_ID']
 					);
 				}
 			}
@@ -767,8 +815,8 @@ final class ForumPost extends Provider
 				{
 					$result = array(
 						"type" => "TR",
-						"id" => intval($logFields['SOURCE_ID']),
-						"xml_id" => "TIMEMAN_REPORT_".intval($logFields['SOURCE_ID'])
+						"id" => (int)$logFields['SOURCE_ID'],
+						"xml_id" => "TIMEMAN_REPORT_".(int)$logFields['SOURCE_ID']
 					);
 				}
 			}
@@ -780,8 +828,8 @@ final class ForumPost extends Provider
 				{
 					$result = array(
 						"type" => "PH",
-						"id" => intval($logFields['SOURCE_ID']),
-						"xml_id" => "PHOTO_".intval($logFields['SOURCE_ID'])
+						"id" => (int)$logFields['SOURCE_ID'],
+						"xml_id" => "PHOTO_".(int)$logFields['SOURCE_ID']
 					);
 				}
 			}
@@ -793,8 +841,8 @@ final class ForumPost extends Provider
 				{
 					$result = array(
 						"type" => "IBLOCK",
-						"id" => intval($logFields['SOURCE_ID']),
-						"xml_id" => "IBLOCK_".intval($logFields['SOURCE_ID'])
+						"id" => (int)$logFields['SOURCE_ID'],
+						"xml_id" => "IBLOCK_".(int)$logFields['SOURCE_ID']
 					);
 				}
 			}
@@ -807,12 +855,12 @@ final class ForumPost extends Provider
 					&& Loader::includeModule('bizproc')
 				)
 				{
-					$workflowId = \CBPStateService::getWorkflowByIntegerId(intval($logFields['SOURCE_ID']));
+					$workflowId = \CBPStateService::getWorkflowByIntegerId((int)$logFields['SOURCE_ID']);
 					if ($workflowId)
 					{
 						$result = array(
 							"type" => "WF",
-							"id" => intval($logFields['SOURCE_ID']),
+							"id" => (int)$logFields['SOURCE_ID'],
 							"xml_id" => "WF_".$workflowId
 						);
 					}
@@ -849,6 +897,68 @@ final class ForumPost extends Provider
 			$result[$message['ID']] = $data;
 		}
 
+		return $result;
+	}
+
+	public function warmUpAuxCommentsStaticCache(array $params = [])
+	{
+		if (!Loader::includeModule('forum'))
+		{
+			return;
+		}
+
+		$logEventsData = (isset($params['logEventsData']) && is_array($params['logEventsData']) ? $params['logEventsData'] : []);
+
+		$forumCommentEventIdList = $this->getEventId();
+
+		$logIdList = [];
+		foreach($logEventsData as $logId => $logEventId)
+		{
+			$commentEvent = \CSocNetLogTools::findLogCommentEventByLogEventID($logEventId);
+			if (empty($commentEvent['EVENT_ID']))
+			{
+				continue;
+			}
+
+			if (in_array($commentEvent['EVENT_ID'], $forumCommentEventIdList))
+			{
+				$logIdList[] = $logId;
+			}
+		}
+
+		if (!empty($logIdList))
+		{
+			$query = MessageTable::query();
+			$query->setSelect([ 'ID', 'POST_MESSAGE', 'SERVICE_DATA', 'SERVICE_TYPE' ]);
+			$query->whereIn('SERVICE_TYPE', \Bitrix\Forum\Comments\Service\Manager::getTypesList());
+			$query->registerRuntimeField(
+				new Reference(
+					'LOG_COMMENT', LogCommentTable::class, Join::on('this.ID', 'ref.SOURCE_ID'), [ 'join_type' => 'INNER' ]
+				)
+			);
+			$query->whereIn('LOG_COMMENT.LOG_ID', $logIdList);
+			$query->setLimit(1000);
+
+			$messages = $query->exec()->fetchCollection();
+			while ($message = $messages->current())
+			{
+				$messageFields = $message->collectValues();
+				self::$auxCommentsCache[$messageFields['ID']] = $messageFields;
+				$messages->next();
+			}
+		}
+	}
+
+	public function getAuxCommentCachedData(int $messageId = 0): array
+	{
+		$result = [];
+
+		if ($messageId <= 0)
+		{
+			return $result;
+		}
+
+		$result = (isset(self::$auxCommentsCache[$messageId]) ? self::$auxCommentsCache[$messageId] : []);
 		return $result;
 	}
 }

@@ -8,8 +8,8 @@
 		this.configurationButton = options.configurationButton;
 		this.boardId = options.boardId;
 
-		this.pageTitle = document.getElementById('pagetitle');
-		this.pageTitleWrap = document.querySelector('.pagetitle-wrap');
+		this.pageTitle = document.querySelector('.ui-side-panel-wrap-title-name');
+		this.pageTitleWrap = document.querySelector('.ui-side-panel-wrap-title-wrap');
 		this.pageControlsContainer = document.querySelector('.pagetitle-container.pagetitle-align-right-container');
 
 		this.init();
@@ -58,7 +58,6 @@
 				}
 			}));
 
-
 			return BX.create('div', {
 				attrs: {
 					className: 'analytic-board-configuration-popup-container'
@@ -98,7 +97,10 @@
 			{
 				BX.Report.Dashboard.BoardRepository.destroyBoards();
 			}
-
+			if (BX.VisualConstructor && BX.VisualConstructor.BoardRepository)
+			{
+				BX.VisualConstructor.BoardRepository.destroyBoards();
+			}
 		},
 		changePageControls: function(controlsContent)
 		{

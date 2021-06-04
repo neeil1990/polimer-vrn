@@ -26,7 +26,7 @@ $returnUrl = '';
 if (!empty($_REQUEST['return_url']))
 {
 	$currentUrl = $APPLICATION->GetCurPage();
-	if (strtolower(substr($_REQUEST['return_url'], strlen($currentUrl))) != strtolower($currentUrl))
+	if (mb_strtolower(mb_substr($_REQUEST['return_url'], mb_strlen($currentUrl))) != mb_strtolower($currentUrl))
 	{
 		$returnUrl = $_REQUEST['return_url'];
 	}
@@ -87,7 +87,7 @@ if (
 				$CONDITIONS = base64_decode($_POST['CONDITIONS']);
 				if (CheckSerializedData($CONDITIONS))
 				{
-					$CONDITIONS = unserialize($CONDITIONS);
+					$CONDITIONS = unserialize($CONDITIONS, ['allowed_classes' => false]);
 					$boolCond = true;
 				}
 				else
@@ -561,7 +561,7 @@ $tabControl->BeginNextFormTab();
 			{
 				if (CheckSerializedData($arDiscount['CONDITIONS']))
 				{
-					$arDiscount['CONDITIONS'] = unserialize($arDiscount['CONDITIONS']);
+					$arDiscount['CONDITIONS'] = unserialize($arDiscount['CONDITIONS'], ['allowed_classes' => false]);
 				}
 				else
 				{

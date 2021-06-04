@@ -44,7 +44,7 @@ abstract class SiteRestriction extends Base
 
 		$result = true;
 
-		if(strlen($siteId) > 0 && isset($restrictionParams["SITE_ID"]) && is_array($restrictionParams["SITE_ID"]))
+		if($siteId <> '' && isset($restrictionParams["SITE_ID"]) && is_array($restrictionParams["SITE_ID"]))
 			$result = in_array($siteId, $restrictionParams["SITE_ID"]);
 
 		return $result;
@@ -119,7 +119,6 @@ abstract class SiteRestriction extends Base
 	 */
 	public static function isAvailable()
 	{
-		return IsModuleInstalled('crm') ? false : true;
+		return IsModuleInstalled('bitrix24') ? false : true;
 	}
-
-} 
+}

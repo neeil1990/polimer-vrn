@@ -1,5 +1,5 @@
 <?
-$MESS["SEQWF_MARKETPLACE_ADD"] = "Додати ще…";
+$MESS["SEQWF_MARKETPLACE_ADD"] = "Додати ще...";
 $MESS["SEQWF_END"] = "Кінець";
 $MESS["SEQWF_BEG"] = "Початок";
 $MESS["SEQWF_CONF"] = "Обрана дія буде видалена зі списка ваших дій. Продовжити?";

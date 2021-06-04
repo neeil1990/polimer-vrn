@@ -110,17 +110,34 @@ class Double extends Base
 	 */
 	protected static function renderControl(FieldType $fieldType, array $field, $value, $allowSelection, $renderMode)
 	{
+		if ($allowSelection && !($renderMode & FieldType::RENDER_MODE_PUBLIC))
+		{
+			return static::renderControlSelector($field, $value, 'combine', '', $fieldType);
+		}
+
 		$name = static::generateControlName($field);
 		$controlId = static::generateControlId($field);
 		$className = static::generateControlClassName($fieldType, $field);
 
 		if ($renderMode & FieldType::RENDER_MODE_PUBLIC)
 		{
-			$renderResult = '<input type="text" class="'.htmlspecialcharsbx($className)
-				.'" name="'.htmlspecialcharsbx($name).'" value="'.htmlspecialcharsbx((string) $value)
-				.'" placeholder="'.htmlspecialcharsbx($fieldType->getDescription()).'" value="'.htmlspecialcharsbx((string) $value).'"'
-				.($allowSelection ? ' data-role="inline-selector-target"' : '')
-				.'/>';
+			$selectorAttributes = '';
+			if ($allowSelection)
+			{
+				$selectorAttributes = sprintf(
+					'data-role="inline-selector-target" data-property="%s" ',
+					htmlspecialcharsbx(Main\Web\Json::encode($fieldType->getProperty()))
+				);
+			}
+
+			$renderResult = sprintf(
+				'<input type="text" class="%s" name="%s" value="%s" placeholder="%s" %s/>',
+				htmlspecialcharsbx($className),
+				htmlspecialcharsbx($name),
+				htmlspecialcharsbx((string)$value),
+				htmlspecialcharsbx($fieldType->getDescription()),
+				$selectorAttributes
+			);
 		}
 		else
 		{
@@ -129,10 +146,6 @@ class Double extends Base
 				.htmlspecialcharsbx($name).'" value="'.htmlspecialcharsbx((string) $value).'"/>';
 		}
 
-		if ($allowSelection && !($renderMode & FieldType::RENDER_MODE_PUBLIC))
-		{
-			$renderResult .= static::renderControlSelector($field, null, false, '', $fieldType);
-		}
 		return $renderResult;
 	}
 
@@ -212,7 +225,7 @@ class Double extends Base
 	{
 		$value = parent::extractValue($fieldType, $field, $request);
 
-		if ($value !== null && is_string($value) && strlen($value) > 0)
+		if ($value !== null && is_string($value) && $value <> '')
 		{
 			if (\CBPActivity::isExpression($value))
 				return $value;

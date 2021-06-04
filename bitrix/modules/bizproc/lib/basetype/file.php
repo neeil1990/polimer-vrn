@@ -2,6 +2,7 @@
 
 namespace Bitrix\Bizproc\BaseType;
 
+use Bitrix\Main;
 use Bitrix\Bizproc\FieldType;
 use Bitrix\Main\Localization\Loc;
 
@@ -31,6 +32,21 @@ class File extends Base
 		$formats = parent::getFormats();
 		$formats['src'] = [
 			'callable'  => 'formatValueSrc',
+			'separator' => ', ',
+		];
+
+		$formats['publink'] = [
+			'callable'  => 'formatValuePublicLink',
+			'separator' => ', ',
+		];
+
+		$formats['shortlink'] = [
+			'callable'  => 'formatValueShortLink',
+			'separator' => ', ',
+		];
+
+		$formats['name'] = [
+			'callable'  => 'formatValueName',
 			'separator' => ', ',
 		];
 
@@ -93,6 +109,53 @@ class File extends Base
 		{
 			return $file['SRC'];
 		}
+		return '';
+	}
+
+	/**
+	 * @param FieldType $fieldType
+	 * @param $value
+	 * @return string
+	 */
+	protected static function formatValueName(FieldType $fieldType, $value)
+	{
+		$value = (int) $value;
+		$file = \CFile::getFileArray($value);
+		if ($file && ($file['ORIGINAL_NAME'] || $file['FILE_NAME']))
+		{
+			return $file['ORIGINAL_NAME'] ?: $file['FILE_NAME'];
+		}
+		return '';
+	}
+
+	/**
+	 * @param FieldType $fieldType
+	 * @param $value
+	 * @return string
+	 */
+	protected static function formatValuePublicLink(FieldType $fieldType, $value)
+	{
+		$fileId = (int) $value;
+		if ($fileId)
+		{
+			return \Bitrix\Bizproc\Controller\File::getPublicLink($fileId);
+		}
+		return '';
+	}
+
+	/**
+	 * @param FieldType $fieldType
+	 * @param $value
+	 * @return string
+	 */
+	protected static function formatValueShortLink(FieldType $fieldType, $value)
+	{
+		$pubLink = static::formatValuePublicLink($fieldType, $value);
+		if ($pubLink)
+		{
+			return Main\Engine\UrlManager::getHostUrl().\CBXShortUri::getShortUri($pubLink);
+		}
+		return '';
 	}
 
 	/**
@@ -210,11 +273,14 @@ HTML;
 		$className = static::generateControlClassName($fieldType, $field);
 		$className = str_replace('file', 'file-selectable', $className);
 
-		return '<input type="text" class="'.htmlspecialcharsbx($className)
-			.'" name="'.htmlspecialcharsbx($name).'" value="'.htmlspecialcharsbx((string) $value)
-			.'" placeholder="'.htmlspecialcharsbx($fieldType->getDescription()).'" value="'.htmlspecialcharsbx((string) $value).'"'
-			.' data-role="inline-selector-target" data-selector-type="file"'
-			.'/>';
+		return sprintf(
+			'<input type="text" class="%s" name="%s" value="%s" placeholder="%s" data-role="inline-selector-target" data-selector-type="file" data-property="%s"/>',
+			htmlspecialcharsbx($className),
+			htmlspecialcharsbx($name),
+			htmlspecialcharsbx((string)$value),
+			htmlspecialcharsbx($fieldType->getDescription()),
+			htmlspecialcharsbx(Main\Web\Json::encode($fieldType->getProperty()))
+		);
 	}
 
 	/**
@@ -317,10 +383,10 @@ HTML;
 			}
 			else
 			{
-				if (!array_key_exists('MODULE_ID', $value) || strlen($value['MODULE_ID']) <= 0)
+				if (!array_key_exists('MODULE_ID', $value) || $value['MODULE_ID'] == '')
 					$value['MODULE_ID'] = 'bizproc';
 
-				$value = \CFile::saveFile($value, 'bizproc_wf', true);
+				$value = \CFile::saveFile($value, 'bizproc_wf');
 				if (!$value)
 				{
 					$value = null;
@@ -342,6 +408,32 @@ HTML;
 		}
 
 		return $value;
+	}
+
+	public static function externalizeValue(FieldType $fieldType, $context, $value)
+	{
+		if ($context === 'rest' && is_numeric($value))
+		{
+			return \CRestUtil::GetFile($value);
+		}
+
+		return parent::externalizeValue($fieldType, $context, $value);
+	}
+
+	public static function internalizeValue(FieldType $fieldType, $context, $value)
+	{
+		if ($context === 'rest')
+		{
+			$fileFields = \CRestUtil::saveFile($value);
+
+			if ($fileFields)
+			{
+				$fileFields['MODULE_ID'] = 'bizproc';
+				return (int) \CFile::saveFile($fileFields, 'bizproc_rest');
+			}
+		}
+
+		return parent::internalizeValue($fieldType, $context, $value);
 	}
 
 }

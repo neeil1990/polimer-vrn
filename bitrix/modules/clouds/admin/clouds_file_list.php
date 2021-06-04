@@ -35,30 +35,64 @@ $CLOchunkSize = $obBucket->GetService()->GetMinUploadPartSize();
 $message = /*.(CAdminMessage).*/null;
 $path = (string)$_GET["path"];
 $sTableID = "tbl_clouds_file_list";
-$lAdmin = new CAdminList($sTableID);
+$oSort = new CAdminSorting($sTableID, "NAME", "asc");
+$lAdmin = new CAdminList($sTableID, $oSort);
 
 $arFilterFields = Array(
 	"find_name",
 );
 $lAdmin->InitFilter($arFilterFields);
 
-$arID = $lAdmin->GroupAction();
+if (mb_strpos($find_name, "*") !== false)
+{
+	$re_find_name = "#^".str_replace(array("\\*", "\\?"), array(".*", ".{0,1}"), preg_quote($find_name, "#"))."$#";
+}
+else
+{
+	$re_find_name = "#".preg_quote($find_name, "#")."#";
+}
+
+if ($arID = $lAdmin->GroupAction())
+{
+	if ($_REQUEST['action_target'] == 'selected')
+	{
+		$arFiles = $obBucket->ListFiles($path);
+		if (is_array($arFiles))
+		{
+			foreach($arFiles["file"] as $i => $file)
+			{
+				if ($find_name == "" || preg_match($re_find_name, $file))
+				{
+					$arID[] =  "F".urlencode($file);
+				}
+			}
+			foreach($arFiles["dir"] as $i => $file)
+			{
+				if ($find_name == "" || preg_match($re_find_name, $file))
+				{
+					$arID[] =  "D".urlencode($file);
+				}
+			}
+		}
+	}
+}
+
 $action = isset($_REQUEST["action"]) && is_string($_REQUEST["action"])? "$_REQUEST[action]": "";
 if($USER->CanDoOperation("clouds_upload") && is_array($arID))
 {
 	foreach($arID as $ID)
 	{
-		if(strlen($ID) <= 0)
+		if($ID == '')
 			continue;
 		$ID = urldecode($ID);
 
 		switch($action)
 		{
 		case "delete":
-			if(substr($ID, 0, 1) === "F")
+			if(mb_substr($ID, 0, 1) === "F")
 			{
-				$file_size = $obBucket->GetFileSize($path.substr($ID, 1));
-				if(!$obBucket->DeleteFile($path.substr($ID, 1)))
+				$file_size = $obBucket->GetFileSize($path.mb_substr($ID, 1));
+				if(!$obBucket->DeleteFile($path.mb_substr($ID, 1)))
 				{
 					$e = $APPLICATION->GetException();
 					if(is_object($e))
@@ -73,14 +107,14 @@ if($USER->CanDoOperation("clouds_upload") && is_array($arID))
 					$obBucket->DecFileCounter($file_size);
 				}
 			}
-			elseif(substr($ID, 0, 1) === "D")
+			elseif(mb_substr($ID, 0, 1) === "D")
 			{
-				$arFiles = $obBucket->ListFiles($path.substr($ID, 1), true);
+				$arFiles = $obBucket->ListFiles($path.mb_substr($ID, 1), true);
 				if (is_array($arFiles))
 				{
 					foreach($arFiles["file"] as $i => $file)
 					{
-						if(!$obBucket->DeleteFile($path.substr($ID, 1)."/".$file))
+						if(!$obBucket->DeleteFile($path.mb_substr($ID, 1)."/".$file))
 						{
 							$e = $APPLICATION->GetException();
 							if(is_object($e))
@@ -346,11 +380,11 @@ if($USER->CanDoOperation("clouds_upload") && is_array($arID))
 			elseif($ID !== "Fnew")
 			{
 				//TODO check for ../../../
-				$filePath = substr($ID, 1);
+				$filePath = mb_substr($ID, 1);
 				$filePath = "/".$path."/".$filePath;
 				$filePath = preg_replace("#[\\\\\\/]+#", "/", $filePath);
 
-				$f = $io->GetFile(preg_replace("#[\\\\\\/]+#", "/", $_SERVER["DOCUMENT_ROOT"]."/".$path."/".substr($ID, 1)));
+				$f = $io->GetFile(preg_replace("#[\\\\\\/]+#", "/", $_SERVER["DOCUMENT_ROOT"]."/".$path."/".mb_substr($ID, 1)));
 			}
 			elseif(isset($_REQUEST["filePath"]))
 			{
@@ -367,7 +401,7 @@ if($USER->CanDoOperation("clouds_upload") && is_array($arID))
 				break;
 
 			if(
-				substr($ID, 0, 1) !== "F"
+				mb_substr($ID, 0, 1) !== "F"
 				|| $obBucket->ACTIVE !== "Y"
 				|| $obBucket->READ_ONLY !== "N"
 			)
@@ -544,56 +578,135 @@ $arHeaders = array(
 		"id" => "FILE_NAME",
 		"content" => GetMessage("CLO_STORAGE_FILE_NAME"),
 		"default" => true,
+		"sort" => "NAME",
 	),
 	array(
 		"id" => "FILE_SIZE",
 		"content" => GetMessage("CLO_STORAGE_FILE_SIZE"),
 		"align" => "right",
 		"default" => true,
+		"sort" => "FILE_SIZE",
+	),
+	array(
+		"id" => "FILE_COUNT",
+		"content" => GetMessage("CLO_STORAGE_FILE_COUNT"),
+		"align" => "right",
+		"default" => true,
+		"sort" => "FILE_COUNT",
+	),
+	array(
+		"id" => "FILE_MTIME",
+		"content" => GetMessage("CLO_STORAGE_FILE_MTIME"),
+		"align" => "right",
+		"default" => true,
+		"sort" => "FILE_MTIME",
 	),
 );
 
 $lAdmin->AddHeaders($arHeaders);
 
 $arData = /*.(array[int][string]string).*/array();
-$arFiles = $obBucket->ListFiles($path);
 
-if($path != "/")
-{
-	$arData[] = array(
-		"ID" => "D..",
-		"TYPE" => "dir",
-		"NAME" => "..",
-		"SIZE" => "",
-	);
-}
+$arFiles = $obBucket->ListFiles($path, $_GET["size"] === "y");
 
 if(is_array($arFiles))
 {
-	foreach($arFiles["dir"] as $i => $dir)
-	{
-		if ($find_name == "" || strpos($dir, $find_name) !== false)
-		{
-			$arData[] = array(
-				"ID" => "D".urlencode($dir),
-				"TYPE" => "dir",
-				"NAME" => $dir,
-				"SIZE" => '',
-			);
-		}
-	}
-
 	foreach($arFiles["file"] as $i => $file)
 	{
-		if ($find_name == "" || strpos($file, $find_name) !== false)
+		$p = mb_strpos($file, "/");
+		if ($p !== false)
+		{
+			$dir = mb_substr($file, 0, $p);
+			if (isset($arFiles["dir"][$dir]))
+			{
+				$arFiles["dir"][$dir]["FILE_SIZE"] += $arFiles["file_size"][$i];
+				$arFiles["dir"][$dir]["FILE_COUNT"]++;
+				$arFiles["dir"][$dir]["FILE_MTIME"] = max($arFiles["dir"][$dir]["FILE_MTIME"], CCloudUtil::gmtTimeToDateTime($arFiles["file_mtime"][$i]));
+			}
+			else
+			{
+				$arFiles["dir"][$dir] = array(
+					"ID" => "D".urlencode($dir),
+					"TYPE" => "dir",
+					"NAME" => $dir,
+					"FILE_SIZE" => $arFiles["file_size"][$i],
+					"FILE_COUNT" => 1,
+					"FILE_MTIME" => CCloudUtil::gmtTimeToDateTime($arFiles["file_mtime"][$i]),
+				);
+			}
+		}
+		elseif ($find_name == "" || preg_match($re_find_name, $file))
 		{
 			$arData[] = array(
 				"ID" => "F".urlencode($file),
 				"TYPE" => "file",
 				"NAME" => $file,
-				"SIZE" => $arFiles["file_size"][$i],
+				"FILE_SIZE" => $arFiles["file_size"][$i],
+				"FILE_COUNT" => 1,
+				"FILE_MTIME" => CCloudUtil::gmtTimeToDateTime($arFiles["file_mtime"][$i]),
 			);
 		}
+	}
+
+	foreach($arFiles["dir"] as $i => $dir)
+	{
+		if (is_array($dir))
+		{
+			if ($find_name == "" || preg_match($re_find_name, $dir["NAME"]))
+			{
+				$arData[] = $dir;
+			}
+		}
+		elseif ($find_name == "" || preg_match($re_find_name, $dir))
+		{
+			$size = '';
+			$count = '';
+			$mtime = '';
+			if($_GET["size"] === "y")
+			{
+				$arDirFiles = $obBucket->ListFiles($path.$dir."/", true);
+				$size = array_sum($arDirFiles["file_size"]);
+				$count = count($arDirFiles["file"]);
+				$mtime = max($arDirFiles["file_mtime"]);
+				$mtime = CCloudUtil::gmtTimeToDateTime($mtime);
+			}
+
+			$arData[] = array(
+				"ID" => "D".urlencode($dir),
+				"TYPE" => "dir",
+				"NAME" => $dir,
+				"FILE_SIZE" => $size,
+				"FILE_COUNT" => $count,
+				"FILE_MTIME" => $mtime,
+			);
+		}
+	}
+
+	if ($order && $by)
+	{
+		\Bitrix\Main\Type\Collection::sortByColumn($arData, array(
+			'TYPE' => SORT_ASC,
+			$by => $order == "desc"? SORT_DESC: SORT_ASC,
+		));
+	}
+	else
+	{
+		\Bitrix\Main\Type\Collection::sortByColumn($arData, array(
+			'TYPE' => SORT_ASC,
+			'NAME' => SORT_ASC,
+		));
+	}
+
+	if($path != "/")
+	{
+		array_unshift($arData, array(
+			"ID" => "D..",
+			"TYPE" => "dir",
+			"NAME" => "..",
+			"FILE_SIZE" => "",
+			"FILE_COUNT" => "",
+			"FILE_MTIME" => "",
+		));
 	}
 }
 else
@@ -621,37 +734,29 @@ while(is_array($arRes = $rsData->NavNext()))
 {
 	$row =& $lAdmin->AddRow($arRes["ID"], $arRes);
 
+	$total_size += (int)$arRes["FILE_SIZE"];
+	$total_count += (int)$arRes["FILE_COUNT"];
+
+	if ($arRes["FILE_SIZE"] != "")
+	{
+		$row->AddViewField("FILE_SIZE", CFile::FormatSize($arRes["FILE_SIZE"]));
+	}
+
 	if($arRes["TYPE"] === "dir")
 	{
 		if($arRes["NAME"] === "..")
 		{
 			$row->bReadOnly = true;
 			$row->AddViewField("FILE_NAME", '<a href="'.htmlspecialcharsbx('clouds_file_list.php?lang='.urlencode(LANGUAGE_ID).'&bucket='.urlencode($obBucket->ID).'&path='.urlencode(preg_replace('#([^/]+)/$#', '', $path))).'" class="adm-list-table-icon-link"><span class="adm-submenu-item-link-icon adm-list-table-icon clouds-up-icon"></span><span class="adm-list-table-link">'.htmlspecialcharsex($arRes["NAME"]).'</span></a>');
-			$row->AddViewField("FILE_SIZE", '&nbsp;');
 		}
 		else
 		{
 			$row->AddViewField("FILE_NAME", '<a href="'.htmlspecialcharsbx('clouds_file_list.php?lang='.urlencode(LANGUAGE_ID).'&bucket='.urlencode($obBucket->ID).'&path='.urlencode($path.$arRes["NAME"].'/')).'" class="adm-list-table-icon-link"><span class="adm-submenu-item-link-icon adm-list-table-icon clouds-directory-icon"></span><span class="adm-list-table-link">'.htmlspecialcharsex($arRes["NAME"]).'</span></a>');
-			if($_GET["size"] === "y")
-			{
-				$arDirFiles = $obBucket->ListFiles($path.$arRes["NAME"]."/", true);
-				$size = array_sum($arDirFiles["file_size"]);
-				$row->AddViewField("FILE_SIZE", CFile::FormatSize((float)$size));
-				$total_size += $size;
-				$total_count += count($arDirFiles["file"]);
-			}
-			else
-			{
-				$row->AddViewField("FILE_SIZE", '&nbsp;');
-			}
 		}
 	}
 	else
 	{
 		$row->AddViewField("FILE_NAME", '<a href="'.htmlspecialcharsbx($obBucket->GetFileSRC(array("URN" => $path.$arRes["NAME"]))).'">'.htmlspecialcharsex($arRes["NAME"]).'</a>');
-		$row->AddViewField("FILE_SIZE", CFile::FormatSize((float)$arRes["SIZE"]));
-		$total_size += $arRes["SIZE"];
-		$total_count++;
 	}
 
 	$arActions = /*.(array[int][string]string).*/array();
@@ -832,7 +937,7 @@ function get_upload_url(additional_args)
 		+ '&ID=Fnew'
 		+ '&lang=<?echo urlencode(LANGUAGE_ID)?>'
 		+ '&path=<?echo urlencode($path)?>'
-		+ '&path_to_upload=' + BX('path_to_upload').value
+		+ '&path_to_upload=' + BX.util.urlencode(BX('path_to_upload').value)
 		+ '&<?echo bitrix_sessid_get()?>'
 		+ '&bucket=<?echo CUtil::JSEscape($obBucket->ID)?>'
 	;

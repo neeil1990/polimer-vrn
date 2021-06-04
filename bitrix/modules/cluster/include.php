@@ -1,10 +1,9 @@
-<?
-
+<?php
 IncludeModuleLangFile(__FILE__);
 //Never increase caching time here. There were cache clenup problems noticed.
 if(!defined("CACHED_b_cluster_dbnode")) define("CACHED_b_cluster_dbnode", 3600);
 global $DB;
-$db_type = strtolower($DB->type);
+$db_type = mb_strtolower($DB->type);
 CModule::AddAutoloadClasses(
 	"cluster",
 	array(
@@ -15,8 +14,9 @@ CModule::AddAutoloadClasses(
 		"CAllClusterDBNodeCheck" => "classes/general/dbnode_check.php",
 		"CClusterDBNodeCheck" => "classes/".$db_type."/dbnode_check.php",
 		"CClusterSlave" => "classes/".$db_type."/slave.php",
-		"CClusterMemcache" =>  "classes/general/memcache.php",
-		"CClusterWebnode" =>  "classes/general/webnode.php",
+		"CClusterMemcache" => "classes/general/memcache.php",
+		"CClusterRedis" => "classes/general/redis.php",
+		"CClusterWebnode" => "classes/general/webnode.php",
 	)
 );
 
@@ -59,6 +59,7 @@ class CCluster
 		$servers = array_merge(
 			CClusterDBNode::getServerList()
 			,CClusterMemcache::getServerList()
+			,CClusterRedis::getServerList()
 			,CClusterWebnode::getServerList()
 		);
 		if (empty($servers))

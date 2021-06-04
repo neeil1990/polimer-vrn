@@ -4,6 +4,7 @@ namespace Bitrix\MessageService\Sender\Sms;
 use Bitrix\Main\Application;
 use Bitrix\Main\Error;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\ModuleManager;
 use Bitrix\Main\Result;
 use Bitrix\Main\Web\HttpClient;
 use Bitrix\Main\Web\Json;
@@ -50,27 +51,6 @@ class SmsAssistentBy extends Sender\BaseConfigurable
 	{
 		$from = $this->getOption('from_list');
 		return is_array($from) ? $from : [];
-	}
-
-	public function getDefaultFrom()
-	{
-		$fromList = $this->getFromList();
-		$from = isset($fromList[0]) ? $fromList[0]['id'] : null;
-		//Try to find alphanumeric from
-		foreach ($fromList as $item)
-		{
-			if (!preg_match('#^[0-9]+$#', $item['id']))
-			{
-				$from = $item['id'];
-				break;
-			}
-		}
-		return $from;
-	}
-
-	public function setDefaultFrom($from)
-	{
-		return $this;
 	}
 
 	public function isRegistered()
@@ -170,6 +150,11 @@ class SmsAssistentBy extends Sender\BaseConfigurable
 			'validity_period' => 24,
 			'webhook_url' => $this->getCallbackUrl()
 		];
+
+		if (ModuleManager::isModuleInstalled('bitrix24'))
+		{
+			$message['Vendor'] = 'Bitrix24';
+		}
 
 		if ($messageFields['MESSAGE_FROM'])
 		{

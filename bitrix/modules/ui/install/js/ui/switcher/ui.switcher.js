@@ -42,6 +42,10 @@
 		var nodes = document.getElementsByClassName(Switcher.className);
 		nodes = BX.convert.nodeListToArray(nodes);
 		nodes.forEach(function (node) {
+			if (node.getAttribute('data-switcher-init'))
+			{
+				return;
+			}
 			new Switcher({node: node});
 		});
 	};
@@ -51,9 +55,16 @@
 			checked: 'checked',
 			unchecked: 'unchecked'
 		},
+		handlers: {},
 		attributeName: 'data-switcher',
 		attributeInitName: 'data-switcher-init',
 		classNameOff: 'ui-switcher-off',
+		classNameSize: {
+			small: 'ui-switcher-size-sm'
+		},
+		classNameColor: {
+			green: 'ui-switcher-color-green'
+		},
 		popup: null,
 		content: null,
 		popupParameters: null,
@@ -64,6 +75,11 @@
 			if (options.attributeName)
 			{
 				this.attributeName = options.attributeName;
+			}
+
+			if (options.handlers)
+			{
+				this.handlers = options.handlers;
 			}
 
 			if (options.node)
@@ -77,16 +93,28 @@
 				var data = this.node.getAttribute(this.attributeName);
 				try
 				{
-					data = JSON.parse(data);
+					data = JSON.parse(data) || {};
 				}
 				catch (e)
 				{
 					data = {};
 				}
 
-				this.id = data.id;
+				if (data.id)
+				{
+					this.id = data.id;
+				}
+
 				this.checked = !!data.checked;
 				this.inputName = data.inputName;
+				if(typeof data.color !== 'undefined')
+				{
+					options.color = data.color;
+				}
+				if(typeof data.size !== 'undefined')
+				{
+					options.size = data.size;
+				}
 			}
 			else
 			{
@@ -97,9 +125,10 @@
 			{
 				this.id = options.id;
 			}
+
 			if (!this.id)
 			{
-				throw new Error('Parameter `id` expected.');
+				this.id = Math.random();
 			}
 			if (typeof options.checked === 'boolean')
 			{
@@ -109,9 +138,17 @@
 			{
 				this.inputName = options.inputName;
 			}
+			if (this.classNameSize[options.size])
+			{
+				this.node.classList.add(this.classNameSize[options.size]);
+			}
+			if (this.classNameColor[options.color])
+			{
+				this.node.classList.add(this.classNameColor[options.color]);
+			}
 
 			this.initNode();
-			this.check(this.checked);
+			this.check(this.checked, false);
 		},
 
 		/**
@@ -132,14 +169,10 @@
 			node.setAttribute(this.attributeInitName, 'y');
 
 			BX.addClass(node, Switcher.className);
-			node.innerHTML = '<span class="ui-switcher-enabled">\n' +
-				'<span class="ui-switcher-enabled-text">' + BX.message('UI_SWITCHER_ON') + '</span>\n' +
-				'</span>\n' +
-				'<span class="ui-switcher-disabled">\n' +
+			node.innerHTML =
 				'<span class="ui-switcher-cursor"></span>\n' +
-				'<span class="ui-switcher-disabled-text">' + BX.message('UI_SWITCHER_OFF') + '</span>\n' +
-			'</span>';
-
+				'<span class="ui-switcher-enabled">' + BX.message('UI_SWITCHER_ON') + '</span>\n' +
+				'<span class="ui-switcher-disabled">' + BX.message('UI_SWITCHER_OFF') + '</span>\n';
 			if (this.inputName)
 			{
 				this.inputNode = document.createElement('input');
@@ -168,9 +201,21 @@
 		},
 
 		/**
+		 *
+		 */
+		fireEvent: function (eventName)
+		{
+			BX.onCustomEvent(this, eventName);
+			if (this.handlers[eventName])
+			{
+				this.handlers[eventName].call(this);
+			}
+		},
+
+		/**
 		 * Set `checked` or `unchecked` state.
 		 */
-		check: function (checked)
+		check: function (checked, fireEvents)
 		{
 			this.checked = checked;
 			if (this.inputNode)
@@ -178,21 +223,26 @@
 				this.inputNode.value = this.checked ? 'Y' : 'N';
 			}
 
+			fireEvents = fireEvents !== false;
+
 			if (this.checked)
 			{
 				BX.removeClass(this.node, this.classNameOff);
-				BX.onCustomEvent(this, this.events.unchecked);
+				fireEvents ? this.fireEvent(this.events.unchecked) : null;
 			}
 			else
 			{
 				BX.addClass(this.node, this.classNameOff);
-				BX.onCustomEvent(this, this.events.checked);
+				fireEvents ? this.fireEvent(this.events.checked) : null;
 			}
 
 			BX.onCustomEvent(this, this.events.toggled);
+			fireEvents ? this.fireEvent(this.events.toggled) : null;
 		}
 	};
-
-	Switcher.initByClassName();
+	
 	namespace.Switcher = Switcher;
+	BX.ready(function () {
+		namespace.Switcher.initByClassName();
+	});
 })();

@@ -5,8 +5,7 @@ class CCloudSecurityService_AmazonS3
 {
 	protected $status = 0;
 	protected $headers = array();
-	protected $errno = 0;
-	protected $errstr = '';
+	protected $error = false;
 	protected $result = '';
 
 	function GetLastRequestStatus()
@@ -108,7 +107,9 @@ class CCloudSecurityService_AmazonS3
 			)
 				$SessionToken = $Credentials[0]["#"]["SessionToken"][0]["#"];
 			else
+			{
 				return 1;
+			}
 
 			if(
 				isset($Credentials[0])
@@ -123,7 +124,9 @@ class CCloudSecurityService_AmazonS3
 			)
 				$SecretAccessKey = $Credentials[0]["#"]["SecretAccessKey"][0]["#"];
 			else
+			{
 				return 2;
+			}
 
 			if(
 				isset($Credentials[0])
@@ -138,7 +141,9 @@ class CCloudSecurityService_AmazonS3
 			)
 				$AccessKeyId = $Credentials[0]["#"]["AccessKeyId"][0]["#"];
 			else
+			{
 				return 3;
+			}
 
 			return array(
 				"ACCESS_KEY" => $AccessKeyId,
@@ -157,45 +162,60 @@ class CCloudSecurityService_AmazonS3
 		global $APPLICATION;
 		$this->status = 0;
 
-		$RequestMethod = $verb;
-		$RequestHost = "sts.amazonaws.com";
-		$RequestURI = "/";
-		$RequestParams = "";
-
 		$params['SignatureVersion'] = 2;
 		$params['SignatureMethod'] = 'HmacSHA1';
 		$params['AWSAccessKeyId'] = $access_key;
-		$params['Timestamp'] = gmdate('Y-m-d').'T'.gmdate('H:i:s');//.preg_replace("/(\d\d)\$/", ":\\1", date("O"));
 		$params['Version'] = '2011-06-15';
-		ksort($params);
-		foreach($params as $name => $value)
+
+		$retry_count = COption::GetOptionInt("clouds", "aws_security_service_retry_count");
+		$retry_timeout = COption::GetOptionInt("clouds", "aws_security_service_retry_timeout");
+		while (true)
 		{
-			if($RequestParams != '')
-				$RequestParams .= '&';
-			$RequestParams .= urlencode($name)."=".urlencode($value);
+			$time = time();
+			$params['Timestamp'] = gmdate('Y-m-d', $time).'T'.gmdate('H:i:s', $time);
+
+			$RequestMethod = $verb;
+			$RequestHost = "sts.amazonaws.com";
+			$RequestURI = "/";
+			$RequestParams = "";
+
+			ksort($params);
+			foreach($params as $name => $value)
+			{
+				if($RequestParams != '')
+					$RequestParams .= '&';
+				$RequestParams .= urlencode($name)."=".urlencode($value);
+			}
+
+			$StringToSign =  "$RequestMethod\n"
+					."$RequestHost\n"
+					."$RequestURI\n"
+					."$RequestParams"
+			;
+			$Signature = urlencode(base64_encode($this->hmacsha1($StringToSign, $secret_key)));
+
+			$request = new Bitrix\Main\Web\HttpClient();
+			$is_ok = $request->query($RequestMethod, "https://$RequestHost$RequestURI?$RequestParams&Signature=$Signature");
+			if (!$is_ok && $retry_count > 0)
+			{
+				$retry_count--;
+				sleep($retry_timeout);
+				continue;
+			}
+			break;
 		}
 
-		$StringToSign =  "$RequestMethod\n"
-				."$RequestHost\n"
-				."$RequestURI\n"
-				."$RequestParams"
-		;
-		$Signature = urlencode(base64_encode($this->hmacsha1($StringToSign, $secret_key)));
+		$this->result = $request->getResult();
+		$this->status = $request->getStatus();
+		$this->headers = $request->getHeaders();
+		$this->error = $request->getError();
 
-		$obRequest = new CHTTP;
-		$obRequest->Query($RequestMethod, $RequestHost, 443, $RequestURI."?$RequestParams&Signature=$Signature", false, 'ssl://');
-		$this->status = $obRequest->status;
-		$this->headers = $obRequest->headers;
-		$this->errno = $obRequest->errno;
-		$this->errstr = $obRequest->errstr;
-		$this->result = $obRequest->result;
-
-		if($obRequest->status == 200)
+		if($this->status == 200)
 		{
-			if($obRequest->result)
+			if($this->result)
 			{
 				$obXML = new CDataXML;
-				$text = preg_replace("/<"."\\?XML.*?\\?".">/i", "", $obRequest->result);
+				$text = preg_replace("/<"."\\?XML.*?\\?".">/i", "", $this->result);
 				if($obXML->LoadString($text))
 				{
 					$arXML = $obXML->GetArray();
@@ -214,11 +234,11 @@ class CCloudSecurityService_AmazonS3
 				return array();
 			}
 		}
-		elseif($obRequest->status > 0)
+		elseif($this->status > 0)
 		{
-			if($obRequest->result)
+			if($this->result)
 			{
-				$APPLICATION->ThrowException(GetMessage('CLO_SECSERV_S3_XML_ERROR', array('#errmsg#'=>$obRequest->result)));
+				$APPLICATION->ThrowException(GetMessage('CLO_SECSERV_S3_XML_ERROR', array('#errmsg#'=>$this->result)));
 				return false;
 			}
 			$APPLICATION->ThrowException(GetMessage('CLO_SECSERV_S3_XML_PARSE_ERROR', array('#errno#'=>2)));
@@ -233,7 +253,7 @@ class CCloudSecurityService_AmazonS3
 
 	function hmacsha1($data, $key)
 	{
-		if(strlen($key)>64)
+		if(mb_strlen($key) > 64)
 			$key=pack('H*', sha1($key));
 		$key = str_pad($key, 64, chr(0x00));
 		$ipad = str_repeat(chr(0x36), 64);
@@ -278,7 +298,7 @@ class CCloudSecurityService_AmazonS3
 			$first = true;
 			foreach($arData as $key => $value)
 			{
-				if ($bSkipTilda && substr($key, 0, 1) == '~')
+				if ($bSkipTilda && mb_substr($key, 0, 1) == '~')
 					continue;
 
 				if($first)

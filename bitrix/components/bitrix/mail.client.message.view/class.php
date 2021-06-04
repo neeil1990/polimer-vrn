@@ -2,13 +2,12 @@
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
-use Bitrix\Mail\Helper\MessageFolder;
+use Bitrix\Calendar\ICal\Parser\Calendar as CalendarIcalComponent;
+use Bitrix\Mail;
+use Bitrix\Mail\Integration\Calendar\ICal\ICalMailManager;
+use Bitrix\Mail\Internals\MessageAccessTable;
 use Bitrix\Main;
 use Bitrix\Main\Localization\Loc;
-use Bitrix\Mail;
-use Bitrix\Mail\Helper\Mailbox\Imap;
-use Bitrix\Mail\Internals\MailContactTable;
-use Bitrix\Mail\Internals\MessageAccessTable;
 
 Loc::loadMessages(__DIR__ . '/../mail.client/class.php');
 
@@ -139,7 +138,9 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 			))->fetchAll();
 		}
 
+//		$this->prepareICal($message);
 		$this->prepareMessage($message);
+
 		$message['SENDER_EMAIL'] = $this->getEmailFromFieldFrom($message['FIELD_FROM']);
 		$this->arResult['MESSAGE'] = $message;
 
@@ -241,9 +242,10 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 				$this->arResult['LOG']['B'][] = $item;
 			}
 		}
-		$this->markMessageAsSeen($message);
 
+		$this->markMessageAsSeen($message);
 		$this->prepareUser();
+
 		$this->arResult['avatarParams'] = $this->getAvatarParams(array_merge(
 			$this->arResult['LOG']['B'],
 			$this->arResult['LOG']['A'],
@@ -276,7 +278,7 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 
 		if (!empty($log) && preg_match('/([ab])(\d+)/i', $log, $matches))
 		{
-			$type = strtoupper($matches[1]);
+			$type = mb_strtoupper($matches[1]);
 			$offset = (int) $matches[2];
 		}
 		else
@@ -566,21 +568,55 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 		$this->arResult['USER_IMAGE'] = !empty($userImage['src']) ? $userImage['src'] : '';
 	}
 
+	protected function prepareICal($message)
+	{
+		if (empty($message['OPTIONS']['iCal']))
+		{
+			return;
+		}
+
+		$icalComponent = ICalMailManager::parseRequest($message['OPTIONS']['iCal']);
+
+		if ($icalComponent->getMethod() === \Bitrix\Calendar\ICal\Parser\Dictionary::METHOD['request']
+			&& $icalComponent->hasOneEvent())
+		{
+			$this->arResult['iCalEvent'] = $icalComponent->getEvent();
+		}
+	}
+
 	/**
 	 * @param $message
 	 *
 	 * @return mixed
+	 * @throws Main\ArgumentException
+	 * @throws Main\LoaderException
+	 * @throws Main\ObjectPropertyException
+	 * @throws Main\SystemException
 	 */
 	protected function prepareMessage(&$message)
 	{
-		$message['isSpam'] = MessageFolder::getFolderHashByType(MessageFolder::SPAM, $message['MAILBOX_OPTIONS']) === $message['DIR_MD5'];
-		$message['isTrash'] = MessageFolder::getFolderHashByType(MessageFolder::TRASH, $message['MAILBOX_OPTIONS']) === $message['DIR_MD5'];
+		$dirsHelper = new Mail\Helper\MailboxDirectoryHelper($message['MAILBOX_ID']);
+		$dir = $dirsHelper->getDirByHash($message['DIR_MD5'] ?: '');
 
-		if($message['OPTIONS']['trackable'] === true && !$message['READ_CONFIRMED'])
+		$message['isSpam'] = $dir ? $dir->isSpam() : false;
+		$message['isTrash'] = $dir ? $dir->isTrash() : false;
+
+		if ($message['OPTIONS']['trackable'] && !$message['READ_CONFIRMED'])
 		{
-			if(Main\Loader::includeModule('pull'))
+			if (\Bitrix\Main\Config\Option::get('main', 'track_outgoing_emails_read', 'Y') == 'Y')
 			{
-				\CPullWatch::Add(Main\Engine\CurrentUser::get()->getId(), Mail\Helper\MessageEventManager::getPullTagName($message['ID']), true);
+				if (Main\Loader::includeModule('pull'))
+				{
+					\CPullWatch::add(
+						Main\Engine\CurrentUser::get()->getId(),
+						Mail\Helper\MessageEventManager::getPullTagName($message['ID']),
+						true
+					);
+				}
+			}
+			else
+			{
+				$message['OPTIONS']['trackable'] = false;
 			}
 		}
 
@@ -643,6 +679,32 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 			}
 		}
 
+		if (!empty($binds[MessageAccessTable::ENTITY_TYPE_BLOG_POST]) && Main\Loader::includeModule('blog'))
+		{
+			$res = Bitrix\Blog\PostTable::getList(array(
+				'select' => array('ID', 'TITLE'),
+				'filter' => array(
+					'@ID' => (array) $binds[MessageAccessTable::ENTITY_TYPE_BLOG_POST],
+				),
+			));
+
+			$message['BIND_LINKS'][Loc::getMessage('MAIL_MESSAGE_EXT_BIND_POSTS_TITLE')] = array();
+			while ($item = $res->fetch())
+			{
+				$defaultTitle = sprintf('%s #%u', Loc::getMessage('MAIL_MESSAGE_EXT_BIND_POSTS_EMPTY_TITLE'), $item['ID']);
+				$message['BIND_LINKS'][Loc::getMessage('MAIL_MESSAGE_EXT_BIND_POSTS_TITLE')][] = array(
+					'title' => $item['TITLE'] ?: $defaultTitle,
+					'href' => \CComponentEngine::makePathFromTemplate(
+						$this->arParams['PATH_TO_USER_BLOG_POST'],
+						[
+							'post_id' => $item['ID'],
+						]
+					),
+					'onclick' => 'top.BX.SidePanel.Instance.open(this.href, {loader: \'socialnetwork:userblogpost\'}); return false; ',
+				);
+			}
+		}
+
 		return \Bitrix\Mail\Helper\Message::prepare($message);
 	}
 
@@ -660,7 +722,7 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 
 	/**
 	 * Getting array of errors.
-	 * @return Error[]
+	 * @return Main\Error[]
 	 */
 	final public function getErrors()
 	{
@@ -670,7 +732,7 @@ class CMailClientMessageViewComponent extends CBitrixComponent implements \Bitri
 	/**
 	 * Getting once error with the necessary code.
 	 * @param string $code Code of error.
-	 * @return Error
+	 * @return Main\Error|null
 	 */
 	final public function getErrorByCode($code)
 	{

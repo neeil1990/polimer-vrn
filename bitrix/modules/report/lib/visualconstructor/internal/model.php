@@ -6,7 +6,6 @@ use Bitrix\Main\Entity\Query\Filter\ConditionTree;
 use Bitrix\Main\NotImplementedException;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Report\VisualConstructor\Config\Common;
-
 use Bitrix\Report\VisualConstructor\Entity\DashboardRow;
 use Bitrix\Report\VisualConstructor\Helper\Util;
 use Bitrix\Report\VisualConstructor\Internal\Error\IErrorable;
@@ -38,7 +37,7 @@ abstract class Model implements IErrorable
 	/**
 	 * Gets the fully qualified name of table class which belongs to current model.
 	 * @throws \Bitrix\Main\NotImplementedException
-	 * @return void
+	 * @return string
 	 */
 	public static function getTableClassName()
 	{
@@ -544,8 +543,8 @@ abstract class Model implements IErrorable
 							$targetEntity = $nestedReferenceAttributes[$reference]['targetEntity'];
 							$targetOrmTable = $targetEntity::getTableClassName();
 							$fromKeyNamePrefix = !empty($fromKeyNamePrefix) ? $fromKeyNamePrefix . '.' : '';
-							$select[$prefix] = $fromKeyNamePrefix . $targetOrmTable::getClassName() . ':' . strtoupper($nestedReferenceAttributes[$reference]['mappedBy']);
-							$fromKeyNamePrefix .= $targetOrmTable::getClassName() . ':' . strtoupper($nestedReferenceAttributes[$reference]['mappedBy']);
+							$select[$prefix] = $fromKeyNamePrefix.$targetOrmTable::getClassName().':'.mb_strtoupper($nestedReferenceAttributes[$reference]['mappedBy']);
+							$fromKeyNamePrefix .= $targetOrmTable::getClassName().':'.mb_strtoupper($nestedReferenceAttributes[$reference]['mappedBy']);
 							$nestedReferenceAttributes = $targetEntity::getMapReferenceAttributes();
 							break;
 						case Common::MANY_TO_MANY:
@@ -564,8 +563,8 @@ abstract class Model implements IErrorable
 							break;
 						case Common::MANY_TO_ONE:
 							$fromKeyNamePrefix = !empty($fromKeyNamePrefix) ? $fromKeyNamePrefix . '.' : '';
-							$select[$prefix] = $fromKeyNamePrefix . strtoupper($reference);
-							$fromKeyNamePrefix .= strtoupper($reference);
+							$select[$prefix] = $fromKeyNamePrefix.mb_strtoupper($reference);
+							$fromKeyNamePrefix .= mb_strtoupper($reference);
 							break;
 
 					}
@@ -767,7 +766,7 @@ abstract class Model implements IErrorable
 		if ($isDeleteReferenceCall)
 		{
 			$referenceName = $deleteCallNameParts[1][0];
-			$referenceName = strtolower($referenceName);
+			$referenceName = mb_strtolower($referenceName);
 			$referenceMapAttributes = $this::getMapReferenceAttributes();
 			if (!empty($referenceMapAttributes[$referenceName]))
 			{
@@ -792,7 +791,7 @@ abstract class Model implements IErrorable
 		if ($isAddReferenceCall)
 		{
 			$referenceName = $addCallNameParts[1][0];
-			$referenceName = strtolower($referenceName);
+			$referenceName = mb_strtolower($referenceName);
 			$referenceMapAttributes = $this::getMapReferenceAttributes();
 			if (!empty($referenceMapAttributes[$referenceName]))
 			{

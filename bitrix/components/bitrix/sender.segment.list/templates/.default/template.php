@@ -24,7 +24,7 @@ foreach ($arResult['ROWS'] as $index => $data)
 
 	if ($data['NAME'] && $data['URLS']['EDIT'])
 	{
-		$data['NAME'] = '<a onclick="' . "BX.Sender.Page.open('".CUtil::JSEscape($data['URLS']['EDIT'])."'); return false;" . '" href="' . htmlspecialcharsbx($data['URLS']['EDIT']) . '">'
+		$data['NAME'] = '<a onclick="' . "BX.Sender.Page.open('".CUtil::JSEscape(htmlspecialcharsbx($data['URLS']['EDIT']))."'); return false;" . '" href="' . htmlspecialcharsbx($data['URLS']['EDIT']) . '">'
 			.  htmlspecialcharsbx($data['NAME'])
 			. '</a>';
 	}
@@ -43,7 +43,7 @@ foreach ($arResult['ROWS'] as $index => $data)
 		}
 
 		$data['ADDRESS_COUNT'] = implode(', ', $counterStrings);
-		$data['ADDRESS_COUNT'] = strtolower($data['ADDRESS_COUNT']);
+		$data['ADDRESS_COUNT'] = mb_strtolower($data['ADDRESS_COUNT']);
 	}
 
 	$actions = array();

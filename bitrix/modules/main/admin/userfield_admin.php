@@ -8,7 +8,7 @@ if(!$USER->CanDoOperation('view_other_settings'))
 IncludeModuleLangFile(__FILE__);
 
 $back_url = $_REQUEST["back_url"];
-if(substr($back_url, 0, 1) <> '/')
+if(mb_substr($back_url, 0, 1) <> '/')
 	$back_url = '';
 
 $sTableID = "tbl_user_type";
@@ -58,7 +58,7 @@ if($lAdmin->EditAction())
 			continue;
 		//Update
 		$DB->StartTransaction();
-		$ID = IntVal($ID);
+		$ID = intval($ID);
 		if(!$obUserField->Update($ID, $arFields))
 		{
 			if($e = $APPLICATION->GetException())
@@ -81,9 +81,9 @@ if($arID = $lAdmin->GroupAction())
 	$obUserField = new CUserTypeEntity;
 	foreach($arID as $ID)
 	{
-		if(strlen($ID)<=0)
+		if($ID == '')
 			continue;
-		$ID = IntVal($ID);
+		$ID = intval($ID);
 		//Rights check
 		if($USER_FIELD_MANAGER->GetRights(false, $ID) < "W")
 			continue;
@@ -214,7 +214,7 @@ while($arRes = $rsData->NavNext(true, "f_")):
 	$arActions[] = array(
 		"ICON"=>"delete",
 		"TEXT"=>GetMessage("MAIN_DELETE"),
-		"ACTION"=>"if(confirm('".GetMessage('USERTYPE_DELETE_CONF')."')) ".$lAdmin->ActionDoGroup($f_ID, "delete", 'back_url='.urlencode($back_url).'&list_url='.urlencode($list_url))
+		"ACTION"=>"if(confirm('".GetMessageJS('USERTYPE_DELETE_CONF')."')) ".$lAdmin->ActionDoGroup($f_ID, "delete", 'back_url='.urlencode($back_url).'&list_url='.urlencode($list_url))
 	);
 
 	$row->AddActions($arActions);
@@ -325,13 +325,22 @@ $arrYN = array(
 	<td><?=GetMessage("USERTYPE_USER_TYPE_ID")?>:</td>
 	<td>
 		<?
-		$arUserTypes = $USER_FIELD_MANAGER->GetUserType();
-		$arr = array("reference"=>array(), "reference_id"=>array());
-		foreach($arUserTypes as $arUserType)
+		$typeList = array();
+		foreach($USER_FIELD_MANAGER->GetUserType() as $arUserType)
 		{
-			$arr["reference"][] = $arUserType["DESCRIPTION"];
-			$arr["reference_id"][] = $arUserType["USER_TYPE_ID"];
+			$typeList[$arUserType["USER_TYPE_ID"]] = $arUserType["DESCRIPTION"];
 		}
+		\Bitrix\Main\Type\Collection::sortByColumn(
+			$typeList,
+			array('DESCRIPTION' => SORT_ASC),
+			'',
+			null,
+			true
+		);
+		$arr = array(
+			"reference" => array_values($typeList),
+			"reference_id" =>array_keys($typeList)
+		);
 		echo SelectBoxFromArray("find_user_type_id", $arr, $find_user_type_id, GetMessage("MAIN_ALL"), "");
 		?>
 	</td>

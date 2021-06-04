@@ -1,5 +1,6 @@
-<?
-require($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/main/classes/general/usertype.php");
+<?php
+
+require(__DIR__."/../general/usertype.php");
 
 class CUserTypeEntity extends CAllUserTypeEntity
 {
@@ -19,8 +20,8 @@ class CUserTypeEntity extends CAllUserTypeEntity
 					VALUE_INT int,
 					VALUE_DOUBLE float,
 					VALUE_DATE datetime,
-					INDEX ix_utm_".$entity_id."_1(FIELD_ID),
 					INDEX ix_utm_".$entity_id."_2(VALUE_ID),
+					INDEX ix_utm_".$entity_id."_3(FIELD_ID, VALUE_INT, VALUE_ID),
 					PRIMARY KEY (ID)
 				)
 			", false, "FILE: ".__FILE__."<br>LINE: ".__LINE__);
@@ -60,18 +61,6 @@ class CUserTypeEntity extends CAllUserTypeEntity
 	}
 }
 
-class CSQLWhere extends CAllSQLWhere
-{
-	function _Empty($field)
-	{
-		return "(".$field." IS NULL OR ".$field." = '')";
-	}
-	function _NotEmpty($field)
-	{
-		return "(".$field." IS NOT NULL AND LENGTH(".$field.") > 0)";
-	}
-}
-
 /**
  * Ёта переменна€ содержит экземпл€р класса через API которого
  * и происходит работа с пользовательскими свойствами.
@@ -79,4 +68,3 @@ class CSQLWhere extends CAllSQLWhere
  * @name $USER_FIELD_MANAGER
  */
 $GLOBALS['USER_FIELD_MANAGER'] = new CUserTypeManager;
-?>

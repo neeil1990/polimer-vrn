@@ -1,5 +1,6 @@
 <?php
 
+use Bitrix\Bizproc;
 use \Bitrix\Bizproc\RestActivityTable;
 use \Bitrix\Rest\Sqs;
 use \Bitrix\Main\Loader;
@@ -88,7 +89,7 @@ class CBPRestActivity
 		{
 			foreach ($activityData['RETURN_PROPERTIES'] as $name => $property)
 			{
-				$this->{$name} = isset($property['DEFAULT']) ? $property['DEFAULT'] : null;
+				$this->__set($name, isset($property['DEFAULT']) ? $property['DEFAULT'] : null);
 			}
 		}
 	}
@@ -104,23 +105,29 @@ class CBPRestActivity
 		$propertiesData = [];
 		if (!empty($activityData['PROPERTIES']))
 		{
+			/** @var CBPDocumentService $documentService */
+			$documentService = $this->workflow->GetService('DocumentService');
 			foreach ($activityData['PROPERTIES'] as $name => $property)
 			{
-				$propertiesData[$name] = $this->{$name};
+				$property = Bizproc\FieldType::normalizeProperty($property);
+				$propertiesData[$name] = $this->__get($name);
+
+				if ($propertiesData[$name])
+				{
+					$fieldTypeObject = $documentService->getFieldTypeObject($this->GetDocumentType(), $property);
+					if ($fieldTypeObject)
+					{
+						$fieldTypeObject->setDocumentId($this->GetDocumentId());
+						$propertiesData[$name] = $fieldTypeObject->externalizeValue($this->GetName(), $propertiesData[$name]);
+					}
+				}
+
 				if ($propertiesData[$name] === null)
 				{
 					$propertiesData[$name] = '';
 				}
 			}
 		}
-
-		/*
-		$session = \Bitrix\Rest\Event\Session::get();
-		if(!$session)
-		{
-			throw new Exception('Rest session error');
-		}
-		*/
 
 		$dbRes = \Bitrix\Rest\AppTable::getList(array(
 			'filter' => array(
@@ -141,12 +148,15 @@ class CBPRestActivity
 		}
 
 		$userId = CBPHelper::ExtractUsers($this->AuthUserId, $this->GetDocumentId(), true);
+		if (empty($userId) && !empty($activityData['AUTH_USER_ID']))
+		{
+			$userId = $activityData['AUTH_USER_ID'];
+		}
 
 		$auth = array(
 			'WORKFLOW_ID' => $this->getWorkflowInstanceId(),
 			'ACTIVITY_NAME' => $this->name,
 			'CODE' => $activityData['CODE'],
-			//\Bitrix\Rest\Event\Session::PARAM_SESSION => $session,
 			\Bitrix\Rest\OAuth\Auth::PARAM_LOCAL_USER => $userId,
 			"application_token" => \CRestUtil::getApplicationToken($application),
 		);
@@ -179,18 +189,18 @@ class CBPRestActivity
 
 		\Bitrix\Rest\OAuthService::getEngine()->getClient()->sendEvent($queryItems);
 
-		if (is_callable(['\Bitrix\Rest\StatTable', 'logRobot']))
+		if (is_callable(['\Bitrix\Rest\UsageStatTable', 'logRobot']))
 		{
 			if ($activityData['IS_ROBOT'] === 'Y')
 			{
-				\Bitrix\Rest\StatTable::logRobot($activityData['APP_ID']);
+				\Bitrix\Rest\UsageStatTable::logRobot($activityData['APP_ID'], $activityData['CODE']);
 			}
 			else
 			{
-				\Bitrix\Rest\StatTable::logActivity($activityData['APP_ID']);
+				\Bitrix\Rest\UsageStatTable::logActivity($activityData['APP_ID'], $activityData['CODE']);
 			}
 
-			\Bitrix\Rest\StatTable::finalize();
+			\Bitrix\Rest\UsageStatTable::finalize();
 		}
 
 		if ($this->SetStatusMessage == 'Y')
@@ -209,7 +219,6 @@ class CBPRestActivity
 		return CBPActivityExecutionStatus::Executing;
 	}
 
-
 	public function Subscribe(IBPActivityExternalEventListener $eventHandler)
 	{
 		if ($eventHandler == null)
@@ -224,7 +233,6 @@ class CBPRestActivity
 
 		$this->workflow->AddEventHandler($this->name, $eventHandler);
 	}
-
 
 	public function Unsubscribe(IBPActivityExternalEventListener $eventHandler)
 	{
@@ -242,7 +250,6 @@ class CBPRestActivity
 		$this->eventId = null;
 		$this->workflow->RemoveEventHandler($this->name, $eventHandler);
 	}
-
 
 	public function OnExternalEvent($eventParameters = array())
 	{
@@ -269,16 +276,31 @@ class CBPRestActivity
 			{
 				foreach ($activityData['RETURN_PROPERTIES'] as $name => $property)
 				{
-					$whiteList[strtoupper($name)] = $name;
+					$whiteList[mb_strtoupper($name)] = $name;
 				}
 			}
 
+			/** @var CBPDocumentService $documentService */
+			$documentService = $this->workflow->GetService('DocumentService');
 			$eventParameters['RETURN_VALUES'] = array_change_key_case((array) $eventParameters['RETURN_VALUES'], CASE_UPPER);
 			foreach($eventParameters['RETURN_VALUES'] as $name => $value)
 			{
 				if (!isset($whiteList[$name]))
 					continue;
-				$this->{$whiteList[$name]} = $value;
+
+				$property = $activityData['RETURN_PROPERTIES'][$whiteList[$name]];
+				if ($property && $value)
+				{
+					$property = Bizproc\FieldType::normalizeProperty($property);
+					$fieldTypeObject = $documentService->getFieldTypeObject($this->GetDocumentType(), $property);
+					if ($fieldTypeObject)
+					{
+						$fieldTypeObject->setDocumentId($this->GetDocumentId());
+						$value = $fieldTypeObject->internalizeValue($this->GetName(), $value);
+					}
+				}
+
+				$this->__set($whiteList[$name], $value);
 			}
 		}
 
@@ -341,12 +363,13 @@ class CBPRestActivity
 			'workflowTemplate' => $workflowTemplate,
 			'workflowParameters' => $workflowParameters,
 			'workflowVariables' => $workflowVariables,
-			'currentValues' => $currentValues
+			'currentValues' => $currentValues,
+			'formName' => $formName
 		));
 
 		$map = array(
 			'AuthUserId' => array(
-				'Name' => 'AuthUserId',
+				'Name' => Loc::getMessage("BPRA_PD_USER_ID"),
 				'FieldName' => 'authuserid',
 				'Type' => 'user',
 				'Default' => 'user_'.$activityData['AUTH_USER_ID']
@@ -388,7 +411,7 @@ class CBPRestActivity
 				$map[$name] = array(
 					'Name' => RestActivityTable::getLocalization($property['NAME'], LANGUAGE_ID),
 					'Description' => RestActivityTable::getLocalization($property['DESCRIPTION'], LANGUAGE_ID),
-					'FieldName' => static::PROPERTY_NAME_PREFIX.strtolower($name),
+					'FieldName' => static::PROPERTY_NAME_PREFIX.mb_strtolower($name),
 					'Type' => $property['TYPE'],
 					'Required' => $property['REQUIRED'],
 					'Multiple' => $property['MULTIPLE'],
@@ -397,11 +420,32 @@ class CBPRestActivity
 				);
 		}
 
+		$appPlacement = null;
+		if (!empty($activityData['APP_ID_INT']))
+		{
+			$appPlacement = self::getAppPlacement($activityData['APP_ID_INT'], $activityData['CODE']);
+		}
+
 		$dialog	->setMap($map)
-				->setRuntimeData(array('ACTIVITY_DATA' => $activityData))
+				->setRuntimeData([
+					'ACTIVITY_DATA' => $activityData,
+					'IS_ADMIN' => static::checkAdminPermissions(),
+					'APP_PLACEMENT' => $appPlacement,
+				])
 				->setRenderer(array(__CLASS__, 'renderPropertiesDialog'));
 
 		return $dialog;
+	}
+
+	private static function getAppPlacement(int $appId, string $code): ?array
+	{
+		$result = \Bitrix\Rest\PlacementTable::getList(['filter' => [
+			'=APP_ID' => $appId,
+			'=ADDITIONAL' => $code,
+			'=PLACEMENT' => \Bitrix\Bizproc\RestService::PLACEMENT_ACTIVITY_PROPERTIES_DIALOG,
+		]])->fetch();
+
+		return $result ?: null;
 	}
 
 	public static function renderPropertiesDialog(\Bitrix\Bizproc\Activity\PropertiesDialog $dialog)
@@ -417,10 +461,50 @@ class CBPRestActivity
 
 		$currentValues = $dialog->getCurrentValues();
 
+		$appPlacement = $data['APP_PLACEMENT'];
+		$placementSid = null;
+		$appCurrentValues = [];
+
 		ob_start();
+
+		if ($appPlacement):
+
+			foreach ($properties as $key => $property)
+			{
+				$appCurrentValues[$key] = $dialog->getCurrentValue('property_'.mb_strtolower($key));
+			}
+
+			global $APPLICATION;
+			echo '<tr><td align="right" colspan="2">';
+			$placementSid = $APPLICATION->includeComponent(
+				'bitrix:app.layout',
+				'',
+				array(
+					'ID' => $appPlacement['APP_ID'],
+					'PLACEMENT' => \Bitrix\Bizproc\RestService::PLACEMENT_ACTIVITY_PROPERTIES_DIALOG,
+					'PLACEMENT_ID' => $appPlacement['ID'],
+					"PLACEMENT_OPTIONS" => [
+						'code' => $activityData['CODE'],
+						'activity_name' => $dialog->getActivityName(),
+						'properties' => $properties,
+						'current_values' => $appCurrentValues,
+						'document_type' => $dialog->getDocumentType(),
+						'document_fields' => $documentService->GetDocumentFields($dialog->getDocumentType())
+					],
+					'PARAM' => array(
+						'FRAME_WIDTH' => '100%',
+						'FRAME_HEIGHT' => '350px'
+					),
+				),
+				null,
+				array('HIDE_ICONS' => 'Y')
+			);
+			echo '</td></tr>';
+		else:
+
 		foreach ($properties as $name => $property):
 			$required = CBPHelper::getBool($property['REQUIRED']);
-			$name = strtolower($name);
+			$name = mb_strtolower($name);
 			$value = !CBPHelper::isEmptyValue($currentValues[static::PROPERTY_NAME_PREFIX.$name]) ? $currentValues[static::PROPERTY_NAME_PREFIX.$name] : $property['DEFAULT'];
 
 			$property['NAME'] = RestActivityTable::getLocalization($property['NAME'], LANGUAGE_ID);
@@ -453,6 +537,8 @@ class CBPRestActivity
 
 			<?
 		endforeach;
+
+		endif;
 
 		if (static::checkAdminPermissions()):?>
 			<tr>
@@ -507,26 +593,63 @@ class CBPRestActivity
 		</tr>
 		<?endif;
 
-		if ($activityData['USE_PLACEMENT'] === 'Y' && !empty($activityData['APP_ID_INT'])):
-			CJSCore::Init(['applayout']);
+		if ($placementSid):?>
+			<script>
+				BX.ready(function()
+				{
+					var appLayout = BX.rest.AppLayout.get('<?=CUtil::JSEscape($placementSid)?>');
+					var properties = <?=\Bitrix\Main\Web\Json::encode($properties)?>;
+					var values = <?=\Bitrix\Main\Web\Json::encode($appCurrentValues)?>;
+					var form = document.forms['<?=CUtil::JSEscape($dialog->getFormName())?>'];
 
-			$appJs = $appJs = (int) $activityData['APP_ID_INT'];
-			$codeJs = htmlspecialcharsbx(CUtil::JSEscape($activityData['CODE']));
-			$actNameJs = htmlspecialcharsbx(CUtil::JSEscape($dialog->getActivityName()));
-		?>
-		<tr>
-			<td align="right"></td>
-			<td align="right">
-				<button onclick="if (BX.rest) {BX.rest.AppLayout.openApplication(<?=$appJs?>, {
-						action: 'bp_activity_settings',
-						code: '<?=$codeJs?>',
-						activity_name: '<?=$actNameJs?>'
-						});} return false;">
-					<?=GetMessage('BPRA_PD_CONFIGURE')?>
-				</button>
-			</td>
-		</tr>
-	<?endif;
+					function setValueToForm(name, value)
+					{
+						name = 'property_' + name.toLowerCase();
+						if (BX.type.isArray(value))
+						{
+							name += '[]';
+						}
+						else
+						{
+							value = [value];
+						}
+
+						Array.from(form.querySelectorAll('[name="'+name+'"]')).forEach(function(element)
+						{
+							BX.remove(element);
+						});
+
+						value.forEach(function(val)
+						{
+							form.appendChild(BX.create('input', {
+								props: {
+									type: 'hidden',
+									name: name,
+									value: val
+								}
+							}));
+						});
+					}
+
+					var placementInterface = appLayout.messageInterface;
+					placementInterface.setPropertyValue = function(param, callback)
+					{
+						for (var key in param)
+						{
+							if (properties[key])
+							{
+								setValueToForm(key, param[key]);
+							}
+						}
+					}
+
+					for(var k in values)
+					{
+						setValueToForm(k, values[k]);
+					}
+				});
+			</script>
+		<?php endif;
 
 		return ob_get_clean();
 	}
@@ -558,7 +681,7 @@ class CBPRestActivity
 
 		foreach ($activityProperties as $name => $property)
 		{
-			$requestName = static::PROPERTY_NAME_PREFIX.strtolower($name);
+			$requestName = static::PROPERTY_NAME_PREFIX.mb_strtolower($name);
 
 			if (isset($properties[$requestName]))
 				continue;
@@ -577,7 +700,7 @@ class CBPRestActivity
 				return false;
 		}
 
-		if (static::checkAdminPermissions())
+		if (static::checkAdminPermissions() && isset($currentValues['authuserid']))
 		{
 			$properties['AuthUserId'] = CBPHelper::usersStringToArray($currentValues['authuserid'], $documentType, $errors);
 			if (count($errors) > 0)
@@ -609,11 +732,7 @@ class CBPRestActivity
 
 		if (!$activityData)
 		{
-			$errors[] = array(
-				'code' => 'NoActivity',
-				'parameter' => 'ActivityData',
-				'message' => Loc::getMessage('BPRA_NOT_FOUND_ERROR')
-			);
+			return $errors;
 		}
 
 		$properties = isset($activityData['PROPERTIES']) && is_array($activityData['PROPERTIES']) ? $activityData['PROPERTIES'] : array();
@@ -663,7 +782,7 @@ class CBPRestActivity
 		$timeoutDuration = ($this->IsPropertyExists('TimeoutDuration') ? $this->TimeoutDuration : 0);
 
 		$timeoutDurationType = ($this->IsPropertyExists('TimeoutDurationType') ? $this->TimeoutDurationType : "s");
-		$timeoutDurationType = strtolower($timeoutDurationType);
+		$timeoutDurationType = mb_strtolower($timeoutDurationType);
 		if (!in_array($timeoutDurationType, array('s', 'd', 'h', 'm')))
 			$timeoutDurationType = 's';
 
@@ -683,7 +802,7 @@ class CBPRestActivity
 				break;
 		}
 
-		return $timeoutDuration;
+		return min($timeoutDuration, 3600 * 24 * 365 * 5);
 	}
 
 	private static function checkAdminPermissions()

@@ -9,6 +9,8 @@
 use Bitrix\Main;
 use Bitrix\Main\Data\ConnectionPool;
 
+IncludeModuleLangFile(__FILE__);
+
 abstract class CAllDatabase
 {
 	var $DBName;
@@ -71,7 +73,7 @@ abstract class CAllDatabase
 	 *
 	 * @return boolean|CDatabase
 	 */
-	function GetDBNodeConnection($node_id, $bIgnoreErrors = false, $bCheckStatus = true)
+	public static function GetDBNodeConnection($node_id, $bIgnoreErrors = false, $bCheckStatus = true)
 	{
 		global $DB;
 
@@ -129,11 +131,24 @@ abstract class CAllDatabase
 		}
 		else
 		{
-			if(file_exists($_SERVER["DOCUMENT_ROOT"].BX_PERSONAL_ROOT."/php_interface/dbconn_error.php"))
-				include($_SERVER["DOCUMENT_ROOT"].BX_PERSONAL_ROOT."/php_interface/dbconn_error.php");
-			else
-				include($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/main/include/dbconn_error.php");
+			static::showConnectionError();
 			die();
+		}
+	}
+
+	public static function showConnectionError()
+	{
+		$response = new Main\HttpResponse();
+		$response->setStatus('500 Internal Server Error');
+		$response->writeHeaders();
+
+		if(file_exists($_SERVER["DOCUMENT_ROOT"].BX_PERSONAL_ROOT."/php_interface/dbconn_error.php"))
+		{
+			include($_SERVER["DOCUMENT_ROOT"].BX_PERSONAL_ROOT."/php_interface/dbconn_error.php");
+		}
+		else
+		{
+			echo "Error connecting to database. Please try again later.";
 		}
 	}
 
@@ -353,7 +368,7 @@ abstract class CAllDatabase
 					"DD",
 					"HH:MI:SS",
 				),
-				strtoupper($new_format)
+				mb_strtoupper($new_format)
 			);
 			$toPhpFormat = Main\Type\Date::convertFormatToPhp($fixed_format);
 
@@ -389,144 +404,41 @@ abstract class CAllDatabase
 
 	abstract function PrepareUpdate($strTableName, $arFields);
 
-	function ParseSqlBatch($strSql, $bIncremental = False)
+	/**
+	 * @deprecated Use \Bitrix\Main\DB\Connection::parseSqlBatch()
+	 * @param string $strSql
+	 * @return array
+	 */
+	function ParseSqlBatch($strSql)
 	{
-		if(strtolower($this->type)=="mysql")
-			$delimiter = ";";
-		elseif(strtolower($this->type)=="mssql")
-			$delimiter = "\nGO";
-		else
-			$delimiter = "(?<!\\*)/(?!\\*)";
-
-		$strSql = trim($strSql);
-
-		$ret = array();
-		$str = "";
-
-		do
-		{
-			if(preg_match("%^(.*?)(['\"`#]|--|".$delimiter.")%is", $strSql, $match))
-			{
-				//Found string start
-				if($match[2] == "\"" || $match[2] == "'" || $match[2] == "`")
-				{
-					$strSql = substr($strSql, strlen($match[0]));
-					$str .= $match[0];
-					//find a qoute not preceeded by \
-					if(preg_match("%^(.*?)(?<!\\\\)".$match[2]."%s", $strSql, $string_match))
-					{
-						$strSql = substr($strSql, strlen($string_match[0]));
-						$str .= $string_match[0];
-					}
-					else
-					{
-						//String falled beyong end of file
-						$str .= $strSql;
-						$strSql = "";
-					}
-				}
-				//Comment found
-				elseif($match[2] == "#" || $match[2] == "--")
-				{
-					//Take that was before comment as part of sql
-					$strSql = substr($strSql, strlen($match[1]));
-					$str .= $match[1];
-					//And cut the rest
-					$p = strpos($strSql, "\n");
-					if($p === false)
-					{
-						$p1 = strpos($strSql, "\r");
-						if($p1 === false)
-							$strSql = "";
-						elseif($p < $p1)
-							$strSql = substr($strSql, $p);
-						else
-							$strSql = substr($strSql, $p1);
-					}
-					else
-						$strSql = substr($strSql, $p);
-				}
-				//Delimiter!
-				else
-				{
-					//Take that was before delimiter as part of sql
-					$strSql = substr($strSql, strlen($match[0]));
-					$str .= $match[1];
-					//Delimiter must be followed by whitespace
-					if(preg_match("%^[\n\r\t ]%", $strSql))
-					{
-						$str = trim($str);
-						if(strlen($str))
-						{
-							if ($bIncremental)
-							{
-								$strSql1 = str_replace("\r\n", "\n", $str);
-								if (!$this->QueryLong($strSql1, true))
-									$ret[] = $this->GetErrorMessage();
-							}
-							else
-							{
-								$ret[] = $str;
-								$str = "";
-							}
-						}
-					}
-					//It was not delimiter!
-					elseif(strlen($strSql))
-					{
-						$str .= $match[2];
-					}
-				}
-			}
-			else //End of file is our delimiter
-			{
-				$str .= $strSql;
-				$strSql = "";
-			}
-		} while (strlen($strSql));
-
-		$str = trim($str);
-		if(strlen($str))
-		{
-			if ($bIncremental)
-			{
-				$strSql1 = str_replace("\r\n", "\n", $str);
-				if (!$this->QueryLong($strSql1, true))
-					$ret[] = $this->GetErrorMessage();
-			}
-			else
-			{
-				$ret[] = $str;
-			}
-		}
-		return $ret;
+		$connection = Main\Application::getInstance()->getConnection();
+		return $connection->parseSqlBatch($strSql);
 	}
 
-	function RunSQLBatch($filepath, $bIncremental = False)
+	function RunSQLBatch($filepath)
 	{
 		if(!file_exists($filepath) || !is_file($filepath))
+		{
 			return array("File $filepath is not found.");
+		}
 
 		$arErr = array();
 		$contents = file_get_contents($filepath);
 
-		$arSql = $this->ParseSqlBatch($contents, $bIncremental);
-		foreach($arSql as $strSql)
+		$connection = Main\Application::getInstance()->getConnection();
+
+		foreach($connection->parseSqlBatch($contents) as $strSql)
 		{
-			if ($bIncremental)
+			if(!$this->Query($strSql, true))
 			{
-				$arErr[] = $strSql;
-			}
-			else
-			{
-				$strSql = str_replace("\r\n", "\n", $strSql);
-				if(!$this->Query($strSql, true))
-					$arErr[] = "<hr><pre>Query:\n".$strSql."\n\nError:\n<font color=red>".$this->GetErrorMessage()."</font></pre>";
+				$arErr[] = "<hr><pre>Query:\n".$strSql."\n\nError:\n<font color=red>".$this->GetErrorMessage()."</font></pre>";
 			}
 		}
 
 		if(!empty($arErr))
+		{
 			return $arErr;
+		}
 
 		return false;
 	}
@@ -539,20 +451,24 @@ abstract class CAllDatabase
 
 	function GetErrorMessage()
 	{
-		if(is_object($this->obSlave) && strlen($this->obSlave->db_Error))
+		if(is_object($this->obSlave) && $this->obSlave->db_Error <> '')
 			return $this->obSlave->db_Error;
-		elseif(strlen($this->db_Error))
+		elseif($this->db_Error <> '')
+		{
 			return $this->db_Error."!";
+		}
 		else
 			return '';
 	}
 
 	function GetErrorSQL()
 	{
-		if(is_object($this->obSlave) && strlen($this->obSlave->db_ErrorSQL))
+		if(is_object($this->obSlave) && $this->obSlave->db_ErrorSQL <> '')
 			return $this->obSlave->db_ErrorSQL;
-		elseif(strlen($this->db_ErrorSQL))
+		elseif($this->db_ErrorSQL <> '')
+		{
 			return $this->db_ErrorSQL;
+		}
 		else
 			return '';
 	}
@@ -736,7 +652,10 @@ abstract class CAllDBResult
 
 	public function NavContinue()
 	{
-		if (count($this->arResultAdd) > 0)
+		if (
+			is_array($this->arResultAdd)
+			&& count($this->arResultAdd) > 0
+		)
 		{
 			$this->arResult = $this->arResultAdd;
 			return true;
@@ -1063,8 +982,8 @@ abstract class CAllDBResult
 		$SESS_ALL = $md5Path."SESS_ALL_".($NavNum+1);
 		if(intval($PAGEN) <= 0)
 		{
-			if(CPageOption::GetOptionString("main", "nav_page_in_session", "Y")=="Y" && intval($_SESSION[$SESS_PAGEN])>0)
-				$PAGEN = $_SESSION[$SESS_PAGEN];
+			if(CPageOption::GetOptionString("main", "nav_page_in_session", "Y")=="Y" && intval(\Bitrix\Main\Application::getInstance()->getSession()[$SESS_PAGEN])>0)
+				$PAGEN = \Bitrix\Main\Application::getInstance()->getSession()[$SESS_PAGEN];
 			elseif($bDescPageNumbering === true)
 				$PAGEN = 0;
 			else
@@ -1077,7 +996,7 @@ abstract class CAllDBResult
 			$SIZEN = 10;
 
 		//Show all records
-		$SHOW_ALL = ($bShowAll? (isset($SHOWALL) ? ($SHOWALL == 1) : (CPageOption::GetOptionString("main", "nav_page_in_session", "Y")=="Y" && $_SESSION[$SESS_ALL] == 1)) : false);
+		$SHOW_ALL = ($bShowAll? (isset($SHOWALL) ? ($SHOWALL == 1) : (CPageOption::GetOptionString("main", "nav_page_in_session", "Y")=="Y" && \Bitrix\Main\Application::getInstance()->getSession()[$SESS_ALL] == 1)) : false);
 
 		//$NavShowAll comes from $nPageSize array
 		$res = array(
@@ -1088,8 +1007,8 @@ abstract class CAllDBResult
 
 		if(CPageOption::GetOptionString("main", "nav_page_in_session", "Y")=="Y")
 		{
-			$_SESSION[$SESS_PAGEN] = $PAGEN;
-			$_SESSION[$SESS_ALL] = $SHOW_ALL;
+			\Bitrix\Main\Application::getInstance()->getSession()[$SESS_PAGEN] = $PAGEN;
+			\Bitrix\Main\Application::getInstance()->getSession()[$SESS_ALL] = $SHOW_ALL;
 			$res["SESS_PAGEN"] = $SESS_PAGEN;
 			$res["SESS_ALL"] = $SESS_ALL;
 		}
@@ -1156,12 +1075,12 @@ abstract class CAllDBResult
 				($this->PAGEN < 1 || $this->PAGEN > $this->NavPageCount
 				?
 					(CPageOption::GetOptionString("main", "nav_page_in_session", "Y")!="Y"
-						|| $_SESSION[$this->SESS_PAGEN] < 1
-						|| $_SESSION[$this->SESS_PAGEN] > $this->NavPageCount
+						|| \Bitrix\Main\Application::getInstance()->getSession()[$this->SESS_PAGEN] < 1
+						|| \Bitrix\Main\Application::getInstance()->getSession()[$this->SESS_PAGEN] > $this->NavPageCount
 					?
 						1
 					:
-						$_SESSION[$this->SESS_PAGEN]
+						\Bitrix\Main\Application::getInstance()->getSession()[$this->SESS_PAGEN]
 					)
 				:
 					$this->PAGEN
@@ -1288,7 +1207,7 @@ abstract class CAllDBResult
 				$name = $userField['FIELD_NAME'];
 				if ($userField['MULTIPLE'] === 'Y')
 				{
-					if (substr($res[$name], 0, 1) !== 'a' && $res[$name] > 0)
+					if (mb_substr($res[$name], 0, 1) !== 'a' && $res[$name] > 0)
 					{
 						$res[$name] = $USER_FIELD_MANAGER->LoadMultipleValues($userField, $res[$name]);
 					}

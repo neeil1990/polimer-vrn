@@ -1,7 +1,11 @@
 <?php
+if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 class ReportAnalyticsBase extends CBitrixComponent
 {
+
+	private $reportGroups = [];
+
 	public function executeComponent()
 	{
 		if (!\Bitrix\Main\Loader::includeModule('report'))
@@ -9,24 +13,27 @@ class ReportAnalyticsBase extends CBitrixComponent
 			$this->showError('Module report isn\'t installed');
 			return;
 		}
+
+		$this->reportGroups = $this->arParams['REPORT_GROUPS'];
+
 		$this->arResult['VIEW_MODE'] = \Bitrix\Main\Application::getInstance()->getContext()->getRequest()->get('mode');
 		$this->arResult['LEFT_MENU_ITEMS'] = $this->getLeftMenuItemsCollection();
 		$this->arResult['MENU_ITEMS'] = $this->getLeftMenuItems();
 		$this->arResult['ANALYTIC_BOARD_LEFT_TITLE'] = $this->arParams['PAGE_TITLE'];
 
-		$currentAnalyticBoardKey = $this->getAnalyticBoardKey();
+		$currentAnalyticBoardKey = $this->getCurrentAnalyticBoardKey();
 		$this->arResult['ANALYTIC_BOARD_KEY'] = $currentAnalyticBoardKey;
 		$currentAnalyticBoard = $this->getAnalyticBoardByKey($currentAnalyticBoardKey);
+		if(!$currentAnalyticBoard)
+		{
+			$this->showError("Report board is not found");
+			return;
+		}
+
 		$this->arResult['ANALYTIC_BOARD_TITLE'] = $currentAnalyticBoard ? $currentAnalyticBoard->getTitle() : '';
-		$this->arResult['BOARD_BUTTONS'] = $currentAnalyticBoard ? $currentAnalyticBoard->getButtons() : [];
-		$this->arResult['IS_DISABLED_BOARD'] = $currentAnalyticBoard ? $currentAnalyticBoard->isDisabled() : false;
-		$this->arResult['IS_ENABLED_STEPPER'] = $currentAnalyticBoard ? $currentAnalyticBoard->isStepperEnabled() : false;
-		$this->arResult['IS_LIMITED'] = $currentAnalyticBoard ? $currentAnalyticBoard->isLimited() : false;
-		$this->arResult['ANALYTIC_BOARD_LIMIT_COMPONENT_NAME'] = $this->arResult['IS_LIMITED'] ? $currentAnalyticBoard->getLimitComponentName() : '';
-		$this->arResult['ANALYTIC_BOARD_LIMIT_COMPONENT_TEMPLATE_NAME'] = $this->arResult['IS_LIMITED'] ? $currentAnalyticBoard->getLimitComponentTemplateName() : '';
-		$this->arResult['ANALYTIC_BOARD_LIMIT_COMPONENT_PARAMS'] = $this->arResult['IS_LIMITED'] ? $currentAnalyticBoard->getLimitComponentParams() : [];
-		$this->arResult['STEPPER_IDS'] = $currentAnalyticBoard ? $currentAnalyticBoard->getStepperIds() : [];
-		$this->arResult['ANALYTIC_BOARD_FILTER'] = $currentAnalyticBoard ? $currentAnalyticBoard->getFilter() : new \Bitrix\Report\VisualConstructor\Helper\Filter($currentAnalyticBoardKey);
+		$this->arResult['ANALYTIC_BOARD_COMPONENT_NAME'] = $currentAnalyticBoard ? $currentAnalyticBoard->getDisplayComponentName() : '';
+		$this->arResult['ANALYTIC_BOARD_COMPONENT_TEMPLATE_NAME'] = $currentAnalyticBoard ? $currentAnalyticBoard->getDisplayComponentTemplate() : '';
+		$this->arResult['ANALYTIC_BOARD_COMPONENT_PARAMS'] = $currentAnalyticBoard ? $currentAnalyticBoard->getDisplayComponentParams() : [];
 		$this->includeComponentTemplate();
 	}
 
@@ -35,26 +42,32 @@ class ReportAnalyticsBase extends CBitrixComponent
 		echo <<<HTML
             <div class="ui-alert ui-alert-danger ui-alert-icon-danger">
                 <span class="ui-alert-message">{$message}</span>
-            </div>	
+            </div>
 HTML;
 		return;
 	}
 	/**
+	 * @param string $firstBoardBatch
 	 * @return null
 	 * @throws \Bitrix\Main\SystemException
 	 */
-	private function getAnalyticBoardKey()
+	private function getCurrentAnalyticBoardKey($firstBoardBatch = "")
 	{
-		$analyticBoardKey = \Bitrix\Main\Application::getInstance()->getContext()->getRequest()->get('analyticBoardKey');
-		if (!$analyticBoardKey)
+		static $result = null;
+		if(is_null($result))
 		{
-			$boardList = $this->getAnalyticsBoardsList();
-			if (!empty($boardList))
+			$analyticBoardKey = \Bitrix\Main\Application::getInstance()->getContext()->getRequest()->get('analyticBoardKey');
+			if (!$analyticBoardKey)
 			{
-				$analyticBoardKey = $boardList[0]->getMachineKey();
+				$boardList = $this->getAnalyticsBoardsList($firstBoardBatch);
+				if (!empty($boardList))
+				{
+					$analyticBoardKey = $boardList[0]->getMachineKey();
+				}
 			}
+			$result = $analyticBoardKey ?: null;
 		}
-		return $analyticBoardKey ?: null;
+		return $result;
 	}
 
 	private function getLeftMenuItems()
@@ -72,7 +85,7 @@ HTML;
 			];
 		}
 		$boardList = $this->getAnalyticsBoardsList();
-		$currentAnalyticBoardKey = $this->getAnalyticBoardKey();
+		$currentAnalyticBoardKey = $this->getCurrentAnalyticBoardKey($batchList[0]->getKey());
 		foreach ($boardList as $board)
 		{
 			$item = [
@@ -81,12 +94,12 @@ HTML;
 					'href' => "?analyticBoardKey=" . $board->getBoardKey(),
 					'title' => $board->getTitle(),
 					'DATA' => [
-						'disabled-board' => $board->isDisabled(),
 						'role' => 'report-analytics-menu-item',
-						'report-board-key' => $board->getBoardKey()
+						'report-board-key' => $board->getBoardKey(),
+						'is-external' => $board->isExternal() ? 'Y' : 'N',
+						'external-url' => $board->getExternalUrl()
 					]
 				]
-
 			];
 
 			if ($board->getBoardKey() == $currentAnalyticBoardKey)
@@ -143,9 +156,19 @@ HTML;
 	/**
 	 * @return \Bitrix\Report\VisualConstructor\AnalyticBoard[]
 	 */
-	private function getAnalyticsBoardsList()
+	private function getAnalyticsBoardsList($boardBatchKey = "")
 	{
 		$defaultBoardProvider = new \Bitrix\Report\VisualConstructor\RuntimeProvider\AnalyticBoardProvider();
+		if($boardBatchKey != "")
+		{
+			$defaultBoardProvider->addFilter("boardBatchKey", $boardBatchKey);
+		}
+
+		foreach ($this->reportGroups as $group)
+		{
+			$defaultBoardProvider->addFilter('group', $group);
+		}
+
 		return $defaultBoardProvider->execute()->getResults();
 	}
 
@@ -165,8 +188,19 @@ HTML;
 	 */
 	private function getAnalyticsBoardsBatchList()
 	{
-		$batchProvider = new \Bitrix\Report\VisualConstructor\RuntimeProvider\AnalyticBoardBatchProvider();
-		$list = $batchProvider->execute()->getResults();
-		return $list;
+		static $result = null;
+		if(is_null($result))
+		{
+			$batchProvider = new \Bitrix\Report\VisualConstructor\RuntimeProvider\AnalyticBoardBatchProvider();
+
+			foreach ($this->reportGroups as $group)
+			{
+				$batchProvider->addFilter('group', $group);
+			}
+
+			$list = $batchProvider->execute()->getResults();
+			$result = $list;
+		}
+		return $result;
 	}
 }

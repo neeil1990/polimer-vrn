@@ -9,9 +9,9 @@ $MESS["SONET_GRE_NOT_SELECTED"] = "Не обрано жодного корист
 $MESS["SONET_GRE_NAV"] = "Користувачі";
 $MESS["SONET_GRE_NAME_TEMPLATE_DEFAULT"] = "#NOBR##LAST_NAME##NAME##/NOBR#";
 $MESS["SONET_GRE_CANT_DELETE_INVITATION"] = "Не вдалося видалити запрошення користувачеві ID=#RELATION_ID#";
-$MESS["SONET_GRE_TITLE_PROJECT"] = "Запити та запрошення на вступ в проект";
+$MESS["SONET_GRE_TITLE_PROJECT"] = "Запити та запрошення на вступ в проєкт";
 $MESS["SONET_GRE_TITLE_IN"] = "Запити на вступ до групи";
-$MESS["SONET_GRE_TITLE_IN_PROJECT"] = "Запити на вступ до проекту";
+$MESS["SONET_GRE_TITLE_IN_PROJECT"] = "Запити на вступ до проєкту";
 $MESS["SONET_GRE_TITLE_OUT"] = "Запрошення для вступу в групу";
-$MESS["SONET_GRE_TITLE_OUT_PROJECT"] = "Запрошення для вступу в проект";
+$MESS["SONET_GRE_TITLE_OUT_PROJECT"] = "Запрошення для вступу в проєкт";
 ?>

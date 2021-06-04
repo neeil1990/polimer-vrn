@@ -264,7 +264,7 @@ abstract class Connector extends Entity\DataManager
 					where 
 						'.static::getLinkField().' = \''.$dbConnection->getSqlHelper()->forSql($entityPrimary).'\'';
 
-			if(strlen($typeField) > 0)
+			if($typeField <> '')
 			{
 				$sql .= '	AND (
 					'.$typeField.' = \''.static::DB_LOCATION_FLAG.'\' 
@@ -465,7 +465,7 @@ abstract class Connector extends Entity\DataManager
 					$select[''] = 'LOCATION';
 				else
 				{
-					if(is_numeric($k) && strpos((string) $v, '.') === false) // is NOT a reference
+					if(is_numeric($k) && mb_strpos((string)$v, '.') === false) // is NOT a reference
 					{
 						$k = $v;
 					}
@@ -668,7 +668,7 @@ abstract class Connector extends Entity\DataManager
 			'data_type' => static::getEntity()->getFullName(),
 			'reference' => array(
 				'=ref.'.static::getLinkField() => array('?', $entityPrimary),
-				'=ref.'.static::getTypeField() => array('?', 'G')
+				'=ref.'.static::getTypeField() => array('?', static::DB_GROUP_FLAG)
 			),
 			'join_type' => 'inner'
 		);
@@ -1175,7 +1175,7 @@ abstract class Connector extends Entity\DataManager
 	private static function getLinkUsageOptionValue()
 	{
 		$usageFlagsOpt = Config\Option::get("sale", static::getLinkOptionName());
-		if(!strlen($usageFlagsOpt) || !is_array($usageFlags = unserialize($usageFlagsOpt)))
+		if(!mb_strlen($usageFlagsOpt) || !is_array($usageFlags = unserialize($usageFlagsOpt, ['allowed_classes' => false])))
 			$usageFlags = array();
 
 		return $usageFlags;

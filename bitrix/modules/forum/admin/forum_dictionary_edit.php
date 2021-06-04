@@ -3,7 +3,7 @@
 	Unquotable words.
 ********************************************************************/
 	require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-	require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/forum/include.php");
+	\Bitrix\Main\Loader::includeModule("forum");
 	$forumPermissions = $APPLICATION->GetGroupRight("forum");
 	if ($forumPermissions == "D")
 		$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
@@ -14,7 +14,7 @@
 	$sError = false;
 	$TYPE = ($TYPE == "T" ? "T" : "W");
 /*******************************************************************/
-	if ($REQUEST_METHOD=="POST" && strlen($Update)>0 && (CFilterUnquotableWords::FilterPerm()) && check_bitrix_sessid())
+	if ($REQUEST_METHOD=="POST" && $Update <> '' && (CFilterUnquotableWords::FilterPerm()) && check_bitrix_sessid())
 	{
 		$erMsg = array(); $arFields = array();
 		$APPLICATION->ResetException();

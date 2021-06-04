@@ -16,7 +16,8 @@ class Iblock
 		if (isset($syspages['catalog']))
 		{
 			$landing = \Bitrix\Landing\Landing::createInstance(
-				$syspages['catalog']['LANDING_ID']
+				$syspages['catalog']['LANDING_ID'],
+				['skip_blocks' => true]
 			);
 			if ($landing->exist())
 			{
@@ -29,7 +30,7 @@ class Iblock
 					$landing->getPublicUrl(),
 					$url
 				);
-				if (substr($url, 0, 1) == '/')
+				if (mb_substr($url, 0, 1) == '/')
 				{
 					$url = \Bitrix\Landing\Site::getPublicUrl(
 						$landing->getSiteId()

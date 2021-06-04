@@ -1,5 +1,6 @@
 (function(window){
-if (BX.CAutoSave && top.BX.CAutoSave) return;
+	var topWindow = BX.PageObject.getRootWindow();
+if (BX.CAutoSave && topWindow.BX.CAutoSave) return;
 /******************************* AUTOSAVE *********************************/
 
 BX.CAutoSave = function(params)
@@ -33,7 +34,7 @@ BX.CAutoSave = function(params)
 			&& BX.type.isNotEmptyString(formMarker.form.name)
 		)
 		{
-			BX.addCustomEvent(window.top, 'onExtAutoSaveReset_' + formMarker.form.name, BX.proxy(this.Reset, this));
+			BX.addCustomEvent(topWindow, 'onExtAutoSaveReset_' + formMarker.form.name, BX.proxy(this.Reset, this));
 		}
 	}
 };
@@ -112,12 +113,17 @@ BX.CAutoSave.prototype._PrepareAfter = function()
 	if (this.RESTORE_DATA)
 	{
 		var id = this.FORM.name || Math.random();
+		BX.removeCustomEvent('onExtAutoSaveRestoreClick_' + id, BX.proxy(this.Restore, this));
 		BX.addCustomEvent('onExtAutoSaveRestoreClick_' + id, BX.proxy(this.Restore, this));
 
 		var o = this._NotifyContext();
 		if (o)
 		{
-			o.Notify(BX.message('AUTOSAVE') + ' <a href="javascript:void(0)" onclick="BX.CAutoSave.Restore(\'' + BX.util.urlencode(id) + '\', this); return false;">' + BX.message('AUTOSAVE_R') + '</a>');
+			o.Notify(
+				BX.message('AUTOSAVE') + ' <a href="javascript:void(0)" onclick="BX.CAutoSave.Restore(\'' + BX.util.urlencode(id) + '\', this); return false;">' +	BX.message('AUTOSAVE_R') + '</a>',
+				false,
+				true
+			);
 		}
 
 		// may be useful sometimes
@@ -428,6 +434,6 @@ function _decodeData(data)
 	}
 	return d;
 }
-	top.BX.CAutoSave = BX.CAutoSave;
+	topWindow.BX.CAutoSave = BX.CAutoSave;
 })(window);
 

@@ -1,6 +1,7 @@
 <? if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 
 CJSCore::Init(array('window', 'lists'));
+Bitrix\Main\UI\Extension::load("ui.buttons");
 
 $jsClass = 'ListsElementEditClass_'.$arResult['RAND_STRING'];
 $urlTabBp = CHTTP::urlAddParams(
@@ -21,6 +22,17 @@ if (isset($arResult["LIST_COPY_ELEMENT_URL"]))
 			"url" => $arResult["LIST_COPY_ELEMENT_URL"]
 		);
 	}
+}
+
+if (CLists::isEnabledLockFeature($arResult["IBLOCK_ID"]) &&
+	$arResult["ELEMENT_ID"] && ($arResult["CAN_FULL_EDIT"] ||
+	!CIBlockElement::WF_IsLocked($arResult["ELEMENT_ID"], $lockedBy, $dateLock)))
+{
+	$listAction[] = [
+		"id" => "unLockElement",
+		"text" => GetMessage("CT_BLEE_UN_LOCK_ELEMENT"),
+		"action" => "BX.Lists['".$jsClass."'].unLock();"
+	];
 }
 
 if($arResult["CAN_DELETE_ELEMENT"])
@@ -46,13 +58,12 @@ elseif(!IsModuleInstalled("intranet"))
 }
 ?>
 <div class="pagetitle-container pagetitle-align-right-container <?=$pagetitleAlignRightContainer?>">
-	<a href="<?=$arResult["LIST_SECTION_URL"]?>" class="lists-list-back">
+	<a href="<?=$arResult["LIST_SECTION_URL"]?>" class="ui-btn ui-btn-sm ui-btn-link ui-btn-themes lists-list-back">
 		<?=GetMessage("CT_BLEE_TOOLBAR_RETURN_LIST_ELEMENT")?>
 	</a>
 	<?if($listAction):?>
-	<span id="lists-title-action" class="webform-small-button webform-small-button-transparent bx-filter-button">
-		<span class="webform-small-button-text"><?=GetMessage("CT_BLEE_TOOLBAR_ACTION")?></span>
-		<span id="lists-title-action-icon" class="webform-small-button-icon"></span>
+	<span id="lists-title-action" class="ui-btn ui-btn-sm ui-btn-light-border ui-btn-dropdown ui-btn-themes">
+		<?=GetMessage("CT_BLEE_TOOLBAR_ACTION")?>
 	</span>
 	<?endif;?>
 </div>
@@ -181,7 +192,7 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 				"type" => "section",
 			);
 
-			if (strlen($arDocumentState["ID"]) && strlen($arDocumentState["WORKFLOW_STATUS"]))
+			if (mb_strlen($arDocumentState["ID"]) && mb_strlen($arDocumentState["WORKFLOW_STATUS"]))
 			{
 				if (CBPDocument::CanUserOperateDocument(
 					CBPCanUserOperateOperation::StartWorkflow,
@@ -216,15 +227,17 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 					"value" => htmlspecialcharsbx($arDocumentState["TEMPLATE_DESCRIPTION"]),
 				);
 
-			if(strlen($arDocumentState["STATE_MODIFIED"]))
+			if($arDocumentState["STATE_MODIFIED"] <> '')
+			{
 				$arTab2Fields[] = array(
 					"id" => "BIZPROC_DATE".$bizProcIndex,
 					"name" => GetMessage("CT_BLEE_BIZPROC_DATE"),
 					"type" => "label",
 					"value" => htmlspecialcharsbx($arDocumentState["STATE_MODIFIED"]),
 				);
+			}
 
-			if(strlen($arDocumentState["STATE_NAME"]))
+			if($arDocumentState["STATE_NAME"] <> '')
 			{
 				$backUrl = CHTTP::urlAddParams(
 					$APPLICATION->GetCurPageParam("", array($arResult["FORM_ID"]."_active_tab")),
@@ -239,14 +252,13 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 					array("skip_empty" => true, "encode" => true)
 				);
 
-				if(strlen($arDocumentState["ID"]))
+				if($arDocumentState["ID"] <> '')
 				{
 					$arTab2Fields[] = array(
 						"id" => "BIZPROC_STATE".$bizProcIndex,
 						"name" => GetMessage("CT_BLEE_BIZPROC_STATE"),
 						"type" => "label",
-						"value" => '<a href="'.htmlspecialcharsbx($url).'">'.(strlen($arDocumentState["STATE_TITLE"])?
-								$arDocumentState["STATE_TITLE"] : $arDocumentState["STATE_NAME"]).'</a>',
+						"value" => '<a href="'.htmlspecialcharsbx($url).'">'.($arDocumentState["STATE_TITLE"] <> ''? htmlspecialcharsbx($arDocumentState["STATE_TITLE"]) : htmlspecialcharsbx($arDocumentState["STATE_NAME"])).'</a>',
 					);
 
 					$canDeleteWorkflow = CBPDocument::CanUserOperateDocument(
@@ -256,7 +268,7 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 						array("UserGroups" => $arCurrentUserGroups)
 					);
 
-					if ($canDeleteWorkflow)
+					if($canDeleteWorkflow)
 					{
 						$arTab2Fields[] = array(
 							"id" => "BIZPROC_DELETE".$bizProcIndex,
@@ -274,8 +286,7 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 						"id" => "BIZPROC_STATE".$bizProcIndex,
 						"name" => GetMessage("CT_BLEE_BIZPROC_STATE"),
 						"type" => "label",
-						"value" => (strlen($arDocumentState["STATE_TITLE"]) ?
-							$arDocumentState["STATE_TITLE"] : $arDocumentState["STATE_NAME"]),
+						"value" => ($arDocumentState["STATE_TITLE"] <> ''? $arDocumentState["STATE_TITLE"] : $arDocumentState["STATE_NAME"]),
 					);
 				}
 			}
@@ -285,7 +296,7 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 				$arWorkflowParameters = array();
 			$formName = $arResult["form_id"];
 			$bVarsFromForm = $arResult["VARS_FROM_FORM"];
-			if(strlen($arDocumentState["ID"]) <= 0 && $templateId > 0)
+			if($arDocumentState["ID"] == '' && $templateId > 0)
 			{
 				$arParametersValues = array();
 				$keys = array_keys($arWorkflowParameters);
@@ -371,7 +382,7 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 				);
 			}
 
-			if(strlen($arDocumentState["ID"]))
+			if($arDocumentState["ID"] <> '')
 			{
 				$arTasks = CBPDocument::GetUserTasksForWorkflow($GLOBALS["USER"]->GetID(), $arDocumentState["ID"]);
 				if(count($arTasks) > 0)
@@ -385,11 +396,11 @@ if(CModule::IncludeModule("bizproc") && CBPRuntime::isFeatureEnabled() && $arRes
 						);
 
 						$url = CHTTP::urlAddParams(str_replace(
-								array("#list_id#", "#section_id#", "#element_id#", "#task_id#", "#group_id#"),
-								array($arResult["IBLOCK_ID"], intval($arResult["SECTION_ID"]),
-									$arResult["ELEMENT_ID"], $arTask["ID"], $arParams["SOCNET_GROUP_ID"]),
-								$arParams["~BIZPROC_TASK_URL"]
-							),
+							array("#list_id#", "#section_id#", "#element_id#", "#task_id#", "#group_id#"),
+							array($arResult["IBLOCK_ID"], intval($arResult["SECTION_ID"]),
+								$arResult["ELEMENT_ID"], $arTask["ID"], $arParams["SOCNET_GROUP_ID"]),
+							$arParams["~BIZPROC_TASK_URL"]
+						),
 							array("back_url" => $backUrl),
 							array("skip_empty" => true, "encode" => true)
 						);
@@ -506,6 +517,19 @@ if(!$arParams["CAN_EDIT"])
 		'" name="cancel" onclick="window.location=\''.htmlspecialcharsbx(CUtil::addslashes(
 				$arResult["~LIST_SECTION_URL"])).'\'" title="'.GetMessage("CT_BLEE_FORM_CANCEL_TITLE").'" />';
 
+$lockStatus = CLists::isEnabledLockFeature($arResult["IBLOCK_ID"]) && $arResult["ELEMENT_ID"] && $arParams["CAN_EDIT"];
+if ($lockStatus)
+{
+	$APPLICATION->IncludeComponent(
+		"bitrix:lists.lock.status.widget",
+		"",
+		[
+			"ELEMENT_ID" => $arResult["ELEMENT_ID"],
+			"ELEMENT_NAME" => $arResult["IBLOCK"]["ELEMENT_NAME"]
+		],
+		$component, ["HIDE_ICONS" => "Y"]
+	);
+}
 
 $APPLICATION->IncludeComponent(
 	"bitrix:main.interface.form",
@@ -543,7 +567,9 @@ $APPLICATION->IncludeComponent(
 			sectionId: '<?= $sectionId ?>',
 			isConstantsTuned: <?= $arResult["isConstantsTuned"] ? 'true' : 'false' ?>,
 			elementUrl: '<?= $arResult["ELEMENT_URL"] ?>',
-			listAction: <?=\Bitrix\Main\Web\Json::encode($listAction)?>
+			sectionUrl: '<?= $arResult["LIST_SECTION_URL"] ?>',
+			listAction: <?=\Bitrix\Main\Web\Json::encode($listAction)?>,
+			lockStatus: <?=($lockStatus ? 'true' : 'false')?>
 		});
 
 		BX.message({

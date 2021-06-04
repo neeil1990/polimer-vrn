@@ -32,7 +32,7 @@ if(!function_exists('restMenuBuildEventHandler'))
 			$appMenu = array();
 			foreach($appList as $app)
 			{
-				$itemText = strlen($app['TITLE']) > 0
+				$itemText = $app['TITLE'] <> ''
 					? $app['TITLE']
 					: $app['APP_NAME'];
 
@@ -45,22 +45,22 @@ if(!function_exists('restMenuBuildEventHandler'))
 
 			$appMenu[] = array('SEPARATOR' => true);
 			$appMenu[] = array(
-				'TITLE' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TITLE'),
-				'TEXT' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TEXT_MORE'),
+				'TITLE' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TITLE_2'),
+				'TEXT' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TEXT_MORE_2'),
 				'ONCLICK' => "BX.rest.Marketplace.open({PLACEMENT:'".\CUtil::JSEscape($placement)."'})",
 			);
 
 			$menu[] = array(
-				'TITLE' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TITLE'),
-				'TEXT' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TEXT'),
+				'TITLE' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TITLE_2'),
+				'TEXT' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TEXT_2'),
 				'MENU' => $appMenu,
 			);
 		}
 		else
 		{
 			$menu[] = array(
-				'TITLE' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TITLE'),
-				'TEXT' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TEXT'),
+				'TITLE' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TITLE_2'),
+				'TEXT' => \Bitrix\Main\Localization\Loc::getMessage('REST_AP_MENU_ITEM_TEXT_2'),
 				'ONCLICK' => "BX.rest.Marketplace.open({PLACEMENT:'".\CUtil::JSEscape($placement)."'})",
 			);
 		}

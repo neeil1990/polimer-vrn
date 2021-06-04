@@ -37,6 +37,14 @@ abstract class EntityCollection
 	}
 
 	/**
+	 * @throws Main\NotImplementedException
+	 */
+	public static function getRegistryType()
+	{
+		throw new Main\NotImplementedException();
+	}
+
+	/**
 	 * @internal
 	 *
 	 * @param $index

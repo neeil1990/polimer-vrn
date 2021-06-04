@@ -23,6 +23,8 @@ abstract class Asset
 	protected $type;
 	/** @var string|null $path Path. */
 	protected $path;
+	/** @var string|null $uri Uri. */
+	protected $uri;
 	/** @var string|array|null $content Content. */
 	protected $content;
 
@@ -69,7 +71,7 @@ abstract class Asset
 	 */
 	public static function detectType($path)
 	{
-		$type = strtolower(substr(strrchr($path, '.'), 1));
+		$type = mb_strtolower(mb_substr(strrchr($path, '.'), 1));
 		switch ($type)
 		{
 			case 'js':
@@ -149,6 +151,11 @@ abstract class Asset
 	 */
 	public function getUri()
 	{
+		if ($this->uri)
+		{
+			return $this->uri;
+		}
+
 		return $this->path ?
 			WebPacker\Builder::getDefaultSiteUri()
 				. $this->path
@@ -156,6 +163,18 @@ abstract class Asset
 				. '.' . filesize(self::getAbsolutePath($this->path))
 			:
 			null;
+	}
+
+	/**
+	 * Set uri.
+	 *
+	 * @param string|null $uri Uri.
+	 * @return $this
+	 */
+	public function setUri($uri)
+	{
+		$this->uri = $uri;
+		return $this;
 	}
 
 	/**
@@ -201,22 +220,22 @@ abstract class Asset
 
 		$mapPath = null;
 		$useMinimized = false;
-		$minPathPos = strrpos($path, '.');
+		$minPathPos = mb_strrpos($path, '.');
 		if ($minPathPos !== false)
 		{
-			$minPath = substr($path, 0, $minPathPos)
-				. '.min'
-				. substr($path, $minPathPos);
+			$minPath = mb_substr($path, 0, $minPathPos)
+				.'.min'
+				.mb_substr($path, $minPathPos);
 
 			if (IO\File::isFileExists($minPath))
 			{
 				$path = $minPath;
 				$useMinimized = true;
 
-				$minPathPos = strrpos($this->path, '.');
-				$mapPath = substr($this->path, 0, $minPathPos)
-					. '.map'
-					. substr($this->path, $minPathPos);
+				$minPathPos = mb_strrpos($this->path, '.');
+				$mapPath = mb_substr($this->path, 0, $minPathPos)
+					.'.map'
+					.mb_substr($this->path, $minPathPos);
 			}
 		}
 
@@ -228,7 +247,7 @@ abstract class Asset
 
 		$parts = explode("\n", $content);
 		$mapUri = '//# sourceMappingURL=';
-		if (strpos(array_pop($parts), $mapUri) !== 0)
+		if (mb_strpos(array_pop($parts), $mapUri) !== 0)
 		{
 			return $content;
 		}

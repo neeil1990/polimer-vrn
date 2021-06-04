@@ -24,6 +24,11 @@
 				renderer = this.getRenderFunctionName(property),
 				needInit = true;
 
+			if (BX.type.isString(documentType))
+			{
+				documentType = documentType.split('@');
+			}
+
 			if (renderer)
 			{
 				if (isMultiple(property) && property.Type !== 'select')
@@ -78,13 +83,14 @@
 						'rnd' : Math.random(),
 						'Mode' : '',
 						'Func' : '',
-						'sessid' : BX.bitrix_sessid()
+						'sessid' : BX.bitrix_sessid(),
+						'RenderMode': 'public'
 					},
 					function(v) {
 						if (v)
 						{
 							node.innerHTML = v;
-							this.initControl(node);
+							this.initControl(node, property);
 						}
 					}.bind(this)
 				);
@@ -92,7 +98,7 @@
 
 			if (needInit && node)
 			{
-				this.initControl(node);
+				this.initControl(node, property);
 			}
 
 			return node;
@@ -138,7 +144,7 @@
 					break;
 				case 'user':
 					result = [];
-					var i, name, pair, matches, pairs = value.split(',');
+					var i, name, pair, matches, pairs = BX.Type.isArray(value) ? value : value.split(',');
 
 					for (i = 0; i < pairs.length; ++i)
 					{
@@ -255,7 +261,7 @@
 				if (controlNode && node.parentNode)
 				{
 					var wrapper = BX.create('div', {children: [controlNode]});
-					this.initControl(wrapper);
+					this.initControl(wrapper, property);
 					node.parentNode.insertBefore(wrapper, node);
 				}
 			}
@@ -357,7 +363,30 @@
 					}
 				});
 
-				return BX.create('div', {children: [input, img]});
+				var lc;
+
+				if (property['Settings'] && property['Settings']['timezones'])
+				{
+					lc = BX.create('select', {
+						props: {name: 'tz_' + (fieldName + (isMultiple(property) ? '[]' : ''))},
+						attrs: {className: 'bizproc-type-control-date-lc'}
+					});
+
+					property['Settings']['timezones'].forEach(function(zone)
+					{
+						var option = BX.create('option', {
+							props: {value: zone.value},
+							text: zone.text
+						});
+						if (zone.value === 'current')
+						{
+							option.setAttribute('selected', 'selected');
+						}
+						lc.appendChild(option);
+					});
+				}
+
+				return BX.create('div', {children: [input, img, lc]});
 			}
 
 			return input;
@@ -517,7 +546,7 @@
 
 					option = BX.create('option', {
 						props: {value: key},
-						text: property['Options'][key]
+						text: BX.Text.decode(property['Options'][key])
 					});
 
 					if (isEqual(key, value))
@@ -534,7 +563,7 @@
 				{
 					option = BX.create('option', {
 						props: {value: i},
-						text: property['Options'][i]
+						text: BX.Text.decode(property['Options'][i])
 					});
 
 					if (isEqual(i, value))
@@ -548,7 +577,7 @@
 
 			return node;
 		},
-		initControl: function(controlNode)
+		initControl: function(controlNode, property)
 		{
 			var dlg;
 			if (dlg = BX.Bizproc.Automation && BX.Bizproc.Automation.Designer.getRobotSettingsDialog())
@@ -559,17 +588,33 @@
 			{
 				dlg.component.triggerManager.initSettingsDialogControls(controlNode);
 			}
+			else if (property && property['Type'] === 'user' && BX.Bizproc.UserSelector)
+			{
+				BX.Bizproc.UserSelector.decorateNode(controlNode.querySelector('[data-role="user-selector"]'));
+			}
 		},
 		getDocumentFields: function()
 		{
 			var fields = [];
 			var dlg = BX.Bizproc.Automation && BX.Bizproc.Automation.Designer.getRobotSettingsDialog();
-			if (dlg)
+			if (dlg && dlg.robot.component)
 			{
 				fields = dlg.robot.component.data['DOCUMENT_FIELDS'];
 			}
+			if (!fields.length && BX.Bizproc.Automation && BX.Bizproc.Automation.API.documentFields)
+			{
+				fields = BX.Bizproc.Automation.API.documentFields;
+			}
 
 			return fields;
+		},
+		getDocumentUserGroups: function()
+		{
+			if (BX.Bizproc.Automation && BX.Bizproc.Automation.API.documentUserGroups)
+			{
+				return BX.Bizproc.Automation.API.documentUserGroups;
+			}
+			return [];
 		}
 	};
 

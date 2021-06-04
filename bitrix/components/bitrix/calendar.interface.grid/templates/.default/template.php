@@ -50,14 +50,14 @@ if($isBitrix24Template)
 	$this->SetViewTarget("below_pagetitle");
 }
 ?>
+<? if ($arParams["SHOW_TOP_VIEW_SWITCHER"]):?>
+	<div id="<?= $arParams['ID']?>-view-switcher-container" class="calendar-view-switcher-list"></div>
+<? endif;?>
 
 <? if ($arParams["SHOW_FILTER"]):?>
 	<div id="<?= $arParams['ID']?>-counter-container" class="pagetitle-container" style="overflow: hidden;"></div>
 <? endif;?>
 
-<? if ($arParams["SHOW_TOP_VIEW_SWITCHER"]):?>
-<div id="<?= $arParams['ID']?>-view-switcher-container" class="calendar-view-switcher pagetitle-align-right-container"></div>
-<? endif;?>
 <?
 if($isBitrix24Template)
 {
@@ -85,9 +85,12 @@ $currentUserId = CCalendar::GetCurUserId();
 $config = array(
 	'id' => $arParams['ID'],
 	'externalDataHandleMode' => $arParams["EXTERNAL_DATA_HANDLE_MODE"],
+	'entityType' => isset($arParams["ENTITY_TYPE"]) ? $arParams["ENTITY_TYPE"] : '',
+	'newEntryName' => isset($arParams["NEW_ENTRY_NAME"]) ? $arParams["NEW_ENTRY_NAME"] : '',
+	'collapsedLabelMessage' => isset($arParams["COLLAPSED_ENTRIES_NAME"]) ? $arParams["COLLAPSED_ENTRIES_NAME"] : '',
 	'showSectionSelector' => $arParams["SHOW_SECTION_SELECTOR"],
 	'showSettingsButton' => $arParams["SHOW_SETTINGS_BUTTON"],
-	'userSettings' => CCalendarUserSettings::Get(),
+	'userSettings' => \Bitrix\Calendar\UserSettings::get(),
 	'user' => array(
 		'id' => $currentUserId,
 		'name' => CCalendar::GetUserName($currentUserId),
@@ -155,7 +158,7 @@ else
 	{
 		$feature = "calendar";
 		$arEntityActiveFeatures = CSocNetFeatures::GetActiveFeaturesNames((($arParams['CALENDAR_TYPE'] == "group") ? SONET_ENTITY_GROUP : SONET_ENTITY_USER), $arParams['OWNER_ID']);
-		$strFeatureTitle = ((array_key_exists($feature, $arEntityActiveFeatures) && StrLen($arEntityActiveFeatures[$feature]) > 0) ? $arEntityActiveFeatures[$feature] : GetMessage("EC_SONET_CALENDAR"));
+		$strFeatureTitle = ((array_key_exists($feature, $arEntityActiveFeatures) && $arEntityActiveFeatures[$feature] <> '') ? $arEntityActiveFeatures[$feature] : GetMessage("EC_SONET_CALENDAR"));
 		$arParams["STR_TITLE"] = $strFeatureTitle;
 	}
 	else

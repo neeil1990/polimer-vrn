@@ -3,9 +3,13 @@
 namespace Bitrix\Seo\Retargeting;
 
 use Bitrix\Main\Loader;
-use Bitrix\Main\Web\Uri;
 use Bitrix\Main\SystemException;
+use Bitrix\Main\Web\Uri;
+use Bitrix\Seo\BusinessSuite\Utils\QueueRemoveEventHandler;
+use Bitrix\Seo\Service;
 use Bitrix\Seo\Service as SeoService;
+use Bitrix\Main\Event;
+use Bitrix\Main\EventManager;
 
 class AuthAdapter
 {
@@ -16,7 +20,7 @@ class AuthAdapter
 	protected $transport;
 	protected $requestCodeParamName;
 	protected $data;
-	
+
 	/** @var array $parameters Parameters. */
 	protected $parameters = ['URL_PARAMETERS' => []];
 
@@ -60,7 +64,8 @@ class AuthAdapter
 		}
 
 		$authorizeUrl = SeoService::getAuthorizeLink();
-		$authorizeData = SeoService::getAuthorizeData($this->getEngineCode());
+		$authorizeData = SeoService::getAuthorizeData($this->getEngineCode(),
+			$this->canUseMultipleClients() ? Service::CLIENT_TYPE_MULTIPLE : Service::CLIENT_TYPE_SINGLE);
 		$uri = new Uri($authorizeUrl);
 		if (!empty($this->parameters['URL_PARAMETERS']))
 		{
@@ -71,6 +76,17 @@ class AuthAdapter
 	}
 
 	protected function getAuthData($isUseCache = true)
+	{
+		return ($this->canUseMultipleClients() ?
+			$this->getAuthDataMultiple() : $this->getAuthDataSingle($isUseCache));
+	}
+
+	protected function getAuthDataMultiple()
+	{
+		return $this->getClientById($this->getClientId());
+	}
+
+	protected function getAuthDataSingle($isUseCache = true)
 	{
 		if (!$isUseCache || !$this->data || count($this->data) == 0)
 		{
@@ -86,7 +102,16 @@ class AuthAdapter
 
 		if ($existedAuthData = $this->getAuthData(false))
 		{
-			SeoService::clearAuth($this->getEngineCode());
+			QueueRemoveEventHandler::handleEvent($existedAuthData['proxy_client_id'], $existedAuthData['engine_code']);
+			if ($this->canUseMultipleClients())
+			{
+				SeoService::clearAuthForClient($existedAuthData);
+			}
+			else
+			{
+				SeoService::clearAuth($this->getEngineCode());
+			}
+
 		}
 	}
 
@@ -115,6 +140,69 @@ class AuthAdapter
 
 	public function hasAuth()
 	{
-		return strlen($this->getToken()) > 0;
+		$multiple = $this->canUseMultipleClients();
+		$authorized = count($this->getAuthorizedClientsList()) > 0;
+		$token = $this->getToken() <> '';
+		return  $multiple? $authorized : $token;
+	}
+
+	public function canUseMultipleClients()
+	{
+		return ($this->service && ($this->service instanceof IMultiClientService) && $this->service::canUseMultipleClients())
+			|| (!$this->service && Service::canUseMultipleClients());
+	}
+
+	public function getClientList()
+	{
+		return $this->canUseMultipleClients() ? SeoService::getClientList($this->getEngineCode()) : [];
+	}
+
+	public function getClientById($clientId)
+	{
+		$clients = $this->getClientList();
+		foreach ($clients as $client)
+		{
+			if ($client['proxy_client_id'] == $clientId)
+			{
+				return $client;
+			}
+		}
+		return null;
+	}
+
+	public function getAuthorizedClientsList()
+	{
+		return array_filter($this->getClientList(), function ($item) {
+			return $item['access_token'] <> '';
+		});
+	}
+
+	public function getClientId()
+	{
+		if (!$this->canUseMultipleClients())
+		{
+			return null;
+		}
+		$clientId = $this->service->getClientId();
+		if ($clientId)
+		{
+			$client = $this->getClientById($clientId);
+			if ($client['engine_code'] == $this->getEngineCode())
+			{
+				return $clientId;
+			}
+			return null;
+		}
+
+		// try to guess account id from accounts list:
+		$clients = $this->getClientList();
+		foreach ($clients as $client)
+		{
+			if ($client['proxy_client_type'] == SeoService::CLIENT_TYPE_COMPATIBLE)
+			{
+				return $client['proxy_client_id'];
+			}
+		}
+		return null;
 	}
 }

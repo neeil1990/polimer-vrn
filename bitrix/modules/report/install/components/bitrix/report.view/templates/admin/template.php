@@ -38,7 +38,11 @@ $aMenu = array(
 		"LINK" => $APPLICATION->GetCurPageParam("EXCEL=Y"),
 	)
 );
-if ($arResult['MARK_DEFAULT'] > 0)
+if ($arResult['SHOW_EDIT_BUTTON'] == false)
+{
+	// do nothing
+}
+else if ($arResult['MARK_DEFAULT'] > 0)
 {
 	$aMenu[] = array(
 		"TEXT" => GetMessage("REPORT_COPY"),
@@ -101,6 +105,13 @@ $context->Show();
 <input type="hidden" name="ID" value="<?=htmlspecialcharsbx($arParams['REPORT_ID'])?>" />
 <input type="hidden" name="sort_id" value="<?=htmlspecialcharsbx($arResult['sort_id'])?>" />
 <input type="hidden" name="sort_type" value="<?=htmlspecialcharsbx($arResult['sort_type'])?>" />
+<? if(isset($_REQUEST['publicSidePanel']) && $_REQUEST['publicSidePanel'] == 'Y'): ?>
+	<input type="hidden" name="publicSidePanel" value="Y" />
+<? endif ?>
+<? if(isset($_REQUEST['IFRAME']) && $_REQUEST['IFRAME'] == 'Y'): ?>
+	<input type="hidden" name="IFRAME" value="Y" />
+	<input type="hidden" name="IFRAME_TYPE" value="SIDE_SLIDER" />
+<? endif ?>
 <?
 // prepare info
 $info = array();
@@ -331,7 +342,7 @@ foreach($arResult['changeableFilters'] as $chFilter)
 						</script>
 
 						<?php /*    Sale report currency selection    */    ?>
-						<? if (substr(call_user_func(array($arResult['helperClassName'], 'getOwnerId')),0,5) === 'sale_'): ?>
+						<? if (mb_substr(call_user_func(array($arResult['helperClassName'], 'getOwnerId')), 0, 5) === 'sale_'): ?>
 						<tr>
 							<td class="adm-filter-item-left"><?=GetMessage('SALE_REPORT_CURRENCY').':'?></td>
 							<td class="adm-filter-item-center">
@@ -1274,7 +1285,7 @@ unset($arGroupingResult['html']);
 						.'">'.$v.'</a>';
 				}
 			}
-			elseif (strlen($row[$col['resultName']]))
+			elseif(mb_strlen($row[$col['resultName']]))
 			{
 				$finalValue = '<a href="'.$row['__HREF_'.$col['resultName']].'">'.$row[$col['resultName']].'</a>';
 			}
@@ -1735,10 +1746,10 @@ unset($arGroupingResult['html']);
 <? endif; ?>
 
 <!-- description -->
-<? if (strlen($arResult['report']['DESCRIPTION'])): ?>
-<div class="adm-info-message-wrap">
-	<div class="adm-info-message">
-		<?=htmlspecialcharsbx($arResult['report']['DESCRIPTION'])?>
+<? if($arResult['report']['DESCRIPTION'] <> ''): ?>
+	<div class="adm-info-message-wrap">
+		<div class="adm-info-message">
+			<?= htmlspecialcharsbx($arResult['report']['DESCRIPTION']) ?>
+		</div>
 	</div>
-</div>
 <? endif; ?>

@@ -8,17 +8,16 @@
 
 namespace Bitrix\Sender\Integration\Sender\Mail;
 
+use Bitrix\Main;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\IO\File;
-use Bitrix\Main\Result;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Mail;
-
-use Bitrix\Sender\Message;
-use Bitrix\Sender\Transport;
-use Bitrix\Sender\Recipient;
-
+use Bitrix\Main\Result;
 use Bitrix\Sender\Integration;
+use Bitrix\Sender\Message;
+use Bitrix\Sender\Recipient;
+use Bitrix\Sender\Transport;
 
 Loc::loadMessages(__FILE__);
 
@@ -205,7 +204,7 @@ class TransportMail implements Transport\iBase, Transport\iDuration, Transport\i
 		}
 
 		$mailMessageParams = array(
-			'EVENT' => null,
+			'EVENT' => [],
 			'FIELDS' => $fields,
 			'MESSAGE' => array(
 				'BODY_TYPE' => 'html',
@@ -230,7 +229,7 @@ class TransportMail implements Transport\iBase, Transport\iDuration, Transport\i
 
 		$mailParams = array(
 			'TO' => $mailMessage->getMailTo(),
-			'SUBJECT' => $mailMessage->getMailSubject(),
+			'SUBJECT' => static::replaceTemplate($mailMessage->getMailSubject()),
 			'BODY' => $mailMessage->getMailBody(),
 			'HEADER' => $mailMessage->getMailHeaders() + $headers,
 			'CHARSET' => $mailMessage->getMailCharset(),
@@ -243,6 +242,31 @@ class TransportMail implements Transport\iBase, Transport\iDuration, Transport\i
 			'TRACK_CLICK' => $this->canTrackMails() ? $message->getClickTracker()->getArray() : null,
 			'CONTEXT' => $this->getMailContext(),
 		);
+		$linkDomain = $message->getReadTracker()->getLinkDomain();
+		if ($linkDomain)
+		{
+			$mailParams['LINK_DOMAIN'] = $linkDomain;
+		}
+
+		// event on sending email
+		$eventMailParams = $mailParams;
+		$eventMailParams['MAILING_CHAIN_ID'] = $message->getConfiguration()->get('LETTER_ID');
+		$event = new Main\Event('sender', 'OnPostingSendRecipientEmail', [$eventMailParams]);
+		$event->send();
+		foreach ($event->getResults() as $eventResult)
+		{
+			if($eventResult->getType() == Main\EventResult::ERROR)
+			{
+				return false;
+			}
+
+			if(is_array($eventResult->getParameters()))
+			{
+				$eventMailParams = array_merge($eventMailParams, $eventResult->getParameters());
+			}
+		}
+		unset($eventMailParams['MAILING_CHAIN_ID']);
+		$mailParams = $eventMailParams;
 
 		return Mail\Mail::send($mailParams);
 	}
@@ -325,4 +349,19 @@ class TransportMail implements Transport\iBase, Transport\iDuration, Transport\i
 
 		return $this->mailAddress->set($address)->get();
 	}
+
+	public static function replaceTemplate($str)
+	{
+		preg_match_all("/#([0-9a-zA-Z_.|]+?)#/", $str, $matchesFindPlaceHolders);
+		if(!empty($matchesFindPlaceHolders) && isset($matchesFindPlaceHolders[1]))
+		{
+			foreach($matchesFindPlaceHolders[1] as $key)
+			{
+				$str = str_replace("#".$key."#", '', $str);
+			}
+		}
+
+		return $str;
+	}
+
 }

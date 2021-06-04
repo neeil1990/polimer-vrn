@@ -4,12 +4,12 @@ define('BX_SECURITY_SHOW_MESSAGE', true);
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_before.php');
 
-use Bitrix\Main\Loader;
-use Bitrix\Sender\Internals\QueryController as Controller;
-use Bitrix\Sender\Internals\CommonAjax;
 use Bitrix\Main\HttpRequest;
+use Bitrix\Sender\Internals\CommonAjax;
+use Bitrix\Sender\Internals\PostFiles;
+use Bitrix\Sender\Internals\QueryController as Controller;
 
-if (!Loader::includeModule('sender'))
+if (!Bitrix\Main\Loader::includeModule('sender'))
 {
 	return;
 }
@@ -58,37 +58,18 @@ $actions[] = Controller\Action::create('saveFile')
 						continue;
 					}
 
-					$isCheckedSuccess = false;
-					$io = \CBXVirtualIo::GetInstance();
-					$docRoot = \Bitrix\Main\Application::getDocumentRoot();
-					if(strpos($filePath, \CTempFile::GetAbsoluteRoot()) === 0)
-					{
-						$absPath = $filePath;
-					}
-					elseif(strpos($io->CombinePath($docRoot, $filePath), \CTempFile::GetAbsoluteRoot()) === 0)
-					{
-						$absPath = $io->CombinePath($docRoot, $filePath);
-					}
-					else
-					{
-						$absPath = $io->CombinePath(\CTempFile::GetAbsoluteRoot(), $filePath);
-						$isCheckedSuccess = true;
-					}
+					$checkResult = PostFiles::checkAbsolutePath($filePath);
 
-					if (!$isCheckedSuccess && $io->ValidatePathString($absPath) && $io->FileExists($absPath))
+					if(is_null($checkResult))
 					{
-						$docRoot = $io->CombinePath($docRoot, '/');
-						$relPath = str_replace($docRoot, '', $absPath);
-						$perm = $GLOBALS['APPLICATION']->GetFileAccessPermission($relPath);
-						if ($perm >= "W")
-						{
-							$isCheckedSuccess = true;
-						}
+						continue;
 					}
+					$isCheckedSuccess = $checkResult['isSuccess'];
 
 					if($isCheckedSuccess)
 					{
-						$fileList[$filePath] = \CFile::MakeFileArray($io->GetPhysicalName($absPath));
+						$io = \CBXVirtualIo::GetInstance();
+						$fileList[$filePath] = \CFile::MakeFileArray($io->GetPhysicalName($checkResult['absPath']));
 						if(isset($value['name']))
 						{
 							$fileList[$filePath]['name'] = $value['name'];
@@ -108,7 +89,7 @@ $actions[] = Controller\Action::create('saveFile')
 			foreach($fileList as $tmpFileName => $file)
 			{
 				$fid = \Bitrix\Sender\Internals\PostFiles::saveFile($file);
-				if($fid > 0 && ($filePath = \CFile::GetPath($fid)) && strlen($filePath) > 0)
+				if($fid > 0 && ($filePath = \CFile::GetPath($fid)) && $filePath <> '')
 				{
 					$result['data']['list'][] = array(
 						'tmp' => $tmpFileName,

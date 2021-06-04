@@ -78,7 +78,7 @@ $arList = array(
 				|| !isset($cache['type'])
 				|| !is_array($cache['type'])
 				|| !isset($cache['type']['class_name'])
-				|| !$cache['type']['class_name'] === 'CPHPCacheMemcacheCluster'
+				|| !($cache['type']['class_name'] === 'CPHPCacheMemcacheCluster')
 			)
 			{
 				\Bitrix\Main\Config\Configuration::setValue('cache', array(
@@ -98,7 +98,7 @@ $arList = array(
 				&& isset($cache['type'])
 				&& is_array($cache['type'])
 				&& isset($cache['type']['class_name'])
-				&& $cache['type']['class_name'] === 'CPHPCacheMemcacheCluster'
+				&& ($cache['type']['class_name'] === 'CPHPCacheMemcacheCluster')
 			)
 			{
 				\Bitrix\Main\Config\Configuration::setValue('cache', null);

@@ -1,8 +1,25 @@
 <?php
 namespace Bitrix\Iblock;
 
+use Bitrix\Iblock\ORM\ElementEntity;
+use Bitrix\Iblock\ORM\ElementV1Table;
+use Bitrix\Iblock\ORM\ElementV2Table;
+use Bitrix\Iblock\ORM\Fields\PropertyOneToMany;
+use Bitrix\Iblock\ORM\Fields\PropertyReference;
 use Bitrix\Main\Entity;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\ORM\Data\DataManager;
+use Bitrix\Main\ORM\Event;
+use Bitrix\Main\ORM\Fields\BooleanField;
+use Bitrix\Main\ORM\Fields\Relations\CascadePolicy;
+use Bitrix\Main\ORM\Fields\Relations\ManyToMany;
+use Bitrix\Main\ORM\Fields\Relations\OneToMany;
+use Bitrix\Main\ORM\Fields\Relations\Reference;
+use Bitrix\Main\ORM\Fields\StringField;
+use Bitrix\Main\ORM\Query\Join;
+use Bitrix\Main\ORM\Query\Query;
+use CIBlockProperty;
+
 Loc::loadMessages(__FILE__);
 
 /**
@@ -45,7 +62,7 @@ Loc::loadMessages(__FILE__);
  *
  * @package Bitrix\Iblock
  */
-class IblockTable extends Entity\DataManager
+class IblockTable extends DataManager
 {
 	const PROPERTY_STORAGE_COMMON = 1;
 	const PROPERTY_STORAGE_SEPARATE = 2;
@@ -74,6 +91,10 @@ class IblockTable extends Entity\DataManager
 	const COMBINED = self::LIST_MODE_COMBINED;
 	const INVALID = self::PROPERTY_INDEX_INVALID;
 
+	const DATA_CLASS_NAMESPACE = 'Bitrix\Iblock\Elements';
+
+	const DATA_CLASS_PREFIX = 'Element';
+
 	/**
 	 * Returns DB table name for entity
 	 *
@@ -84,10 +105,16 @@ class IblockTable extends Entity\DataManager
 		return 'b_iblock';
 	}
 
+	public static function getObjectClass()
+	{
+		return Iblock::class;
+	}
+
 	/**
 	 * Returns entity map definition.
 	 *
 	 * @return array
+	 * @throws \Bitrix\Main\SystemException
 	 */
 	public static function getMap()
 	{
@@ -117,6 +144,11 @@ class IblockTable extends Entity\DataManager
 				'title' => Loc::getMessage('IBLOCK_ENTITY_CODE_FIELD'),
 				'validation' => array(__CLASS__, 'validateCode'),
 			),
+			(new StringField('API_CODE'))
+				->configureSize(50),
+			(new BooleanField('REST_ON'))
+				->configureValues('N', 'Y')
+				->configureDefaultValue('N'),
 			'NAME' => array(
 				'data_type' => 'string',
 				'required' => true,
@@ -226,7 +258,7 @@ class IblockTable extends Entity\DataManager
 				'data_type' => 'enum',
 				'values' => array(self::PROPERTY_INDEX_DISABLE, self::PROPERTY_INDEX_ENABLE, self::PROPERTY_INDEX_INVALID),
 				'default' => self::PROPERTY_INDEX_DISABLE,
-				'title' => Loc::getMessage('IBLOCK_ENTITY_SECTION_PROPERTY_FIELD'),
+				'title' => Loc::getMessage('IBLOCK_ENTITY_PROPERTY_INDEX_FIELD'),
 			),
 			'VERSION' => array(
 				'data_type' => 'enum',
@@ -256,7 +288,179 @@ class IblockTable extends Entity\DataManager
 				'data_type' => 'Bitrix\Iblock\Type',
 				'reference' => array('=this.IBLOCK_TYPE_ID' => 'ref.ID'),
 			),
+
+			new OneToMany('PROPERTIES', PropertyTable::class, 'IBLOCK')
 		);
+	}
+
+	/**
+	 * @param int|Iblock $iblockApiCode
+	 *
+	 * @return ElementEntity|false
+	 * @throws \Bitrix\Main\ArgumentException
+	 * @throws \Bitrix\Main\ObjectPropertyException
+	 * @throws \Bitrix\Main\SystemException
+	 */
+	public static function compileEntity($iblockApiCode)
+	{
+		// get iblock
+		if ($iblockApiCode instanceof Iblock)
+		{
+			$iblock = $iblockApiCode;
+			$iblock->fillApiCode();
+		}
+		else
+		{
+			$iblock = IblockTable::getList([
+				'select' => ['ID', 'API_CODE'],
+				'filter' => Query::filter()->where('API_CODE', $iblockApiCode)
+			])->fetchObject();
+		}
+
+		if (!$iblock || empty($iblock->getApiCode()))
+		{
+			return false;
+		}
+
+		// class info
+		$iblockNamespace = static::DATA_CLASS_NAMESPACE;
+		$iblockDataClassName = $iblock->getEntityDataClassName();
+
+		if ($iblockDataClassName == '')
+		{
+			return false;
+		}
+
+		// check if already compiled
+		$iblockDataClass = $iblock->getEntityDataClass();
+
+		if (class_exists($iblockDataClass, false))
+		{
+			return $iblockDataClass::getEntity();
+		}
+
+		// fill some necessary info
+		$iblock->fill(['VERSION', 'PROPERTIES']);
+
+		// iblock personal entity
+		$parentDataClass = $iblock->getVersion() == 1
+			? ElementV1Table::class
+			: ElementV2Table::class;
+
+		/** @var ElementEntity $elementEntity */
+		$elementEntity = \Bitrix\Main\ORM\Entity::compileEntity(
+			$iblockDataClassName,
+			[],
+			[
+				'namespace' => $iblockNamespace,
+				'parent' => $parentDataClass,
+			]
+		);
+
+		// set iblock to the entity
+		$elementEntity->setIblock($iblock);
+
+		// set relation with sections
+		SectionElementTable::getEntity()->addField(
+			(new Reference('REGULAR_ELEMENT_'.$iblock->getId(), $elementEntity,
+			Join::on('this.IBLOCK_ELEMENT_ID', 'ref.ID')->whereNull('this.ADDITIONAL_PROPERTY_ID')))
+		);
+
+		$elementEntity->addField((new ManyToMany('SECTIONS', SectionTable::class))
+			->configureMediatorEntity(SectionElementTable::class)
+			->configureLocalReference('REGULAR_ELEMENT_'.$iblock->getId())
+			->configureRemoteReference('IBLOCK_SECTION')
+		);
+
+		//$baseTypeList = \Bitrix\Iblock\Helpers\Admin\Property::getBaseTypeList(true);
+		$userTypeList = CIBlockProperty::GetUserType();
+
+		// get properties
+		foreach ($iblock->getProperties() as $property)
+		{
+			if (empty($property->getCode()))
+			{
+				continue;
+			}
+
+			// build property entity with base fields
+			$propertyValueEntity = $property->getValueEntity($elementEntity);
+
+			// add custom fields
+			if (!empty($property->getUserType()) && !empty($userTypeList[$property->getUserType()]['GetORMFields']))
+			{
+				call_user_func($userTypeList[$property->getUserType()]['GetORMFields'], $propertyValueEntity, $property);
+			}
+
+			// add relations with property entity
+			$niceColumnName = $property->getCode();
+
+			if ($property->getMultiple())
+			{
+				// classic OneToMany
+				$elementRefName = 'SRC_ELEMENT';
+
+				// ref from prop entity to src element
+				$propertyValueEntity->addField(
+					(new Reference(
+						$elementRefName,
+						$elementEntity,
+						Join::on('this.IBLOCK_ELEMENT_ID', 'ref.ID')
+							->where('this.IBLOCK_PROPERTY_ID', $property->getId())
+					))
+						->configureJoinType(Join::TYPE_INNER)
+
+				);
+
+				// OneToMany from src element to prop entity
+				$elementEntity->addField(
+					(new PropertyOneToMany($niceColumnName, $propertyValueEntity, $elementRefName))
+						->configureJoinType(Join::TYPE_LEFT)
+						->configureIblockElementProperty($property)
+						->configureCascadeDeletePolicy(
+							CascadePolicy::NO_ACTION // will be removed together in onAfterDelete
+						)
+				);
+			}
+			else
+			{
+				// classic ref
+				$joinType = Join::TYPE_INNER;
+				$joinFilter = Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID');
+
+				if ($iblock->getVersion() == 1)
+				{
+					// additional clause for shared value table in v1.0
+					$joinType = Join::TYPE_LEFT;
+					$joinFilter->where('ref.IBLOCK_PROPERTY_ID', $property->getId());
+				}
+
+				// ref from src element to prop entity
+				$elementEntity->addField(
+					(new PropertyReference($niceColumnName, $propertyValueEntity, $joinFilter))
+						->configureJoinType($joinType)
+						->configureIblockElementProperty($property)
+						->configureCascadeDeletePolicy(
+							CascadePolicy::NO_ACTION  // will be removed together in onAfterDelete
+						)
+				);
+			}
+		}
+
+		return $elementEntity;
+	}
+
+	/**
+	 * @throws \Bitrix\Main\ArgumentException
+	 * @throws \Bitrix\Main\ObjectPropertyException
+	 * @throws \Bitrix\Main\SystemException
+	 */
+	public static function compileAllEntities()
+	{
+		foreach (static::getList(['select' => ['ID', 'API_CODE']])->fetchCollection() as $iblock)
+		{
+			static::compileEntity($iblock);
+		}
 	}
 
 	/**
@@ -401,5 +605,41 @@ class IblockTable extends Entity\DataManager
 		return array(
 			new Entity\Validator\Length(null, 255),
 		);
+	}
+
+	/**
+	 * Default onAfterAdd handler. Absolutely necessary.
+	 *
+	 * @param Event $event		Current data for add.
+	 * @return void
+	 */
+	public static function onAfterAdd(Event $event)
+	{
+		$primary = $event->getParameter('primary');
+		\CIBlock::CleanCache($primary['ID']);
+	}
+
+	/**
+	 * Default onAfterUpdate handler. Absolutely necessary.
+	 *
+	 * @param Event $event		Current data for add.
+	 * @return void
+	 */
+	public static function onAfterUpdate(Event $event)
+	{
+		$primary = $event->getParameter('primary');
+		\CIBlock::CleanCache($primary['ID']);
+	}
+
+	/**
+	 * Default onAfterDelete handler. Absolutely necessary.
+	 *
+	 * @param Event $event		Current data for add.
+	 * @return void
+	 */
+	public static function onAfterDelete(Event $event)
+	{
+		$primary = $event->getParameter('primary');
+		\CIBlock::CleanCache($primary['ID']);
 	}
 }

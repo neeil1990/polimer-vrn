@@ -344,4 +344,5 @@ $MESS["SONET_LOG_COMMENT_THUMBNAIL_SIZE"] = "Avatar-Größe im Activity Stream (
 $MESS["SONET_LOG_NEW_TEMPLATE"] = "Die neue Vorlage von Activity Stream benutzen";
 $MESS["SONET_LOG_AUTH"] = "Keine Authentifizierung erforderlich, um den Activity Stream anzuzeigen";
 $MESS["BPC_USE_CUT"] = "Benutzen Sie [CUT] für Nachrichten";
+$MESS["SONET_USER_ALLOWALL_USER_PROFILE_FIELDS"] = "Die Auswahl der Felder im Nutzerprofil nicht einschränken";
 ?>

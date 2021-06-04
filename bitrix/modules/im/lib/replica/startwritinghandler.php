@@ -23,17 +23,25 @@ if (Loader::includeModule('replica'))
 			);
 		}
 
-		function onStartWriting($userId, $dialogId)
+		function onStartWriting($params)
 		{
+			$userId = intval($params['USER_ID']);
+			if ($userId <= 0)
+			{
+				return false;
+			}
+
 			if (\Bitrix\Im\User::getInstance($userId)->isBot())
 			{
 				return true;
 			}
 
+			$dialogId = $params['DIALOG_ID'];
+
 			$operation = new \Bitrix\Replica\Db\Execute();
-			if (substr($dialogId, 0, 4) === "chat")
+			if (mb_substr($dialogId, 0, 4) === "chat")
 			{
-				$chatId = substr($dialogId, 4);
+				$chatId = intval(mb_substr($dialogId, 4));
 				$operation->writeToLog(
 					"StartWriting",
 					array(
@@ -53,6 +61,7 @@ if (Loader::includeModule('replica'))
 			}
 			else
 			{
+				$dialogId = intval($dialogId);
 				$operation->writeToLog(
 					"StartWriting",
 					array(
@@ -88,9 +97,9 @@ if (Loader::includeModule('replica'))
 				$userName = \Bitrix\Im\User::getInstance($userId)->getFullName();
 
 
-				if (substr($dialogId, 0, 4) == 'chat')
+				if (mb_substr($dialogId, 0, 4) == 'chat')
 				{
-					$chatId = substr($dialogId, 4);
+					$chatId = mb_substr($dialogId, 4);
 					$arRelation = \CIMChat::GetRelationById($chatId);
 					unset($arRelation[$userId]);
 

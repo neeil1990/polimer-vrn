@@ -10,13 +10,14 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_46.2.COVER_WITH_2_BIG_IMAGES_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(),
 	'nodes' => array(
 		'.landing-block-node-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_46.2.COVER_WITH_2_BIG_IMAGES_NODES_LANDINGBLOCKNODEIMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 500, 'height' => 700),
+			'dimensions' => array('maxWidth' => 500),
 			'allowInlineEdit' => false,
 		),
 		'.landing-block-node-img-title' => array(

@@ -312,7 +312,7 @@ class ApiHelper
 	 */
 	private static function setUploadServerMainPhotoParams($photoId)
 	{
-				$result = array();
+		$result = array();
 		$result["main_photo"] = 1;
 		
 		$photoParams = \CFile::GetFileArray($photoId);

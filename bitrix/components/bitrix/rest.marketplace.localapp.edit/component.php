@@ -88,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && check_bitrix_sessid())
 		"MOBILE" => isset($_POST["MOBILE"]) ? "Y" : "N",
 	);
 
-	if(strlen($arFields['APP_NAME']) <= 0)
+	if($arFields['APP_NAME'] == '')
 	{
 		$arResult["ERROR"] = \Bitrix\Main\Localization\Loc::getMessage("MP_ERROR_EMPTY_NAME");
 	}
@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && check_bitrix_sessid())
 
 	if(empty($arResult['ERROR']))
 	{
-		if(strlen($arFields['URL']) <= 0)
+		if($arFields['URL'] == '')
 		{
 			$arResult["ERROR"] = \Bitrix\Main\Localization\Loc::getMessage("MP_ERROR_INCORRECT_URL");
 		}
@@ -171,6 +171,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && check_bitrix_sessid())
 							'MENU_NAME' => $name
 						));
 					}
+
+					$eventFields = [
+						"APP_ID" => $appId,
+						"IS_NEW_APP" => $arResult["APP"]['ID'] > 0 ? true : false
+					];
+					foreach(GetModuleEvents("rest", "OnRestAppInstall", true) as $eventHandler)
+					{
+						ExecuteModuleEventEx($eventHandler, array($eventFields));
+					}
 				}
 				else
 				{
@@ -198,20 +207,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && check_bitrix_sessid())
 					}
 				}
 
-				$url = $arResult['APP']['ID'] > 0
-					? $APPLICATION->GetCurPageParam("success=Y", array('success'))
-					: (
-						$arFields['ONLY_API'] === "Y"
-							? str_replace("#id#", $appId, $arParams['EDIT_URL_TPL'])
-							: $arParams['LIST_URL']
-					);
 
 				if(defined("BX_COMP_MANAGED_CACHE"))
 				{
 					global $CACHE_MANAGER;
 					$CACHE_MANAGER->ClearByTag('sonet_group');
 				}
-
+				if ($arResult['APP']['ID'] > 0)
+					$url = $APPLICATION->GetCurPageParam("success=Y", array('success'));
+				else if (\CRestUtil::isSlider())
+					$url = str_replace("#id#", $appId, $arParams['EDIT_URL_TPL'])."?IFRAME=Y&success=added";
+				else if ($arFields["ONLY_API"] === "Y")
+					$url = str_replace("#id#", $appId, $arParams['EDIT_URL_TPL']);
+				else
+					$url = $arParams['LIST_URL'];
 				LocalRedirect($url);
 			}
 			else
@@ -233,7 +242,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && check_bitrix_sessid())
 }
 
 $arResult["SCOPE"] = \Bitrix\Rest\AppTable::cleanLocalPermissionList(
-	\CRestUtil::getScopeList()
+	\Bitrix\Rest\Engine\ScopeManager::getInstance()->listScope()
 );
 
 $this->IncludeComponentTemplate();

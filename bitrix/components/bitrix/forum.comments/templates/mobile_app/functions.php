@@ -24,6 +24,7 @@ function forumCommentsCommentMobile(
 		"ID" => $comment["ID"],
 		"NEW" => ($comment["NEW"] == "Y" ? "Y" : "N"),
 		"APPROVED" => $comment["APPROVED"],
+		"COLLAPSED" => $comment["COLLAPSED"],
 		"POST_TIMESTAMP" => $comment["POST_TIMESTAMP"],
 	//	"POST_TIME" => $comment["POST_TIME"],
 	//	"POST_DATE" => $comment["POST_DATE"],
@@ -47,7 +48,10 @@ function forumCommentsCommentMobile(
 		"BEFORE" => "",
 		"AFTER" => "",
 		"BEFORE_RECORD" => "",
-		"AFTER_RECORD" => ""
+		"AFTER_RECORD" => "",
+		"AUX" => (!empty($comment["AUX"]) ? $comment["AUX"] : ''),
+		"AUX_LIVE_PARAMS" => (!empty($comment["AUX_LIVE_PARAMS"]) ? $comment["AUX_LIVE_PARAMS"] : array()),
+		"CAN_DELETE" => (!empty($comment["CAN_DELETE"]) ? $comment["CAN_DELETE"] : "Y"),
 	);
 
 	if ($arParams["SHOW_RATING"] == "Y")

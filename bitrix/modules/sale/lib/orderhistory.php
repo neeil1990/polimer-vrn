@@ -195,7 +195,7 @@ class OrderHistory
 					}
 
 					$dataType = static::FIELD_TYPE_TYPE;
-					if (isset($data['RECORD_TYPE']) == static::SALE_ORDER_HISTORY_RECORD_TYPE_FIELD)
+					if (isset($data['RECORD_TYPE']) && $data['RECORD_TYPE'] == static::SALE_ORDER_HISTORY_RECORD_TYPE_FIELD)
 					{
 						$dataType = static::FIELD_TYPE_NAME;
 					}
@@ -233,7 +233,7 @@ class OrderHistory
 				if (!array_key_exists($key, $oldFields)
 					|| (
 						array_key_exists($key, $oldFields)
-						&& strlen($val) > 0 && $val != $oldFields[$key]
+						&& $val <> '' && $val != $oldFields[$key]
 					)
 				)
 				{
@@ -580,7 +580,7 @@ class OrderHistory
 	 */
 	public static function deleteOldAgent($days, $hitLimit = null)
 	{
-		$calledClass = static::class;
+		$calledClass = '\\'.static::class;
 
 		$days = (int)$days;
 

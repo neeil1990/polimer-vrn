@@ -112,12 +112,16 @@ a.process-step-more {
 	background: #525b69 url(images/bp-sprite.png) no-repeat -17px -496px;
 }
 
+.bx-ie .ui-icon.bp-short-process-step-inner
+{
+	width: auto;
+}
+
 .bp-short-process-step img {
 	width: 43px;
 	height: 43px;
 	border-radius: 50%;
 	margin: auto;
-	vertical-align: middle;
 }
 
 .bp-short-process-step:after {
@@ -302,7 +306,6 @@ a.process-step-more {
 	height: 25px;
 	border-radius: 50%;
 	margin: auto;
-	vertical-align: middle;
 }
 
 .bp-popup-parallel-avatar:after {
@@ -353,7 +356,7 @@ a.process-step-more {
 	border: 1px solid;
 	border-color: #d8d8d8 #bdbdbd #bdbdbd #bdbdbd;
 }
-.bp-popup-parallel-sub:hover .bp-popup-parallel
+.bp-popup-parallel-sub:hover > .bp-popup-parallel
 {
 	display: block;
 }

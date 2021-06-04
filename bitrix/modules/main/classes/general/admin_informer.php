@@ -134,7 +134,7 @@ class CAdminInformer
 
 	private static function IsUpdateSystemNeedUpdate($sError)
 	{
-		return strpos($sError, 'NEW_UPDATE_SYSTEM');
+		return mb_strpos($sError, 'NEW_UPDATE_SYSTEM');
 	}
 
 	public static function InsertMainItems()
@@ -233,8 +233,8 @@ class CAdminInformer
 		{
 			$cModules = COption::GetOptionString("main", "mp_modules_date", "");
 			$arModules = array();
-			if(strlen($cModules) > 0)
-				$arModules = unserialize($cModules);
+			if($cModules <> '')
+				$arModules = unserialize($cModules, ['allowed_classes' => false]);
 
 			$mCnt = count($arModules);
 			if($mCnt > 0)

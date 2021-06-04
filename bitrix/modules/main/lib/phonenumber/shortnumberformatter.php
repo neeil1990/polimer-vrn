@@ -24,7 +24,7 @@ class ShortNumberFormatter
 	public static function format(PhoneNumber $phoneNumber)
 	{
 		$rawNumber = $phoneNumber->getNationalNumber();
-		$template = static::$templates[strlen($rawNumber)];
+		$template = static::$templates[mb_strlen($rawNumber)];
 		if(!$template)
 		{
 			return $rawNumber;
@@ -58,7 +58,7 @@ class ShortNumberFormatter
 	 */
 	public static function isApplicable(PhoneNumber $phoneNumber)
 	{
-		if($phoneNumber->isValid())
+		if($phoneNumber->isValid() || $phoneNumber->hasPlus())
 			return false;
 
 		$rawNumber = $phoneNumber->getNationalNumber();

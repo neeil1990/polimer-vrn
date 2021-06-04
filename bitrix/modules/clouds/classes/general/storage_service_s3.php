@@ -1,7 +1,7 @@
 <?php
 IncludeModuleLangFile(__FILE__);
 
-class CCloudStorageService_AmazonS3 extends CCloudStorageService
+class CCloudStorageService_S3 extends CCloudStorageService
 {
 	protected $set_headers =/*.(array[string]string).*/array();
 	protected $new_end_point = '';
@@ -12,67 +12,28 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	*/
 	function GetObject()
 	{
-		return new CCloudStorageService_AmazonS3();
+		return new CCloudStorageService_S3();
 	}
 	/**
 	 * @return string
 	*/
 	function GetID()
 	{
-		return "amazon_s3";
+		return "generic_s3";
 	}
 	/**
 	 * @return string
 	*/
 	function GetName()
 	{
-		return "Amazon Simple Storage Service";
+		return "S3 compatible storage";
 	}
 	/**
-	 * @return array[string]string
+	 * @return array[string]string|false
 	*/
 	function GetLocationList()
 	{
-		// http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
-		return array(
-			"" => "US Standard",
-			"us-east-2" => "US East (Ohio)",
-			"us-west-1" => "US West (Northern California)",
-			"us-west-2" => "US West (Oregon)",
-			"ca-central-1" => "Canada (Central)",
-			"ap-south-1" => "Asia Pacific (Mumbai)",
-			"ap-northeast-2" => "Asia Pacific (Seoul)",
-			"ap-southeast-1" => "Asia Pacific (Singapore)",
-			"ap-southeast-2" => "Asia Pacific (Sydney)",
-			"ap-northeast-1" => "Asia Pacific (Tokyo)",
-			"eu-central-1" => "EU (Frankfurt)",
-			"eu-west-1" => "EU (Ireland)",
-			"eu-west-2" => "EU (London)",
-			"sa-east-1" => "South America (Sao Paulo)",
-		);
-	}
-	/**
-	 * @return array[string]string
-	*/
-	function GetAPList()
-	{
-		// http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
-		return array(
-			"" => "s3.amazonaws.com",
-			"us-east-2" => "s3.us-east-2.amazonaws.com",
-			"us-west-1" => "s3-us-west-1.amazonaws.com",
-			"us-west-2" => "s3-us-west-2.amazonaws.com",
-			"ca-central-1" => "s3.ca-central-1.amazonaws.com",
-			"ap-south-1" => "s3.ap-south-1.amazonaws.com",
-			"ap-northeast-2" => "s3.ap-northeast-2.amazonaws.com",
-			"ap-southeast-1" => "s3-ap-southeast-1.amazonaws.com",
-			"ap-southeast-2" => "s3-ap-southeast-2.amazonaws.com",
-			"ap-northeast-1" => "s3-ap-northeast-1.amazonaws.com",
-			"eu-central-1" => "s3.eu-central-1.amazonaws.com",
-			"eu-west-1" => "s3-eu-west-1.amazonaws.com",
-			"eu-west-2" => "s3.eu-west-2.amazonaws.com",
-			"sa-east-1" => "South America (Sao Paulo)",
-		);
+		return false;
 	}
 	/**
 	 * @param array[string]string $arBucket
@@ -89,23 +50,30 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			$arSettings = unserialize($arBucket["SETTINGS"]);
 
 		if(!is_array($arSettings))
-			$arSettings = array("ACCESS_KEY" => "", "SECRET_KEY" => "");
+		{
+			$arSettings = array(
+				"HOST" => "",
+				"ACCESS_KEY" => "",
+				"SECRET_KEY" => "",
+			);
+		}
 
 		$htmlID = htmlspecialcharsbx($this->GetID());
 
 		$result = '
 		<tr id="SETTINGS_0_'.$htmlID.'" style="display:'.($cur_SERVICE_ID === $this->GetID() || !$bServiceSet? '': 'none').'" class="settings-tr adm-detail-required-field">
+			<td>'.GetMessage("CLO_STORAGE_S3_EDIT_HOST").':</td>
+			<td><input type="hidden" name="SETTINGS['.$htmlID.'][HOST]" id="'.$htmlID.'HOST" value="'.htmlspecialcharsbx($arSettings['HOST']).'"><input type="text" size="55" name="'.$htmlID.'INP_HOST" id="'.$htmlID.'INP_HOST" value="'.htmlspecialcharsbx($arSettings['HOST']).'" '.($arBucket['READ_ONLY'] == 'Y'? '"disabled"': '').' onchange="BX(\''.$htmlID.'HOST\').value = this.value"></td>
+		</tr>
+		<tr id="SETTINGS_1_'.$htmlID.'" style="display:'.($cur_SERVICE_ID === $this->GetID() || !$bServiceSet? '': 'none').'" class="settings-tr adm-detail-required-field">
 			<td>'.GetMessage("CLO_STORAGE_S3_EDIT_ACCESS_KEY").':</td>
 			<td><input type="hidden" name="SETTINGS['.$htmlID.'][ACCESS_KEY]" id="'.$htmlID.'ACCESS_KEY" value="'.htmlspecialcharsbx($arSettings['ACCESS_KEY']).'"><input type="text" size="55" name="'.$htmlID.'INP_ACCESS_KEY" id="'.$htmlID.'INP_ACCESS_KEY" value="'.htmlspecialcharsbx($arSettings['ACCESS_KEY']).'" '.($arBucket['READ_ONLY'] === 'Y'? '"disabled"': '').' onchange="BX(\''.$htmlID.'ACCESS_KEY\').value = this.value"></td>
 		</tr>
-		<tr id="SETTINGS_1_'.$htmlID.'" style="display:'.($cur_SERVICE_ID === $this->GetID() || !$bServiceSet? '': 'none').'" class="settings-tr adm-detail-required-field">
+		<tr id="SETTINGS_2_'.$htmlID.'" style="display:'.($cur_SERVICE_ID === $this->GetID() || !$bServiceSet? '': 'none').'" class="settings-tr adm-detail-required-field">
 			<td>'.GetMessage("CLO_STORAGE_S3_EDIT_SECRET_KEY").':</td>
 			<td><input type="hidden" name="SETTINGS['.$htmlID.'][SECRET_KEY]" id="'.$htmlID.'SECRET_KEY" value="'.htmlspecialcharsbx($arSettings['SECRET_KEY']).'"><input type="text" size="55" name="'.$htmlID.'INP_SECRET_KEY" id="'.$htmlID.'INP_SECRET_KEY" value="'.htmlspecialcharsbx($arSettings['SECRET_KEY']).'" autocomplete="off" '.($arBucket['READ_ONLY'] === 'Y'? '"disabled"': '').' onchange="BX(\''.$htmlID.'SECRET_KEY\').value = this.value"></td>
 		</tr>
-		<tr id="SETTINGS_2_'.$htmlID.'" style="display:'.($cur_SERVICE_ID === $this->GetID() || !$bServiceSet? '': 'none').'" class="settings-tr">
-			<td>&nbsp;</td>
-			<td>'.BeginNote().GetMessage("CLO_STORAGE_S3_EDIT_HELP").EndNote().'</td>
-		</tr>
+
 		';
 		return $result;
 	}
@@ -120,12 +88,17 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$aMsg =/*.(array[int][string]string).*/array();
 
 		$result = array(
+			"HOST" => is_array($arSettings)? trim($arSettings["HOST"]): '',
 			"ACCESS_KEY" => is_array($arSettings)? trim($arSettings["ACCESS_KEY"]): '',
 			"SECRET_KEY" => is_array($arSettings)? trim($arSettings["SECRET_KEY"]): '',
 		);
-		if(is_array($arSettings) && array_key_exists("SESSION_TOKEN", $arSettings))
+
+		if($arBucket["READ_ONLY"] !== "Y" && $result["HOST"] === '')
 		{
-			$result["SESSION_TOKEN"] = trim($arSettings["SESSION_TOKEN"]);
+			$aMsg[] = array(
+				"id" => $this->GetID()."INP_HOST",
+				"text" => GetMessage("CLO_STORAGE_S3_EMPTY_HOST"),
+			);
 		}
 
 		if($arBucket["READ_ONLY"] !== "Y" && $result["ACCESS_KEY"] === '')
@@ -164,7 +137,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	*/
 	function hmacsha1($data, $key)
 	{
-		if(strlen($key)>64)
+		if(mb_strlen($key) > 64)
 			$key=pack('H*', sha1($key));
 		$key = str_pad($key, 64, chr(0x00));
 		$ipad = str_repeat(chr(0x36), 64);
@@ -185,8 +158,8 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	*/
 	function SignRequest($arSettings, $RequestMethod, $bucket, $RequestURI, $ContentType, $additional_headers, $params = "", $content = "")
 	{
-		static $search = array("+", "=");
-		static $replace = array("%20", "%3D");
+		static $search = array("+", "=", "%7E");
+		static $replace = array("%20", "%3D", "~");
 
 		if (is_resource($content))
 		{
@@ -207,7 +180,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$RequestTime = gmdate('Ymd', $Time).'T'.gmdate('His', $Time).'Z';
 		$additional_headers["x-amz-date"] = $RequestTime;
 
-		$CanonicalizedResource = strlen($RequestURI) > 0? (string)str_replace($search, $replace, $RequestURI): "/";
+		$CanonicalizedResource = $RequestURI <> ''? (string)str_replace($search, $replace, $RequestURI): "/";
 
 		$CanonicalQuery = explode("&", ltrim($params, "?"));
 		sort($CanonicalQuery);
@@ -216,7 +189,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$CanonicalHeaders = /*.(array[string]string).*/ array();
 		foreach($additional_headers as $key => $value)
 		{
-			$key = strtolower($key);
+			$key = mb_strtolower($key);
 			if (isset($CanonicalHeaders[$key]))
 				$CanonicalHeaders[$key] .= ",";
 			else
@@ -278,7 +251,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	 * @param string $bucket
 	 * @return string
 	 **/
-	protected function GetRequestHost($bucket)
+	protected function GetRequestHost($bucket, $arSettings)
 	{
 		if(
 			$this->new_end_point != ""
@@ -287,19 +260,12 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		{
 			return $bucket.$match[2];
 		}
-		elseif ($this->location)
-		{
-			if ($bucket <> '')
-				return $bucket.".s3-".$this->location.".amazonaws.com";
-			else
-				return "s3-".$this->location.".amazonaws.com";
-		}
 		else
 		{
 			if ($bucket <> '')
-				return $bucket.".s3.amazonaws.com";
+				return $bucket.".".$arSettings["HOST"];
 			else
-				return "s3.amazonaws.com";
+				return $arSettings["HOST"];
 		}
 	}
 	/**
@@ -343,7 +309,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			$additional_headers["x-amz-security-token"] = $arSettings["SESSION_TOKEN"];
 		}
 
-		$additional_headers["host"] = $this->GetRequestHost($bucket);
+		$additional_headers["host"] = $this->GetRequestHost($bucket, $arSettings);
 
 		foreach($this->SignRequest($arSettings, $verb, $bucket, $file_name, $ContentType, $additional_headers, $params, $content) as $key => $value)
 		{
@@ -359,39 +325,40 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$was_end_point = $this->new_end_point;
 		$this->new_end_point = '';
 
-		$request_id = '';
+		$this->status = 0;
+		$this->host = $host;
+		$this->verb = $verb;
+		$this->url =  $file_name.$params;
+		$this->headers = array();
+		$this->errno = 0;
+		$this->errstr = '';
+		$this->result = '';
+
+		$request = false;
 		if (defined("BX_CLOUDS_TRACE") && $verb !== "GET" && $verb !== "HEAD")
 		{
 			$stime = microtime(1);
-			$request_id = md5((string)mt_rand());
-			AddMessage2Log('{'
-				.'"request_id": "'.$request_id.'";'
-				.'"portal":"'.(CModule::IncludeModule('replica')? getNameByDomain(): $_SERVER["HOST_NAME"]).'";'
-				.'"verb":"'.$verb.'";'
-				.'"host":"'.$host.'";'
-				.'"uri":"'.$file_name.$params.'"'
-			.'}', '', 0);
+			$request = array(
+				"request_id" => md5((string)mt_rand()),
+				"portal" => (CModule::IncludeModule('replica')? getNameByDomain(): $_SERVER["HTTP_HOST"]),
+				"verb" => $verb,
+				"host" => $host,
+				"uri" => $file_name.$params
+			);
+			AddMessage2Log(json_encode($request), 'clouds', 20);
 		}
 
 		$obRequest->Query($verb, $host, 80, $file_name.$params, $content, '', $ContentType);
 
-		if ($request_id != '')
+		if ($request)
 		{
-			AddMessage2Log('{'
-				.'"request_id": "'.$request_id.'";'
-				.'"portal":"'.(CModule::IncludeModule('replica')? getNameByDomain(): $_SERVER["HOST_NAME"]).'";'
-				.'"verb":"'.$verb.'";'
-				.'"host":"'.$host.'";'
-				.'"uri":"'.$file_name.$params.'";'
-				.'"status":"'.$obRequest->status.'";'
-				.'"time": "'.(round(microtime(1)-$stime,6)).'"'
-			.'}', '', 0);
+			$request["status"] = $obRequest->status;
+			$request["time"] = round(microtime(true) - $stime, 6);
+			$request["headers"] = $obRequest->headers;
+			AddMessage2Log(json_encode($request), 'clouds', 0);
 		}
 
 		$this->status = $obRequest->status;
-		$this->host = $host;
-		$this->verb = $verb;
-		$this->url =  $file_name.$params;
 		$this->headers = $obRequest->headers;
 		$this->errno = $obRequest->errno;
 		$this->errstr = $obRequest->errstr;
@@ -552,6 +519,17 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		if(is_array($arFiles))
 			return true;
 
+		// The bucket already exists and user has specified wrong location
+		if (
+			$this->status == 301
+			&& $arBucket["LOCATION"] != ""
+			&& $this->GetLastRequestHeader('x-amz-bucket-region') != ''
+			&& $this->GetLastRequestHeader('x-amz-bucket-region') != $arBucket["LOCATION"]
+		)
+		{
+			return false;
+		}
+
 		if($arBucket["LOCATION"] != "")
 			$content =
 				'<CreateBucketConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'.
@@ -665,31 +643,19 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	{
 		$proto = CMain::IsHTTPS()? "https": "http";
 
-		static $aps = null;
-		if (!$aps)
-			$aps = self::GetAPList();
-
 		if($arBucket["CNAME"] != "")
 		{
 			$host = $arBucket["CNAME"];
 			$pref = "";
 		}
-		elseif ($proto === "https" && strpos($arBucket["BUCKET"], ".") !== false)
+		elseif ($proto === "https" && mb_strpos($arBucket["BUCKET"], ".") !== false)
 		{
-			if (isset($aps[$arBucket["LOCATION"]]))
-				$host = $aps[$arBucket["LOCATION"]];
-			else
-				$host = $aps[""];
-
+			$host = $arBucket["SETTINGS"]["HOST"];
 			$pref = $arBucket["BUCKET"];
 		}
 		else
 		{
-			if (isset($aps[$arBucket["LOCATION"]]))
-				$host = $arBucket["BUCKET"].".".$aps[$arBucket["LOCATION"]];
-			else
-				$host = $aps[""];
-
+			$host = $arBucket["BUCKET"].".".$arBucket["SETTINGS"]["HOST"];
 			$pref = "";
 		}
 
@@ -700,7 +666,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 
 		if ($arBucket["PREFIX"] != "")
 		{
-			if(substr($URI, 0, strlen($arBucket["PREFIX"])+1) !== $arBucket["PREFIX"]."/")
+			if(mb_substr($URI, 0, mb_strlen($arBucket["PREFIX"]) + 1) !== $arBucket["PREFIX"]."/")
 				$URI = $arBucket["PREFIX"]."/".$URI;
 		}
 
@@ -722,10 +688,10 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 
 		if($arBucket["PREFIX"] != "")
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"]."/".ltrim($filePath, "/");
 		}
-		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8");
+		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8", true);
 
 		$this->SetLocation($arBucket["LOCATION"]);
 		$this->SendRequest(
@@ -760,14 +726,14 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"]."/".ltrim($filePath, "/");
 		}
 
 		$additional_headers = array();
 		if($this->_public)
 			$additional_headers["x-amz-acl"] = "public-read";
-		$additional_headers["x-amz-copy-source"] = CCloudUtil::URLEncode("/".$arBucket["BUCKET"]."/".($arBucket["PREFIX"]? $arBucket["PREFIX"]."/": "").($arFile["SUBDIR"]? $arFile["SUBDIR"]."/": "").$arFile["FILE_NAME"], "UTF-8");
+		$additional_headers["x-amz-copy-source"] = CCloudUtil::URLEncode("/".$arBucket["BUCKET"]."/".($arBucket["PREFIX"]? $arBucket["PREFIX"]."/": "").($arFile["SUBDIR"]? $arFile["SUBDIR"]."/": "").$arFile["FILE_NAME"], "UTF-8", true);
 		$additional_headers["Content-Type"] = $arFile["CONTENT_TYPE"];
 
 		if (
@@ -783,7 +749,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			$arBucket["SETTINGS"],
 			'PUT',
 			$arBucket["BUCKET"],
-			CCloudUtil::URLEncode($filePath, "UTF-8"),
+			CCloudUtil::URLEncode($filePath, "UTF-8", true),
 			'',
 			'',
 			$additional_headers
@@ -810,6 +776,140 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		{
 			return $this->GetFileSRC($arBucket, $filePath);
 		}
+		elseif (
+			$this->status == 400
+			&& ($e = $APPLICATION->GetException())
+			&& is_object($e)
+			&& preg_match("/The specified copy source is larger than the maximum allowable size for a copy source: ([0-9]+)/i", $e->GetString(), $match)
+		)
+		{
+			$sizeLimit = $match[1];
+			$this->SendRequest(
+				$arBucket["SETTINGS"],
+				'HEAD',
+				$arBucket["BUCKET"],
+				CCloudUtil::URLEncode("/".($arBucket["PREFIX"]? $arBucket["PREFIX"]."/": "").($arFile["SUBDIR"]? $arFile["SUBDIR"]."/": "").$arFile["FILE_NAME"], "UTF-8", true)
+			);
+
+			$fileSize = false;
+			if($this->status == 200)
+			{
+				if (isset($this->headers["Content-Length"]) && $this->headers["Content-Length"] > 0)
+					$fileSize = $this->headers["Content-Length"];
+			}
+			if (!$fileSize)
+			{
+				$APPLICATION->ResetException();
+				return false;
+			}
+
+			//Multipart copy goes here
+			$additional_headers = array();
+			if($this->_public)
+				$additional_headers["x-amz-acl"] = "public-read";
+			$additional_headers["Content-Type"] = $arFile["CONTENT_TYPE"];
+
+			$response = $this->SendRequest(
+				$arBucket["SETTINGS"],
+				'POST',
+				$arBucket["BUCKET"],
+				CCloudUtil::URLEncode($filePath, "UTF-8", true),
+				'?uploads=',
+				'',
+				$additional_headers
+			);
+
+			if(
+				$this->status == 200
+				&& is_array($response)
+				&& isset($response["InitiateMultipartUploadResult"])
+				&& is_array($response["InitiateMultipartUploadResult"])
+				&& isset($response["InitiateMultipartUploadResult"]["#"])
+				&& is_array($response["InitiateMultipartUploadResult"]["#"])
+				&& isset($response["InitiateMultipartUploadResult"]["#"]["UploadId"])
+				&& is_array($response["InitiateMultipartUploadResult"]["#"]["UploadId"])
+				&& isset($response["InitiateMultipartUploadResult"]["#"]["UploadId"][0])
+				&& is_array($response["InitiateMultipartUploadResult"]["#"]["UploadId"][0])
+				&& isset($response["InitiateMultipartUploadResult"]["#"]["UploadId"][0]["#"])
+				&& is_string($response["InitiateMultipartUploadResult"]["#"]["UploadId"][0]["#"])
+			)
+			{
+				$uploadId = $response["InitiateMultipartUploadResult"]["#"]["UploadId"][0]["#"];
+				$parts = array();
+			}
+			else
+			{
+				$APPLICATION->ResetException();
+				return false;
+			}
+
+			$pos = 0;
+			$part_no = 0;
+			while ($pos < $fileSize)
+			{
+				$additional_headers = array();
+				$additional_headers["x-amz-copy-source"] = CCloudUtil::URLEncode("/".$arBucket["BUCKET"]."/".($arBucket["PREFIX"]? $arBucket["PREFIX"]."/": "").($arFile["SUBDIR"]? $arFile["SUBDIR"]."/": "").$arFile["FILE_NAME"], "UTF-8", true);
+				$additional_headers["x-amz-copy-source-range"] = "bytes=".$pos."-".(min($fileSize, $pos + $sizeLimit) - 1);
+
+				$response = $this->SendRequest(
+					$arBucket["SETTINGS"],
+					'PUT',
+					$arBucket["BUCKET"],
+					CCloudUtil::URLEncode($filePath, "UTF-8", true),
+					'?partNumber='.($part_no + 1).'&uploadId='.urlencode($uploadId),
+					'',
+					$additional_headers
+				);
+
+				if(
+					$this->status == 200
+					&& is_array($response)
+					&& isset($response["CopyPartResult"])
+					&& is_array($response["CopyPartResult"])
+					&& isset($response["CopyPartResult"]["#"])
+					&& is_array($response["CopyPartResult"]["#"])
+					&& isset($response["CopyPartResult"]["#"]["ETag"])
+					&& is_array($response["CopyPartResult"]["#"]["ETag"])
+					&& isset($response["CopyPartResult"]["#"]["ETag"][0])
+					&& is_array($response["CopyPartResult"]["#"]["ETag"][0])
+					&& isset($response["CopyPartResult"]["#"]["ETag"][0]["#"])
+					&& is_string($response["CopyPartResult"]["#"]["ETag"][0]["#"])
+				)
+				{
+					$parts[$part_no] = trim($response["CopyPartResult"]["#"]["ETag"][0]["#"], '"');
+				}
+				else
+				{
+					$APPLICATION->ResetException();
+					return false;
+				}
+				$part_no++;
+				$pos += $sizeLimit;
+			}
+
+			ksort($parts);
+			$data = "";
+			foreach($parts as $PartNumber => $ETag)
+			{
+				$data .= "<Part><PartNumber>".($PartNumber+1)."</PartNumber><ETag>".$ETag."</ETag></Part>\n";
+			}
+
+			$this->SendRequest(
+				$arBucket["SETTINGS"],
+				'POST',
+				$arBucket["BUCKET"],
+				CCloudUtil::URLEncode($filePath, "UTF-8", true),
+				'?uploadId='.urlencode($uploadId),
+				"<CompleteMultipartUpload>".$data."</CompleteMultipartUpload>"
+			);
+
+			if($this->status == 200)
+			{
+				return $this->GetFileSRC($arBucket, $filePath);
+			}
+			$APPLICATION->ResetException();
+			return false;
+		}
 		else//if($this->status == 404)
 		{
 			$APPLICATION->ResetException();
@@ -831,10 +931,10 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"]."/".ltrim($filePath, "/");
 		}
-		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8");
+		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8", true);
 
 		$this->SetLocation($arBucket["LOCATION"]);
 		$this->SendRequest(
@@ -843,6 +943,22 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			$arBucket["BUCKET"],
 			$filePath
 		);
+
+		$status = $this->status;
+		if(
+			$this->status == 204
+			&& mb_strpos($filePath, '+') !== false
+			&& $this->FileExists($arBucket, str_replace('+', '%2B', $filePath))
+		)
+		{
+			$this->SendRequest(
+				$arBucket["SETTINGS"],
+				'DELETE',
+				$arBucket["BUCKET"],
+				str_replace('+', '%2B', $filePath)
+			);
+			$status = $this->status;
+		}
 
 		if (
 			defined("BX_CLOUDS_COUNTERS_DEBUG")
@@ -853,12 +969,12 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			\CCloudsDebug::getInstance()->startAction($filePath);
 		}
 
-		if($this->status == 204)
+		if($status == 204)
 		{
 			$APPLICATION->ResetException();
 			return true;
 		}
-		else//if($this->status == 404)
+		else
 		{
 			$APPLICATION->ResetException();
 			return false;
@@ -871,10 +987,10 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"]."/".ltrim($filePath, "/");
 		}
-		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8");
+		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8", true);
 
 		$additional_headers = array();
 		if($this->_public)
@@ -934,7 +1050,6 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		}
 		else
 		{
-			AddMessage2Log($this);
 			$APPLICATION->ResetException();
 			return false;
 		}
@@ -943,20 +1058,25 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	function ListFiles($arBucket, $filePath, $bRecursive = false, $pageSize = 0, $pageMarker = '')
 	{
 		global $APPLICATION;
-
+		static $search = array("+", "%7E");
+		static $replace = array("%20", "~");
 		$result = array(
 			"dir" => array(),
 			"file" => array(),
 			"file_size" => array(),
+			"file_mtime" => array(),
+			"file_hash" => array(),
 		);
 
 		$filePath = trim($filePath, '/');
-		if(strlen($filePath))
+		if($filePath <> '')
+		{
 			$filePath .= '/';
+		}
 
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = $arBucket["PREFIX"]."/".ltrim($filePath, "/");
 		}
 		$filePath = $APPLICATION->ConvertCharset($filePath, LANG_CHARSET, "UTF-8");
@@ -970,7 +1090,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 				'GET',
 				$arBucket["BUCKET"],
 				'/',
-				'?'.($bRecursive? '': 'delimiter=%2F&').'prefix='.urlencode($filePath)
+				'?'.($bRecursive? '': 'delimiter=%2F&').'prefix='.str_replace($search, $replace, urlencode($filePath))
 					.'&marker='.str_replace("+", "%20", urlencode($marker))
 			);
 
@@ -990,7 +1110,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 				{
 					foreach($response["ListBucketResult"]["#"]["CommonPrefixes"] as $a)
 					{
-						$dir_name = substr(rtrim($a["#"]["Prefix"][0]["#"], "/"), strlen($filePath));
+						$dir_name = mb_substr(rtrim($a["#"]["Prefix"][0]["#"], "/"), mb_strlen($filePath));
 						$result["dir"][] = $APPLICATION->ConvertCharset(urldecode($dir_name), "UTF-8", LANG_CHARSET);
 					}
 				}
@@ -1003,11 +1123,13 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 				{
 					foreach($response["ListBucketResult"]["#"]["Contents"] as $a)
 					{
-						$file_name = substr($a["#"]["Key"][0]["#"], strlen($filePath));
-						if ($file_name <> '' && substr($file_name, -1) !== '/')
+						$file_name = mb_substr($a["#"]["Key"][0]["#"], mb_strlen($filePath));
+						if ($file_name <> '' && mb_substr($file_name, -1) !== '/')
 						{
 							$result["file"][] = $APPLICATION->ConvertCharset($file_name, "UTF-8", LANG_CHARSET);
 							$result["file_size"][] = $a["#"]["Size"][0]["#"];
+							$result["file_mtime"][] = mb_substr($a["#"]["LastModified"][0]["#"], 0, 19);
+							$result["file_hash"][] = trim($a["#"]["ETag"][0]["#"], '"');
 							$lastKey = $a["#"]["Key"][0]["#"];
 							if ($pageSize > 0 && count($result["file"]) >= $pageSize)
 							{
@@ -1023,12 +1145,12 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 					&& $response["ListBucketResult"]["#"]["IsTruncated"][0]["#"] === "true"
 				)
 				{
-					if (strlen($response["ListBucketResult"]["#"]["NextMarker"][0]["#"]) > 0)
+					if ($response["ListBucketResult"]["#"]["NextMarker"][0]["#"] <> '')
 					{
 						$marker = $response["ListBucketResult"]["#"]["NextMarker"][0]["#"];
 						continue;
 					}
-					elseif ($lastKey !== null);
+					elseif ($lastKey !== null)
 					{
 						$marker = $lastKey;
 						continue;
@@ -1044,6 +1166,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			}
 			else
 			{
+				AddMessage2Log($this);
 				return false;
 			}
 		}
@@ -1056,10 +1179,10 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$filePath = '/'.trim($filePath, '/');
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"].$filePath;
 		}
-		$filePathU = CCloudUtil::URLEncode($filePath, "UTF-8");
+		$filePathU = CCloudUtil::URLEncode($filePath, "UTF-8", true);
 
 		$additional_headers = array();
 		if($this->_public)
@@ -1099,6 +1222,11 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 			);
 			return true;
 		}
+		elseif ($this->checkForTokenExpiration($this->status, $this->result))
+		{
+			$this->tokenHasExpired = true;
+			return false;
+		}
 		else
 		{
 			return false;
@@ -1115,10 +1243,10 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$filePath = '/'.trim($NS["filePath"], '/');
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"].$filePath;
 		}
-		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8");
+		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8", true);
 
 		$this->SetLocation($arBucket["LOCATION"]);
 		$this->SendRequest(
@@ -1134,7 +1262,7 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		{
 			foreach ($this->headers as $key => $value)
 			{
-				if (strtolower($key) === "etag")
+				if (mb_strtolower($key) === "etag")
 				{
 					$NS["Parts"][$part_no] = $value;
 					return true;
@@ -1163,10 +1291,10 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		$filePath = '/'.trim($NS["filePath"], '/');
 		if($arBucket["PREFIX"])
 		{
-			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+			if(mb_substr($filePath, 0, mb_strlen($arBucket["PREFIX"]) + 2) != "/".$arBucket["PREFIX"]."/")
 				$filePath = "/".$arBucket["PREFIX"].$filePath;
 		}
-		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8");
+		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8", true);
 
 		ksort($NS["Parts"]);
 		$data = "";
@@ -1213,6 +1341,34 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 		return $this->status == 200;
 	}
 	/**
+	 * @param array[string]string $arBucket
+	 * @param mixed & $NS
+	 * @return bool
+	*/
+	public function CancelMultipartUpload($arBucket, &$NS)
+	{
+		$filePath = '/'.trim($NS["filePath"], '/');
+		if($arBucket["PREFIX"])
+		{
+			if(substr($filePath, 0, strlen($arBucket["PREFIX"])+2) != "/".$arBucket["PREFIX"]."/")
+				$filePath = "/".$arBucket["PREFIX"].$filePath;
+		}
+		$filePath = CCloudUtil::URLEncode($filePath, "UTF-8", true);
+
+		if ($NS["UploadId"])
+		{
+			$this->SetLocation($arBucket["LOCATION"]);
+			$this->SendRequest(
+				$arBucket["SETTINGS"],
+				'DELETE',
+				$arBucket["BUCKET"],
+				$filePath,
+				'?uploadId='.urlencode($NS["UploadId"]),
+				''
+			);
+		}
+	}
+	/**
 	 * @param bool $state
 	 * @return void
 	 */
@@ -1244,11 +1400,11 @@ class CCloudStorageService_AmazonS3 extends CCloudStorageService
 	*/
 	protected function checkForTokenExpiration($status, $result)
 	{
-		if ($status == 400 && strpos($result, 'ExpiredToken') !== false)
+		if ($status == 400 && mb_strpos($result, 'ExpiredToken') !== false)
 			return true;
-		if ($status == 400 && strpos($result, 'token is malformed') !== false)
+		if ($status == 400 && mb_strpos($result, 'token is malformed') !== false)
 			return true;
-		if ($status == 403 && strpos($result, 'The AWS Access Key Id you provided does not exist in our records.') !== false)
+		if ($status == 403 && mb_strpos($result, 'The AWS Access Key Id you provided does not exist in our records.') !== false)
 			return true;
 		return false;
 	}

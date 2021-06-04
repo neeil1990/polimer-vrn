@@ -1,7 +1,8 @@
-<?
+<?php
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
+use Bitrix\Main\SystemException;
 
 Loc::loadMessages(__FILE__);
 
@@ -17,14 +18,13 @@ class UI extends \CModule
 	public $MODULE_VERSION_DATE;
 	public $MODULE_NAME;
 	public $MODULE_DESCRIPTION;
+	private $errors;
 
 	public function __construct()
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace('\\', '/', __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -64,7 +64,23 @@ class UI extends \CModule
 
 	function installDB()
 	{
+		global $DB;
+
+		$this->errors = false;
+		if (!$DB->Query("SELECT 'x' FROM b_ui_entity_editor_config", true))
+		{
+			$this->errors = $DB->RunSQLBatch(
+				$_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/ui/install/db/mysql/install.sql'
+			);
+		}
+
+		if (is_array($this->errors))
+		{
+			throw new SystemException(implode(' ', $this->errors));
+		}
+
 		ModuleManager::registerModule($this->MODULE_ID);
+
 		return true;
 	}
 
@@ -75,6 +91,17 @@ class UI extends \CModule
 
 	function uninstallDB()
 	{
+		global $DB;
+
+		$this->errors = $DB->RunSQLBatch(
+			$_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/ui/install/db/mysql/uninstall.sql'
+		);
+
+		if (is_array($this->errors))
+		{
+			throw new SystemException(implode(' ', $this->errors));
+		}
+
 		return true;
 	}
 

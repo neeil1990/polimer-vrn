@@ -1,7 +1,7 @@
-<?
-IncludeModuleLangFile(__FILE__);
+<?php
 
 use Bitrix\Bizproc;
+use Bitrix\Main;
 
 abstract class CBPActivity
 {
@@ -18,8 +18,11 @@ abstract class CBPActivity
 	const ClosedEvent = 3;
 	const FaultingEvent = 4;
 
-	const ValuePattern = '#^\s*\{=\s*(?<object>[a-z0-9_]+)\s*\:\s*(?<field>[a-z0-9_\.]+)(\s*>\s*(?<mod1>[a-z0-9_\:]+)(\s*,\s*(?<mod2>[a-z0-9_]+))?)?\s*\}\s*$#i';
-	const ValueInlinePattern = '#\{=\s*(?<object>[a-z0-9_]+)\s*\:\s*(?<field>[a-z0-9_\.]+)(\s*>\s*(?<mod1>[a-z0-9_\:]+)(\s*,\s*(?<mod2>[a-z0-9_]+))?)?\s*\}#i';
+	private const ValueSinglePattern = '\{=\s*(?<object>[a-z0-9_]+)\s*\:\s*(?<field>[a-z0-9_\.]+)(\s*>\s*(?<mod1>[a-z0-9_\:]+)(\s*,\s*(?<mod2>[a-z0-9_]+))?)?\s*\}';
+
+	const ValuePattern = '#^\s*'.self::ValueSinglePattern.'\s*$#i';
+	private const ValueSimplePattern = '#^\s*\{\{(.*?)\}\}\s*$#i';
+	const ValueInlinePattern = '#'.self::ValueSinglePattern.'#i';
 	/** Internal pattern used in calc.php */
 	const ValueInternalPattern = '\{=\s*([a-z0-9_]+)\s*\:\s*([a-z0-9_\.]+)(\s*>\s*([a-z0-9_\:]+)(\s*,\s*([a-z0-9_]+))?)?\s*\}';
 
@@ -174,6 +177,11 @@ abstract class CBPActivity
 	public function getTemplatePropertyType($propertyName)
 	{
 		$rootActivity = $this->GetRootActivity();
+		if ($propertyName === 'TargetUser' && !isset($rootActivity->arPropertiesTypes[$propertyName]))
+		{
+			return ['Type' => 'user'];
+		}
+
 		return $rootActivity->arPropertiesTypes[$propertyName];
 	}
 
@@ -193,6 +201,11 @@ abstract class CBPActivity
 			foreach ($arPropertiesTypes as $key => $value)
 				$this->arPropertiesTypes[$key] = $value;
 		}
+	}
+
+	public function getPropertyType($propertyName): ?array
+	{
+		return $this->arPropertiesTypes[$propertyName] ?? null;
 	}
 
 	/**********************************************************/
@@ -316,7 +329,11 @@ abstract class CBPActivity
 	public function IsVariableExists($name)
 	{
 		$rootActivity = $this->GetRootActivity();
-		return array_key_exists($name, $rootActivity->arVariables);
+		return (
+			array_key_exists($name, $rootActivity->arVariables)
+			||
+			array_key_exists($name, $rootActivity->arVariablesTypes)
+		);
 	}
 
 	/************************************************/
@@ -382,7 +399,7 @@ abstract class CBPActivity
 		$stateService = $this->workflow->GetService("StateService");
 
 		$mainTitle = $stateService->GetStateTitle($this->GetWorkflowInstanceId());
-		$mainTitle .= ((strpos($mainTitle, ": ") !== false) ? ", " : ": ").$title;
+		$mainTitle .= ((mb_strpos($mainTitle, ": ") !== false) ? ", " : ": ").$title;
 
 		$stateService->SetStateTitle($this->GetWorkflowInstanceId(), $mainTitle);
 	}
@@ -407,13 +424,13 @@ abstract class CBPActivity
 			$a = trim($a);
 			if ($a != $title)
 			{
-				if (strlen($newTitle) > 0)
+				if ($newTitle <> '')
 					$newTitle .= ", ";
 				$newTitle .= $a;
 			}
 		}
 
-		$result = $ar1[0].(strlen($newTitle) > 0 ? ": " : "").$newTitle;
+		$result = $ar1[0].($newTitle <> '' ? ": " : "").$newTitle;
 
 		$stateService->SetStateTitle($this->GetWorkflowInstanceId(), $result);
 	}
@@ -425,7 +442,7 @@ abstract class CBPActivity
 		// array("Workflow", "id")
 		// "Hello, {=SequentialWorkflowActivity1:DocumentApprovers}, {=Document:IBLOCK_ID}!"
 
-		$parsed = $this->parseValueExpression($val);
+		$parsed = static::parseExpression($val);
 		if ($parsed)
 		{
 			$result = null;
@@ -494,7 +511,7 @@ abstract class CBPActivity
 					$documentType = $this->GetDocumentType();
 
 					$typesMap = $documentService->getTypesMap($documentType);
-					$convertToType = strtolower($convertToType);
+					$convertToType = mb_strtolower($convertToType);
 					if (isset($typesMap[$convertToType]))
 					{
 						$typeClass = $typesMap[$convertToType];
@@ -556,22 +573,22 @@ abstract class CBPActivity
 	{
 		$return = true;
 		$property = null;
+		/** @var CBPDocumentService $documentService */
+		$documentService = $this->workflow->GetService("DocumentService");
 
 		if ($objectName == "Document")
 		{
 			$rootActivity = $this->GetRootActivity();
 			$documentId = $rootActivity->GetDocumentId();
 
-			/** @var CBPDocumentService $documentService */
-			$documentService = $this->workflow->GetService("DocumentService");
 			$documentType = $this->GetDocumentType();
 			$document = $documentService->GetDocument($documentId, $documentType);
 			$documentFields = $documentService->GetDocumentFields($documentType);
 			//check aliases
 			$documentFieldsAliasesMap = CBPDocument::getDocumentFieldsAliasesMap($documentFields);
-			if (!isset($document[$fieldName]) && strtoupper(substr($fieldName, -strlen('_PRINTABLE'))) == '_PRINTABLE')
+			if (!isset($document[$fieldName]) && mb_strtoupper(mb_substr($fieldName, -10)) === '_PRINTABLE')
 			{
-				$fieldName = substr($fieldName, 0, -strlen('_PRINTABLE'));
+				$fieldName = mb_substr($fieldName, 0, -10);
 				if (!in_array('printable', $modifiers))
 					$modifiers[] = 'printable';
 			}
@@ -585,23 +602,20 @@ abstract class CBPActivity
 			if (isset($document[$fieldName]))
 			{
 				$result = $document[$fieldName];
-				if (is_array($result) && strtoupper(substr($fieldName, -strlen('_PRINTABLE'))) == '_PRINTABLE')
+				if (is_array($result) && mb_strtoupper(mb_substr($fieldName, -10)) === '_PRINTABLE')
 					$result = implode(", ", CBPHelper::MakeArrayFlat($result));
 
-				if (!empty($modifiers))
-				{
-					$property = isset($documentFields[$fieldName]) ? $documentFields[$fieldName] : null;
-				}
+				$property = isset($documentFields[$fieldName]) ? $documentFields[$fieldName] : null;
 			}
 		}
 		elseif (in_array($objectName, ['Template', 'Variable', 'Constant']))
 		{
 			$rootActivity = $this->GetRootActivity();
 
-			if (substr($fieldName, -strlen("_printable")) == "_printable")
+			if (mb_substr($fieldName, -10) == "_printable")
 			{
-				$fieldName = substr($fieldName, 0, strlen($fieldName) - strlen("_printable"));
-				$modifiers = array('printable');
+				$fieldName = mb_substr($fieldName, 0, -10);
+				$modifiers = ['printable'];
 			}
 
 			switch ($objectName)
@@ -621,8 +635,15 @@ abstract class CBPActivity
 		}
 		elseif ($objectName === 'GlobalConst')
 		{
-			$result = Bizproc\Workflow\Type\GlobalConst::getValue($fieldName);
 			$property = Bizproc\Workflow\Type\GlobalConst::getById($fieldName);
+			if (!$property && mb_substr($fieldName, -10) == "_printable")
+			{
+				$fieldName = mb_substr($fieldName, 0, -10);
+				$modifiers = ['printable'];
+				$property = Bizproc\Workflow\Type\GlobalConst::getById($fieldName);
+			}
+
+			$result = Bizproc\Workflow\Type\GlobalConst::getValue($fieldName);
 		}
 		elseif ($objectName == "Workflow")
 		{
@@ -631,34 +652,51 @@ abstract class CBPActivity
 		}
 		elseif ($objectName == "User")
 		{
+			if (mb_substr($fieldName, -10) == "_printable")
+			{
+				$modifiers = ['printable'];
+			}
+
 			$result = 0;
 			if (isset($GLOBALS["USER"]) && is_object($GLOBALS["USER"]) && $GLOBALS["USER"]->isAuthorized())
+			{
 				$result = "user_".$GLOBALS["USER"]->GetID();
+			}
 			$property = array('Type' => 'user');
 		}
 		elseif ($objectName == "System")
 		{
-			global $DB;
+			if (mb_substr($fieldName, -10) == "_printable")
+			{
+				$fieldName = mb_substr($fieldName, 0, -10);
+				$modifiers = ['printable'];
+			}
 
 			$result = null;
 			$property = array('Type' => 'datetime');
-			$systemField = strtolower($fieldName);
+			$systemField = mb_strtolower($fieldName);
 			if ($systemField === 'now')
-				$result = date($DB->DateFormatToPHP(CSite::GetDateFormat("FULL")));
+			{
+				$result = new Bizproc\BaseType\Value\DateTime();
+			}
 			elseif ($systemField === 'nowlocal')
 			{
-				$result = time();
-				if (CTimeZone::Enabled())
-					$result += CTimeZone::GetOffset();
-				$result = date($DB->DateFormatToPHP(CSite::GetDateFormat("FULL")), $result);
+				$result = new Bizproc\BaseType\Value\DateTime(time(), CTimeZone::GetOffset());
 			}
 			elseif ($systemField == 'date')
 			{
-				$result = date($DB->DateFormatToPHP(CSite::GetDateFormat("SHORT")));
+				$result = new Bizproc\BaseType\Value\Date();
 				$property = array('Type' => 'date');
 			}
+			elseif ($systemField === 'eol')
+			{
+				$result = PHP_EOL;
+				$property = ['Type' => 'string'];
+			}
 			if ($result === null)
+			{
 				$return = false;
+			}
 		}
 		elseif ($objectName)
 		{
@@ -666,17 +704,23 @@ abstract class CBPActivity
 			if ($activity)
 			{
 				$result = $activity->__get($fieldName);
-				//if mapping is set, we can apply modifiers (type converting & formatting like `printable`, `bool` etc.)
-				if (isset($activity->arPropertiesTypes[$fieldName]))
-				{
-					$property = $activity->arPropertiesTypes[$fieldName];
-				}
+				$property = $activity->getPropertyType($fieldName);
 			}
 			else
 				$return = false;
 		}
 		else
 			$return = false;
+
+		if ($property && $result)
+		{
+			$fieldTypeObject = $documentService->getFieldTypeObject($this->GetDocumentType(), $property);
+			if ($fieldTypeObject)
+			{
+				$fieldTypeObject->setDocumentId($this->GetDocumentId());
+				$result = $fieldTypeObject->internalizeValue($objectName, $result);
+			}
+		}
 
 		if ($return)
 			$result = $this->applyPropertyValueModifiers($fieldName, $property, $result, $modifiers);
@@ -699,7 +743,7 @@ abstract class CBPActivity
 		$typesMap = $documentService->getTypesMap($documentType);
 		foreach ($modifiers as $m)
 		{
-			$m = strtolower($m);
+			$m = mb_strtolower($m);
 			if (isset($typesMap[$m]))
 			{
 				$typeName = $m;
@@ -770,30 +814,6 @@ abstract class CBPActivity
 		return $result;
 	}
 
-	/**
-	 * @param $text
-	 * @return array|bool
-	 */
-	private function parseValueExpression($text)
-	{
-		$matches = null;
-		if (is_string($text) && preg_match(static::ValuePattern, $text, $matches))
-		{
-			$result = array(
-				'object' => $matches['object'],
-				'field' => $matches['field'],
-				'modifiers' => array()
-			);
-			if (!empty($matches['mod1']))
-				$result['modifiers'][] = $matches['mod1'];
-			if (!empty($matches['mod2']))
-				$result['modifiers'][] = $matches['mod2'];
-
-			return $result;
-		}
-		return false;
-	}
-
 	public function ParseValue($value, $convertToType = null)
 	{
 		list($t, $r) = $this->GetPropertyValueRecursive($value, $convertToType);
@@ -809,7 +829,7 @@ abstract class CBPActivity
 		return null;
 	}
 
-	function __get($name)
+	public function __get($name)
 	{
 		$property = $this->getRawProperty($name);
 		if ($property !== null)
@@ -820,12 +840,12 @@ abstract class CBPActivity
 		return null;
 	}
 
-	function __set($name, $val)
+	public function __set($name, $val)
 	{
 		if (array_key_exists($name, $this->arProperties))
+		{
 			$this->arProperties[$name] = $val;
-		//else
-			//throw new Exception(str_replace("#NAME#", htmlspecialcharsbx($name), GetMessage("BPCGACT_NO_PROPERTY")));
+		}
 	}
 
 	public function IsPropertyExists($name)
@@ -835,6 +855,102 @@ abstract class CBPActivity
 
 	public function CollectNestedActivities()
 	{
+		return null;
+	}
+
+	public function collectUsages()
+	{
+		$usages = [];
+		$this->collectUsagesRecursive($this->arProperties, $usages);
+		return $usages;
+	}
+
+	private function collectUsagesRecursive($val, &$usages)
+	{
+		if (is_array($val))
+		{
+			foreach ($val as $v)
+			{
+				$this->collectUsagesRecursive($v, $usages);
+			}
+		}
+		elseif (is_string($val))
+		{
+			$parsed = static::parseExpression($val);
+			if ($parsed)
+			{
+				$usages[] = $this->getObjectSourceType($parsed['object'], $parsed['field']);
+			}
+			else
+			{
+				//TODO: check calc functions
+				/*$calc = new CBPCalc($this);
+				if (preg_match(self::CalcPattern, $val))
+				{
+					$r = $calc->Calculate($val);
+
+				}
+
+				//parse inline calculator
+				$val = preg_replace_callback(
+					static::CalcInlinePattern,
+					function($matches) use ($calc)
+					{
+						$r = $calc->Calculate($matches[1]);
+
+					},
+					$val
+				);*/
+
+				//parse properties
+				$val = preg_replace_callback(
+					static::ValueInlinePattern,
+					function($matches) use (&$usages)
+					{
+						$usages[] = $this->getObjectSourceType($matches['object'], $matches['field']);
+					},
+					$val
+				);
+			}
+		}
+	}
+
+	protected function getObjectSourceType($objectName, $fieldName)
+	{
+		if (mb_substr($fieldName, -10) === '_printable')
+		{
+			$fieldName = mb_substr($fieldName, 0, -10);
+		}
+
+		if ($objectName === 'Document')
+		{
+			return [Bizproc\Workflow\Template\SourceType::DocumentField, $fieldName];
+		}
+		elseif ($objectName === 'Template')
+		{
+			return [Bizproc\Workflow\Template\SourceType::Parameter, $fieldName];
+		}
+		elseif ($objectName === 'Variable')
+		{
+			return [Bizproc\Workflow\Template\SourceType::Variable, $fieldName];
+		}
+		elseif ($objectName === 'Constant')
+		{
+			return [Bizproc\Workflow\Template\SourceType::Constant, $fieldName];
+		}
+		elseif ($objectName === 'GlobalConst')
+		{
+			return [Bizproc\Workflow\Template\SourceType::GlobalConstant, $fieldName];
+		}
+		elseif (in_array($objectName, ['Workflow', 'User', 'System']))
+		{
+			return [Bizproc\Workflow\Template\SourceType::System, $objectName];
+		}
+		elseif ($objectName)
+		{
+			return [Bizproc\Workflow\Template\SourceType::Activity, $objectName];
+		}
+
 		return null;
 	}
 
@@ -913,27 +1029,15 @@ abstract class CBPActivity
 
 	public static function Load($stream)
 	{
-		if (strlen($stream) <= 0)
+		if ($stream == '')
 			throw new Exception("stream");
 
-		$pos = strpos($stream, ";");
-		$strUsedActivities = substr($stream, 0, $pos);
-		$stream = substr($stream, $pos + 1);
-
-		$runtime = CBPRuntime::GetRuntime();
-		$arUsedActivities = explode(",", $strUsedActivities);
-
-		foreach ($arUsedActivities as $activityCode)
-		{
-			$runtime->IncludeActivityFile($activityCode);
-		}
-
-		return unserialize($stream);
+		return CBPRuntime::GetRuntime()->unserializeWorkflowStream($stream);
 	}
 
 	protected function GetACNames()
 	{
-		return array(substr(get_class($this), 3));
+		return array(mb_substr(get_class($this), 3));
 	}
 
 	private static function SearchUsedActivities(CBPActivity $activity, &$arUsedActivities)
@@ -1165,9 +1269,37 @@ abstract class CBPActivity
 		if (is_string($text))
 		{
 			$text = trim($text);
-			if (preg_match(static::CalcPattern, $text) || preg_match(static::ValuePattern, $text))
+			if (
+				preg_match(static::CalcPattern, $text)
+				|| preg_match(static::ValuePattern, $text)
+				|| preg_match(self::ValueSimplePattern, $text)
+			)
 				return true;
 		}
 		return false;
+	}
+
+	public static function parseExpression($exp): ?array
+	{
+		$matches = null;
+		if (is_string($exp) && preg_match(static::ValuePattern, $exp, $matches))
+		{
+			$result = [
+				'object' => $matches['object'],
+				'field' => $matches['field'],
+				'modifiers' => []
+			];
+			if (!empty($matches['mod1']))
+			{
+				$result['modifiers'][] = $matches['mod1'];
+			}
+			if (!empty($matches['mod2']))
+			{
+				$result['modifiers'][] = $matches['mod2'];
+			}
+
+			return $result;
+		}
+		return null;
 	}
 }

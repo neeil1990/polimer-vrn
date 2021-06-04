@@ -3,7 +3,7 @@
 namespace Bitrix\Sale;
 
 use Bitrix\Main\ArgumentException;
-use Bitrix\Sale\Internals\PersonTypeTable;
+use Bitrix\Sale\Internals;
 use Bitrix\Main\Entity;
 use Bitrix\Main\Localization\Loc;
 
@@ -92,7 +92,7 @@ class PersonType
 
 	/**
 	 * @param array $parameters
-	 * @return \Bitrix\Main\ORM\Query\Result|Internals\EO_PersonType_Result
+	 * @return \Bitrix\Main\ORM\Query\Result
 	 * @throws ArgumentException
 	 * @throws \Bitrix\Main\ObjectPropertyException
 	 * @throws \Bitrix\Main\SystemException
@@ -106,7 +106,7 @@ class PersonType
 
 		$parameters['filter']['=ENTITY_REGISTRY_TYPE'] = static::getRegistryType();
 
-		return PersonTypeTable::getList($parameters);
+		return Internals\PersonTypeTable::getList($parameters);
 	}
 
 	/**
@@ -150,7 +150,5 @@ class PersonType
 	{
 		return uniqid('bx_');
 	}
-
-	// TODO: checkFields, update, delete, onBeforeLangDelete, selectBox
 
 }

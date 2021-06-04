@@ -4,25 +4,14 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 
 <?= $javascriptFunctions ?>
 <?
-$arC = array(
-	"=" => GetMessage("BPFC_PD_EQ"),
-	">" => GetMessage("BPFC_PD_GT"),
-	">=" => GetMessage("BPFC_PD_GE"),
-	"<" => GetMessage("BPFC_PD_LT"),
-	"<=" => GetMessage("BPFC_PD_LE"),
-	"!=" => GetMessage("BPFC_PD_NE"),
-	"in" => GetMessage("BPFC_PD_IN"),
-	"contain" => GetMessage("BPFC_PD_CONTAIN"),
-	"!empty" => GetMessage("BPFC_PD_NOT_EMPTY"),
-	"empty" => GetMessage("BPFC_PD_EMPTY"),
-);
+$arC = \Bitrix\Bizproc\Activity\Condition::getOperatorList();
 
 /** @var CBPDocumentService $documentService */
 if ($documentService->isFeatureEnabled($documentType, CBPDocumentService::FEATURE_MARK_MODIFIED_FIELDS))
 	$arC['modified'] = GetMessage("BPFC_PD_MODIFIED");
 
 $arFieldConditionCount = array(1);
-if (array_key_exists("field_condition_count", $arCurrentValues) && strlen($arCurrentValues["field_condition_count"]) > 0)
+if (array_key_exists("field_condition_count", $arCurrentValues) && $arCurrentValues["field_condition_count"] <> '')
 	$arFieldConditionCount = explode(",", $arCurrentValues["field_condition_count"]);
 
 $defaultFieldValue = "";
@@ -34,7 +23,7 @@ foreach ($arFieldConditionCount as $i)
 		continue;
 
 	$i = intval($i);
-	if (strlen($arCurrentValues["field_condition_count"]) > 0)
+	if ($arCurrentValues["field_condition_count"] <> '')
 	{
 		$arCurrentValues["field_condition_count"] .= ",";
 		?>
@@ -60,7 +49,7 @@ foreach ($arFieldConditionCount as $i)
 				<?
 				foreach ($arDocumentFields as $key => $value)
 				{
-					if (strlen($defaultFieldValue) <= 0)
+					if ($defaultFieldValue == '')
 						$defaultFieldValue = $key;
 					?><option value="<?= htmlspecialcharsbx($key) ?>"<?= ($arCurrentValues["field_condition_field_".$i] == $key) ? " selected" : "" ?>><?= htmlspecialcharsbx($value["Name"]) ?></option><?
 				}

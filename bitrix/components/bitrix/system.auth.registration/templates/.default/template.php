@@ -109,7 +109,7 @@ new BX.PhoneAuth({
 		</tr>
 		<tr>
 			<td><span class="starrequired">*</span><?=GetMessage("AUTH_PASSWORD_REQ")?></td>
-			<td><input type="password" name="USER_PASSWORD" maxlength="50" value="<?=$arResult["USER_PASSWORD"]?>" class="bx-auth-input" autocomplete="off" />
+			<td><input type="password" name="USER_PASSWORD" maxlength="255" value="<?=$arResult["USER_PASSWORD"]?>" class="bx-auth-input" autocomplete="off" />
 <?if($arResult["SECURE_AUTH"]):?>
 				<span class="bx-auth-secure" id="bx_auth_secure" title="<?echo GetMessage("AUTH_SECURE_NOTE")?>" style="display:none">
 					<div class="bx-auth-secure-icon"></div>
@@ -127,7 +127,7 @@ document.getElementById('bx_auth_secure').style.display = 'inline-block';
 		</tr>
 		<tr>
 			<td><span class="starrequired">*</span><?=GetMessage("AUTH_CONFIRM")?></td>
-			<td><input type="password" name="USER_CONFIRM_PASSWORD" maxlength="50" value="<?=$arResult["USER_CONFIRM_PASSWORD"]?>" class="bx-auth-input" autocomplete="off" /></td>
+			<td><input type="password" name="USER_CONFIRM_PASSWORD" maxlength="255" value="<?=$arResult["USER_CONFIRM_PASSWORD"]?>" class="bx-auth-input" autocomplete="off" /></td>
 		</tr>
 
 <?if($arResult["EMAIL_REGISTRATION"]):?>
@@ -146,7 +146,7 @@ document.getElementById('bx_auth_secure').style.display = 'inline-block';
 
 <?// ********************* User properties ***************************************************?>
 <?if($arResult["USER_PROPERTIES"]["SHOW"] == "Y"):?>
-	<tr><td colspan="2"><?=strlen(trim($arParams["USER_PROPERTY_NAME"])) > 0 ? $arParams["USER_PROPERTY_NAME"] : GetMessage("USER_TYPE_EDIT_TAB")?></td></tr>
+	<tr><td colspan="2"><?=trim($arParams["USER_PROPERTY_NAME"]) <> '' ? $arParams["USER_PROPERTY_NAME"] : GetMessage("USER_TYPE_EDIT_TAB")?></td></tr>
 	<?foreach ($arResult["USER_PROPERTIES"]["DATA"] as $FIELD_NAME => $arUserField):?>
 	<tr><td><?if ($arUserField["MANDATORY"]=="Y"):?><span class="starrequired">*</span><?endif;
 		?><?=$arUserField["EDIT_FORM_LABEL"]?>:</td><td>

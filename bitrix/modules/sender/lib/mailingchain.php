@@ -7,18 +7,17 @@
  */
 namespace Bitrix\Sender;
 
+use Bitrix\Main\Application;
+use Bitrix\Main\Config\Option;
 use Bitrix\Main\Entity;
 use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\Type;
-use Bitrix\Main\Config\Option;
-use Bitrix\Main\Application;
 use Bitrix\Main\SiteTable;
-
+use Bitrix\Main\Type;
 use Bitrix\Sender\Entity\Letter;
-use Bitrix\Sender\Message;
-use Bitrix\Sender\Trigger;
-use Bitrix\Sender\Runtime;
 use Bitrix\Sender\Internals\Model;
+use Bitrix\Sender\Message;
+use Bitrix\Sender\Runtime;
+use Bitrix\Sender\Trigger;
 
 Loc::loadMessages(__FILE__);
 
@@ -186,6 +185,11 @@ class MailingChainTable extends Entity\DataManager
 				'data_type' => 'Bitrix\Main\UserTable',
 				'reference' => array('=this.CREATED_BY' => 'ref.ID'),
 			),
+			'WAITING_RECIPIENT' => array(
+				'data_type' => 'boolean',
+				'default_value' => 'N',
+				'values' => array('N', 'Y')
+			),
 		);
 	}
 
@@ -268,7 +272,12 @@ class MailingChainTable extends Entity\DataManager
 
 	/**
 	 * @param integer $mailingChainId
+	 * @param bool $prepareFields
+	 *
 	 * @return int|null
+	 * @throws \Bitrix\Main\ArgumentException
+	 * @throws \Bitrix\Main\ObjectPropertyException
+	 * @throws \Bitrix\Main\SystemException
 	 */
 	public static function initPosting($mailingChainId)
 	{
@@ -316,7 +325,10 @@ class MailingChainTable extends Entity\DataManager
 
 		if($postingId && $mailingChain['IS_TRIGGER'] != 'Y')
 		{
-			PostingTable::initGroupRecipients($postingId);
+			if(!PostingTable::initGroupRecipients($postingId, true))
+			{
+				Model\LetterTable::update($mailingChainId, ['WAITING_RECIPIENT' => 'Y']);
+			}
 		}
 
 		return $postingId;

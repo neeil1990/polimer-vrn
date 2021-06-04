@@ -52,6 +52,10 @@ class CIBlockFindTools
 
 	public static function GetSectionIDByCodePath($iblock_id, $section_code_path)
 	{
+		if ($section_code_path == '')
+		{
+			return 0;
+		}
 		$arVariables = array(
 			"SECTION_CODE_PATH" => $section_code_path,
 		);
@@ -221,6 +225,10 @@ class CIBlockFindTools
 		global $DB;
 
 		$sectionPath = explode("/", $arVariables["SECTION_CODE_PATH"]);
+
+		// B24 fix
+		if (count($sectionPath) > 61)
+			return false;
 
 		$strFrom = "";
 		$joinField = "";

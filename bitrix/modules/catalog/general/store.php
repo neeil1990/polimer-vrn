@@ -14,23 +14,52 @@ class CAllCatalogStore
 			$GLOBALS["APPLICATION"]->ThrowException(GetMessage("CS_EMPTY_ADDRESS"));
 			$arFields["ADDRESS"] = ' ';
 		}
-		if(($action == 'ADD') &&
-			((is_set($arFields, "IMAGE_ID") && strlen($arFields["IMAGE_ID"]) < 0)))
+
+		if ($action == 'ADD')
 		{
-			$GLOBALS["APPLICATION"]->ThrowException(GetMessage("CS_WRONG_IMG"));
-			return false;
+			if (array_key_exists('IMAGE_ID', $arFields))
+			{
+				$arFields['IMAGE_ID'] = (int)$arFields['IMAGE_ID'];
+				if ($arFields['IMAGE_ID'] <= 0)
+				{
+					$arFields['IMAGE_ID'] = false;
+				}
+			}
+			if (array_key_exists('LOCATION_ID', $arFields))
+			{
+				$arFields['LOCATION_ID'] = (int)$arFields['LOCATION_ID'];
+				if ($arFields['LOCATION_ID'] <= 0)
+				{
+					$arFields['IMAGE_ID'] = false;
+				}
+			}
 		}
-		if(($action == 'ADD') &&
-			((is_set($arFields, "LOCATION_ID") && intval($arFields["LOCATION_ID"]) <= 0)))
-		{
-			$GLOBALS["APPLICATION"]->ThrowException(GetMessage("CS_WRONG_LOC"));
-			return false;
-		}
+
 		if(($action == 'UPDATE') && is_set($arFields, "ID"))
 			unset($arFields["ID"]);
 
-		if(($action == 'UPDATE') && strlen($arFields["IMAGE_ID"]) <= 0)
-			unset($arFields["IMAGE_ID"]);
+		if ($action == 'UPDATE')
+		{
+			if (array_key_exists('IMAGE_ID', $arFields))
+			{
+				if ($arFields['IMAGE_ID'] === null || $arFields['IMAGE_ID'] === 'null' || $arFields['IMAGE_ID'] === false)
+				{
+					$arFields['IMAGE_ID'] = false;
+				}
+				elseif (is_string($arFields['IMAGE_ID']) || is_int($arFields['IMAGE_ID']))
+				{
+					$arFields['IMAGE_ID'] = (int)$arFields['IMAGE_ID'];
+					if ($arFields['IMAGE_ID'] <= 0)
+					{
+						unset($arFields['IMAGE_ID']);
+					}
+				}
+				else
+				{
+					unset($arFields['IMAGE_ID']);
+				}
+			}
+		}
 
 		if(isset($arFields["ISSUING_CENTER"]) && ($arFields["ISSUING_CENTER"]) !== 'Y')
 		{
@@ -97,6 +126,8 @@ class CAllCatalogStore
 			if(!$DB->Query($strSql, false, "File: ".__FILE__."<br>Line: ".__LINE__))
 				return false;
 			CCatalogStoreControlUtil::clearStoreName($id);
+
+			Catalog\StoreTable::getEntity()->cleanCache();
 		}
 
 		if($bNeedConversion)
@@ -112,7 +143,7 @@ class CAllCatalogStore
 
 	public static function Delete($id)
 	{
-		global $DB;
+		global $DB, $USER_FIELD_MANAGER;
 		$id = intval($id);
 		if($id > 0)
 		{
@@ -131,6 +162,10 @@ class CAllCatalogStore
 
 			$DB->Query("delete from b_catalog_store_product where STORE_ID = ".$id, true);
 			$DB->Query("delete from b_catalog_store where ID = ".$id, true);
+
+			$USER_FIELD_MANAGER->Delete(Catalog\StoreTable::getUfId(), $id);
+
+			Catalog\StoreTable::getEntity()->cleanCache();
 
 			foreach(GetModuleEvents("catalog", "OnCatalogStoreDelete", true) as $arEvent)
 				ExecuteModuleEventEx($arEvent, array($id));

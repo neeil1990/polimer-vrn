@@ -91,7 +91,7 @@ class SenderTable extends Entity\DataManager
 					return array(
 						function ($value)
 						{
-							$value = unserialize($value);
+							$value = unserialize($value, ['allowed_classes' => false]);
 
 							if (!empty($value['smtp']['password']))
 							{
@@ -115,6 +115,21 @@ class SenderTable extends Entity\DataManager
 										catch (Security\SecurityException $e)
 										{
 										}
+									}
+								}
+							}
+
+							if (!empty($value['smtp']) && is_array($value['smtp']))
+							{
+								if (empty($value['smtp']['protocol']))
+								{
+									if (465 == $value['smtp']['port'])
+									{
+										$value['smtp']['protocol'] = 'smtps';
+									}
+									else if (587 == $value['smtp']['port'])
+									{
+										$value['smtp']['protocol'] = 'smtp';
 									}
 								}
 							}

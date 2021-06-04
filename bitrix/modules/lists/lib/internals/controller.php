@@ -13,6 +13,11 @@ use Bitrix\Main\Web\Json;
 
 Loc::loadMessages(__FILE__);
 
+/**
+ * Class Controller
+ * @package Bitrix\Lists\Internals
+ * @deprecated
+ */
 abstract class Controller implements IErrorable
 {
 	const ERROR_REQUIRED_PARAMETER = 'LISTS_CONTROLLER_22001';
@@ -204,7 +209,7 @@ abstract class Controller implements IErrorable
 	protected function resolveAction()
 	{
 		$listOfActions = $this->normalizeListOfAction($this->listOfActions());
-		$action = strtolower($this->action);
+		$action = mb_strtolower($this->action);
 
 		if(!isset($listOfActions[$action]))
 		{
@@ -414,7 +419,7 @@ abstract class Controller implements IErrorable
 	{
 		foreach ($required as $item)
 		{
-			if(!isset($inputParams[$item]) || (!$inputParams[$item] && !(is_string($inputParams[$item]) && strlen($inputParams[$item]))))
+			if(!isset($inputParams[$item]) || (!$inputParams[$item] && !(is_string($inputParams[$item]) && mb_strlen($inputParams[$item]))))
 			{
 				$this->errorCollection->add(array(new Error(Loc::getMessage('LISTS_CONTROLLER_ERROR_REQUIRED_PARAMETER', array('#PARAM#' => $item)), self::ERROR_REQUIRED_PARAMETER)));
 				return false;

@@ -1,7 +1,5 @@
 <?php
 $MESS["LANDING_TPL_DOMAIN_ATTENTION"] = "Achtung!";
-$MESS["LANDING_TPL_DOMAIN_DENIED_TEXT"] = "Eigene Domain kann nur in kostenpflichtigen Tarifen genutzt werden.";
-$MESS["LANDING_TPL_DOMAIN_DENIED_TITLE"] = "Einschränkungen im Tarif Free";
 $MESS["LANDING_TPL_DOMAIN_ERROR_EMPTY"] = "Domainname kann nicht leer sein.";
 $MESS["LANDING_TPL_DOMAIN_NAME_B24"] = "Bitrix24 Subdomain";
 $MESS["LANDING_TPL_DOMAIN_NAME_OWN"] = "Eigene Domain";

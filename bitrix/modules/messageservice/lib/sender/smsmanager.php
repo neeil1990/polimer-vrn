@@ -17,7 +17,7 @@ class SmsManager
 	{
 		if (self::$senders === null)
 		{
-			self::$senders = array();
+			self::$senders = [];
 
 			if (Sms\SmsRu::isSupported())
 			{
@@ -31,33 +31,54 @@ class SmsManager
 			{
 				self::$senders[] = new Sms\Twilio();
 			}
+			if (Sms\Twilio2::isSupported())
+			{
+				self::$senders[] = new Sms\Twilio2();
+			}
+			if (Sms\SmsLineBy::isSupported())
+			{
+				self::$senders[] = new Sms\SmsLineBy();
+			}
+			if (Sms\MfmsRu::isSupported())
+			{
+				self::$senders[] = new Sms\MfmsRu();
+			}
 			if (Sms\Rest::isSupported())
 			{
 				self::$senders[] = new Sms\Rest();
 			}
-
-			foreach (Main\EventManager::getInstance()->findEventHandlers(
-				'messageservice', 'onGetSmsSenders'
-				) as $event
-			)
+			if (Sms\SmscUa::isSupported())
 			{
-				$result = (array) ExecuteModuleEventEx($event);
-				foreach ($result as $sender)
+				self::$senders[] = new Sms\SmscUa();
+			}
+
+			self::fireSendersEvent();
+		}
+		return self::$senders;
+	}
+
+	private static function fireSendersEvent()
+	{
+		foreach (Main\EventManager::getInstance()->findEventHandlers(
+			'messageservice', 'onGetSmsSenders'
+		) as $event
+		)
+		{
+			$result = (array) ExecuteModuleEventEx($event);
+			foreach ($result as $sender)
+			{
+				if (
+					$sender instanceof Base
+					&&
+					$sender->getType() === MessageType::SMS
+					&&
+					$sender::isSupported()
+				)
 				{
-					if (
-						$sender instanceof Base
-						&&
-						$sender->getType() === MessageType::SMS
-						&&
-						$sender::isSupported()
-					)
-					{
-						self::$senders[] = $sender;
-					}
+					self::$senders[] = $sender;
 				}
 			}
 		}
-		return self::$senders;
 	}
 
 	/**
@@ -177,6 +198,12 @@ class SmsManager
 		$message = Message::createFromFields($messageFields, $sender);
 		$message->setType(MessageType::SMS);
 
+		$sender = $message->getSender();
+		if (!$message->getFrom() && $sender instanceof BaseConfigurable)
+		{
+			$message->setFrom($sender->getDefaultFrom());
+		}
+
 		return $message;
 	}
 
@@ -189,16 +216,19 @@ class SmsManager
 	public static function sendMessage(array $messageFields, Base $sender = null)
 	{
 		$message = static::createMessage($messageFields, $sender);
-		if (!$message->getFrom())
-		{
-			/** @var BaseConfigurable $sender */
-			$sender = $message->getSender();
-			if ($sender && $sender->isConfigurable())
-			{
-				$message->setFrom($sender->getDefaultFrom());
-			}
-		}
 		return $message->send();
+	}
+
+	/**
+	 * @param array $messageFields
+	 * @param Base|null $sender
+	 * @return Main\Entity\AddResult
+	 * @throws Main\ArgumentTypeException
+	 */
+	public static function sendMessageDirectly(array $messageFields, Base $sender = null)
+	{
+		$message = static::createMessage($messageFields, $sender);
+		return $message->sendDirectly();
 	}
 
 	public static function getMessageStatus($messageId)

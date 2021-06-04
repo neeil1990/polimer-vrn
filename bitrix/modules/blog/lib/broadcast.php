@@ -27,38 +27,38 @@ class Broadcast
 	const ON_PERIOD = 'P7D'; // 7 days
 	const OFF_PERIOD = 'P7D'; // 7 days
 
-	private function getValue()
+	private static function getValue()
 	{
 		return Option::get('blog', 'log_notify_all', "N");
 	}
 
-	private function setValue($value = false)
+	private static function setValue($value = false)
 	{
 		$value = ($value === true);
 		Option::set('blog', 'log_notify_all', ($value ? "Y" : "N"));
 	}
 
-	private function getOffModeRequested()
+	private static function getOffModeRequested()
 	{
 		return (Option::get('blog', 'log_notify_all_off_requested', false) == "Y");
 	}
 
-	private function getOnModeRequested()
+	private static function getOnModeRequested()
 	{
 		return (Option::get('blog', 'log_notify_all_on_requested', false) == "Y");
 	}
 
-	private function setOffModeRequested()
+	private static function setOffModeRequested()
 	{
 		Option::set('blog', 'log_notify_all_off_requested', 'Y');
 	}
 
-	private function setOnModeRequested()
+	private static function setOnModeRequested()
 	{
 		Option::set('blog', 'log_notify_all_on_requested', 'Y');
 	}
 
-	private function getCount($period)
+	private static function getCount($period)
 	{
 		$counter = 0;
 
@@ -86,14 +86,14 @@ class Broadcast
 		return $counter;
 	}
 
-	private function onModeNeeded()
+	private static function onModeNeeded()
 	{
 		$counter = self::getCount(self::ON_PERIOD);
 
 		return ($counter < self::ON_CNT);
 	}
 
-	private function offModeNeeded()
+	private static function offModeNeeded()
 	{
 		$counter = self::getCount(self::OFF_PERIOD);
 
@@ -109,7 +109,7 @@ class Broadcast
 		$value = Option::get('blog', 'log_notify_all_data', false);
 		if ($value)
 		{
-			$value = unserialize($value);
+			$value = unserialize($value, ['allowed_classes' => false]);
 			if (
 				is_array($value)
 				&& isset($value['cnt'])
@@ -182,7 +182,7 @@ class Broadcast
 		return true;
 	}
 
-	private function sendRequest($value, $siteId = SITE_ID)
+	private static function sendRequest($value, $siteId = SITE_ID)
 	{
 		$value = ($value === true);
 
@@ -326,13 +326,15 @@ class Broadcast
 		if (
 			$params["ENTITY_TYPE"] == "POST"
 			&& ($post = \CBlogPost::getByID($params["ENTITY_ID"]))
+			&& !empty($post['PUBLISH_STATUS'])
+			&& ($post['PUBLISH_STATUS'] == BLOG_PUBLISH_STATUS_PUBLISH)
 		)
 		{
 			$titleTmp = str_replace(array("\r\n", "\n"), " ", $post["TITLE"]);
 			$title = truncateText($titleTmp, 100);
 			$titleEmail = ($post['MICRO'] != 'Y' ? truncateText($titleTmp, 255) : '');
 
-			$titleEmpty = (strlen(trim($title, " \t\n\r\0\x0B\xA0" )) <= 0);
+			$titleEmpty = (trim($title, " \t\n\r\0\x0B\xA0" ) == '');
 
 			$message = Loc::getMessage(
 				'BLOG_BROADCAST_PUSH_POST'.($titleEmpty ? 'A' : '').$authorSuffix,
@@ -425,7 +427,7 @@ class Broadcast
 					{
 						$serverName = (
 							defined("SITE_SERVER_NAME")
-							&& strlen(SITE_SERVER_NAME) > 0
+							&& SITE_SERVER_NAME <> ''
 								? SITE_SERVER_NAME
 								: Option::get("main", "server_name", $_SERVER["SERVER_NAME"])
 						);
@@ -440,18 +442,7 @@ class Broadcast
 					}
 
 					$imageList = array();
-					$res = \CBlogImage::getList(
-						array("ID"=>"ASC"),
-						array(
-							"POST_ID" => $post["ID"],
-							"BLOG_ID" => $post["BLOG_ID"],
-							"IS_COMMENT" => "N"
-						)
-					);
-					while ($image = $res->fetch())
-					{
-						$imageList[$image['ID']] = $image['FILE_ID'];
-					}
+
 					$parserBlog = new \blogTextParser();
 					$textEmail = $parserBlog->convert4mail($textEmail, $imageList);
 

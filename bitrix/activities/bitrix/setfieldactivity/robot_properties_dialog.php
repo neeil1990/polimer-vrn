@@ -3,6 +3,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 /** @var \Bitrix\Bizproc\Activity\PropertiesDialog $dialog */
 /** @var bool $canSetModifiedBy */
 /** @var mixed $modifiedBy */
+$mergeMultipleFields = $dialog->getMap()['MergeMultipleFields'];
 ?>
 <div class="bizproc-automation-popup-settings bizproc-automation-popup-settings-text">
 	<a class="bizproc-automation-popup-settings-link" data-role="bp-sfa-fields-list">
@@ -41,7 +42,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 			}
 
 			menuItems.push({
-				text: documentFields[fieldId]['Name'],
+				text: BX.util.htmlspecialchars(documentFields[fieldId]['Name']),
 				fieldId: fieldId,
 				onclick: function(e, item)
 				{
@@ -63,8 +64,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 					autoHide: true,
 					offsetLeft: (BX.pos(this)['width'] / 2),
 					angle: { position: 'top', offset: 0 },
-					zIndex: 200,
-					className: 'bizproc-automation-inline-selector-menu'
+					className: 'bizproc-automation-inline-selector-menu',
+					overlay: { backgroundColor: 'transparent' }
 				}
 			);
 
@@ -178,6 +179,12 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 ?>});
 </script>
 <div id="bwfvc_addrow_table"></div>
+	<div class="bizproc-automation-popup-settings">
+	<span class="bizproc-automation-popup-settings-title bizproc-automation-popup-settings-title-autocomplete">
+		<?=htmlspecialcharsbx($mergeMultipleFields['Name'])?>:
+	</span>
+		<?=$dialog->renderFieldControl($mergeMultipleFields)?>
+	</div>
 <?if ($canSetModifiedBy):?>
 	<div class="bizproc-automation-popup-settings">
 	<span class="bizproc-automation-popup-settings-title bizproc-automation-popup-settings-title-autocomplete">

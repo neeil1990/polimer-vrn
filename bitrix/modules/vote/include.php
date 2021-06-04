@@ -4,7 +4,7 @@ global $DB, $MESS, $APPLICATION, $voteCache;
 require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/admin_tools.php");
 require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/filter_tools.php");
 require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/vote/vote_tools.php");
-require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/vote/classes/".strtolower($DB->type)."/channel.php");
+require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/vote/classes/".mb_strtolower($DB->type)."/channel.php");
 IncludeModuleLangFile(__FILE__);
 
 if (!defined("VOTE_CACHE_TIME"))
@@ -20,15 +20,13 @@ $GLOBALS["VOTE_CACHE_VOTING"] = array();
 $GLOBALS["aVotePermissions"] = array(
 	"reference_id" => array(0, 1, 2, /*3, */4),
 	"reference" => array(GetMessage("VOTE_DENIED"), GetMessage("VOTE_READ"), GetMessage("VOTE_WRITE"), /*GetMessage("VOTE_EDIT_MY_OWN"), */GetMessage("VOTE_EDIT")));
-$_SESSION["VOTE"] = (is_array($_SESSION["VOTE"]) ? $_SESSION["VOTE"] : array());
-$_SESSION["VOTE"]["VOTES"] = (is_array($_SESSION["VOTE"]["VOTES"]) ? $_SESSION["VOTE"]["VOTES"] : array());
 
 CModule::AddAutoloadClasses("vote", array(
-	"CVoteAnswer" => "classes/".strtolower($DB->type)."/answer.php",
-	"CVoteEvent" => "classes/".strtolower($DB->type)."/event.php",
-	"CVoteQuestion" => "classes/".strtolower($DB->type)."/question.php", 
-	"CVoteUser" => "classes/".strtolower($DB->type)."/user.php", 
-	"CVote" => "classes/".strtolower($DB->type)."/vote.php",
+	"CVoteAnswer" => "classes/".mb_strtolower($DB->type)."/answer.php",
+	"CVoteEvent" => "classes/".mb_strtolower($DB->type)."/event.php",
+	"CVoteQuestion" => "classes/".mb_strtolower($DB->type)."/question.php",
+	"CVoteUser" => "classes/".mb_strtolower($DB->type)."/user.php",
+	"CVote" => "classes/".mb_strtolower($DB->type)."/vote.php",
 	"CVoteCacheManager" => "classes/general/functions.php",
 	"CVoteNotifySchema" => "classes/general/im.php",
 	"bitrix\\vote\\answertable" => "lib/answer.php",
@@ -41,7 +39,7 @@ CModule::AddAutoloadClasses("vote", array(
 	"bitrix\\vote\\attachment\\controller" => "lib/attachment/controller.php",
 	"bitrix\\vote\\attachment\\defaultconnector" => "lib/attachment/defaultconnector.php",
 	"bitrix\\vote\\attachment\\forummessageconnector" => "lib/attachment/forummessageconnector.php",
-	"bitrix\\vote\\attachment\\storable" => "lib/attachment/storage.php",
+	"bitrix\\vote\\attachment\\storable" => "lib/attachment/storable.php",
 	"bitrix\\vote\\base\\baseobject" => "lib/base/baseobject.php",
 	"bitrix\\vote\\base\\controller" => "lib/base/controller.php",
 	"bitrix\\vote\\base\\diag" => "lib/base/diag.php",
@@ -60,9 +58,6 @@ CModule::AddAutoloadClasses("vote", array(
 	"bitrix\\vote\\uf\\manager" => "lib/uf/manager.php",
 	"bitrix\\vote\\uf\\voteusertype" => "lib/uf/voteusertype.php",
 	"bitrix\\vote\\usertable" => "lib/user.php",
-	"bitrix\\vote\\voteeventquestiontable" => "lib/user.php",
-	"bitrix\\vote\\voteeventanswertable" => "lib/user.php",
-	"bitrix\\vote\\voteeventanswer" => "lib/user.php",
 	"bitrix\\vote\\user" => "lib/user.php",
 	"bitrix\\vote\\votetable" => "lib/vote.php",
 	"bitrix\\vote\\vote" => "lib/vote.php"
@@ -141,7 +136,7 @@ function VoteVoteEditFromArray($CHANNEL_ID, $VOTE_ID = false, $arFields = array(
 	if (!empty($arFieldsVote["TITLE"]) && !empty($arVote["TITLE"]))
 	{
 		$q = reset($arQuestions);
-		if ($arVote["TITLE"] == substr($q["QUESTION"], 0, strlen($arVote["TITLE"])))
+		if ($arVote["TITLE"] == mb_substr($q["QUESTION"], 0, mb_strlen($arVote["TITLE"])))
 			unset($arFieldsVote["TITLE"]);
 	}
 /************** Check Data *****************************************/
@@ -187,7 +182,7 @@ function VoteVoteEditFromArray($CHANNEL_ID, $VOTE_ID = false, $arFields = array(
 					"id" => "QUESTION_".$key,
 					"text" => (empty($arQuestion["QUESTION"]) ?
 						GetMessage("VOTE_QUESTION_EMPTY", array("#NUMBER#" => $key)) :
-						GetMessage("VOTE_ANSWERS_EMPTY", array("#QUESTION#" => $arQuestion["QUESTION"]))));
+						GetMessage("VOTE_ANSWERS_EMPTY", array("#QUESTION#" => htmlspecialcharsbx($arQuestion["QUESTION"])))));
 			}
 			continue;
 		}

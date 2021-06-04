@@ -21,7 +21,7 @@ class Block extends \Bitrix\Main\Update\Stepper
 
 	/**
 	 * Register new block for stepper update.
-	 * @param string[] $codes Block codes.
+	 * @param string|string[] $codes Block codes.
 	 * @param array $params Additional params.
 	 * @return void
 	 */
@@ -62,7 +62,7 @@ class Block extends \Bitrix\Main\Update\Stepper
 
 		// reg stepper
 		\Bitrix\Main\Update\Stepper::bindClass(
-			'\Bitrix\Landing\Update\Block', 'landing', 60
+			'Bitrix\Landing\Update\Block', 'landing', 600
 		);
 	}
 
@@ -93,11 +93,87 @@ class Block extends \Bitrix\Main\Update\Stepper
 	}
 
 	/**
+	 * Preparing css classes array before set to node.
+	 * @param array|string $classes Base classes to set.
+	 * @param array $addClasses New classes for base array.
+	 * @param array $removeClasses Classes to remove from base array.
+	 * @return array
+	 */
+	protected static function prepareClassesToSet($classes, array $addClasses = [], array $removeClasses = [])
+	{
+		if (!is_array($classes))
+		{
+			$classes = [$classes];
+		}
+		
+		$classesUnique = array_unique($classes);
+		// all nodes have equal classes
+		if (count($classesUnique) === 1)
+		{
+			$result = [
+				[
+					'classList' => $classesUnique[0],
+					'suffix' => '',
+				],
+			];
+		}
+		// different classes
+		else
+		{
+			$classesSorted = [];
+			// find most frequent class
+			$counts = array_count_values($classes);
+			arsort($counts);
+			$mainClass = key($counts);
+			foreach ($classes as $pos => $class)
+			{
+				if ($class !== $mainClass)
+				{
+					$classesSorted[] = [
+						'classList' => $class,
+						 'suffix' => '@' . $pos,
+					];
+				}
+			}
+			$result = array_merge(
+				[
+					[
+						'classList' => $mainClass,
+						'suffix' => '',
+					],
+				],
+				$classesSorted
+			);
+		}
+		
+		// add and remove classes
+		foreach ($result as $pos => $class)
+		{
+			if ($addClasses || $removeClasses)
+			{
+				$classList = explode(' ', $class['classList']);
+		
+				if ($addClasses)
+				{
+					$classList = array_merge($classList, $addClasses);
+				}
+				if ($removeClasses)
+				{
+					$classList = array_diff($classList, $removeClasses);
+				}
+				$result[$pos]['classList'] = implode(' ', array_unique($classList));
+			}
+		}
+		
+		return $result;
+	}
+
+	/**
 	 * Execute one step.
 	 * @param array $filter Filter for step.
-	 * @param int $count Updated count.
+	 * @param int &$count Updated count.
 	 * @param int $limit Select limit.
-	 * @param array Additional params.
+	 * @param array $params Additional params.
 	 * @return int Last updated id.
 	 */
 	public static function executeStep(array $filter, &$count = 0, $limit = 0, array $params = [])
@@ -123,6 +199,7 @@ class Block extends \Bitrix\Main\Update\Stepper
 
 			// gets content from exist block
 			$block = new BlockCore($row['ID']);
+			$block->setAccess(BlockCore::ACCESS_X);
 			$export = $block->export([
 				'clear_form' => false
 			]);
@@ -142,71 +219,84 @@ class Block extends \Bitrix\Main\Update\Stepper
 			// update style
 			if ($export['style'])
 			{
-				$updatedStyles = [];
 				foreach ($export['style'] as $selector => $classes)
 				{
-					$classes = (array) $classes;
+					$addClasses = [];
+					if (isset($params[$selector]['new_class']))
+					{
+						if (is_array($params[$selector]['new_class']))
+						{
+							if (count($params[$selector]['new_class']) > 1)
+							{
+								$addClasses = $params[$selector]['new_class'];
+							}
+							else
+							{
+								$addClasses = explode(' ', trim($params[$selector]['new_class'][0]));
+							}
+						}
+						else
+						{
+							$addClasses = explode(' ', trim($params[$selector]['new_class']));
+						}
+					}
+					
+					$removeClasses = [];
+					if (isset($params[$selector]['remove_class']))
+					{
+						if (is_array($params[$selector]['remove_class']))
+						{
+							if (count($params[$selector]['remove_class']) > 1)
+							{
+								$removeClasses = $params[$selector]['remove_class'];
+							}
+							else
+							{
+								$removeClasses = explode(' ', trim($params[$selector]['remove_class'][0]));
+							}
+						}
+						else
+						{
+							$removeClasses = explode(' ', trim($params[$selector]['remove_class']));
+						}
+					}
+					
+					// change wrapper to valid selector
 					if ($selector == '#wrapper')
 					{
 						$selector = '#' . $block->getAnchor($block->getId());
 					}
 					
-					$addClasses = '';
-					if (isset($params[$selector]['new_class']))
+					foreach (self::prepareClassesToSet($classes, $addClasses, $removeClasses) as $class)
 					{
-						$addClasses = $params[$selector]['new_class'];
-						if (!is_array($addClasses))
-						{
-							$addClasses = explode(' ', trim($addClasses));
-						}
-					}
-					
-					$removeClasses = '';
-					if (isset($params[$selector]['remove_class']))
-					{
-						$removeClasses = $params[$selector]['remove_class'];
-						if (!is_array($removeClasses))
-						{
-							$removeClasses = explode(' ', trim($removeClasses));
-						}
-					}
-					
-					foreach ($classes as $clPos => $clVal)
-					{
-						// changes by params
-						if ($addClasses || $removeClasses)
-						{
-							$clVal = explode(' ', $clVal);
-							
-							if($addClasses)
-							{
-								$clVal = array_merge($clVal, $addClasses);
-							}
-							if($removeClasses)
-							{
-								$clVal = array_diff($clVal, $removeClasses);
-							}
-							$clVal = implode(' ', array_unique($clVal));
-						}
-						
-						$selectorUpd = $selector . '@' . $clPos;
-						if (!in_array($selectorUpd, $updatedStyles))
-						{
-							$updatedStyles[] = $selectorUpd;
-							$block->setClasses(array(
-								$selectorUpd => array(
-									'classList' => (array) $clVal
-								)
-							));
-						}
+						$block->setClasses(array(
+							$selector . $class['suffix'] => array(
+								'classList' => [$class['classList']]
+							)
+						));
 					}
 				}
 			}
 			// update nodes
 			if ($export['nodes'])
 			{
+				foreach ($export['nodes'] as $selector => $node)
+				{
+					if (isset($params[$selector]['update_video_to_lazyload']))
+					{
+						$export['nodes'][$selector] = self::updateVideoToLazyload($node);
+					}
+				}
+
 				$block->updateNodes(
 					$export['nodes']
+				);
+			}
+			// update menu
+			if ($export['menu'])
+			{
+				$block->updateNodes(
+					$export['menu']
 				);
 			}
 			// update attrs
@@ -268,17 +358,17 @@ class Block extends \Bitrix\Main\Update\Stepper
 				]
 			]
 		);
-		if ($row = $res->fetch())
-		{
-			$result['count'] = $row['CNT'];
-		}
-		else
+
+		// skip blocks that not exists
+		$row = $res->fetch();
+		if(!$row || (int) $row['CNT'] === 0)
 		{
 			UpdateBlock::delete(
 				$rowUpdate['ID']
 			);
 			return $this->execute($result);
 		}
+		$result['count'] = $row['CNT'];
 
 		// gets finished count
 		$res = BlockTable::getList([
@@ -325,5 +415,29 @@ class Block extends \Bitrix\Main\Update\Stepper
 			UpdateBlock::delete($rowUpdate['ID']);
 			return true;//for check next item in UpdateBlock
 		}
+	}
+
+	protected static function updateVideoToLazyload($nodes)
+	{
+		foreach($nodes as $key => $node)
+		{
+			if($node['src'])
+			{
+				// youtube
+				if (strpos($node['src'], 'www.youtube.com') !== false)
+				{
+					if (!$node['preview'] && $node['source'])
+					{
+						$pattern = "#(youtube\\.com|youtu\\.be|youtube\\-nocookie\\.com)\\/(watch\\?(.*&)?v=|v\\/|u\\/|embed\\/?)?(videoseries\\?list=(.*)|[\\w-]{11}|\\?listType=(.*)&list=(.*))(.*)#";
+						if(preg_match($pattern, $node['source'], $matches))
+						{
+							$nodes[$key]['preview'] = "//img.youtube.com/vi/{$matches[4]}/sddefault.jpg";
+						}
+					}
+				}
+			}
+		}
+
+		return $nodes;
 	}
 }

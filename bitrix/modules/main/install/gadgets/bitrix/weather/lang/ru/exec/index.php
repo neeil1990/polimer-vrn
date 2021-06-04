@@ -6,7 +6,7 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/classes/general/xml
 $APPLICATION->SetAdditionalCSS('/bitrix/gadgets/bitrix/weather/styles.css');
 
 if($arGadgetParams["CITY"]!='')
-	$url = 'region='.substr($arGadgetParams["CITY"], 1).'&ts='.time();
+	$url = 'region='.mb_substr($arGadgetParams["CITY"], 1).'&ts='.time();
 else
 	$url = 'ts='.time();
 
@@ -19,7 +19,7 @@ $http->setTimeout(10);
 $res = $http->get("https://export.yandex.ru/bar/reginfo.xml?".$url);
 
 $res = str_replace("\xE2\x88\x92", "-", $res);
-$res = $APPLICATION->ConvertCharset($res, 'UTF-8', SITE_CHARSET);
+$res = \Bitrix\Main\Text\Encoding::convertEncoding($res, 'UTF-8', SITE_CHARSET);
 
 $xml = new CDataXML();
 $xml->LoadString($res);
@@ -29,7 +29,7 @@ $node = $xml->SelectNodes('/info/region/title');
 
 <?
 $node = $xml->SelectNodes('/info/weather/day/day_part/temperature');
-$t = Intval($node->content);
+$t = intval($node->content);
 ?>
 <table width="90%">
 <tr>

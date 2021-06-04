@@ -1,8 +1,10 @@
 <?
+use Bitrix\Main\Loader;
+
 if(!is_object($GLOBALS["USER_FIELD_MANAGER"]))
 	return false;
 
-if (!CModule::IncludeModule("iblock"))
+if (!Loader::includeModule("iblock"))
 	return false;
 
 foreach (GetModuleEvents("iblock", "OnBeforeIBlockAdminMenu", true) as $arEvent)
@@ -90,9 +92,9 @@ function _get_sections_menu($arType, $arIBlock, $DEPTH_LEVEL, $SECTION_ID, $arSe
 		if(isset($_REQUEST['admin_mnu_menu_id']))
 		{
 			$menu_id = "menu_iblock_/".$arType["ID"]."/".$arIBlock["ID"]."/";
-			if(strncmp($_REQUEST['admin_mnu_menu_id'], $menu_id, strlen($menu_id)) == 0)
+			if(strncmp($_REQUEST['admin_mnu_menu_id'], $menu_id, mb_strlen($menu_id)) == 0)
 			{
-				$rsSections = CIBlockSection::GetNavChain($arIBlock["ID"], substr($_REQUEST['admin_mnu_menu_id'], strlen($menu_id)), array('ID', 'IBLOCK_ID'));
+				$rsSections = CIBlockSection::GetNavChain($arIBlock["ID"], mb_substr($_REQUEST['admin_mnu_menu_id'], mb_strlen($menu_id)), array('ID', 'IBLOCK_ID'));
 				while($arSection = $rsSections->Fetch())
 					$arSectionsChain[$arSection["ID"]] = $arSection["ID"];
 			}
@@ -192,7 +194,7 @@ function _get_sections_menu($arType, $arIBlock, $DEPTH_LEVEL, $SECTION_ID, $arSe
 	while($arSection = $rsSections->Fetch())
 	{
 		$urlElementAdminPage = CIBlock::GetAdminElementListLink($arIBlock["ID"], array("menu" => null, "skip_public" => true));
-		$arSections[0]["more_url"][] = $urlElementAdminPage;
+		$arSections[0]["more_url"][] = $urlElementAdminPage."&find_section_section=".$arSection["ID"]."&SECTION_ID=".$arSection["ID"]."&apply_filter=Y";
 	}
 
 	return $arSections;
@@ -213,7 +215,7 @@ function _get_iblocks_menu($arType)
 			{
 				$arItems = _get_sections_menu($arType, $arIBlock, 1, 0);
 			}
-			elseif(isset($_REQUEST['admin_mnu_menu_id']) && strpos($_REQUEST['admin_mnu_menu_id'], $items_id) !== false)
+			elseif(isset($_REQUEST['admin_mnu_menu_id']) && mb_strpos($_REQUEST['admin_mnu_menu_id'], $items_id) !== false)
 			{
 				$arItems = _get_sections_menu($arType, $arIBlock, 1, 0);
 			}
@@ -597,8 +599,8 @@ if($bUserIsAdmin || $bHasWRight || $bHasXRight || $bHasSRight || $bHasERight)
 	if ($bHasSRight)
 	{
 		$adminToolsMenu[] = array(
-			"text" => GetMessage('IBLOCK_MENU_ADMIN_TOOLS_REDIRECT_IBLOCK'),
-			"title" => GetMessage('IBLOCK_MENU_ADMIN_TOOLS_REDIRECT_IBLOCK_TITLE'),
+			"text" => GetMessage('IBLOCK_MENU_ADMIN_TOOLS_REDIRECT_IBLOCK_EXT'),
+			"title" => GetMessage('IBLOCK_MENU_ADMIN_TOOLS_REDIRECT_IBLOCK_TITLE_EXT'),
 			"url" => "iblock_redirect_entity.php?lang=".LANGUAGE_ID,
 			"module_id" => "iblock"
 		);

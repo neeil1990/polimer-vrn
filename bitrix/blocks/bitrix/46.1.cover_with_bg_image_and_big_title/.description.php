@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_46.1.COVER_WITH_BG_IMAGE_AND_BIG_TITLE_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(),
 	'nodes' => array(

@@ -263,7 +263,7 @@ class ContactTable extends Entity\DataManager
 			unset($ar['LIST_CODE'], $ar['LIST_NAME']);
 		}
 
-		$ar['EMAIL'] = strtolower($ar['EMAIL']);
+		$ar['EMAIL'] = mb_strtolower($ar['EMAIL']);
 		$contactDb = ContactTable::getList(array(
 			'select' => array('ID'),
 			'filter' => array(
@@ -499,11 +499,8 @@ class ContactTable extends Entity\DataManager
 				'CODE' => $code,
 				'DATE_INSERT' => $dateInsert,
 				'DATE_UPDATE' => $dateInsert,
+				'NAME' => $sqlHelper->forSql($item['NAME']),
 			];
-			if (!empty($item['NAME']))
-			{
-				$updateItem['NAME'] = $item['NAME'];
-			}
 			if ($isBlacklist)
 			{
 				$updateItem['BLACKLISTED'] = $isBlacklist ? 'Y' : 'N';

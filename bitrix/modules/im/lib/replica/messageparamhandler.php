@@ -112,32 +112,40 @@ if (Loader::includeModule('replica'))
 				return;
 			}
 
-			$externalLink = $file->addExternalLink(array(
-				'CREATED_BY' => $userId,
-				'TYPE' => \Bitrix\Disk\Internals\ExternalLinkTable::TYPE_MANUAL,
-			));
-			if (!$externalLink)
+			$url = \CIMDisk::GetFileLink($file);
+			if (!$url)
 			{
 				AddMessage2Log('MessageParamHandler::beforeLogFormat: failed to get external link for file ('.$fileId.').');
 				AddMessage2Log($file->getErrors());
 				return;
 			}
 
-			$url = \Bitrix\Disk\Driver::getInstance()->getUrlManager()->getUrlExternalLink(array(
-				'hash' => $externalLink->getHash(),
-				'action' => 'default',
-			), true);
 			$fileName =  $file->getName();
 			$fileSize = $file->getSize();
 
 			$attach = new \CIMMessageParamAttach(null, \CIMMessageParamAttach::CHAT);
-			$attach->AddFiles(array(
-				array(
+			if (\Bitrix\Disk\TypeFile::isImage($file))
+			{
+				$source = $file->getFile();
+				if ($source)
+				{
+					$attach->AddImages([[
+						"NAME" => $fileName,
+						"LINK" => $url,
+						"WIDTH" => (int)$source["WIDTH"],
+						"HEIGHT" => (int)$source["HEIGHT"],
+					]]);
+				}
+			}
+
+			if ($attach->IsEmpty())
+			{
+				$attach->AddFiles([[
 					"NAME" => $fileName,
 					"LINK" => $url,
 					"SIZE" => $fileSize,
-				)
-			));
+				]]);
+			}
 
 			$record["PARAM_NAME"] = 'ATTACH';
 			$record["PARAM_VALUE"] = 1;
@@ -188,12 +196,12 @@ if (Loader::includeModule('replica'))
 					$message['MESSAGE'] = preg_replace("/\[CALL(?:=(.+?))?\](.+?)?\[\/CALL\]/i", "$2", $message['MESSAGE']);
 					$message['MESSAGE'] = preg_replace("/------------------------------------------------------(.*)------------------------------------------------------/mi", " [".GetMessage('IM_QUOTE')."] ", str_replace(array("#BR#"), Array(" "), $message['MESSAGE']));
 
-					if (count($message['FILES']) > 0 && strlen($message['MESSAGE']) < 200)
+					if (count($message['FILES']) > 0 && mb_strlen($message['MESSAGE']) < 200)
 					{
 						foreach ($message['FILES'] as $file)
 						{
 							$file = " [".GetMessage('IM_MESSAGE_FILE').": ".$file['name']."]";
-							if (strlen($message['MESSAGE'].$file) > 200)
+							if (mb_strlen($message['MESSAGE'].$file) > 200)
 								break;
 
 							$message['MESSAGE'] .= $file;
@@ -201,11 +209,11 @@ if (Loader::includeModule('replica'))
 						$message['MESSAGE'] = trim($message['MESSAGE']);
 					}
 
-					$isChat = $chat && strlen($chat['TITLE']) > 0;
+					$isChat = $chat && $chat['TITLE'] <> '';
 
-					$dot = strlen($message['MESSAGE'])>=200? '...': '';
-					$message['MESSAGE'] = substr($message['MESSAGE'], 0, 199).$dot;
-					$message['MESSAGE'] = strlen($message['MESSAGE'])>0? $message['MESSAGE']: '-';
+					$dot = mb_strlen($message['MESSAGE']) >= 200? '...': '';
+					$message['MESSAGE'] = mb_substr($message['MESSAGE'], 0, 199).$dot;
+					$message['MESSAGE'] = $message['MESSAGE'] <> ''? $message['MESSAGE']: '-';
 
 					$arMessageFields = array(
 						"MESSAGE_TYPE" => IM_MESSAGE_SYSTEM,
@@ -240,14 +248,15 @@ if (Loader::includeModule('replica'))
 					));
 				}
 			}
-			else if ($newRecord['PARAM_NAME'] == 'ATTACH')
+			else if (in_array($newRecord['PARAM_NAME'], Array('ATTACH', 'URL_ID', 'IS_DELETED', 'IS_EDITED')))
 			{
-				\CIMMessageParam::SendPull($id, Array('ATTACH'));
+				\CIMMessageParam::SendPull($id, Array($newRecord['PARAM_NAME']));
 			}
-			else if ($newRecord['PARAM_NAME'] == 'URL_ID')
-			{
-				\CIMMessageParam::SendPull($id, Array('URL_ID'));
-			}
+		}
+
+		public function afterDeleteTrigger(array $oldRecord)
+		{
+			\CIMMessageParam::SendPull($oldRecord['MESSAGE_ID'], Array($oldRecord['PARAM_NAME']));
 		}
 	}
 }

@@ -1,7 +1,9 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 /** @var array $arCurrentValues */
-use Bitrix\Main\Loader,
+use Bitrix\Main\Config\Option,
+	Bitrix\Main\ModuleManager,
+	Bitrix\Main\Loader,
 	Bitrix\Iblock,
 	Bitrix\Catalog,
 	Bitrix\Currency;
@@ -297,6 +299,12 @@ $arComponentParameters = array(
 			"TYPE" => "CHECKBOX",
 			"DEFAULT" => "N"
 		),
+		'ALLOW_SEO_DATA' => array(
+			'PARENT' => 'ADDITIONAL_SETTINGS',
+			'NAME' => GetMessage('CP_BCE_ALLOW_SEO_DATA'),
+			'TYPE' => 'CHECKBOX',
+			'DEFAULT' => 'N',
+		),
 		"SET_TITLE" => array(),
 		"SET_CANONICAL_URL" => array(
 			"PARENT" => "ADDITIONAL_SETTINGS",
@@ -480,6 +488,12 @@ $arComponentParameters = array(
 			"TYPE" => "STRING",
 			"DEFAULT" => "/personal/basket.php",
 		),
+		"SHOW_SKU_DESCRIPTION" => array(
+			"PARENT" => "ADDITIONAL_SETTINGS",
+			"NAME" => GetMessage("IBLOCK_SHOW_SKU_DESCRIPTION"),
+			"TYPE" => "CHECKBOX",
+			"DEFAULT" => "N",
+		),
 		"ACTION_VARIABLE" => array(
 			"PARENT" => "ACTION_SETTINGS",
 			"NAME" => GetMessage("IBLOCK_ACTION_VARIABLE"),
@@ -631,6 +645,24 @@ $arComponentParameters = array(
 		)
 	),
 );
+if (
+	ModuleManager::isModuleInstalled('bitrix24')
+	|| (isset($arCurrentValues['LANDING_MODE']) && $arCurrentValues['LANDING_MODE'] === 'Y')
+)
+{
+	unset($arComponentParameters['PARAMETERS']['SET_TITLE']);
+	unset($arComponentParameters['PARAMETERS']['SET_BROWSER_TITLE']);
+	unset($arComponentParameters['PARAMETERS']['BROWSER_TITLE']);
+	unset($arComponentParameters['PARAMETERS']['SET_META_KEYWORDS']);
+	unset($arComponentParameters['PARAMETERS']['META_KEYWORDS']);
+	unset($arComponentParameters['PARAMETERS']['SET_META_DESCRIPTION']);
+	unset($arComponentParameters['PARAMETERS']['META_DESCRIPTION']);
+}
+else
+{
+	unset($arComponentParameters['PARAMETERS']['ALLOW_SEO_DATA']);
+}
+
 if ($usePropertyFeatures)
 {
 	unset($arComponentParameters["PARAMETERS"]["PROPERTY_CODE"]);
@@ -681,12 +713,20 @@ if ($catalogIncluded)
 		);
 	}
 
+	$hiddenParam = 'N';
+	if (
+		(isset($arCurrentValues['COMPATIBLE_MODE']) && $arCurrentValues['COMPATIBLE_MODE'] === 'N')
+		|| ((string)Option::get('catalog', 'enable_viewed_products') === 'N')
+	)
+	{
+		$hiddenParam = 'Y';
+	}
 	$arComponentParameters['PARAMETERS']['SET_VIEWED_IN_COMPONENT'] = array(
 		"PARENT" => "EXTENDED_SETTINGS",
 		"NAME" => GetMessage('CP_BCE_SET_VIEWED_IN_COMPONENT'),
 		"TYPE" => "CHECKBOX",
 		"DEFAULT" => "N",
-		"HIDDEN" => (isset($arCurrentValues['COMPATIBLE_MODE']) && $arCurrentValues['COMPATIBLE_MODE'] === 'N' ? 'Y' : 'N')
+		"HIDDEN" => $hiddenParam
 	);
 }
 

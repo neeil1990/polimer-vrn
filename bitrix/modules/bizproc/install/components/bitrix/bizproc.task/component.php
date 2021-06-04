@@ -14,7 +14,7 @@ if (!$USER->IsAuthorized())
 $currentUserId = $USER->GetID();
 $isAdmin = $USER->IsAdmin() || (CModule::IncludeModule('bitrix24') && CBitrix24::IsPortalAdmin($USER->GetID()));
 
-if (strlen($arParams["TASK_ID"]) > 0 && !is_numeric($arParams["TASK_ID"]))
+if ($arParams["TASK_ID"] <> '' && !is_numeric($arParams["TASK_ID"]))
 {
 	$arParams["WORKFLOW_ID"] = $arParams["TASK_ID"];
 	$arParams["TASK_ID"] = 0;
@@ -58,7 +58,7 @@ $arParams["TASK_EDIT_URL"] = trim($arParams["TASK_EDIT_URL"]);
 if (empty($arParams["TASK_EDIT_URL"])):
 	$arParams["TASK_EDIT_URL"] = $APPLICATION->GetCurPage()."?PAGE_NAME=task_edit&ID=#ID#&back_url=".urlencode($arResult["backUrl"]);
 else:
-	$arParams["TASK_EDIT_URL"] .= (strpos($arParams["TASK_EDIT_URL"], "?") === false ? "?" : "&")."back_url=".urlencode($arResult["backUrl"]);
+	$arParams["TASK_EDIT_URL"] .= (mb_strpos($arParams["TASK_EDIT_URL"], "?") === false ? "?" : "&")."back_url=".urlencode($arResult["backUrl"]);
 endif;
 $arParams["~TASK_EDIT_URL"] = $arParams["TASK_EDIT_URL"];
 $arParams["TASK_EDIT_URL"] = htmlspecialcharsbx($arParams["~TASK_EDIT_URL"]);
@@ -86,11 +86,22 @@ if ($arParams["TASK_ID"] > 0)
 	$arResult["TASK"] = $dbTask->GetNext();
 }
 
-if (!$arResult["TASK"] && strlen($arParams["WORKFLOW_ID"]) > 0)
+if (empty($arResult["TASK"]) && empty($arParams["WORKFLOW_ID"]) && !empty($arParams["DOCUMENT_ID"]))
 {
+	$arParams["WORKFLOW_ID"] = \Bitrix\Bizproc\WorkflowInstanceTable::getIdsByDocument($arParams["DOCUMENT_ID"]);
+}
+
+if (!$arResult["TASK"] && !empty($arParams["WORKFLOW_ID"]))
+{
+	$workflowTasksFilter = [
+		"WORKFLOW_ID" => $arParams["WORKFLOW_ID"],
+		"USER_ID" => $arParams["USER_ID"],
+		'USER_STATUS' => CBPTaskUserStatus::Waiting
+	];
+
 	$dbTask = CBPTaskService::GetList(
 		array(),
-		array("WORKFLOW_ID" => $arParams["WORKFLOW_ID"], "USER_ID" => $arParams["USER_ID"], 'USER_STATUS' => CBPTaskUserStatus::Waiting),
+		$workflowTasksFilter,
 		false,
 		false,
 		array("ID", "WORKFLOW_ID", "ACTIVITY", "ACTIVITY_NAME", "MODIFIED", "OVERDUE_DATE", "NAME", "DESCRIPTION", "PARAMETERS", 'IS_INLINE', 'STATUS', 'USER_STATUS', 'DOCUMENT_NAME', 'DELEGATION_TYPE')
@@ -114,6 +125,12 @@ if ($arResult['ReadOnly']
 	&& $arResult['TASK']['PARAMETERS']['AccessControl'] == 'Y')
 {
 	$arResult['TASK']['DESCRIPTION'] = '';
+}
+
+if ($arResult['TASK']['PARAMETERS'] === false)
+{
+	ShowError(GetMessage("BPAT_NO_PARAMETERS"));
+	return false;
 }
 
 $arState = CBPStateService::GetWorkflowState($arResult['TASK']['WORKFLOW_ID']);
@@ -161,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST["action"] == "doTask" && chec
 		else
 			$backUrl = $arResult["backUrl"];
 
-		if (strlen($backUrl) > 0)
+		if ($backUrl <> '')
 		{
 			LocalRedirect($backUrl);
 			die();

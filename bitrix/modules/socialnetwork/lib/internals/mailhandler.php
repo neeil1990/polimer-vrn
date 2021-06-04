@@ -37,7 +37,7 @@ final class MailHandler
 		$commentId = false;
 
 		if (
-			strlen($message) <= 0
+			$message == ''
 			&& count($attachments) > 0
 		)
 		{
@@ -47,7 +47,7 @@ final class MailHandler
 		if (
 			$logEntryId <= 0
 			|| $userId <= 0
-			|| strlen($message) <= 0
+			|| $message == ''
 		)
 		{
 			return false;
@@ -89,7 +89,8 @@ final class MailHandler
 					"TEXT_MESSAGE" => $message,
 					"MODULE_ID" => false,
 					"LOG_ID" => $logEntry["ID"],
-					"USER_ID" => $userId
+					"USER_ID" => $userId,
+					"CURRENT_USER_ID" => $userId
 				);
 
 				$ufCode = (

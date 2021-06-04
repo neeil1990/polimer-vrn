@@ -17,7 +17,7 @@ $fromValue = \CBPHelper::UsersArrayToString($fromValue, $dialog->getWorkflowTemp
 $runtimeData = $dialog->getRuntimeData();
 $mailboxes = $runtimeData['mailboxes'];
 
-if ($from && $mailboxes):?>
+if ($from):?>
 	<div style="display:none;">
 		<?
 		$APPLICATION->IncludeComponent('bitrix:main.mail.confirm', '');
@@ -109,7 +109,7 @@ endif;
 	</div>
 	<input type="hidden" name="<?=htmlspecialcharsbx($map['MailMessageType']['FieldName'])?>" value="html">
 	<input type="hidden" name="<?=htmlspecialcharsbx($map['MailCharset']['FieldName'])?>" value="<?=htmlspecialcharsbx(SITE_CHARSET)?>">
-	<input type="hidden" name="<?=htmlspecialcharsbx($map['DirrectMail']['FieldName'])?>" value="N">
+	<input type="hidden" name="<?=htmlspecialcharsbx($map['DirrectMail']['FieldName'])?>" value="Y">
 	<input type="hidden" name="<?=htmlspecialcharsbx($map['MailSite']['FieldName'])?>" value="<?=htmlspecialcharsbx(SITE_ID)?>">
 <?
 $config = array(
@@ -140,7 +140,7 @@ else
 $configAttributeValue = htmlspecialcharsbx(\Bitrix\Main\Web\Json::encode($config));
 ?>
 	<div class="bizproc-automation-popup-settings" data-role="file-selector" data-config="<?=$configAttributeValue?>"></div>
-<?if ($from && $mailboxes):?>
+<?if ($from):?>
 	<script>
 
 		BX.ready(function ()
@@ -186,7 +186,12 @@ $configAttributeValue = htmlspecialcharsbx(\Bitrix\Main\Web\Json::encode($config
 
 				if (window.BXMainMailConfirm)
 				{
-					menuItems.push({delimiter: true}, {
+					if (menuItems.length > 0)
+					{
+						menuItems.push({delimiter: true});
+					}
+
+					menuItems.push({
 						text: '<?=GetMessageJS('BPMA_RPD_FROM_ADD')?>',
 						onclick: function(e, item)
 						{
@@ -216,7 +221,7 @@ $configAttributeValue = htmlspecialcharsbx(\Bitrix\Main\Web\Json::encode($config
 							autoHide: true,
 							offsetLeft: (BX.pos(this)['width'] / 2),
 							angle: { position: 'top', offset: 0 },
-							zIndex: 200,
+							overlay: { backgroundColor: 'transparent' },
 							events:
 								{
 									onPopupClose: function()

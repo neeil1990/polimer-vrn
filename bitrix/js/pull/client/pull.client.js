@@ -11,7 +11,7 @@
 
 	/****************** ATTENTION *******************************
 	 * Please do not use Bitrix CoreJS in this class.
-	 * This class can be called on page without Bitrix Framework
+	 * This class can be called on a page without Bitrix Framework
 	*************************************************************/
 
 	if (!window.BX)
@@ -19,6 +19,10 @@
 		window.BX = {};
 	}
 	else if (window.BX.PullClient)
+	{
+		return;
+	}
+	else if (!window.BX.RestClient)
 	{
 		return;
 	}
@@ -31,6 +35,7 @@
 	var RESTORE_WEBSOCKET_TIMEOUT = 30 * 60;
 	var CONFIG_TTL = 24 * 60 * 60;
 	var CONFIG_CHECK_INTERVAL = 60000;
+	var MAX_IDS_TO_STORE = 10;
 
 	var LS_SESSION = "bx-pull-session";
 	var LS_SESSION_CACHE_TIME = 20;
@@ -76,6 +81,11 @@
 		SERVER_RESTART:'SERVER_RESTART'
 	};
 
+	var ServerMode = {
+		Shared: 'shared',
+		Personal: 'personal'
+	};
+
 	// Protobuf message models
 	var Response = protobuf.roots['push-server']['Response'];
 	var ResponseBatch = protobuf.roots['push-server']['ResponseBatch'];
@@ -88,6 +98,24 @@
 	var Pull = function (params)
 	{
 		params = params || {};
+
+		if (params.restApplication)
+		{
+			if (typeof params.configGetMethod === 'undefined')
+			{
+				params.configGetMethod = 'pull.application.config.get';
+			}
+			if (typeof params.skipCheckRevision === 'undefined')
+			{
+				params.skipCheckRevision = true;
+			}
+			if (typeof params.restApplication === 'string')
+			{
+				params.siteId = params.restApplication;
+			}
+
+			params.serverEnabled = true;
+		}
 
 		var self = this;
 
@@ -116,6 +144,11 @@
 		this.reconnectTimeout = null;
 		this.restoreWebSocketTimeout = null;
 
+		this.configGetMethod = typeof params.configGetMethod !== 'string'? 'pull.config.get': params.configGetMethod;
+		this.getPublicListMethod = typeof params.getPublicListMethod !== 'string'? 'pull.channel.public.list': params.getPublicListMethod;
+
+		this.skipStorageInit = params.skipStorageInit === true;
+
 		this.skipCheckRevision = params.skipCheckRevision === true;
 
 		this._subscribers = {};
@@ -142,6 +175,7 @@
 			tag : null,
 			time : null,
 			history: {},
+			lastMessageIds: [],
 			messageCount: 0
 		};
 
@@ -160,17 +194,23 @@
 		this.isSecure = document.location.href.indexOf('https') === 0;
 		this.config = null;
 
-		this.storage = new StorageManager({
-			userId: this.userId,
-			siteId: this.siteId
-		});
+		this.storage = null;
+
+		if(this.userId && !this.skipStorageInit)
+		{
+			this.storage = new StorageManager({
+				userId: this.userId,
+				siteId: this.siteId
+			});
+		}
 
 		this.sharedConfig = new SharedConfig({
 			onWebSocketBlockChanged: this.onWebSocketBlockChanged.bind(this),
 			storage: this.storage
 		});
 		this.channelManager = new ChannelManager({
-			restClient: this.restClient
+			restClient: this.restClient,
+			getPublicListMethod: this.getPublicListMethod
 		});
 
 		this.notificationPopup = null;
@@ -181,6 +221,8 @@
 
 		// manual stop workaround
 		this.isManualDisconnect = false;
+
+		this.loggingEnabled = this.sharedConfig.isLoggingEnabled();
 	};
 
 	/**
@@ -431,8 +473,13 @@
 
 		if (BX && BX.desktop)
 		{
-			BX.desktop.addCustomEvent("BXLoginSuccess", function ()
-			{
+			BX.addCustomEvent("onDesktopReload", function() {
+				this.session.mid = null;
+				this.session.tag = null;
+				this.session.time = null;
+			}.bind(this));
+
+			BX.desktop.addCustomEvent("BXLoginSuccess", function() {
 				this.restart(1000, "Desktop login");
 			}.bind(this));
 		}
@@ -448,6 +495,13 @@
 		if(!this.userId && typeof(BX.message) !== 'undefined' && BX.message.USER_ID)
 		{
 			this.userId = BX.message.USER_ID;
+			if(!this.storage)
+			{
+				this.storage = new StorageManager({
+					userId: this.userId,
+					siteId: this.siteId
+				});
+			}
 		}
 		if(this.siteId === 'none' && typeof(BX.message) !== 'undefined' && BX.message.SITE_ID)
 		{
@@ -477,7 +531,11 @@
 
 		var self = this;
 		var now = (new Date()).getTime();
-		var oldSession = skipReconnectToLastSession? null: this.storage.get(LS_SESSION);
+		var oldSession;
+		if(!skipReconnectToLastSession && this.storage)
+		{
+			oldSession = this.storage.get(LS_SESSION);
+		}
 		if(Utils.isPlainObject(oldSession) && oldSession.hasOwnProperty('ttl') && oldSession.ttl >= now)
 		{
 			this.session.mid = oldSession.mid;
@@ -576,7 +634,6 @@
 			return false;
 		}
 
-		var messages = [];
 		var userIds = {};
 		for(var i = 0; i < messageBatch.length; i++)
 		{
@@ -588,33 +645,37 @@
 
 		this.channelManager.getPublicIds(Object.keys(userIds)).then(function(publicIds)
 		{
-			messageBatch.forEach(function(messageFields)
-			{
-				var messageBody = {
-					module_id: messageFields.moduleId,
-					command: messageFields.command,
-					params: messageFields.params
-				};
-				var message = IncomingMessage.create({
-					receivers: this.createMessageReceivers(messageFields.users, publicIds),
-					body: JSON.stringify(messageBody),
-					expiry: messageFields.expiry || 0
-				});
-				messages.push(message);
-			}, this);
-
-			var requestBatch = RequestBatch.create({
-				requests: [{
-					incomingMessages: {
-						messages: messages
-					}
-				}]
-			});
-
-			var buffer = RequestBatch.encode(requestBatch).finish();
-			return this.connector.send(buffer);
-
+			return this.connector.send(this.encodeMessageBatch(messageBatch, publicIds));
 		}.bind(this))
+	};
+
+	Pull.prototype.encodeMessageBatch = function(messageBatch, publicIds)
+	{
+		var messages = [];
+		messageBatch.forEach(function(messageFields)
+		{
+			var messageBody = {
+				module_id: messageFields.moduleId,
+				command: messageFields.command,
+				params: messageFields.params
+			};
+			var message = IncomingMessage.create({
+				receivers: this.createMessageReceivers(messageFields.users, publicIds),
+				body: JSON.stringify(messageBody),
+				expiry: messageFields.expiry || 0
+			});
+			messages.push(message);
+		}, this);
+
+		var requestBatch = RequestBatch.create({
+			requests: [{
+				incomingMessages: {
+					messages: messages
+				}
+			}]
+		});
+
+		return RequestBatch.encode(requestBatch).finish();
 	};
 
 	Pull.prototype.createMessageReceivers = function(users, publicIds)
@@ -640,7 +701,10 @@
 	{
 		var self = this;
 		this.disconnect(disconnectCode, disconnectReason);
-		this.storage.remove('bx-pull-config');
+		if(this.storage)
+		{
+			this.storage.remove('bx-pull-config');
+		}
 		this.config = null;
 
 		this.loadConfig().catch(function(error)
@@ -675,16 +739,22 @@
 			this.config = {
 				api: {},
 				channels: {},
-				server: { timeShift: 0 }
+				publicChannels: {},
+				server: { timeShift: 0 },
+				clientId: null
 			};
 
-			var config = this.storage.get('bx-pull-config');
+			var config;
+			if(this.storage)
+			{
+				config = this.storage.get('bx-pull-config');
+			}
 			if(this.isConfigActual(config) && this.checkRevision(config.api.revision_web))
 			{
 				result.resolve(config);
 				return result;
 			}
-			else
+			else if (this.storage)
 			{
 				this.storage.remove('bx-pull-config')
 			}
@@ -699,13 +769,15 @@
 			this.config = {
 				api: {},
 				channels: {},
-				server: { timeShift: 0 }
+				publicChannels: {},
+				server: { timeShift: 0 },
+				clientId: null
 			};
 		}
 
 		this.restClient.callBatch({
 			serverTime : ['server.time'],
-			configGet : ['pull.config.get', {'CACHE': 'N'}]
+			configGet : [this.configGetMethod, {'CACHE': 'N'}]
 		}, function(response) {
 			if (!response)
 			{
@@ -809,7 +881,7 @@
 		}
 		else
 		{
-			console.log(Utils.getDateForLog() + ": Stale config detected. Restarting");
+			this.logToConsole("Stale config detected. Restarting");
 			this.restart(CloseReasons.CONFIG_EXPIRED, "Config update required");
 		}
 	};
@@ -823,7 +895,28 @@
 				this.config[key] = config[key];
 			}
 		}
-		this.storage.set('bx-pull-config', config);
+
+		if (config.publicChannels)
+		{
+			this.setPublicIds(Utils.objectValues(config.publicChannels));
+		}
+
+		if(this.storage)
+		{
+			try
+			{
+				this.storage.set('bx-pull-config', config);
+			}
+			catch (e)
+			{
+				// try to delete the key "history" (landing site change history, see http://jabber.bx/view.php?id=136492)
+				if (localStorage && localStorage.removeItem)
+				{
+					localStorage.removeItem('history');
+				}
+				console.error(Utils.getDateForLog() + " Pull: Could not cache config in local storage. Error: ", e);
+			}
+		}
 	};
 
 	Pull.prototype.isWebSocketSupported = function()
@@ -848,7 +941,7 @@
 			return false;
 		}
 
-		return this.config.server.websocket_enabled === true;
+		return (this.config && this.config.server && this.config.server.websocket_enabled === true);
 	};
 
 	Pull.prototype.isPublishingSupported = function ()
@@ -863,12 +956,17 @@
 			return false;
 		}
 
-		return (this.config.server.publish_enabled === true);
+		return (this.config && this.config.server && this.config.server.publish_enabled === true);
 	};
 
 	Pull.prototype.isProtobufSupported = function()
 	{
 		return (this.getServerVersion() > 3 && !Utils.browser.IsIe());
+	};
+
+	Pull.prototype.isSharedMode = function()
+	{
+		return (this.getServerMode() == ServerMode.Shared)
 	};
 
 	Pull.prototype.disconnect = function(disconnectCode, disconnectReason)
@@ -911,7 +1009,7 @@
 
 		if(!connectionDelay)
 		{
-			if(this.connectionAttempt > 3 && this.connectionType === ConnectionType.WebSocket)
+			if(this.connectionAttempt > 3 && this.connectionType === ConnectionType.WebSocket && !this.sharedConfig.isLongPollingBlocked())
 			{
 				// Websocket seems to be closed by network filter. Trying to fallback to long polling
 				this.sharedConfig.setWebSocketBlocked(true);
@@ -929,14 +1027,14 @@
 			clearTimeout(this.reconnectTimeout);
 		}
 
-		console.log(Utils.getDateForLog() + ': Pull: scheduling reconnection in ' + connectionDelay + ' seconds; attempt # ' + this.connectionAttempt);
+		this.logToConsole('Pull: scheduling reconnection in ' + connectionDelay + ' seconds; attempt # ' + this.connectionAttempt);
 
 		this.reconnectTimeout = setTimeout(this.connect.bind(this), connectionDelay * 1000);
 	};
 
 	Pull.prototype.scheduleRestoreWebSocketConnection = function()
 	{
-		console.log(Utils.getDateForLog() + ': Pull: scheduling restoration of websocket connection in ' + RESTORE_WEBSOCKET_TIMEOUT + ' seconds');
+		this.logToConsole('Pull: scheduling restoration of websocket connection in ' + RESTORE_WEBSOCKET_TIMEOUT + ' seconds');
 
 		var self = this;
 		if(this.restoreWebSocketTimeout)
@@ -970,8 +1068,6 @@
 
 	Pull.prototype.parseResponse = function (response)
 	{
-		var text;
-
 		var events = this.extractMessages(response);
 		var messages = [];
 		if (events.length === 0)
@@ -983,11 +1079,19 @@
 		for (var i = 0; i < events.length; i++)
 		{
 			var event = events[i];
+			if (event.mid && this.session.lastMessageIds.includes(event.mid))
+			{
+				console.warn("Duplicate message " + event.mid + " skipped");
+				continue;
+			}
 
 			this.session.mid = event.mid || null;
 			this.session.tag = event.tag || null;
 			this.session.time = event.time || null;
-
+			if (event.mid)
+			{
+				this.session.lastMessageIds.push(event.mid);
+			}
 			messages.push(event.text);
 
 			if (!this.session.history[event.text.module_id])
@@ -1002,6 +1106,10 @@
 			this.session.messageCount++;
 		}
 
+		if (this.session.lastMessageIds.length > MAX_IDS_TO_STORE)
+		{
+			this.session.lastMessageIds = this.session.lastMessageIds.slice( - MAX_IDS_TO_STORE);
+		}
 		this.broadcastMessages(messages);
 	};
 
@@ -1263,6 +1371,14 @@
 		}, this);
 	};
 
+	Pull.prototype.logToConsole = function(message)
+	{
+		if(this.loggingEnabled)
+		{
+			console.log(Utils.getDateForLog() + ': ' + message);
+		}
+	};
+
 	Pull.prototype.logMessage = function(message)
 	{
 		if(!this.debug)
@@ -1298,7 +1414,7 @@
 			this.offlineTimeout = null;
 		}
 
-		console.log(Utils.getDateForLog() + ': Pull: Long polling connection with push-server opened');
+		this.logToConsole('Pull: Long polling connection with push-server opened');
 		if(this.isWebSocketEnabled())
 		{
 			this.scheduleRestoreWebSocketConnection();
@@ -1337,6 +1453,9 @@
 		this.sendPullStatus(PullStatus.Online);
 		this.sharedConfig.setWebSocketBlocked(false);
 
+		// to prevent fallback to long polling in case of networking problems
+		this.sharedConfig.setLongPollingBlocked(true);
+
 		if(this.connectionType == ConnectionType.LongPolling)
 		{
 			this.connectionType = ConnectionType.WebSocket;
@@ -1348,7 +1467,12 @@
 			clearTimeout(this.offlineTimeout);
 			this.offlineTimeout = null;
 		}
-		console.log(Utils.getDateForLog() + ': Pull: Websocket connection with push-server opened');
+		if (this.restoreWebSocketTimeout)
+		{
+			clearTimeout(this.restoreWebSocketTimeout);
+			this.restoreWebSocketTimeout = null;
+		}
+		this.logToConsole('Pull: Websocket connection with push-server opened');
 	};
 
 	Pull.prototype.onWebSocketDisconnect = function(e)
@@ -1373,12 +1497,14 @@
 			e = {};
 		}
 
-		console.log(Utils.getDateForLog() + ': Pull: Websocket connection with push-server closed. Code: ' + e.code + ', reason: ' + e.reason);
+		this.logToConsole('Pull: Websocket connection with push-server closed. Code: ' + e.code + ', reason: ' + e.reason);
 		if(!this.isManualDisconnect)
 		{
 			this.scheduleReconnect();
 		}
 
+		// to prevent fallback to long polling in case of networking problems
+		this.sharedConfig.setLongPollingBlocked(true);
 		this.isManualDisconnect = false;
 	};
 
@@ -1416,7 +1542,7 @@
 			e = {};
 		}
 
-		console.log(Utils.getDateForLog() + ': Pull: Long polling connection with push-server closed. Code: ' + e.code + ', reason: ' + e.reason);
+		this.logToConsole('Pull: Long polling connection with push-server closed. Code: ' + e.code + ', reason: ' + e.reason);
 		if(!this.isManualDisconnect)
 		{
 			this.scheduleReconnect();
@@ -1446,9 +1572,19 @@
 
 		var session = Utils.clone(this.session);
 		session.ttl = (new Date()).getTime() + LS_SESSION_CACHE_TIME * 1000;
-		this.storage.set(LS_SESSION, JSON.stringify(session), LS_SESSION_CACHE_TIME);
+		if(this.storage)
+		{
+			try
+			{
+				this.storage.set(LS_SESSION, JSON.stringify(session), LS_SESSION_CACHE_TIME);
+			}
+			catch (e)
+			{
+				console.error(Utils.getDateForLog() + " Pull: Could not save session info in local storage. Error: ", e);
+			}
+		}
 
-		this.reconnect(CloseReasons.NORMAL_CLOSURE, "onbeforeunload", 15);
+		this.scheduleReconnect(15);
 	};
 
 	Pull.prototype.onOffline = function()
@@ -1470,7 +1606,7 @@
 				if (message.params.action == 'reconnect')
 				{
 					this.config.channels[message.params.channel.type] = message.params.new_channel;
-					console.info("Pull: new config for " + message.params.channel.type + " channel set:\n", this.config.channels[message.params.channel.type]);
+					this.logToConsole("Pull: new config for " + message.params.channel.type + " channel set:\n", this.config.channels[message.params.channel.type]);
 
 					this.reconnect(CloseReasons.CONFIG_REPLACED, "config was replaced");
 				}
@@ -1524,7 +1660,7 @@
 				}
 			});
 
-			console.log(Utils.getDateForLog() + ": Pull revision changed from " + REVISION + " to " + serverRevision + ". Reload required");
+			this.logToConsole("Pull revision changed from " + REVISION + " to " + serverRevision + ". Reload required");
 
 			return false;
 		}
@@ -1574,12 +1710,17 @@
 
 	Pull.prototype.getRevision = function()
 	{
-		return this.config.api.revision_web;
+		return (this.config && this.config.api) ? this.config.api.revision_web : null;
 	};
 
 	Pull.prototype.getServerVersion = function()
 	{
-		return this.config.server.version;
+		return (this.config && this.config.server) ? this.config.server.version : 0;
+	};
+
+	Pull.prototype.getServerMode = function()
+	{
+		return (this.config && this.config.server) ? this.config.server.mode : null;
 	};
 
 	Pull.prototype.getConfig = function()
@@ -1611,6 +1752,7 @@
 			(this.guestMode && this.guestUserId !== 0? "Guest userId: " + this.guestUserId + "\n":"") +
 			"Browser online: " + (navigator.onLine ? 'Y' : 'N') + "\n" +
 			"Connect: " + (this.isConnected() ? 'Y': 'N') + "\n" +
+			"Server type: " + (this.isSharedMode() ? 'cloud' : 'local') + "\n" +
 			"WebSocket support: " + (this.isWebSocketSupported() ? 'Y': 'N') + "\n" +
 			"WebSocket connect: " + (this._connectors.webSocket && this._connectors.webSocket.connected ? 'Y': 'N') + "\n"+
 			"WebSocket mode: " + (this._connectors.webSocket && this._connectors.webSocket.socket ? (this._connectors.webSocket.socket.url.search("binaryMode=true") != -1 ? "protobuf" : "text") : '-') + "\n"+
@@ -1627,6 +1769,18 @@
 			"================================\n";
 
 		return console.info(text);
+	};
+
+	Pull.prototype.enableLogging = function(loggingFlag)
+	{
+		if(loggingFlag === undefined)
+		{
+			loggingFlag = true;
+		}
+		loggingFlag = loggingFlag === true;
+
+		this.sharedConfig.setLoggingEnabled(loggingFlag);
+		this.loggingEnabled = loggingFlag;
 	};
 
 	Pull.prototype.capturePullEvent = function(debugFlag)
@@ -1681,6 +1835,14 @@
 		if(this.isProtobufSupported())
 		{
 			params.binaryMode = 'true';
+		}
+		if (this.isSharedMode())
+		{
+			if(!this.config.clientId)
+			{
+				throw new Error("Push-server is in shared mode, but clientId is not set");
+			}
+			params.clientId = this.config.clientId;
 		}
 		if (this.session.mid)
 		{
@@ -1798,8 +1960,15 @@
 			var watchTags = Object.keys(this.watchTagsQueue);
 			if (watchTags.length > 0)
 			{
-				this.restClient.callMethod('pull.watch.extend', {tags: watchTags}).then(function (result)
+				this.restClient.callMethod('pull.watch.extend', {tags: watchTags}, function(result)
 				{
+					if(result.error())
+					{
+						this.updateWatch();
+
+						return false;
+					}
+
 					var updatedTags = result.data();
 
 					for (var tagId in updatedTags)
@@ -1810,9 +1979,7 @@
 						}
 					}
 					this.updateWatch();
-				}.bind(this)).catch(function ()
-				{
-					this.updateWatch();
+
 				}.bind(this))
 			}
 			else
@@ -1862,14 +2029,19 @@
 		this.ttl = 24 * 60 * 60;
 
 		this.lsKeys = {
-			websocketBlocked: 'bx-pull-websocket-blocked'
+			websocketBlocked: 'bx-pull-websocket-blocked',
+			longPollingBlocked: 'bx-pull-longpolling-blocked',
+			loggingEnabled: 'bx-pull-logging-enabled'
 		};
 
 		this.callbacks = {
 			onWebSocketBlockChanged: (Utils.isFunction(params.onWebSocketBlockChanged) ? params.onWebSocketBlockChanged : function(){})
 		};
 
-		window.addEventListener('storage', this.onLocalStorageSet.bind(this));
+		if (this.storage)
+		{
+			window.addEventListener('storage', this.onLocalStorageSet.bind(this));
+		}
 	};
 
 	SharedConfig.prototype.onLocalStorageSet = function(params)
@@ -1887,12 +2059,84 @@
 
 	SharedConfig.prototype.isWebSocketBlocked = function()
 	{
+		if (!this.storage)
+		{
+			return false;
+		}
+
 		return this.storage.get(this.lsKeys.websocketBlocked, 0) > Utils.getTimestamp();
 	};
 
 	SharedConfig.prototype.setWebSocketBlocked = function(isWebSocketBlocked)
 	{
-		this.storage.set(this.lsKeys.websocketBlocked, (isWebSocketBlocked ? Utils.getTimestamp()+this.ttl : 0));
+		if (!this.storage)
+		{
+			return false;
+		}
+
+		try
+		{
+			this.storage.set(this.lsKeys.websocketBlocked, (isWebSocketBlocked ? Utils.getTimestamp()+this.ttl : 0));
+		}
+		catch (e)
+		{
+			console.error(Utils.getDateForLog() + " Pull: Could not save WS_blocked flag in local storage. Error: ", e);
+		}
+	};
+
+	SharedConfig.prototype.isLongPollingBlocked = function()
+	{
+		if (!this.storage)
+		{
+			return false;
+		}
+
+		return this.storage.get(this.lsKeys.longPollingBlocked, 0) > Utils.getTimestamp();
+	};
+
+	SharedConfig.prototype.setLongPollingBlocked = function(isLongPollingBlocked)
+	{
+		if (!this.storage)
+		{
+			return false;
+		}
+
+		try
+		{
+			this.storage.set(this.lsKeys.longPollingBlocked, (isLongPollingBlocked ? Utils.getTimestamp()+this.ttl : 0));
+		}
+		catch (e)
+		{
+			console.error(Utils.getDateForLog() + " Pull: Could not save LP_blocked flag in local storage. Error: ", e);
+		}
+	};
+
+	SharedConfig.prototype.isLoggingEnabled = function()
+	{
+		if (!this.storage)
+		{
+			return false;
+		}
+
+		return this.storage.get(this.lsKeys.loggingEnabled, 0) > Utils.getTimestamp();
+	};
+
+	SharedConfig.prototype.setLoggingEnabled = function(isLoggingEnabled)
+	{
+		if (!this.storage)
+		{
+			return false;
+		}
+
+		try
+		{
+			this.storage.set(this.lsKeys.loggingEnabled, (isLoggingEnabled ? Utils.getTimestamp()+this.ttl : 0));
+		}
+		catch (e)
+		{
+			console.error("LocalStorage error: ", e);
+			return false;
+		}
 	};
 
 	var ObjectExtend = function(child, parent)
@@ -2259,6 +2503,8 @@
 		this.publicIds = {};
 
 		this.restClient = typeof params.restClient !== "undefined"? params.restClient: BX.rest;
+
+		this.getPublicListMethod = params.getPublicListMethod;
 	};
 
 	/**
@@ -2292,9 +2538,15 @@
 			return promise;
 		}
 
-		this.restClient.callMethod('pull.channel.public.list', {users: unknownUsers}).then(function(result)
+		this.restClient.callMethod(this.getPublicListMethod, {users: unknownUsers}).then(function(response)
 		{
-			var data = result.data();
+			if(response.error())
+			{
+				promise.resolve({});
+				return promise;
+			}
+
+			var data = response.data();
 
 			this.setPublicIds(Utils.objectValues(data));
 			unknownUsers.forEach(function(userId) {
@@ -2302,6 +2554,7 @@
 			}, this);
 
 			promise.resolve(result);
+
 		}.bind(this));
 
 		return promise;
@@ -2618,4 +2871,5 @@
 	BX.PullClient.PullStatus = PullStatus;
 	BX.PullClient.SubscriptionType = SubscriptionType;
 	BX.PullClient.CloseReasons = CloseReasons;
+	BX.PullClient.StorageManager = StorageManager;
 })();

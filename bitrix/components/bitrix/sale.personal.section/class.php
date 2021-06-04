@@ -15,6 +15,10 @@ class PersonalOrderSection extends CBitrixComponent
 		{
 			$params['MAIN_CHAIN_NAME'] = Loc::getMessage("SPS_CHAIN_MAIN");
 		}
+
+		$params['DISABLE_SOCSERV_AUTH'] = $params['DISABLE_SOCSERV_AUTH'] ?? 'N';
+		$params['DISABLE_SOCSERV_AUTH'] = $params['DISABLE_SOCSERV_AUTH'] === 'Y' ? 'Y' : 'N';
+
 		return $params;
 	}
 
@@ -191,7 +195,7 @@ class PersonalOrderSection extends CBitrixComponent
 		{
 			Loader::includeModule('sale');
 			$id = urldecode(urldecode($variables["ID"]));
-			$registry = Sale\Registry::getInstance(Sale\Order::getRegistryType());
+			$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
 			$orderClassName = $registry->getOrderClassName();
 
 			$order = $orderClassName::loadByAccountNumber($id);
@@ -242,7 +246,7 @@ class PersonalOrderSection extends CBitrixComponent
 		{
 			$this->arResult["AUTH_SUCCESS_URL"] = $this->arResult["PATH_TO_LOGIN"];
 			$backUrl = $this->request->get('backurl');
-			if (!empty($backUrl) && strpos($backUrl, "/") === 0)
+			if (!empty($backUrl) && mb_strpos($backUrl, "/") === 0)
 			{
 				$this->arResult["AUTH_SUCCESS_URL"] = $backUrl;
 			}

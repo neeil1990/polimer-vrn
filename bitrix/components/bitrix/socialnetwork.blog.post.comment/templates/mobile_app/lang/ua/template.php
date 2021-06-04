@@ -28,6 +28,4 @@ $MESS["BLOG_COMMENT_MOBILE_FORMAT_DATE"] = "j F, G:i";
 $MESS["BLOG_COMMENT_MOBILE_FORMAT_DATE_YEAR"] = "j F Y, G:i";
 $MESS["BLOG_C_REPLY"] = "Відповісти";
 $MESS["BLOG_C_LIKES_LIST"] = "Кому сподобалося";
-$MESS["BLOG_C_BUTTON_ALL"] = "Показати коментарі <i>·</i> #COMMENTS#";
-$MESS["BLOG_C_BUTTON_OLD"] = "Показати коментарі <i>·</i> #COMMENTS#";
 ?>

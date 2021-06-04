@@ -118,7 +118,7 @@ WHERE SITEMAP_ID='".intval($sitemapId)."'
 
 		foreach(self::$iblockCache[$fields['IBLOCK_ID']] as $res)
 		{
-			$sitemapSettings = unserialize($res['SITEMAP_SETTINGS']);
+			$sitemapSettings = unserialize($res['SITEMAP_SETTINGS'], ['allowed_classes' => false]);
 
 			$add = false;
 
@@ -674,8 +674,8 @@ class SitemapIblock
 		$url = str_replace('https://', '', $url);
 
 //		REMOVE SERVER_NAME from start position, because we put server_url later
-		if (substr($url, 0, strlen('#SERVER_NAME#')) == '#SERVER_NAME#')
-			$url = substr($url, strlen('#SERVER_NAME#'));
+		if (mb_substr($url, 0, mb_strlen('#SERVER_NAME#')) == '#SERVER_NAME#')
+			$url = mb_substr($url, mb_strlen('#SERVER_NAME#'));
 
 //		get correct SERVER_URL
 		if ($siteId)

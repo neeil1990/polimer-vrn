@@ -1697,7 +1697,7 @@
 
             if (_.options.accessibility === true) {
                 _.initADA();
-                
+
                 if (_.options.focusOnChange) {
                     var $currentSlide = $(_.$slides.get(_.currentSlide));
                     $currentSlide.attr('tabindex', 0).focus();
@@ -2984,21 +2984,29 @@
 
     };
 
-    $.fn.slick = function() {
-        var _ = this,
-            opt = arguments[0],
-            args = Array.prototype.slice.call(arguments, 1),
-            l = _.length,
-            i,
-            ret;
-        for (i = 0; i < l; i++) {
-            if (typeof opt == 'object' || typeof opt == 'undefined')
-                _[i].slick = new Slick(_[i], opt);
-            else
-                ret = _[i].slick[opt].apply(_[i].slick, args);
-            if (typeof ret != 'undefined') return ret;
-        }
-        return _;
-    };
+	$.fn.slick = function ()
+	{
+		var _ = this,
+			opt = arguments[0],
+			args = Array.prototype.slice.call(arguments, 1),
+			l = _.length,
+			i;
+		for (i = 0; i < l; i++)
+		{
+			if (typeof opt == 'object' || typeof opt == 'undefined')
+			{
+				_[i].slick = new Slick(_[i], opt);
+			}
+			else
+			{
+				var currSlick = _[i].slick;
+				return (currSlick && currSlick[opt])
+					? currSlick[opt].apply(_[i].slick, args)
+					: false
+					;
+			}
+		}
+		return _;
+	};
 
 }));

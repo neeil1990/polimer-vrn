@@ -3,8 +3,6 @@
 
 	BX.namespace("BX.Landing.UI.Button");
 
-
-	var Menu = BX.Landing.UI.Tool.Menu;
 	var proxy = BX.Landing.Utils.proxy;
 
 
@@ -38,8 +36,8 @@
 
 			if (!this.menu)
 			{
-				this.menu = new Menu({
-					id: "change-tag-name-menu",
+				this.menu = new BX.PopupMenuWindow({
+					id: "change-tag-name-menu-" + BX.Text.getRandom(),
 					bindElement: this.layout,
 					zIndex: -678,
 					items: [
@@ -124,6 +122,7 @@
 
 		onChange: function(event, menuItem)
 		{
+			event.stopPropagation();
 			this.activateItem(menuItem.id);
 			menuItem.menuWindow.close();
 

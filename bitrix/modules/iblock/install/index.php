@@ -21,9 +21,7 @@ class iblock extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -78,6 +76,10 @@ class iblock extends CModule
 		$eventManager->registerEventHandlerCompatible("iblock", "OnIBlockPropertyBuildList", "iblock", "CIBlockPropertyElementAutoComplete", "GetUserTypeDescription", 80);
 		$eventManager->registerEventHandlerCompatible("iblock", "OnIBlockPropertyBuildList", "iblock", "CIBlockPropertySKU", "GetUserTypeDescription", 90);
 		$eventManager->registerEventHandlerCompatible("iblock", "OnIBlockPropertyBuildList", "iblock", "CIBlockPropertySectionAutoComplete", "GetUserTypeDescription", 100);
+
+		$eventManager->registerEventHandler("main", "onVirtualClassBuildList", "iblock", \Bitrix\Iblock\IblockTable::class, "compileAllEntities");
+		//$eventManager->registerEventHandler("landing", "OnBuildSourceList", "iblock", "\\Bitrix\\Iblock\\LandingSource\\Element", "onBuildSourceListHandler");
+
 		unset($eventManager);
 
 		$this->InstallTasks();
@@ -163,6 +165,9 @@ class iblock extends CModule
 		$eventManager->unRegisterEventHandler("iblock", "OnIBlockPropertyBuildList", "iblock", "CIBlockPropertyElementAutoComplete", "GetUserTypeDescription");
 		$eventManager->unRegisterEventHandler("iblock", "OnIBlockPropertyBuildList", "iblock", "CIBlockPropertySKU", "GetUserTypeDescription");
 		$eventManager->unRegisterEventHandler("iblock", "OnIBlockPropertyBuildList", "iblock", "CIBlockPropertySectionAutoComplete", "GetUserTypeDescription");
+
+		$eventManager->unregisterEventHandler("main", "onVirtualClassBuildList", "iblock", \Bitrix\Iblock\IblockTable::class, "compileAllEntities");
+		//$eventManager->unRegisterEventHandler("landing", "OnBuildSourceList", "iblock", "\\Bitrix\\Iblock\\LandingSource\\Element", "onBuildSourceListHandler");
 		unset($eventManager);
 
 		ModuleManager::unRegisterModule("iblock");
@@ -193,6 +198,7 @@ class iblock extends CModule
 			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/components", $_SERVER["DOCUMENT_ROOT"]."/bitrix/components", true, true);
 			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/gadgets", $_SERVER["DOCUMENT_ROOT"]."/bitrix/gadgets", true, true);
 			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/panel", $_SERVER["DOCUMENT_ROOT"]."/bitrix/panel", true, true);
+			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/tools", $_SERVER["DOCUMENT_ROOT"]."/bitrix/tools", true, true);
 		}
 		return true;
 	}
@@ -206,6 +212,7 @@ class iblock extends CModule
 			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/public/", $_SERVER["DOCUMENT_ROOT"]."/bitrix/");
 			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/themes/.default/", $_SERVER["DOCUMENT_ROOT"]."/bitrix/themes/.default");//css
 			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/panel/iblock/", $_SERVER["DOCUMENT_ROOT"]."/bitrix/panel/iblock/");//css sku
+			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/tools/iblock/", $_SERVER["DOCUMENT_ROOT"]."/bitrix/tools/iblock/");
 			DeleteDirFilesEx("/bitrix/themes/.default/icons/iblock/");//icons
 			DeleteDirFilesEx("/bitrix/js/iblock/");//javascript
 		}
@@ -216,7 +223,7 @@ class iblock extends CModule
 	function DoInstall()
 	{
 		global $APPLICATION, $step, $obModule;
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 			$APPLICATION->IncludeAdminFile(Loc::getMessage("IBLOCK_INSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/step1.php");
 		elseif($step==2)
@@ -233,7 +240,7 @@ class iblock extends CModule
 	function DoUninstall()
 	{
 		global $APPLICATION, $step, $obModule;
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 			$APPLICATION->IncludeAdminFile(Loc::getMessage("IBLOCK_INSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/install/unstep1.php");
 		elseif($step==2)

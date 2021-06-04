@@ -40,7 +40,7 @@ class CClusterWebnode
 			return false;
 
 		$strUpdate = $DB->PrepareUpdate("b_cluster_webnode", $arFields);
-		if(strlen($strUpdate) > 0)
+		if($strUpdate <> '')
 		{
 			$strSql = "
 				UPDATE b_cluster_webnode SET
@@ -72,7 +72,7 @@ class CClusterWebnode
 		$bStatus = true;
 		if($bHost && isset($arFields["PORT"]))
 		{
-			if(strlen($arFields["STATUS_URL"]))
+			if($arFields["STATUS_URL"] <> '')
 			{
 				$arStatus = $this->GetStatus($arFields["HOST"], $arFields["PORT"], $arFields["STATUS_URL"]);
 				$bStatus = is_array($arStatus);
@@ -115,8 +115,8 @@ class CClusterWebnode
 		$arQueryOrder = array();
 		foreach($arOrder as $strColumn => $strDirection)
 		{
-			$strColumn = strtoupper($strColumn);
-			$strDirection = strtoupper($strDirection)=="ASC"? "ASC": "DESC";
+			$strColumn = mb_strtoupper($strColumn);
+			$strDirection = mb_strtoupper($strDirection) == "ASC"? "ASC": "DESC";
 			switch($strColumn)
 			{
 				case "ID":
@@ -130,7 +130,7 @@ class CClusterWebnode
 		$arQuerySelect = array();
 		foreach($arSelect as $strColumn)
 		{
-			$strColumn = strtoupper($strColumn);
+			$strColumn = mb_strtoupper($strColumn);
 			switch($strColumn)
 			{
 				case "ID":

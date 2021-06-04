@@ -18,6 +18,8 @@ class CAdminPage
 	var $bInit = false;
 	var $publicMode = false;
 
+	private $isHideTitle = false;
+
 	public function __construct()
 	{
 		if (defined("PUBLIC_MODE") && PUBLIC_MODE == 1)
@@ -53,6 +55,16 @@ class CAdminPage
 	{
 		global $APPLICATION;
 		return htmlspecialcharsex($APPLICATION->GetTitle(false, true));
+	}
+
+	public function isHideTitle()
+	{
+		return $this->isHideTitle;
+	}
+
+	public function hideTitle()
+	{
+		$this->isHideTitle = true;
 	}
 
 	function GetJsTitle()
@@ -226,13 +238,9 @@ var phpVars = {
 };
 </script>
 ";
-
-		CJSCore::Init(array('admin_sidepanel'));
-
 		$APPLICATION->AddHeadScript('/bitrix/js/main/admin_tools.js');
 		$APPLICATION->AddHeadScript('/bitrix/js/main/popup_menu.js');
 		$APPLICATION->AddHeadScript('/bitrix/js/main/admin_search.js');
-		$APPLICATION->AddHeadScript('/bitrix/js/main/admin_sidepanel.js');
 
 		return $s;
 	}
@@ -428,14 +436,11 @@ class CAdminAjaxHelper
 	{
 		$this->context = Application::getInstance()->getContext();
 		$this->request = $this->context->getRequest();
-		$this->httpResponse = new HttpResponse($this->context);
+		$this->httpResponse = new HttpResponse();
 	}
 
 	/**
      * Sends JSON response with status "success".
-	 * @throws \Bitrix\Main\ArgumentException
-	 * @throws \Bitrix\Main\ArgumentNullException
-	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
 	 */
 	public function sendJsonSuccessResponse()
 	{
@@ -445,9 +450,6 @@ class CAdminAjaxHelper
 	/**
      * Sends JSON response with status "error" and with errors.
 	 * @param string $message Error message.
-	 * @throws \Bitrix\Main\ArgumentException
-	 * @throws \Bitrix\Main\ArgumentNullException
-	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
 	 */
 	public function sendJsonErrorResponse($message)
 	{
@@ -457,17 +459,14 @@ class CAdminAjaxHelper
 	/**
 	 * Sends JSON response.
 	 * @param array $params Data structure.
-	 * @throws \Bitrix\Main\ArgumentException
-	 * @throws \Bitrix\Main\ArgumentNullException
-	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
 	 */
 	public function sendJsonResponse($params = array())
 	{
 		if ($this->isAjaxRequest() && !$this->skipResponse)
 		{
-			$this->httpResponse->addHeader("Content-Type", "application/json");
-			$this->httpResponse->flush(Json::encode($params));
-			$this->end();
+			$response = new Bitrix\Main\Engine\Response\Json($params);
+			$response = Bitrix\Main\Context::getCurrent()->getResponse()->copyHeadersTo($response);
+			Bitrix\Main\Application::getInstance()->end(0, $response);
 		}
 	}
 
@@ -545,7 +544,7 @@ class CAdminSidePanelHelper extends CAdminAjaxHelper
 		{
 			if ($this->isPublicSidePanel())
 			{
-				if (strpos("publicSidePanel", $dataToForm["reloadUrl"]) === false)
+				if (mb_strpos("publicSidePanel",$dataToForm["reloadUrl"]) === false)
 				{
 					$dataToForm["reloadUrl"] = CHTTP::urlAddParams(
 						$dataToForm["reloadUrl"], array("publicSidePanel" => "Y"));
@@ -970,19 +969,20 @@ class CAdminMenu
 				"items_id"=>$aMenu["items_id"],
 				"page_icon"=>isset($aMenu["page_icon"])? $aMenu["page_icon"]: null,
 				"text"=>$aMenu["text"],
-				"url"=>$aMenu["url"],
+				"url"=>isset($aMenu["url"]) ? $aMenu["url"] : null,
 				"skip_chain"=>isset($aMenu["skip_chain"])? $aMenu["skip_chain"]: null,
 				"help_section"=>isset($aMenu["help_section"])? $aMenu["help_section"]: null,
 			);
 
 		$bSelected = false;
-		$bMoreUrl = (isset($aMenu["more_url"]) && is_array($aMenu["more_url"]) && !empty($aMenu["more_url"]));
-		if($aMenu["url"] <> "" || $bMoreUrl)
+		$mainUrl = (isset($aMenu["url"]) && $aMenu["url"] <> "");
+		$bMoreUrl = (!empty($aMenu["more_url"]) && is_array($aMenu["more_url"]));
+		if($mainUrl || $bMoreUrl)
 		{
 			$cur_page = $APPLICATION->GetCurPage();
 
 			$all_links = array();
-			if($aMenu["url"] <> "")
+			if($mainUrl)
 				$all_links[] = $aMenu["url"];
 			if($bMoreUrl)
 				$all_links = array_merge($all_links, $aMenu["more_url"]);
@@ -996,28 +996,28 @@ class CAdminMenu
 				if(empty($all_links[$j]))
 					continue;
 
-				if(strpos($all_links[$j], "/bitrix/admin/") !== 0)
+				if(mb_strpos($all_links[$j],"/bitrix/admin/") !== 0)
 					$tested_link = "/bitrix/admin/".$all_links[$j];
 				else
 					$tested_link = $all_links[$j];
 
-				if(strlen($tested_link) > 0 && strpos($cur_page, $tested_link) === 0)
+				if($tested_link <> '' && mb_strpos($cur_page,$tested_link) === 0)
 				{
 					$bSelected = true;
 					break;
 				}
 
-				if(($pos = strpos($tested_link, "?"))!==false)
+				if(($pos = mb_strpos($tested_link,"?"))!==false)
 				{
-					if(substr($tested_link, 0, $pos)==$cur_page)
+					if(mb_substr($tested_link,0,$pos)==$cur_page)
 					{
-						$right = substr($tested_link, $pos+1);
+						$right = mb_substr($tested_link,$pos+1);
 						$params = explode("&", $right);
 						$bOK = true;
 
 						foreach ($params as $paramKeyAndValue)
 						{
-							$eqpos = strpos($paramKeyAndValue, "=");
+							$eqpos = mb_strpos($paramKeyAndValue,"=");
 							$varvalue = "";
 							if($eqpos === false)
 							{
@@ -1029,8 +1029,8 @@ class CAdminMenu
 							}
 							else
 							{
-								$varname = substr($paramKeyAndValue, 0, $eqpos);
-								$varvalue = urldecode(substr($paramKeyAndValue, $eqpos+1));
+								$varname = mb_substr($paramKeyAndValue,0,$eqpos);
+								$varvalue = urldecode(mb_substr($paramKeyAndValue,$eqpos+1));
 							}
 
 							$globvarvalue = isset($_REQUEST[$varname]) ? $_REQUEST[$varname] : "";
@@ -1068,11 +1068,11 @@ class CAdminMenu
 			{
 				$aSections["_active"] = array(
 					"menu_id"=>$aMenu["menu_id"],
-					"page_icon"=>$aMenu["page_icon"],
+					"page_icon"=>isset($aMenu["page_icon"])? $aMenu["page_icon"]: null,
 					"text"=>$aMenu["text"],
 					"url"=>$aMenu["url"],
-					"skip_chain"=>$aMenu["skip_chain"],
-					"help_section"=>$aMenu["help_section"],
+					"skip_chain"=>isset($aMenu["skip_chain"])? $aMenu["skip_chain"]: null,
+					"help_section"=>isset($aMenu["help_section"]) ? $aMenu["help_section"]: null,
 				);
 			}
 			$aMenu["_active"] = true;
@@ -1472,7 +1472,7 @@ window.'.$this->name.' = new PopupMenu("'.$this->id.'"'.
 						(isset($action["MENU_PRELOAD"]) && $action["MENU_PRELOAD"] == true? "'MENU_PRELOAD':true,":"").
 						(isset($action["CLOSE_ON_CLICK"]) && $action["CLOSE_ON_CLICK"] == false? "'CLOSE_ON_CLICK':false,":"");
 					if($sItem <> "")
-						$sItem = substr($sItem, 0, -1); //delete last comma
+						$sItem = mb_substr($sItem,0,-1); //delete last comma
 					$sMenuUrl .= "{".$sItem."}";
 				}
 				$i++;
@@ -1840,7 +1840,7 @@ class CAdminContextMenuList extends CAdminContextMenu
 
 	function GetClassByID($icon_id)
 	{
-		if (substr($icon_id, 0, 7) == 'btn_new')
+		if (mb_substr($icon_id,0,7) == 'btn_new')
 			return 'adm-btn-save adm-btn-add';
 		else
 			return parent::GetClassByID($icon_id);
@@ -1848,7 +1848,7 @@ class CAdminContextMenuList extends CAdminContextMenu
 
 	function GetActiveClassByID($icon_id)
 	{
-		if (substr($icon_id, 0, 7) == 'btn_new')
+		if (mb_substr($icon_id,0,7) == 'btn_new')
 			return 'adm-btn-save-active';
 		else
 			return parent::GetActiveClassByID($icon_id);
@@ -1878,74 +1878,65 @@ class CAdminSorting
 	protected $field;
 	protected $order;
 
+	/**
+	 * @param string $table_id
+	 * @param string|false $by_initial
+	 * @param string|false $order_initial
+	 * @param string $by_name
+	 * @param string $ord_name
+	 */
 	public function __construct($table_id, $by_initial=false, $order_initial=false, $by_name="by", $ord_name="order")
 	{
-		/** @global CMain $APPLICATION */
-		global $APPLICATION;
-
 		$this->by_name = $by_name;
 		$this->ord_name = $ord_name;
 		$this->table_id = $table_id;
 		$this->by_initial = $by_initial;
 		$this->order_initial = $order_initial;
 
-		$uniq = md5($APPLICATION->GetCurPage());
-
-		$aOptSort = array();
+		$needUserByField = false;
+		$needUserOrder = false;
 		if(isset($GLOBALS[$this->by_name]))
 		{
-			$_SESSION["SESS_SORT_BY"][$uniq] = $GLOBALS[$this->by_name];
+			\Bitrix\Main\Application::getInstance()->getSession()["SESS_SORT_BY"][$this->table_id] = $GLOBALS[$this->by_name];
 		}
-		elseif(isset($_SESSION["SESS_SORT_BY"][$uniq]))
+		elseif(isset(\Bitrix\Main\Application::getInstance()->getSession()["SESS_SORT_BY"][$this->table_id]))
 		{
-			$GLOBALS[$this->by_name] = $_SESSION["SESS_SORT_BY"][$uniq];
+			$GLOBALS[$this->by_name] = \Bitrix\Main\Application::getInstance()->getSession()["SESS_SORT_BY"][$this->table_id];
 		}
 		else
 		{
-			if (defined("PUBLIC_MODE") && PUBLIC_MODE == 1)
-			{
-				$gridOptions = new Bitrix\Main\Grid\Options($this->table_id);
-				$sorting = $gridOptions->getSorting();
-				$GLOBALS[$this->by_name] = key($sorting["sort"]);
-				if (empty($GLOBALS[$this->by_name]) && $by_initial !== false)
-					$GLOBALS[$this->by_name] = $by_initial;
-			}
-			else
-			{
-				$aOptSort = CUserOptions::GetOption("list", $this->table_id, array("by"=>$by_initial, "order"=>$order_initial));
-				if(!empty($aOptSort["by"]))
-					$GLOBALS[$this->by_name] = $aOptSort["by"];
-				elseif($by_initial !== false)
-					$GLOBALS[$this->by_name] = $by_initial;
-			}
+			$needUserByField = true;
 		}
 
 		if(isset($GLOBALS[$this->ord_name]))
 		{
-			$_SESSION["SESS_SORT_ORDER"][$uniq] = $GLOBALS[$this->ord_name];
+			\Bitrix\Main\Application::getInstance()->getSession()["SESS_SORT_ORDER"][$this->table_id] = $GLOBALS[$this->ord_name];
 		}
-		elseif(isset($_SESSION["SESS_SORT_ORDER"][$uniq]))
+		elseif(isset(\Bitrix\Main\Application::getInstance()->getSession()["SESS_SORT_ORDER"][$this->table_id]))
 		{
-			$GLOBALS[$this->ord_name] = $_SESSION["SESS_SORT_ORDER"][$uniq];
+			$GLOBALS[$this->ord_name] = \Bitrix\Main\Application::getInstance()->getSession()["SESS_SORT_ORDER"][$this->table_id];
 		}
 		else
 		{
-			if (defined("PUBLIC_MODE") && PUBLIC_MODE == 1)
+			$needUserOrder = true;
+		}
+
+		if ($needUserByField || $needUserOrder)
+		{
+			$userSorting = $this->getUserSorting();
+			if ($needUserByField)
 			{
-				$gridOptions = new Bitrix\Main\Grid\Options($this->table_id);
-				$sorting = $gridOptions->getSorting();
-				$GLOBALS[$this->ord_name] = strtoupper(current($sorting["sort"])) === "ASC" ? "ASC" : "DESC";
-				if (empty($GLOBALS[$this->ord_name]) && $order_initial !== false)
-					$GLOBALS[$this->ord_name] = $order_initial;
+				if (!empty($userSorting["by"]))
+					$GLOBALS[$this->by_name] = $userSorting["by"];
+				elseif ($this->by_initial !== false)
+					$GLOBALS[$this->by_name] = $this->by_initial;
 			}
-			else
+			if ($needUserOrder)
 			{
-				if(empty($aOptSort["order"]))
-					$aOptSort = CUserOptions::GetOption("list", $this->table_id, array("order"=>$order_initial));
-				if(!empty($aOptSort["order"]))
-					$GLOBALS[$this->ord_name] = $aOptSort["order"];
-				elseif($order_initial !== false)
-					$GLOBALS[$this->ord_name] = $order_initial;
+				if(!empty($userSorting["order"]))
+					$GLOBALS[$this->ord_name] = $userSorting["order"];
+				elseif($this->order_initial !== false)
+					$GLOBALS[$this->ord_name] = $this->order_initial;
 			}
 		}
 
@@ -1953,15 +1944,22 @@ class CAdminSorting
 		$this->order = $GLOBALS[$this->ord_name];
 	}
 
-	function Show($text, $sort_by, $alt_title = false, $baseCssClass = "")
+	/**
+	 * @param string $text
+	 * @param string $sort_by
+	 * @param string|false $alt_title
+	 * @param string $baseCssClass
+	 * @return string
+	 */
+	public function Show($text, $sort_by, $alt_title = false, $baseCssClass = "")
 	{
 		$ord = "asc";
 		$class = "";
 		$title = GetMessage("admin_lib_sort_title")." ".($alt_title?$alt_title:$text);
 
-		if(strtolower($this->field) == strtolower($sort_by))
+		if(mb_strtolower($this->field) == mb_strtolower($sort_by))
 		{
-			if(strtolower($this->order) == "desc")
+			if(mb_strtolower($this->order) == "desc")
 			{
 				$class = "-down";
 				$title .= " ".GetMessage("admin_lib_sort_down");
@@ -1985,7 +1983,7 @@ class CAdminSorting
 			$path = preg_replace("/([?&])action=[^&]*[&]*/i", "\\1", $path);
 			$sep = "&";
 		}
-		if(($last = substr($path, -1, 1)) == "?" || $last == "&")
+		if(($last = mb_substr($path,-1,1)) == "?" || $last == "&")
 			$sep = "";
 
 		$url = $path.$sep.$this->by_name."=".$sort_by."&".$this->ord_name."=".($class <> ""? $ord:"");
@@ -1993,14 +1991,36 @@ class CAdminSorting
 		return 'class="'.$baseCssClass.' adm-list-table-cell-sort'.$class.'" onclick="'.$this->table_id.'.Sort(\''.htmlspecialcharsbx(CUtil::addslashes($url)).'\', '.($class <> ""? "false" : "true").', arguments);" title="'.$title.'"';
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getField()
 	{
 		return $this->field;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getOrder()
 	{
 		return $this->order;
+	}
+
+	/**
+	 * @return array
+	 */
+	protected function getUserSorting()
+	{
+		$userSorting = CUserOptions::GetOption(
+			"list",
+			$this->table_id,
+			array("by" => $this->by_initial, "order" => $this->order_initial)
+		);
+		return array(
+			"by" => (!empty($userSorting["by"]) ? $userSorting["by"] : null),
+			"order" => (!empty($userSorting["order"]) ? $userSorting["order"] : null)
+		);
 	}
 }
 
@@ -2080,11 +2100,11 @@ class CAdminResult extends CDBResult
 		{
 			$nSize = (int)$_REQUEST["SIZEN_".($NavNum+1)];
 			if($bSess)
-				$_SESSION["NAV_PAGE_SIZE"][$unique] = $nSize;
+				\Bitrix\Main\Application::getInstance()->getSession()["NAV_PAGE_SIZE"][$unique] = $nSize;
 		}
-		elseif($bSess && isset($_SESSION["NAV_PAGE_SIZE"][$unique]))
+		elseif($bSess && isset(\Bitrix\Main\Application::getInstance()->getSession()["NAV_PAGE_SIZE"][$unique]))
 		{
-			$nSize = $_SESSION["NAV_PAGE_SIZE"][$unique];
+			$nSize = \Bitrix\Main\Application::getInstance()->getSession()["NAV_PAGE_SIZE"][$unique];
 		}
 		else
 		{
@@ -2143,14 +2163,18 @@ class CAdminMessage
 		$publicMode = false;
 		if (defined('BX_PUBLIC_MODE') && BX_PUBLIC_MODE == 1 && $this->message["TYPE"] != "PROGRESS" && (!isset($this->message['SKIP_PUBLIC_MODE']) || $this->message['SKIP_PUBLIC_MODE'] !== true))
 		{
+			$alertMessage = ($this->message['DETAILS'] <> ''? $this->message['DETAILS'] : $this->message['MESSAGE']);
+			$alertMessage = htmlspecialcharsback($alertMessage); //we don't need html entities in an alert() box, see BX.CWindow.prototype.ShowError
+			$alertMessage = str_replace(array('<br>', '<br />', '<BR>', '<BR />'), "\r\n", $alertMessage);
+
 			ob_end_clean();
-			echo '<script>
+			echo "<script>
 			var currentWindow = top.window;
-			if (top.BX.SidePanel.Instance && top.BX.SidePanel.Instance.getTopSlider())
+			if (top.BX.SidePanel && top.BX.SidePanel.Instance && top.BX.SidePanel.Instance.getTopSlider())
 			{
 				currentWindow = top.BX.SidePanel.Instance.getTopSlider().getWindow();
 			}
-			currentWindow.BX.WindowManager.Get().ShowError(\''.CUtil::JSEscape(str_replace(array('<br>', '<br />', '<BR>', '<BR />'), "\r\n", htmlspecialcharsback($this->message['DETAILS']? $this->message['DETAILS'] : $this->message['MESSAGE']))).'\');</script>';
+			currentWindow.BX.WindowManager.Get().ShowError('".CUtil::JSEscape($alertMessage)."');</script>";
 			die();
 		}
 

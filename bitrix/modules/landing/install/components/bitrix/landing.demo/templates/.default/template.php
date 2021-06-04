@@ -4,11 +4,17 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 	die();
 }
 
+/** @var array $arResult */
+/** @var array $arParams */
+/** @var \LandingBaseComponent $component */
+/** @var \CMain $APPLICATION */
+
 use \Bitrix\Landing\Manager;
 use \Bitrix\Main\Page\Asset;
 use \Bitrix\Main\Localization\Loc;
 use \Bitrix\Main\ModuleManager;
-\Bitrix\Main\UI\Extension::load("ui.fonts.opensans");
+
+\Bitrix\Main\UI\Extension::load(['ui.fonts.opensans', 'sidepanel']);
 Loc::loadMessages(__FILE__);
 
 $context = \Bitrix\Main\Application::getInstance()->getContext();
@@ -73,7 +79,7 @@ if ($arResult['FATAL'])
 $bodyClass = $APPLICATION->GetPageProperty('BodyClass');
 $APPLICATION->SetPageProperty(
 	'BodyClass',
-	($bodyClass ? $bodyClass.' ' : '') . 'no-all-paddings no-background'
+	($bodyClass ? $bodyClass.' ' : '') . 'no-all-paddings no-background landing-slider-frame-popup'
 );
 \Bitrix\Landing\Manager::setPageTitle(
 	Loc::getMessage('LANDING_TPL_TITLE')
@@ -84,6 +90,14 @@ $APPLICATION->SetPageProperty(
 Asset::getInstance()->addCSS('/bitrix/components/bitrix/landing.sites/templates/.default/style.css');
 Asset::getInstance()->addJS('/bitrix/components/bitrix/landing.sites/templates/.default/script.js');
 ?>
+
+<div style="display: none">
+	<?$APPLICATION->includeComponent(
+		'bitrix:ui.feedback.form',
+		'',
+		$component->getFeedbackParameters('demo')
+	);?>
+</div>
 
 <div class="grid-tile-wrap" id="grid-tile-wrap">
 	<div class="grid-tile-inner" id="grid-tile-inner">
@@ -98,7 +112,7 @@ foreach ($arResult['DEMO'] as $item):
 	{
 		continue;
 	}
-	
+
 	$tpl = (
 		(
 			defined('SMN_SITE_ID') ||
@@ -132,7 +146,7 @@ foreach ($arResult['DEMO'] as $item):
 	?>
 	<?if ($item['AVAILABLE']):?>
 	<span data-href="<?= $previewUrl;?>" id="landing-demo-<?= \htmlspecialcharsbx($tpl);?>" <?
-		?>class="landing-template-pseudo-link landing-item landing-item-hover<?= $arResult['LIMIT_REACHED'] ? ' landing-item-payment' : '';?>" <?
+		?>class="landing-template-pseudo-link landing-item landing-item-hover<?= ($arResult['LIMIT_REACHED'] && !$item['SINGLETON']) ? ' landing-item-payment' : '';?>" <?
 		?><?if (isset($item['EXTERNAL_URL']['width'])){?>data-slider-width="<?= (int)$item['EXTERNAL_URL']['width'];?>"<?}?>>
 	<?else:?>
 	<span class="landing-item landing-item-hover landing-item-unactive">
@@ -140,7 +154,12 @@ foreach ($arResult['DEMO'] as $item):
 		<span class="landing-item-inner">
 			<div class="landing-title">
 				<div class="landing-title-wrap">
-					<div class="landing-title-overflow"><?= \htmlspecialcharsbx($item['TITLE'])?></div>
+					<div class="landing-title-overflow">
+						<?= \htmlspecialcharsbx($item['TITLE'])?>
+					</div>
+					<?if ($this->getComponent()::isDemoNew($item['TIMESTAMP'])): ?>
+						<span class="landing-title-new"><?= Loc::getMessage('LANDING_TPL_LABEL_NEW');?></span>
+					<?endif;?>
 				</div>
 			</div>
 			<?if (trim($item['DESCRIPTION'])):?>
@@ -162,6 +181,13 @@ foreach ($arResult['DEMO'] as $item):
 						<span class="landing-item-desc-open"></span>
 					</span>
 				</span>
+				<?if ($item['DESIGNED_BY']):?>
+						<a class="landing-item-designed" href="<?= $item['DESIGNED_BY']['URL'];?>" target="_blank">
+							<?= Loc::getMessage('LANDING_TPL_DESIGNED_BY', [
+								'#DESIGNER#' => $item['DESIGNED_BY']['NAME'],
+							]);?>
+						</a>
+				<?endif;?>
 			<?else:?>
 				<span class="landing-item-cover">
 					<?if ($item['PREVIEW']):?>
@@ -178,6 +204,18 @@ foreach ($arResult['DEMO'] as $item):
 	<?else:?>
 	</span>
 	<?endif;?>
+	<?if ($item['ID'] == 'empty' && $arParams['TYPE'] == 'PAGE'):?>
+	<span class="landing-item landing-item-contact" onclick="BX.fireEvent(BX('landing-feedback-demo-button'), 'click');">
+		<span class="landing-item-inner">
+			<span class="landing-item-contact-title"><?= Loc::getMessage('LANDING_TPL_FEEDBACK_TITLE');?></span>
+			<span class="landing-item-contact-icon"></span>
+			<span class="landing-item-contact-desc"><?= Loc::getMessage('LANDING_TPL_FEEDBACK_MESSAGE');?></span>
+			<span class="ui-btn ui-btn-sm ui-btn-round landing-item-contact-btn">
+				<?= Loc::getMessage('LANDING_TPL_FEEDBACK_SEND');?>
+			</span>
+		</span>
+	</span>
+	<?endif;?>
 <?endforeach;?>
 
 	</div>
@@ -187,7 +225,7 @@ foreach ($arResult['DEMO'] as $item):
 	<div class="<?= (defined('ADMIN_SECTION') && ADMIN_SECTION === true) ? '' : 'landing-navigation';?>">
 		<?$APPLICATION->IncludeComponent(
 			'bitrix:main.pagenavigation',
-			'',//grid
+			'',
 			array(
 				'NAV_OBJECT' => $arResult['NAVIGATION'],
 				'SEF_MODE' => 'N',
@@ -199,29 +237,36 @@ foreach ($arResult['DEMO'] as $item):
 	</div>
 <?endif;?>
 
+<?if (Manager::isB24()):?>
 <a class="landing-license-banner" href="javascript:void(0)" onclick="BX.SidePanel.Instance.open('<?= SITE_DIR;?>marketplace/?placement=site_templates');">
 	<div class="landing-license-banner-icon">
 		<div class="landing-license-banner-icon-arrow"></div>
 	</div>
 	<div class="landing-license-banner-title">
-		<?= Loc::getMessage('LANDING_TPL_LOAD_APP_TEMPLATE');?>
+		<?= Loc::getMessage('LANDING_TPL_LOAD_APP_TEMPLATE_2');?>
 	</div>
 </a>
+<?endif;?>
 
 <script type="text/javascript">
 	BX.ready(function ()
 	{
 		<?if ($arResult['LIMIT_REACHED']):?>
-		if (typeof BX.Landing.PaymentAlert !== 'undefined')
+		var nodes = BX('grid-tile-wrap').querySelectorAll('.landing-item-payment');
+		if (nodes.length)
 		{
-			BX.Landing.PaymentAlert({
-				nodes: wrapper.querySelectorAll('.landing-item-payment'),
-				title: '<?= \CUtil::jsEscape(Loc::getMessage('LANDING_TPL_LIMIT_REACHED_TITLE'));?>',
-				message: '<?= ($arParams['SITE_ID'] > 0)
-					? \CUtil::jsEscape(Loc::getMessage('LANDING_TPL_PAGE_LIMIT_REACHED_TEXT'))
-					: \CUtil::jsEscape(Loc::getMessage('LANDING_TPL_SITE_LIMIT_REACHED_TEXT'));
-					?>'
-			});
+			for (var i = 0, c = nodes.length; i < c; i++)
+			{
+				BX.bind(nodes[i], 'click', function(e)
+				{
+					<?
+					echo \Bitrix\Landing\Restriction\Manager::getActionCode(
+						($arParams['TYPE'] == 'STORE') ? 'limit_shop_number' : 'limit_sites_number'
+					);
+					?>
+					BX.PreventDefault(e);
+				});
+			}
 		}
 		<?endif;?>
 

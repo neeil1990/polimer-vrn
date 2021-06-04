@@ -17,9 +17,7 @@ Class messageservice extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		$this->MODULE_VERSION = $arModuleVersion["VERSION"];
 		$this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
@@ -76,6 +74,7 @@ Class messageservice extends CModule
 				$APPLICATION->ThrowException(implode("", $errors));
 				return false;
 			}
+			\Bitrix\Main\Config\Option::delete($this->MODULE_ID);
 		}
 
 		UnRegisterModuleDependences('main', 'OnAfterEpilog', 'messageservice', '\Bitrix\MessageService\Queue', 'run');
@@ -114,8 +113,18 @@ Class messageservice extends CModule
 		if($_ENV["COMPUTERNAME"]!='BX')
 		{
 			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/messageservice/install/admin", $_SERVER["DOCUMENT_ROOT"]."/bitrix/admin");
-			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/messageservice/install/components/bitrix", $_SERVER["DOCUMENT_ROOT"]."/bitrix/components/bitrix");
-			DeleteDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/messageservice/install/tools", $_SERVER["DOCUMENT_ROOT"]."/bitrix/tools");
+
+			if (is_dir($p = $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/messageservice/install/components/bitrix"))
+			{
+				foreach (scandir($p) as $item)
+				{
+					if ($item == '..' || $item == '.')
+						continue;
+
+					DeleteDirFilesEx('/bitrix/components/bitrix/'.$item);
+				}
+			}
+			DeleteDirFilesEx("/bitrix/tools/messageservice");
 		}
 
 		return true;

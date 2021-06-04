@@ -85,6 +85,39 @@
 		{
 			var opts = this.options;
 
+			if (
+				!isPlainObject(this.mapOptions.center)
+				|| (
+					isPlainObject(this.mapOptions.center)
+					&& Object.keys(this.mapOptions.center).length === 0
+				)
+			)
+			{
+				var center  = {
+					lat: 54.71916230318956,
+					lng: 20.48836888900491
+				};
+
+				if (
+					isArray(this.mapOptions.markers)
+					&& this.mapOptions.markers.length > 0
+				)
+				{
+					var firstMarker = this.mapOptions.markers[0];
+
+					if (
+						isPlainObject(firstMarker)
+						&& isPlainObject(firstMarker.latLng)
+						&& Object.keys(firstMarker.latLng).length > 0
+					)
+					{
+						center = Object.assign({}, firstMarker.latLng);
+					}
+				}
+
+				this.mapOptions.center = center;
+			}
+
 			this.mapInstance = new google.maps.Map(this.mapContainer, {
 				zoom: this.mapOptions.zoom,
 				center: this.mapOptions.center,

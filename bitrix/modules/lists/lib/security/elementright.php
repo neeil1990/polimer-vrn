@@ -22,8 +22,6 @@ class ElementRight implements RightEntity, Errorable
 	private $rightParam;
 	private $socnetGroupClosed = false;
 
-	private $errorCollection;
-
 	public function __construct(RightParam $rightParam)
 	{
 		$this->rightParam = $rightParam;
@@ -61,7 +59,7 @@ class ElementRight implements RightEntity, Errorable
 				!$this->rightParam->getEntityId() &&
 				$this->listsPermission < \CListPermissions::CAN_READ &&
 				!\CIBlockSectionRights::userHasRightTo(
-					$this->rightParam->getIblockId(), $this->rightParam->getEntityId(), "section_element_bind")
+					$this->rightParam->getIblockId(), $this->rightParam->getEntityId(), "element_read")
 			)
 		)
 		{
@@ -147,7 +145,7 @@ class ElementRight implements RightEntity, Errorable
 			$this->rightParam->getEntityId() &&
 			(
 				$this->listsPermission >= \CListPermissions::CAN_WRITE ||
-				\CIBlockSectionRights::UserHasRightTo(
+				\CIBlockElementRights::UserHasRightTo(
 					$this->rightParam->getIblockId(), $this->rightParam->getEntityId(), "element_delete")
 			)
 		);
@@ -174,7 +172,7 @@ class ElementRight implements RightEntity, Errorable
 			!$this->socnetGroupClosed &&
 			(
 				$this->listsPermission >= \CListPermissions::IS_ADMIN ||
-				\CIBlockSectionRights::UserHasRightTo(
+				\CIBlockRights::UserHasRightTo(
 					$this->rightParam->getIblockId(), $this->rightParam->getIblockId(), "iblock_edit")
 			)
 		);

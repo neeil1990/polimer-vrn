@@ -8,6 +8,7 @@ if (Loader::includeModule('replica'))
 	class MessageHandler extends \Bitrix\Replica\Client\BaseHandler
 	{
 		protected $tasksForumId = 0;
+		protected $messageData = [];
 
 		protected $tableName = "b_forum_message";
 		protected $moduleId = "forum";
@@ -55,6 +56,20 @@ if (Loader::includeModule('replica'))
 		}
 
 		/**
+		 * Forum event onBeforeMessageAdd handler.
+		 *
+		 * @param $data
+		 * @param $uploadDir
+		 *
+		 * @see \CForumMessage::Add()
+		 * @see \Bitrix\Forum\Message::add()
+		 */
+		public function onBeforeMessageAdd($data, $uploadDir): void
+		{
+			$this->messageData = $data;
+		}
+
+		/**
 		 * Forum event onAfterMessageAdd handler.
 		 *
 		 * @param integer &$id Forum message identifier.
@@ -65,6 +80,7 @@ if (Loader::includeModule('replica'))
 		 *
 		 * @return void
 		 * @see \CForumMessage::Add()
+		 * @see \Bitrix\Forum\Message::add()
 		 */
 		public function onAfterMessageAdd(&$id, $message, $topicInfo, $forumInfo, $fields)
 		{
@@ -206,17 +222,19 @@ if (Loader::includeModule('replica'))
 
 				$this->fileHandler->replaceGuidsWithFiles($newRecord);
 
-				$fixed = preg_replace("/\\[USER=[0-9]+\\](.*?)\\[\\/USER\\]/", "\\1", $newRecord["POST_MESSAGE"]);
+				$fixed = $this->clearUserBbCodes($newRecord['POST_MESSAGE']);
 				if ($fixed != null)
 				{
 					$newRecord["POST_MESSAGE"] = $fixed;
 				}
 
-				$fixed = preg_replace("/\\[USER=[0-9]+\\](.*?)\\[\\/USER\\]/", "\\1", $newRecord["POST_MESSAGE_HTML"]);
+				$fixed = $this->clearUserBbCodes($newRecord['POST_MESSAGE_HTML']);
 				if ($fixed != null)
 				{
 					$newRecord["POST_MESSAGE_HTML"] = $fixed;
 				}
+
+				$this->messageData = $newRecord;
 			}
 			return null;
 		}
@@ -240,6 +258,15 @@ if (Loader::includeModule('replica'))
 				$taskId = $newRecord['PARAM2'];
 				if ($taskId > 0)
 				{
+					$fields = ['AUX', 'AUX_DATA'];
+					foreach ($fields as $key)
+					{
+						if (array_key_exists($key, $this->messageData))
+						{
+							$newRecord[$key] = $this->messageData[$key];
+						}
+					}
+
 					\Bitrix\Tasks\Integration\Forum\Task\Comment::onAfterAdd(
 						'TK',
 						$taskId,
@@ -257,8 +284,10 @@ if (Loader::includeModule('replica'))
 								"AUTHOR_IP" => $newRecord["AUTHOR_IP"],
 								"AUTHOR_REAL_IP" => $newRecord["AUTHOR_REAL_IP"],
 								"GUEST_ID" => $newRecord["GUEST_ID"],
+								"AUX" => ($newRecord["AUX"] ?? 'N'),
 							),
 							"MESSAGE" => $newRecord,
+							"AUX_DATA" => ($newRecord["AUX_DATA"] ?? ''),
 						)
 					);
 				}
@@ -377,13 +406,13 @@ if (Loader::includeModule('replica'))
 					}
 				}
 
-				$fixed = preg_replace("/\\[USER=[0-9]+\\](.*?)\\[\\/USER\\]/", "\\1", $newRecord["POST_MESSAGE"]);
+				$fixed = $this->clearUserBbCodes($newRecord['POST_MESSAGE']);
 				if ($fixed != null)
 				{
 					$newRecord["POST_MESSAGE"] = $fixed;
 				}
 
-				$fixed = preg_replace("/\\[USER=[0-9]+\\](.*?)\\[\\/USER\\]/", "\\1", $newRecord["POST_MESSAGE_HTML"]);
+				$fixed = $this->clearUserBbCodes($newRecord['POST_MESSAGE_HTML']);
 				if ($fixed != null)
 				{
 					$newRecord["POST_MESSAGE_HTML"] = $fixed;
@@ -441,7 +470,28 @@ if (Loader::includeModule('replica'))
 				}
 
 				$this->fileHandler->replaceFilesWithGuids($record["ID"], $record);
+
+				$fields = ['AUX', 'AUX_DATA'];
+				foreach ($fields as $key)
+				{
+					if (array_key_exists($key, $this->messageData))
+					{
+						$record[$key] = $this->messageData[$key];
+					}
+				}
 			}
+		}
+
+		/**
+		 * @param string $string
+		 * @return string
+		 */
+		private function clearUserBbCodes($string)
+		{
+			// (\\/|\\\\\\/)
+			// \\/ if for usual messages with bb-code [USER=*]name[/USER]
+			// \\\\\\/ is for service messages with bb-code [USER=*]name[\/USER]
+			return preg_replace("/\\[USER=[0-9]+\\](.*?)\\[(\\/|\\\\\\/)USER\\]/", "\\1", $string);
 		}
 	}
 }

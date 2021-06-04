@@ -1,6 +1,8 @@
-<?
-use Bitrix\Main\Localization\Loc,
-	Bitrix\Highloadblock as HL;
+<?php
+
+use Bitrix\Highloadblock as HL;
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Text\HtmlFilter;
 
 Loc::loadMessages(__FILE__);
 
@@ -32,7 +34,6 @@ class CIBlockPropertyDirectory
 			'DESCRIPTION' => Loc::getMessage('HIBLOCK_PROP_DIRECTORY_DESCRIPTION'),
 			'GetSettingsHTML' => array(__CLASS__, 'GetSettingsHTML'),
 			'GetPropertyFieldHtml' => array(__CLASS__, 'GetPropertyFieldHtml'),
-			'GetPropertyFieldHtmlMulty' => array(__CLASS__, 'GetPropertyFieldHtmlMulty'),
 			'PrepareSettings' => array(__CLASS__, 'PrepareSettings'),
 			'GetOptionsData' => array(__CLASS__, 'GetOptionsData'), //TODO: remove this row after iblock 19.0.0 will be stabled
 			'GetAdminListViewHTML' => array(__CLASS__, 'GetAdminListViewHTML'),
@@ -43,7 +44,10 @@ class CIBlockPropertyDirectory
 			'GetExtendedValue' => array(__CLASS__, 'GetExtendedValue'),
 			'GetSearchContent' => array(__CLASS__, 'GetSearchContent'),
 			'AddFilterFields' => array(__CLASS__, 'AddFilterFields'),
-			'GetUIFilterProperty' => array(__CLASS__, 'GetUIFilterProperty')
+			'GetUIFilterProperty' => array(__CLASS__, 'GetUIFilterProperty'),
+			'GetUIEntityEditorProperty' => array(__CLASS__, 'GetUIEntityEditorProperty'),
+			'GetUIEntityEditorPropertyEditHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyEditHtml'),
+			'GetUIEntityEditorPropertyViewHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyViewHtml'),
 		);
 	}
 
@@ -380,70 +384,6 @@ HIBSELECT;
 		$html = '<select name="'.$strHTMLControlName["VALUE"].'"'.$size.$width.'>';
 		$html .= $options;
 		$html .= '</select>';
-		return  $html;
-	}
-
-	/**
-	 * Return html for edit multiple value.
-	 *
-	 * @param array $arProperty				Property description.
-	 * @param array $value					Current value.
-	 * @param array $strHTMLControlName		Control description.
-	 * @return string
-	 */
-	public static function GetPropertyFieldHtmlMulty($arProperty, $value, $strHTMLControlName)
-	{
-		$max_n = 0;
-		$values = array();
-		if(is_array($value))
-		{
-			$match = array();
-			foreach($value as $property_value_id => $arValue)
-			{
-				$values[$property_value_id] = $arValue["VALUE"];
-				if(preg_match("/^n(\\d+)$/", $property_value_id, $match))
-				{
-					if($match[1] > $max_n)
-						$max_n = intval($match[1]);
-				}
-			}
-		}
-
-		$settings = CIBlockPropertyDirectory::PrepareSettings($arProperty);
-		$size = ($settings["size"] > 1 ? ' size="'.$settings["size"].'"' : '');
-		$width = ($settings["width"] > 0 ? ' style="width:'.$settings["width"].'px"' : ' style="margin-bottom:3px"');
-
-		if($settings["multiple"]=="Y")
-		{
-			$options = CIBlockPropertyDirectory::GetOptionsHtml($arProperty, $values);
-			$html = '<select multiple name="'.$strHTMLControlName["VALUE"].'[]"'.$size.$width.'>';
-			$html .= $options;
-			$html .= '</select>';
-		}
-		else
-		{
-			if(end($values) != "" || substr(key($values), 0, 1) != "n")
-				$values["n".($max_n+1)] = "";
-
-			$name = $strHTMLControlName["VALUE"]."VALUE";
-
-			$html = '<table cellpadding="0" cellspacing="0" border="0" class="nopadding" width="100%" id="tb'.md5($name).'">';
-			foreach($values as $property_value_id=>$value)
-			{
-				$html .= '<tr><td>';
-
-				$options = CIBlockPropertyDirectory::GetOptionsHtml($arProperty, array($value));
-
-				$html .= '<select name="'.$strHTMLControlName["VALUE"].'['.$property_value_id.'][VALUE]"'.$size.$width.'>';
-				$html .= $options;
-				$html .= '</select>';
-
-				$html .= '</td></tr>';
-			}
-			$html .= '</table>';
-
-			$html .= '<input type="button" value="'.Loc::getMessage("HIBLOCK_PROP_DIRECTORY_MORE").'" onclick="if(window.addNewRow){addNewRow(\'tb'.md5($name).'\', -1)}else{addNewTableRow(\'tb'.md5($name).'\', 1, /\[(n)([0-9]*)\]/g, 2)}">';
-		}
 		return  $html;
 	}
 
@@ -787,7 +727,7 @@ HIBSELECT;
 		$name = trim((string)$name);
 		if ($name == '')
 			return false;
-		$name = substr(self::TABLE_PREFIX.$name, 0, 30);
+		$name = mb_substr(self::TABLE_PREFIX.$name, 0, 30);
 		return $name;
 	}
 
@@ -958,5 +898,292 @@ HIBSELECT;
 		unset($fields, $entity);
 
 		return $result;
+	}
+
+	private static function getEntityFieldsForTable($hlTableName)
+	{
+		if (!isset(self::$arFullCache[$hlTableName]))
+		{
+			self::$arFullCache[$hlTableName] = static::getEntityFieldsByFilter($hlTableName, [
+				'select' => ['UF_XML_ID', 'UF_NAME', 'ID']
+			]);
+		}
+
+		return self::$arFullCache[$hlTableName];
+	}
+
+	public static function GetUIEntityEditorProperty($settings, $value): ?array
+	{
+		$hlTableName = (string)($settings['USER_TYPE_SETTINGS']['TABLE_NAME'] ?? '');
+
+		if ($hlTableName === '')
+		{
+			return null;
+		}
+
+		$gridMode = ($settings['GRID_MODE'] ?? false) === true;
+		$hasImages = false;
+		$items = [];
+
+		foreach (static::getEntityFieldsForTable($hlTableName) as $data)
+		{
+			$item = [
+				'NAME' => $data['UF_NAME'] ?? '',
+				'TEXT' => $data['UF_NAME'] ?? '',
+				'VALUE' => $data['UF_XML_ID'],
+				'DESCRIPTION' => $data['UF_DESCRIPTION'] ?? '',
+			];
+
+			if (isset($data['UF_FILE']) && (int)$data['UF_FILE'] >= 0)
+			{
+				$hasImages = true;
+				$item['IMAGE'] = $data['UF_FILE'];
+			}
+
+			if ($settings['MULTIPLE'] !== 'Y' && $hasImages)
+			{
+				$image = \CFile::GetFileArray($data['UF_FILE']) ?: null;
+				$item['IMAGE_SRC'] = $image['SRC'];
+				if ($image)
+				{
+					$item['NAME'] = "<span class=\"catalog-list-dictionary-select-icon\" style=\"background-image:url('{$image['SRC']}');\"></span> ".htmlspecialcharsbx($item['NAME']);
+				}
+				else
+				{
+					$item['NAME'] = htmlspecialcharsbx($item['NAME']);
+				}
+			}
+
+			$items[] = $item;
+		}
+
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			$type = 'multilist';
+		}
+		elseif ($hasImages && $gridMode)
+		{
+			$type = 'custom';
+		}
+		else
+		{
+			$type = 'list';
+		}
+
+		return [
+			'type' => $type,
+			'data' => [
+				'userType' => 'directory',
+				'isHtml' => $hasImages,
+				'items' => $items,
+				'enableEmptyItem' => $settings['IS_REQUIRED'] === 'N',
+			],
+		];
+	}
+
+	public static function GetUIEntityEditorPropertyEditHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$hlTableName = (string)($settings['USER_TYPE_SETTINGS']['TABLE_NAME'] ?? '');
+
+		if ($hlTableName === '')
+		{
+			return '';
+		}
+
+		$propertyId = $settings['ID'];
+		$popupId = 'directory_popup_'.CUtil::JSEscape($propertyId);
+
+		$inputHtml = '';
+		$labelHtml = '';
+		$selectedHtml = '';
+
+		$entityFields = static::getEntityFieldsForTable($hlTableName);
+
+		if ($settings['IS_REQUIRED'] === 'N')
+		{
+			array_unshift($entityFields, [
+				'UF_XML_ID' => '0',
+				'UF_NAME' => Loc::getMessage('HIBLOCK_PROP_DIRECTORY_EMPTY_GRID_VALUE'),
+			]);
+		}
+
+		$checkedXmlId = null;
+
+		foreach ($entityFields as $field)
+		{
+			if ($field['UF_XML_ID'] === $params['VALUE'])
+			{
+				$checkedXmlId = $field['UF_XML_ID'];
+				break;
+			}
+		}
+
+		if (!$checkedXmlId && !empty($entityFields))
+		{
+			$checkedXmlId = reset($entityFields)['UF_XML_ID'];
+		}
+
+		foreach ($entityFields as $field)
+		{
+			$checked = $field['UF_XML_ID'] === $checkedXmlId;
+			$name = HtmlFilter::encode($field['UF_NAME']);
+			$xmlId = HtmlFilter::encode($field['UF_XML_ID']);
+
+			$image = null;
+			if (!empty($field['UF_FILE']))
+			{
+				$image = \CFile::GetFileArray($field['UF_FILE']) ?: null;
+			}
+
+			if ($checked)
+			{
+				if (!empty($image['SRC']))
+				{
+					$selectedHtml .= "<span class=\"catalog-productcard-select-btn-color-icon\" style=\"background-image:url('{$image['SRC']}');\"></span>";
+				}
+
+				$selectedHtml .= " <span class=\"catalog-productcard-select-param-text\">{$name}</span>";
+			}
+
+			$inputName = $params['FIELD_NAME'].'_'.$params['ELEMENT_ID'];
+			$inputId = $params['FIELD_NAME'].'_'.$xmlId.'_'.$params['ELEMENT_ID'];
+			$checkedValue = $checked ? 'checked="checked"' : '';
+			$inputHtml .= "<input style=\"display: none;\" type=\"radio\" name=\"$inputName\" id=\"$inputId\" value=\"$xmlId\" $checkedValue />";
+
+			$class = $checked ? ' selected' : '';
+			$imageHtml = '';
+
+			if (!empty($image['SRC']))
+			{
+				$imageHtml .= "<span class=\"catalog-productcard-select-btn-color-icon\" style=\"background-image:url('{$image['SRC']}');\"></span>";
+			}
+
+			$html = <<<LABEL
+<li class="catalog-productcard-popup-select-item$class">
+	<label for="$inputId" data-role="label_$xmlId" class="catalog-productcard-popup-select-label"
+		onclick="selectDropDownItem(event, this, '$popupId')">
+		$imageHtml <span class="catalog-productcard-popup-select-text">$name</span>
+	</label>
+</li>		
+LABEL;
+			$labelHtml .= $html;
+		}
+
+		if ($selectedHtml === '')
+		{
+			$selectedHtml = Loc::getMessage('HIBLOCK_PROP_DIRECTORY_EMPTY_GRID_VALUE');
+		}
+
+		return <<<HTML
+<div class="catalog-productcard-select">
+	<div class="catalog-productcard-select-container">
+		<div class="catalog-productcard-select-block" onclick="showDropDownPopup(event, this, '$popupId')">
+			<div class="catalog-productcard-select-text fix" data-role="currentOption">
+				$selectedHtml
+			</div>
+			<div class="catalog-productcard-select-arrow"></div>
+			$inputHtml
+			<div class="catalog-productcard-popup-select" data-role="dropdownContent" style="display: none">
+				<ul class="catalog-productcard-popup-select-inner" data-propertyId="$propertyId">$labelHtml</ul>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	if (!window.showDropDownPopup)
+	{
+		window.showDropDownPopup = function(event, element, popupId)
+		{
+			var popup = BX.Main.PopupManager.getPopupById("prop_directory_" + popupId);
+			if (popup)
+			{
+				popup.close();
+				return;
+			}
+			
+			var contentNode = BX.clone(element.querySelector('[data-role="dropdownContent"]'));	
+			var items = contentNode.querySelectorAll('label');
+			for (var i in items)
+			{
+				if (items.hasOwnProperty(i))
+				{
+					var input = document.getElementById(items[i].getAttribute('for'));
+					if (BX.type.isDomNode(input) && input.checked)
+					{
+						BX.addClass(items[i].parentNode, 'selected');							
+					}
+					else
+					{
+						BX.removeClass(items[i].parentNode, 'selected');								
+					}
+				}
+			}
+			
+			popup = BX.Main.PopupManager.create(
+				"prop_directory_" + popupId,
+				element,
+				{
+					cacheable: false,
+					autoHide: true,
+					offsetLeft: 0,
+					padding: 0,
+					offsetTop: 3,
+					minWidth: 400,
+					overlay: false,
+					draggable: {restrict: true},
+					closeByEsc: true,
+					content: contentNode
+				}
+			);
+			popup.show();
+		};
+	}
+	
+	if (!window.selectDropDownItem)
+	{
+		window.selectDropDownItem = function(event, element, popupId)
+		{
+			var popup = BX.Main.PopupManager.getPopupById("prop_directory_" + popupId);
+			if (popup)
+			{
+				var currentOption = popup.bindElement.querySelector('[data-role="currentOption"]');
+				currentOption.innerHTML = element.innerHTML;
+			}
+		};
+	}
+</script>
+HTML;
+	}
+
+	public static function GetUIEntityEditorPropertyViewHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$value = ['VALUE' => $params['VALUE'] ?? ''];
+
+		$viewHtml = '';
+
+		$dataValue = static::getExtendedValue($settings, $value);
+		if ($dataValue)
+		{
+			$viewHtml .= '<div class="brandblock-block-wrapper">';
+
+			if (!empty($dataValue['UF_FILE']))
+			{
+				$image = \CFile::GetFileArray($dataValue['UF_FILE']);
+				if ($image)
+				{
+					$viewHtml .= '<span class="brandblock-block" style="background-image:url(\'';
+					$viewHtml .= $image['SRC'];
+					$viewHtml .= '\');"></span>';
+				}
+			}
+
+			$viewHtml .= htmlspecialcharsbx($dataValue['UF_NAME']);
+			$viewHtml .= '</div>';
+		}
+
+
+		return $viewHtml;
 	}
 }

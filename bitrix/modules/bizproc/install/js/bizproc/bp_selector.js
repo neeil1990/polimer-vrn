@@ -8,6 +8,7 @@
 	BX.Bizproc.Selector = {
 		delimiter: '=',
 		listenKeyCode: 187,
+		listenKey: '=',
 		currentData: {},
 		inputElement: null,
 		popup: null,
@@ -58,9 +59,9 @@
 		return [];
 	};
 
-	BX.Bizproc.Selector.getActivitiesItems = function ()
+	BX.Bizproc.Selector.getActivitiesItems = function (nocache)
 	{
-		if (this.activitiesItemsCache === null)
+		if (this.activitiesItemsCache === null || nocache)
 		{
 			this.activitiesItemsCache = this.getTemplateActivitiesItems([rootActivity.Serialize()], arAllActivities);
 		}
@@ -87,9 +88,40 @@
 					result.push({
 						text: activityData['RETURN'][key].NAME,
 						description: template[i].Properties.Title || activityData.NAME,
-						value: '{='+template[i].Name+':'+key+'}'
+						value: '{='+template[i].Name+':'+key+'}',
+						propertyObject: template[i].Name,
+						propertyField: key,
+						property: {
+							Name: activityData['RETURN'][key].NAME,
+							Type: activityData['RETURN'][key].TYPE
+						}
 					});
 				}
+			}
+			else if (activityData && BX.type.isArray(activityData['ADDITIONAL_RESULT']))
+			{
+				var props = template[i]['Properties'];
+				activityData['ADDITIONAL_RESULT'].forEach(function(addProperty)
+				{
+					if (props[addProperty])
+					{
+						for (var fieldId in props[addProperty])
+						{
+							if (props[addProperty].hasOwnProperty(fieldId))
+							{
+								var field = props[addProperty][fieldId];
+								result.push({
+									text: field['Name'],
+									description: template[i].Properties.Title || activityData.NAME,
+									value: '{='+template[i].Name+':'+fieldId+'}',
+									propertyObject: template[i].Name,
+									propertyField: fieldId,
+									property: field
+								});
+							}
+						}
+					}
+				}, this);
 			}
 
 			if (template[i].Children && template[i].Children.length > 0)
@@ -220,7 +252,7 @@
 				},scope), 10)
 			}
 		}
-		else if (e.shiftKey === false && e.keyCode == me.listenKeyCode)
+		else if (e.shiftKey === false && (e.keyCode == me.listenKeyCode || e.key === me.listenKey))
 		{
 			if (!scope.mentionListen)
 			{
@@ -288,7 +320,8 @@
 
 			result.push({
 				text: items[key].Name,
-				value: '{='+type+':'+key+'}'
+				//TODO: experimental simple expressions
+				value: type === 'Document' ? '{{'+items[key].Name+'}}' : '{='+type+':'+key+'}'
 			});
 		}
 		return this.filterItems(result, text);
@@ -357,28 +390,51 @@
 				items: this.filterItems(activitiesItems, query)
 			});
 
+		if (window.arWorkflowGlobalConstants && BX.util.object_keys(window.arWorkflowGlobalConstants).length > 0)
+		{
+			result.push({
+				tabName: '@' + BX.message('BIZPROC_JS_BP_SELECTOR_CONSTANTS'),
+				tabId: 'gconstants',
+				items: this.extractMenuItem(query, window.arWorkflowGlobalConstants, 'GlobalConst')
+			});
+		}
+
 		result.push({
 			tabName: BX.message('BIZPROC_JS_BP_SELECTOR_SYSTEM'),
 			tabId: 'system',
-			items: this.filterItems([{
-				text: BX.message('BIZPROC_JS_BP_SELECTOR_WORKFLOW_ID'),
-				value: '{=Workflow:ID}'
-			},{
-				text: BX.message('BIZPROC_JS_BP_SELECTOR_TARGET_USER'),
-				value: '{=Template:TargetUser}'
-			},{
-				text: BX.message('BIZPROC_JS_BP_SELECTOR_USER_ID'),
-				value: '{=User:ID}'
-			},{
-				text: BX.message('BIZPROC_JS_BP_SELECTOR_NOW'),
-				value: '{=System:Now}'
-			},{
-				text: BX.message('BIZPROC_JS_BP_SELECTOR_NOW_LOCAL'),
-				value: '{=System:NowLocal}'
-			},{
-				text: BX.message('BIZPROC_JS_BP_SELECTOR_DATE'),
-				value: '{=System:Date}'
-			}], query)
+			items: this.filterItems(
+				[
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_WORKFLOW_ID'),
+						value: '{=Workflow:ID}'
+					},
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_TARGET_USER'),
+						value: '{=Template:TargetUser}'
+					},
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_USER_ID'),
+						value: '{=User:ID}'
+					},
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_NOW'),
+						value: '{=System:Now}'
+					},
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_NOW_LOCAL'),
+						value: '{=System:NowLocal}'
+					},
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_DATE'),
+						value: '{=System:Date}'
+					},
+					{
+						text: BX.message('BIZPROC_JS_BP_SELECTOR_EOL'),
+						value: '{=System:Eol}'
+					}
+				],
+				query
+			)
 		});
 
 		result.push({
@@ -416,6 +472,14 @@
 				text: 'isworktime',
 				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_ISWORKTIME_DESCRIPTION'),
 				value: '{{=isworktime()}}'
+			},{
+				text: 'touserdate',
+				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_TOUSERDATE_DESCRIPTION'),
+				value: '{{=touserdate()}}'
+			},{
+				text: 'getuserdateoffset',
+				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_GETUSERDATEOFFSET_DESCRIPTION'),
+				value: '{{=getuserdateoffset()}}'
 			},{
 				text: 'if',
 				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_IF_DESCRIPTION'),
@@ -468,6 +532,14 @@
 				text: 'strlen',
 				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_STRLEN_DESCRIPTION'),
 				value: '{{=strlen()}}'
+			},{
+				text: 'implode',
+				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_IMPLODE_DESCRIPTION'),
+				value: '{{=implode(,)}}'
+			},{
+				text: 'explode',
+				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_EXPLODE_DESCRIPTION'),
+				value: '{{=explode(,)}}'
 			},{
 				text: 'randstring',
 				description: BX.message('BIZPROC_JS_BP_SELECTOR_FUNCTION_RANDSTRING_DESCRIPTION'),

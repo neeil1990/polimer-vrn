@@ -17,8 +17,6 @@ class Right implements Errorable
 
 	private $listsPermission;
 
-	private $errorCollection;
-
 	public function __construct(RightParam $rightParam, RightEntity $entityRight)
 	{
 		$this->entityRight = $entityRight;

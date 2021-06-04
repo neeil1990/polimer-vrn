@@ -6,7 +6,9 @@ use Bitrix\Sale\Location\Admin\SiteLocationHelper as Helper;
 use Bitrix\Sale\Location\Admin\SearchHelper;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
+
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/sale/prolog.php');
 
 Loc::loadMessages(__FILE__);
@@ -117,22 +119,22 @@ if(empty($fatal))
 
 <?SearchHelper::checkIndexesValid();?>
 
-<?if(strlen($fatal)):?>
+<? if($fatal <> ''): ?>
 	<?
 	$messageParams = array('MESSAGE' => $fatal, 'type' => 'ERROR');
-	if ($publicMode)
+	if($publicMode)
 	{
 		$messageParams["SKIP_PUBLIC_MODE"] = true;
 	}
 	?>
 	<div class="error-message">
-		<?CAdminMessage::ShowMessage($messageParams)?>
+		<? CAdminMessage::ShowMessage($messageParams) ?>
 	</div>
 
-<?else:?>
+<? else: ?>
 
-	<?$lAdmin->DisplayList();?>
+	<? $lAdmin->DisplayList(); ?>
 
-<?endif?>
+<? endif?>
 
 <?require($DOCUMENT_ROOT."/bitrix/modules/main/include/epilog_admin.php");?>

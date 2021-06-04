@@ -9,6 +9,8 @@
 
 import {PullClient} from "pull.client";
 import {VuexBuilderModel} from 'ui.vue.vuex';
+import {EventType} from "im.const";
+import {Logger} from "im.lib.logger";
 
 class ImPullCommandHandler
 {
@@ -27,6 +29,20 @@ class ImPullCommandHandler
 		{
 			this.store = params.store;
 		}
+
+		this.option = typeof params.store === 'object' && params.store? params.store: {};
+
+		if (
+			!(
+				typeof this.option.handlingDialog === 'object'
+				&& this.option.handlingDialog
+				&& this.option.handlingDialog.chatId
+				&& this.option.handlingDialog.dialogId
+			)
+		)
+		{
+			this.option.handlingDialog = false;
+		}
 	}
 
 	getModuleId()
@@ -39,15 +55,82 @@ class ImPullCommandHandler
 		return PullClient.SubscriptionType.Server;
 	}
 
-	handleMessageChat(params)
+	skipExecute(params, extra = {})
 	{
+		if (!extra.optionImportant)
+		{
+			if (this.option.skip)
+			{
+				Logger.info('Pull: command skipped while loading messages', params);
+				return true;
+			}
+
+			if (!this.option.handlingDialog)
+			{
+				return false;
+			}
+		}
+
+		if (typeof params.chatId !== 'undefined' || typeof params.dialogId !== 'undefined' )
+		{
+			if (
+				typeof params.chatId !== 'undefined'
+				&& parseInt(params.chatId) === parseInt(this.option.handlingDialog.chatId)
+			)
+			{
+				return false;
+			}
+
+			if (
+				typeof params.dialogId !== 'undefined'
+				&& params.dialogId.toString() === this.option.handlingDialog.dialogId.toString()
+			)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	handleMessage(params, extra)
+	{
+		this.handleMessageAdd(params, extra);
+	}
+
+	handleMessageChat(params, extra)
+	{
+		this.handleMessageAdd(params, extra);
+	}
+
+	handleMessageAdd(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
 		if (params.chat && params.chat[params.chatId])
 		{
 			this.store.dispatch('dialogues/update', {
-				dialogId: 'chat'+params.chatId,
+				dialogId: params.dialogId,
 				fields: params.chat[params.chatId]
 			});
 		}
+
+		this.store.dispatch('recent/update', {
+			id: params.dialogId,
+			fields: {
+				message: {
+					id: params.message.id,
+					text: params.message.text,
+					date: params.message.date
+				},
+				counter: params.counter
+			}
+		});
 
 		if (params.users)
 		{
@@ -56,9 +139,30 @@ class ImPullCommandHandler
 
 		if (params.files)
 		{
-			this.store.dispatch('files/set', this.controller.prepareFilesBeforeSave(
-				 VuexBuilderModel.convertToArray(params.files)
-			));
+			let files = VuexBuilderModel.convertToArray(params.files);
+			files.forEach(file =>
+			{
+				file = this.controller.application.prepareFilesBeforeSave(file);
+				if (
+					files.length === 1
+					&& params.message.templateFileId
+					&& this.store.state.files.index[params.chatId]
+					&& this.store.state.files.index[params.chatId][params.message.templateFileId]
+				)
+				{
+					this.store.dispatch('files/update', {
+						id: params.message.templateFileId,
+						chatId: params.chatId,
+						fields: file
+					}).then(() => {
+						this.controller.application.emit(EventType.dialog.scrollToBottom, {cancelIfScrollChange: true});
+					});
+				}
+				else
+				{
+					this.store.dispatch('files/set', file);
+				}
+			});
 		}
 
 		let collection = this.store.state.messages.collection[params.chatId];
@@ -68,61 +172,59 @@ class ImPullCommandHandler
 		}
 
 		let update = false;
-		if (params.message.tempId && collection.length > 0)
+		if (params.message.templateId && collection.length > 0)
 		{
 			for (let index = collection.length-1; index >= 0; index--)
 			{
-				if (collection[index].id == params.message.tempId)
+				if (collection[index].id === params.message.templateId)
 				{
 					update = true;
 					break;
 				}
 			}
 		}
+
 		if (update)
 		{
 			this.store.dispatch('messages/update', {
-				id: params.message.tempId,
-				chatId: params.message.chatId,
-				fields: params.message
+				id: params.message.templateId,
+				chatId: params.chatId,
+				fields: {
+					push: false,
+					...params.message,
+					sending: false,
+					error: false,
+				}
+			}).then(() => {
+				this.controller.application.emit(EventType.dialog.scrollToBottom, {cancelIfScrollChange: params.message.senderId !== this.controller.application.getUserId()});
 			});
 		}
-		else if (this.controller.isUnreadMessagesLoaded())
+		else if (this.controller.application.isUnreadMessagesLoaded())
 		{
-			let unreadCountInCollection = 0;
-			if (collection.length > 0)
+			if (this.controller.application.getChatId() === params.chatId)
 			{
-				collection.forEach(element => element.unread? unreadCountInCollection++: 0);
+				this.store.commit('application/increaseDialogExtraCount');
 			}
 
-			if (unreadCountInCollection > 0)
-			{
-				this.store.commit('application/set', {dialog: {
-					messageLimit: this.controller.getRequestMessageLimit() + unreadCountInCollection
-				}});
-			}
-			else if (this.controller.getMessageLimit() != this.controller.getRequestMessageLimit())
-			{
-				this.store.commit('application/set', {dialog: {
-					messageLimit: this.controller.getRequestMessageLimit()
-				}});
-			}
-
-			this.store.dispatch('messages/set', {...params.message, unread: true});
+			this.store.dispatch('messages/setAfter', {
+				push: false,
+				...params.message,
+				unread: true
+			});
 		}
 
-		this.controller.stopOpponentWriting({
-			dialogId: 'chat'+params.message.chatId,
+		this.controller.application.stopOpponentWriting({
+			dialogId: params.dialogId,
 			userId: params.message.senderId
 		});
 
-		if (params.message.senderId == this.controller.getUserId())
+		if (params.message.senderId === this.controller.application.getUserId())
 		{
 			this.store.dispatch('messages/readMessages', {
-				chatId: params.message.chatId
+				chatId: params.chatId
 			}).then(result => {
 				this.store.dispatch('dialogues/update', {
-					dialogId: 'chat'+params.message.chatId,
+					dialogId: params.dialogId,
 					fields: {
 						counter: 0,
 					}
@@ -132,7 +234,7 @@ class ImPullCommandHandler
 		else
 		{
 			this.store.dispatch('dialogues/increaseCounter', {
-				dialogId: 'chat'+params.message.chatId,
+				dialogId: params.dialogId,
 				count: 1,
 			});
 		}
@@ -148,36 +250,150 @@ class ImPullCommandHandler
 		this.execMessageUpdateOrDelete(params, extra, command);
 	}
 
-	handleMessageDeleteComplete(params)
+	execMessageUpdateOrDelete(params, extra, command)
 	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.controller.application.stopOpponentWriting({
+			dialogId: params.dialogId,
+			userId: params.senderId
+		});
+
+		this.store.dispatch('messages/update', {
+			id: params.id,
+			chatId: params.chatId,
+			fields: {
+				text: command === "messageUpdate"? params.text: '',
+				textOriginal: command === "messageUpdate"? params.textOriginal: '',
+				params: params.params,
+				blink: true
+			}
+		}).then(() => {
+			this.controller.application.emit(EventType.dialog.scrollToBottom, {cancelIfScrollChange: true});
+		});
+
+		let recentItem = this.store.getters['recent/get'](params.dialogId);
+		if (
+			command === 'messageUpdate' &&
+			recentItem.element &&
+			recentItem.element.message.id === params.id
+		)
+		{
+			this.store.dispatch('recent/update', {
+				id: params.dialogId,
+				fields: {
+					message: {
+						id: params.id,
+						text: params.text,
+						date: recentItem.element.message.date
+					}
+				}
+			});
+		}
+
+		if (
+			command === 'messageDelete' &&
+			recentItem.element &&
+			recentItem.element.message.id === params.id
+		)
+		{
+			this.store.dispatch('recent/update', {
+				id: params.dialogId,
+				fields: {
+					message: {
+						id: params.id,
+						text: 'Message deleted',
+						date: recentItem.element.message.date
+					}
+				}
+			});
+		}
+	}
+
+	handleMessageDeleteComplete(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
 		this.store.dispatch('messages/delete', {
 			id: params.id,
 			chatId: params.chatId,
 		});
 
-		this.controller.stopOpponentWriting({
+		this.controller.application.stopOpponentWriting({
 			dialogId: params.dialogId,
 			userId: params.senderId,
 			action: false
 		});
 	}
 
-	handleMessageParamsUpdate(params)
+	handleMessageLike(params, extra)
 	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.store.dispatch('messages/update', {
+			id: params.id,
+			chatId: params.chatId,
+			fields: {params: {LIKE: params.users}}
+		});
+	}
+
+	handleChatOwner(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.store.dispatch('dialogues/update', {
+			dialogId: params.dialogId,
+			fields: {
+				ownerId: params.userId,
+			}
+		});
+	}
+
+	handleMessageParamsUpdate(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
 		this.store.dispatch('messages/update', {
 			id: params.id,
 			chatId: params.chatId,
 			fields: {params: params.params}
+		}).then(() => {
+			this.controller.application.emit(EventType.dialog.scrollToBottom, {cancelIfScrollChange: true});
 		});
 	}
 
-	handleStartWriting(params)
+	handleStartWriting(params, extra)
 	{
-		this.controller.startOpponentWriting(params);
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.controller.application.startOpponentWriting(params);
 	}
 
-	handleReadMessageChat(params)
+	handleReadMessage(params, extra)
 	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
 		this.store.dispatch('messages/readMessages', {
 			chatId: params.chatId,
 			readId: params.lastId
@@ -189,25 +405,119 @@ class ImPullCommandHandler
 				}
 			});
 		});
-	}
 
-	execMessageUpdateOrDelete(params, extra, command)
-	{
-		this.store.dispatch('messages/update', {
-			id: params.id,
-			chatId: params.chatId,
+		this.store.dispatch('recent/update', {
+			id: params.dialogId,
 			fields: {
-				text: command == "messageUpdate"? params.text: '',
-				textOriginal: command == "messageUpdate"? params.textOriginal: '',
-				params: params.params,
-				blink: true
+				counter: params.counter
 			}
 		});
+	}
 
-		this.controller.stopOpponentWriting({
+	handleReadMessageChat(params, extra)
+	{
+		this.handleReadMessage(params, extra);
+	}
+
+	handleReadMessageOpponent(params, extra)
+	{
+		this.execReadMessageOpponent(params, extra);
+	}
+
+	handleReadMessageChatOpponent(params, extra)
+	{
+		this.execReadMessageOpponent(params, extra);
+	}
+
+	execReadMessageOpponent(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.store.dispatch('dialogues/updateReaded', {
 			dialogId: params.dialogId,
-			userId: params.senderId
+			userId: params.userId,
+			userName: params.userName,
+			messageId: params.lastId,
+			date: params.date,
+			action: true
 		});
+	}
+
+	handleUnreadMessageOpponent(params, extra)
+	{
+		this.execUnreadMessageOpponent(params, extra);
+	}
+
+	handleUnreadMessageChatOpponent(params, extra)
+	{
+		this.execUnreadMessageOpponent(params, extra);
+	}
+
+	execUnreadMessageOpponent(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.store.dispatch('dialogues/updateReaded', {
+			dialogId: params.dialogId,
+			userId: params.userId,
+			action: false
+		});
+	}
+
+	handleFileUpload(params, extra)
+	{
+		if (this.skipExecute(params, extra))
+		{
+			return false;
+		}
+
+		this.store.dispatch('files/set', this.controller.application.prepareFilesBeforeSave(
+			 VuexBuilderModel.convertToArray({file: params.fileParams})
+		)).then(() => {
+			this.controller.application.emit(EventType.dialog.scrollToBottom, {cancelIfScrollChange: true});
+		});
+	}
+
+	handleChatPin(params, extra)
+	{
+		this.store.dispatch('recent/pin', {
+			id: params.dialogId,
+			action: params.active
+		});
+	}
+
+	handleChatHide(params, extra)
+	{
+		this.store.dispatch('recent/delete', {
+			id: params.dialogId
+		});
+	}
+
+	handleReadNotifyList(params, extra)
+	{
+		this.store.dispatch('recent/update', {
+			id: 'notify',
+			fields: {
+				counter: params.counter
+			}
+		});
+	}
+
+	handleUserInvite(params, extra)
+	{
+		if (!params.invited)
+		{
+			this.store.dispatch('users/update', {
+				id: params.userId,
+				fields: params.user
+			});
+		}
 	}
 }
 

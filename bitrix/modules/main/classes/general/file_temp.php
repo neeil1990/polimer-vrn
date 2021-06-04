@@ -1,6 +1,11 @@
-<?
+<?php
+
+use Bitrix\Main;
+use Bitrix\Main\Security;
+
 class CTempFile
 {
+	private static $is_exit_function_registered = false;
 	private static $arFiles = array();
 
 	public static function GetAbsoluteRoot()
@@ -32,19 +37,22 @@ class CTempFile
 			$i++;
 
 			if($file_name == '/')
-				$dir_add = md5(mt_rand());
+				$dir_add = Security\Random::getString(32);
 			elseif($i < 25)
-				$dir_add = substr(md5(mt_rand()), 0, 3);
+				$dir_add = substr(Security\Random::getString(32), 0, 3);
 			else
-				$dir_add = md5(mt_rand());
+				$dir_add = Security\Random::getString(32);
 
 			$temp_path = $dir_name."/".$dir_add.$file_name;
 
 			if(!file_exists($temp_path))
 			{
 				//Delayed unlink
-				if(empty(self::$arFiles))
+				if(!self::$is_exit_function_registered)
+				{
+					self::$is_exit_function_registered = true;
 					register_shutdown_function(array('CTempFile', 'Cleanup'));
+				}
 
 				self::$arFiles[$temp_path] = $dir_name."/".$dir_add;
 
@@ -66,7 +74,7 @@ class CTempFile
 			while(true)
 			{
 				$i++;
-				$dir_add = md5(mt_rand());
+				$dir_add = Security\Random::getString(32);
 				$temp_path = $dir_name.$dir_add."/";
 
 				if(!file_exists($temp_path))
@@ -75,7 +83,14 @@ class CTempFile
 		}
 		else //Fixed name during the session
 		{
-			$subdir = implode("/", (is_array($subdir) ? $subdir : array($subdir, bitrix_sessid())))."/";
+			$localStorage = Main\Application::getInstance()->getLocalSession('userSessionData');
+			if (!isset($localStorage['tempFileToken']))
+			{
+				$localStorage->set('tempFileToken', Security\Random::getString(32));
+			}
+			$token = $localStorage->get('tempFileToken');
+
+			$subdir = implode("/", (is_array($subdir) ? $subdir : array($subdir, $token)))."/";
 			while (strpos($subdir, "//") !== false)
 				$subdir = str_replace("//", "/", $subdir);
 			$bFound = false;
@@ -98,8 +113,11 @@ class CTempFile
 		}
 
 		//Delayed unlink
-		if(empty(self::$arFiles))
+		if(!self::$is_exit_function_registered)
+		{
+			self::$is_exit_function_registered = true;
 			register_shutdown_function(array('CTempFile', 'Cleanup'));
+		}
 
 		//Function ends only here
 		return $temp_path;
@@ -120,13 +138,17 @@ class CTempFile
 				}
 				//Clean whole temporary directory from CTempFile::GetFileName('');
 				elseif(
-					substr($temp_path, -1) == '/'
-					&& strpos($temp_path, "BXTEMP") === false
+					mb_substr($temp_path, -1) == '/'
+					&& mb_strpos($temp_path, "BXTEMP") === false
 					&& is_dir($temp_path)
 				)
 				{
 					CTempFile::_absolute_path_recursive_delete($temp_path);
 				}
+			}
+			elseif(file_exists($temp_dir))
+			{
+				@rmdir($temp_dir);
 			}
 		}
 
@@ -175,7 +197,7 @@ class CTempFile
 
 	private static function _absolute_path_recursive_delete($path)
 	{
-		if(strlen($path) == 0 || $path == '/')
+		if($path == '' || $path == '/')
 			return false;
 
 		$f = true;
@@ -199,7 +221,8 @@ class CTempFile
 				}
 				closedir($handle);
 			}
-			if(!@rmdir($path))
+			$r = @rmdir($path);
+			if(!$r)
 				return false;
 			return $f;
 		}
@@ -207,4 +230,3 @@ class CTempFile
 	}
 
 }
-?>

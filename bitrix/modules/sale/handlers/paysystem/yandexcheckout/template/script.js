@@ -18,6 +18,8 @@
 			this.ajaxUrl = params.ajaxUrl;
 			this.paymentId = params.paymentId;
 			this.paySystemId = params.paySystemId;
+			this.isAllowedSubmitting = true;
+			this.returnUrl = params.returnUrl;
 
 			this.bindEvents();
 		},
@@ -30,12 +32,28 @@
 		sendRequest: function(e)
 		{
 			e.preventDefault();
-			var data, formData = this.getAllFormData(), i;
+
+			if (!this.isAllowedSubmitting)
+			{
+				return;
+			}
+
+			var data,
+				formData = this.getAllFormData(),
+				submitButton = this.formNode.querySelector('input[type="submit"]'),
+				i;
+
+			if (submitButton)
+			{
+				submitButton.disabled = true;
+			}
+			this.isAllowedSubmitting = false;
 
 			data = {
 				sessid: BX.bitrix_sessid(),
 				PAYMENT_ID: this.paymentId,
-				PAYSYSTEM_ID: this.paySystemId
+				PAYSYSTEM_ID: this.paySystemId,
+				RETURN_URL: this.returnUrl,
 			};
 
 			for (i in formData)
@@ -54,11 +72,14 @@
 				onsuccess: BX.proxy(function (result) {
 					if (result.status === 'success')
 					{
+						this.isAllowedSubmitting = true;
 						this.updateTemplateHtml(result.template);
 					}
 					else if (result.status === 'error')
 					{
-						this.showErrorTemplate(result.errors);
+						this.isAllowedSubmitting = true;
+						this.showErrorTemplate(result.buyerErrors);
+						BX.onCustomEvent('onPaySystemAjaxError', [result.buyerErrors]);
 					}
 				}, this)
 			});
@@ -82,34 +103,32 @@
 
 		updateTemplateHtml: function (html)
 		{
-			var data = BX.processHTML(html);
-			BX.loadCSS(data['STYLE']);
-			this.paysystemBlockNode.innerHTML = data['HTML'];
-
-			for (var i in data['SCRIPT'])
-			{
-				if (data['SCRIPT'].hasOwnProperty(i))
-				{
-					BX.evalGlobal(data['SCRIPT'][i]['JS']);
-				}
-			}
+			BX.html(this.paysystemBlockNode, html)
 		},
 
 		showErrorTemplate: function(errors)
 		{
-			var error = '';
-			for (var i in errors)
+			var errorsList = [
+				BX.message('SALE_HANDLERS_PAY_SYSTEM_YANDEX_CHECKOUT_ERROR_MESSAGE_HEADER'),
+			];
+			if (errors)
 			{
-				if (errors.hasOwnProperty(i))
+				for (var error in errors)
 				{
-					error += errors[i] + "<br>";
+					if (errors.hasOwnProperty(error))
+					{
+						errorsList.push(errors[error]);
+					}
 				}
 			}
 
-			var resultDiv = document.createElement('div');
-			resultDiv.innerHTML = error;
-			resultDiv.classList.add("alert");
-			resultDiv.classList.add("alert-danger");
+			errorsList.push(BX.message('SALE_HANDLERS_PAY_SYSTEM_YANDEX_CHECKOUT_ERROR_MESSAGE_FOOTER'));
+
+			var resultDiv = BX.create('div', {
+				props: {className: 'alert alert-danger'},
+				html: errorsList.join('<br />'),
+			});
+
 			this.paysystemBlockNode.innerHTML = '';
 			this.paysystemBlockNode.appendChild(resultDiv);
 		},
@@ -132,7 +151,7 @@
 
 			this.initPhoneControls = function()
 			{
-				var inputList = BX.convert.nodeListToArray(this.form.querySelectorAll('.paysystem-yandex-input-phone'));
+				var inputList = BX.convert.nodeListToArray(this.form.querySelectorAll('.js-paysystem-yandex-input-phone'));
 				inputList.forEach(function(inputNode){
 					this.initPhoneControl(inputNode, false);
 				}, this);
@@ -145,7 +164,6 @@
 					return;
 				}
 
-				var flagNode = node.previousElementSibling;
 				var dataNode = node.nextElementSibling;
 
 				new BXMaskedPhone({
@@ -154,9 +172,7 @@
 					'maskedInput': {
 						input: node,
 						dataInput: dataNode
-					},
-					'flagNode': flagNode,
-					'flagSize': 24
+					}
 				});
 
 				this.initDisplayedToDataControlEvents(node, dataNode);

@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_35_8_HEADER--NAME'),
 		'section' => array('menu'),
+		'dynamic' => false,
 	),
 	'nodes' => array(
 		'.landing-block-node-logo' => array(
@@ -29,7 +30,7 @@ return array(
 		),
 		'.landing-block-node-text' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_35_8_HEADER--SLOGAN'),
-			'type' => ['typo'],
+			'type' => ['typo-link'],
 		),
 	),
 );

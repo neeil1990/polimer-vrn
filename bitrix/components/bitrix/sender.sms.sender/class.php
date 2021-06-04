@@ -1,11 +1,17 @@
 <?
 
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ErrorCollection;
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Sender\Integration\MessageService\Sms\Service;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 {
+	die();
+}
+
+if (!Bitrix\Main\Loader::includeModule('sender'))
+{
+	ShowError('Module `sender` not installed');
 	die();
 }
 
@@ -18,6 +24,16 @@ class SenderSmsSenderComponent extends CBitrixComponent
 
 	protected function checkRequiredParams()
 	{
+		if (!\Bitrix\Main\Loader::includeModule('sender'))
+		{
+			$this->errors->setError(new \Bitrix\Main\Error('Module `sender` is not installed.'));
+			return false;
+		}
+		if (!\Bitrix\Main\Loader::includeModule('messageservice'))
+		{
+			$this->errors->setError(new \Bitrix\Main\Error('Module `messageservice` is not installed.'));
+			return false;
+		}
 		return true;
 	}
 
@@ -47,16 +63,21 @@ class SenderSmsSenderComponent extends CBitrixComponent
 		}
 
 		$this->arResult['LIST'] = array();
+		$this->arResult['HAS_REST'] = false;
 		$this->arResult['CURRENT'] = array();
+		$restList = [];
 		foreach (Service::getProviders() as $item)
 		{
+			$item['canUse'] = ($item['canUse'] && count($item['from']) > 0);
 			if ($item['id'] == 'rest')
 			{
+				$this->arResult['HAS_REST'] = true;
 				foreach ($item['from'] as $number)
 				{
 					$from = $item['id'] . ':' . $number['id'];
 					$row = array(
 						'senderId' => $item['id'],
+						'fromRest' => true,
 						'name' => $number['name'],
 						'shortName' => $number['name'],
 						'isConfigurable' => $item['isConfigurable'],
@@ -75,7 +96,7 @@ class SenderSmsSenderComponent extends CBitrixComponent
 						'selected' => $currentId === $from,
 					);
 
-					$this->arResult['LIST'][] = $row;
+					$restList[] = $row;
 				}
 			}
 			else
@@ -90,6 +111,7 @@ class SenderSmsSenderComponent extends CBitrixComponent
 
 				$row = array(
 					'senderId' => $item['id'],
+					'fromRest' => false,
 					'name' => $item['name'],
 					'shortName' => $item['shortName'],
 					'isConfigurable' => $item['isConfigurable'],
@@ -105,6 +127,7 @@ class SenderSmsSenderComponent extends CBitrixComponent
 				$this->arResult['LIST'][] = $row;
 			}
 		}
+		$this->arResult['LIST'] = array_merge($this->arResult['LIST'], $restList);
 
 		if (count($this->arResult['CURRENT']) == 0)
 		{
@@ -114,7 +137,10 @@ class SenderSmsSenderComponent extends CBitrixComponent
 				{
 					continue;
 				}
-
+				if (!$item['canUse'])
+				{
+						continue;
+				}
 				$this->arResult['CURRENT'] = $item;
 				break;
 			}

@@ -31,6 +31,8 @@ $arDefaultUrlTemplates404 = array(
 	"user_groups" => "user/#user_id#/groups/",
 	"user_groups_add" => "user/#user_id#/groups/add/",
 	"group_create" => "user/#user_id#/groups/create/",
+	"group_copy" => "user/#user_id#/groups/create/copy/",
+	"group_import" => "user/#user_id#/groups/create/import/",
 	"user_profile_edit" => "user/#user_id#/edit/",
 	"user_settings_edit" => "user/#user_id#/settings/",
 	"user_features" => "user/#user_id#/features/",
@@ -111,8 +113,12 @@ $arDefaultUrlTemplates404 = array(
 	"user_files_webdav_start_bizproc" => "user/#user_id#/files/bizproc/start/#element_id#/",
 
 	"user_blog" => "user/#user_id#/blog/",
+	"user_grat" => "user/#user_id#/grat/",
 	"user_blog_post_important" => "user/#user_id#/blog/important/",
 	"user_blog_post_edit" => "user/#user_id#/blog/edit/#post_id#/",
+	"user_blog_post_edit_profile" => "user/#user_id#/blog/edit/profile/#post_id#/",
+	"user_blog_post_edit_grat" => "user/#user_id#/blog/edit/grat/#post_id#/",
+	"user_blog_post_edit_post" => "user/#user_id#/blog/edit/post/#post_id#/",
 	"user_blog_rss" => "user/#user_id#/blog/rss/#type#/",
 	"user_blog_post_rss" => "user/#user_id#/blog/rss/#type#/#post_id#/",
 	"user_blog_draft" => "user/#user_id#/blog/draft/",
@@ -128,6 +134,7 @@ $arDefaultUrlTemplates404 = array(
 	"user_tasks_view" => "user/#user_id#/tasks/view/#action#/#view_id#/",
 	"user_tasks_departments_overview" => "user/#user_id#/tasks/departments/",
 	"user_tasks_employee_plan" => "user/#user_id#/tasks/employee/plan/",
+	"user_tasks_projects" => "user/#user_id#/tasks/projects_kanban/",
 	"user_tasks_projects_overview" => "user/#user_id#/tasks/projects/",
 	"user_tasks_effective" => "user/#user_id#/tasks/effective/",
 	"user_tasks_effective_detail" => "user/#user_id#/tasks/effective/show/",
@@ -145,8 +152,12 @@ $arDefaultUrlTemplates404 = array(
 	"user_forum_message_edit" => "user/#user_id#/forum/message/#action#/#topic_id#/#message_id#/",
 
 	"user_security" => "user/#user_id#/security/",
+	"user_common_security" => "user/#user_id#/common_security/",
 	"user_codes" => "user/#user_id#/codes/",
 	"user_passwords" => "user/#user_id#/passwords/",
+
+	"user_stresslevel" => "user/#user_id#/stresslevel/",
+	"user_social_services" => "user/#user_id#/social_services/",
 );
 
 $taskPageTitles = array(
@@ -157,7 +168,7 @@ $taskPageTitles = array(
 	'user_tasks_task' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_TASK'),
 	'user_tasks_departments_overview' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_DEPARTMENTS_OVERVIEW'),
 	'user_tasks_employee_plan' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_EMPLOYEE_PLAN'),
-	'user_tasks_projects_overview' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_PROJECTS_OVERVIEW'),
+	'user_tasks_projects' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_PROJECTS_OVERVIEW'),
 	'user_tasks_effective' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_EFFECTIVE'),
 	'user_tasks_effective_detail' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_EFFECTIVE_DETAIL'),
 	'user_tasks_effective_inprogress' => GetMessage('SONET_TASKS_PAGE_TITLE_USER_TASKS_EFFECTIVE_INPROGRESS'),
@@ -177,7 +188,7 @@ $bExtranetEnabled = IsModuleInstalled('extranet');
 if ($bExtranetEnabled)
 {
 	$extranetSiteId = COption::GetOptionString("extranet", "extranet_site");
-	if (strlen($extranetSiteId) <= 0)
+	if ($extranetSiteId == '')
 	{
 		$bExtranetEnabled = false;
 	}
@@ -224,6 +235,8 @@ $arDefaultUrlTemplatesN404 = array(
 	"user_groups" => "page=user_groups&user_id=#user_id#",
 	"user_groups_add" => "page=user_groups_add&user_id=#user_id#",
 	"group_create" => "page=group_create&user_id=#user_id#",
+	"group_copy" => "page=group_copy&user_id=#user_id#",
+	"group_import" => "page=group_import&user_id=#user_id#",
 	"user_profile_edit" => "page=user_profile_edit&user_id=#user_id#",
 	"user_settings_edit" => "page=user_settings_edit&user_id=#user_id#",
 	"user_features" => "page=user_features&user_id=#user_id#",
@@ -304,7 +317,11 @@ $arDefaultUrlTemplatesN404 = array(
 	"user_files_webdav_start_bizproc" => "page=user_files_webdav_start_bizproc&user_id=#user_id#&element_id=#element_id#",
 
 	"user_blog" => "page=user_blog&user_id=#user_id#",
+	"user_grat" => "page=user_grat&user_id=#user_id#",
 	"user_blog_post_edit" => "page=user_blog_post_edit&user_id=#user_id#&post_id=#post_id#",
+	"user_blog_post_edit_profile" => "page=user_blog_post_edit_profile&user_id=#user_id#&post_id=#post_id#",
+	"user_blog_post_edit_grat" => "page=user_blog_post_edit_grat&user_id=#user_id#&post_id=#post_id#",
+	"user_blog_post_edit_post" => "page=user_blog_post_edit_post&user_id=#user_id#&post_id=#post_id#",
 	"user_blog_rss" => "page=user_blog_rss&user_id=#user_id#&type=#type#",
 	"user_blog_post_rss" => "page=user_blog_post_rss&user_id=#user_id#&type=#type#&post_id=#post_id#",
 	"user_blog_draft" => "page=user_blog_draft&user_id=#user_id#",
@@ -334,7 +351,11 @@ $arDefaultUrlTemplatesN404 = array(
 	"user_forum_message_edit" => "page=user_forum_message_edit&user_id=#user_id#&topic_id=#topic_id#&message_id=#message_id#&action=#action#",
 
 	"user_security" => "page=user_security&user_id=#user_id#",
+	"user_common_security" => "page=user_common_security&user_id=#user_id#",
 	"user_passwords" => "page=user_passwords&user_id=#user_id#",
+
+	"user_stresslevel" => "page=user_stresslevel&user_id=#user_id#",
+	"user_social_services" => "page=user_social_services&user_id=#user_id#",
 );
 $arDefaultVariableAliases404 = array();
 $arDefaultVariableAliases = array();
@@ -359,7 +380,7 @@ if (!array_key_exists("SET_NAV_CHAIN", $arParams))
 	$arParams["SET_NAV_CHAIN"] = $arParams["SET_NAVCHAIN"];
 }
 $arParams["SET_NAV_CHAIN"] = ($arParams["SET_NAV_CHAIN"] == "N" ? "N" : "Y");
-$arParams["LOG_AUTH"] = (StrToUpper($arParams["LOG_AUTH"]) == "Y" ? "Y" : "N");
+$arParams["LOG_AUTH"] = (mb_strtoupper($arParams["LOG_AUTH"]) == "Y" ? "Y" : "N");
 $arParams["HIDE_OWNER_IN_TITLE"] = ($arParams["HIDE_OWNER_IN_TITLE"] == "Y" ? "Y" : "N");
 
 if (!array_key_exists("ALLOW_GROUP_CREATE_REDIRECT_REQUEST", $arParams))
@@ -374,14 +395,14 @@ if (
 	$arParams["ALLOW_GROUP_CREATE_REDIRECT_REQUEST"] != "N" 
 	&& (
 		!array_key_exists("GROUP_CREATE_REDIRECT_REQUEST", $arParams) 
-		|| strlen(trim($arParams["GROUP_CREATE_REDIRECT_REQUEST"])) <= 0
+		|| trim($arParams["GROUP_CREATE_REDIRECT_REQUEST"]) == ''
 	)
 )
 {
 	$arParams["GROUP_CREATE_REDIRECT_REQUEST"] = $folderWorkgroups."group/#group_id#/user_search/";
 }
 
-if (strlen(trim($arParams["NAME_TEMPLATE"])) <= 0)
+if (trim($arParams["NAME_TEMPLATE"]) == '')
 {
 	$arParams["NAME_TEMPLATE"] = CSite::GetNameFormat();
 }
@@ -433,12 +454,12 @@ else
 
 if (!array_key_exists("SHOW_FIELDS_TOOLTIP", $arParams))
 {
-	$arParams["SHOW_FIELDS_TOOLTIP"] = unserialize(COption::GetOptionString("socialnetwork", "tooltip_fields", $arTooltipFieldsDefault));
+	$arParams["SHOW_FIELDS_TOOLTIP"] = unserialize(COption::GetOptionString("socialnetwork", "tooltip_fields", $arTooltipFieldsDefault), [ 'allowed_classes' => false ]);
 }
 
 if (!array_key_exists("USER_PROPERTY_TOOLTIP", $arParams))
 {
-	$arParams["USER_PROPERTY_TOOLTIP"] = unserialize(COption::GetOptionString("socialnetwork", "tooltip_properties", $arTooltipPropertiesDefault));
+	$arParams["USER_PROPERTY_TOOLTIP"] = unserialize(COption::GetOptionString("socialnetwork", "tooltip_properties", $arTooltipPropertiesDefault), [ 'allowed_classes' => false ]);
 }
 
 if (!array_key_exists("PATH_TO_CONPANY_DEPARTMENT", $arParams))
@@ -559,7 +580,6 @@ if ($arParams["SEF_MODE"] == "Y")
 
 	if (empty($componentPage) || (!array_key_exists($componentPage, $arDefaultUrlTemplates404)))
 	{
-		//if (strlen($componentPage) <= 0)
 		$componentPage = "index";
 	}
 
@@ -570,8 +590,8 @@ if ($arParams["SEF_MODE"] == "Y")
 
 	foreach ($arUrlTemplates as $url => $value)
 	{
-		$arResult["PATH_TO_".strToUpper($url)] = (
-			(substr($value, 0, 1) == "/")
+		$arResult["PATH_TO_".mb_strtoupper($url)] = (
+			(mb_substr($value, 0, 1) == "/")
 				? $value
 				: $arParams["SEF_FOLDER"].$value
 		);
@@ -651,7 +671,7 @@ else
 				"edit_section", "sessid", "post_id", "category", "topic_id", "result", "MESSAGE_TYPE", "q", "how", "tags", "where",
 				"log_id");
 		$arParamsKill = array_merge($arParamsKill, $arParams["VARIABLE_ALIASES"], array_values($arVariableAliases));
-		$arResult["PATH_TO_".strToUpper($url)] = $APPLICATION->GetCurPageParam($value, $arParamsKill);
+		$arResult["PATH_TO_".mb_strtoupper($url)] = $APPLICATION->GetCurPageParam($value, $arParamsKill);
 	}
 	if (array_key_exists($arVariables["page"], $arDefaultUrlTemplatesN404))
 	{
@@ -771,7 +791,7 @@ if (!$tooltipPathToUser)
 	COption::SetOptionString("main", "TOOLTIP_PATH_TO_USER", $arResult["PATH_TO_USER"], false, SITE_ID);
 	$tooltipPathToUser = $arResult["PATH_TO_USER"];
 }
-if (substr($tooltipPathToUser, 0, strlen($arParams["SEF_FOLDER"])) !== $arParams["SEF_FOLDER"])
+if (mb_substr($tooltipPathToUser, 0, mb_strlen($arParams["SEF_FOLDER"])) !== $arParams["SEF_FOLDER"])
 {
 	COption::SetOptionString("main", "TOOLTIP_PATH_TO_USER", $arParams["SEF_FOLDER"]."user/#user_id#/", false, SITE_ID);
 }
@@ -817,7 +837,7 @@ if (substr($tooltipPathToUser, 0, strlen($arParams["SEF_FOLDER"])) !== $arParams
 
 $arResult["PATH_TO_SEARCH_INNER"] = (IsModuleInstalled("intranet") ? SITE_DIR."company/structure.php" : $arResult["PATH_TO_SEARCH"]);
 $arParams["PATH_TO_SEARCH_EXTERNAL"] = Trim($arParams["PATH_TO_SEARCH_EXTERNAL"]);
-if (StrLen($arParams["PATH_TO_SEARCH_EXTERNAL"]) > 0)
+if ($arParams["PATH_TO_SEARCH_EXTERNAL"] <> '')
 {
 	$arResult["PATH_TO_SEARCH"] = $arParams["PATH_TO_SEARCH_EXTERNAL"];
 }
@@ -914,11 +934,11 @@ if(
 ********************************************************************/
 if (
 	!$diskEnabled
-	&& strPos($componentPage, "user_files") === false
-	&& strPos($componentPage, "group_files") === false
+	&& mb_strpos($componentPage, "user_files") === false
+	&& mb_strpos($componentPage, "group_files") === false
 )
 {
-	$sCurrUrl = strToLower(str_replace("//", "/", "/".$APPLICATION->GetCurPage()."/"));
+	$sCurrUrl = mb_strtolower(str_replace("//", "/", "/".$APPLICATION->GetCurPage()."/"));
 	$arBaseUrl = array(
 		"user" => $arParams["FILES_USER_BASE_URL"],
 		"group" => $arParams["FILES_GROUP_BASE_URL"]);
@@ -931,20 +951,20 @@ if (
 	}
 	foreach ($arBaseUrl as $key => $res)
 	{
-		if (strPos($res, "#path#") !== false)
-			$res = subStr($res, 0, strPos($res, "#path#"));
-		$res = strToLower(str_replace("//", "/", "/".$res."/"));
-		$pos = strPos($res, "#".$key."_id#");
-		if ($pos !== false && subStr($res, 0, $pos) == subStr($sCurrUrl, 0, $pos))
+		if (mb_strpos($res, "#path#") !== false)
+			$res = mb_substr($res, 0, mb_strpos($res, "#path#"));
+		$res = mb_strtolower(str_replace("//", "/", "/".$res."/"));
+		$pos = mb_strpos($res, "#".$key."_id#");
+		if ($pos !== false && mb_substr($res, 0, $pos) == mb_substr($sCurrUrl, 0, $pos))
 		{
-			$v1 = subStr($res, $pos + strLen("#".$key."_id#"));
-			$v2 = subStr($sCurrUrl, $pos);
-			$v3 = subStr($v2, strPos($v2, subStr($v1, 0, 1)), strLen($v1));
+			$v1 = mb_substr($res, $pos + mb_strlen("#".$key."_id#"));
+			$v2 = mb_substr($sCurrUrl, $pos);
+			$v3 = mb_substr($v2, mb_strpos($v2, mb_substr($v1, 0, 1)), mb_strlen($v1));
 			if ($v1 == $v3)
 			{
 				$componentPage = $key."_files";
-				$arResult["VARIABLES"]["#".$key."_id#"] = intVal(subStr($v2, 0, strPos($v2, subStr($v1, 0, 1))));
-				$arResult["VARIABLES"][$key."_id"] = intVal(subStr($v2, 0, strPos($v2, subStr($v1, 0, 1))));
+				$arResult["VARIABLES"]["#".$key."_id#"] = intval(mb_substr($v2, 0, mb_strpos($v2, mb_substr($v1, 0, 1))));
+				$arResult["VARIABLES"][$key."_id"] = intval(mb_substr($v2, 0, mb_strpos($v2, mb_substr($v1, 0, 1))));
 			}
 		}
 	}
@@ -953,11 +973,11 @@ if (
 if (
 	!$diskEnabled
 	&& (
-		strPos($componentPage, "user_files")!== false
-		|| strPos($componentPage, "group_files")!== false
+		mb_strpos($componentPage, "user_files") !== false
+		|| mb_strpos($componentPage, "group_files") !== false
 	)
 	&& $bExtranetEnabled
-	&& strPos($componentPage, "user_files") !== false
+	&& mb_strpos($componentPage, "user_files") !== false
 	&& CModule::IncludeModule("iblock")
 )
 {
@@ -1132,7 +1152,7 @@ $path2 = str_replace(array("\\", "//"), "/", dirname(__FILE__)."/include/webdav_
 if (file_exists($path2))
 	include_once($path2);
 
-if (strPos($componentPage, "user_files")!== false || strPos($componentPage, "group_files")!== false)
+if (mb_strpos($componentPage, "user_files") !== false || mb_strpos($componentPage, "group_files") !== false)
 {
 	$path = str_replace(array("\\", "//"), "/", dirname(__FILE__)."/include/webdav.php");
 	if (!file_exists($path))
@@ -1148,12 +1168,12 @@ if (strPos($componentPage, "user_files")!== false || strPos($componentPage, "gro
 	$arParams["FATAL_ERROR"] = ($res <= 0 ? "Y" : "N");
 	if ($arParams["FATAL_ERROR"] === "Y")
 	{
-		if (strlen($arParams["NOTE_MESSAGE"]) > 0)
+		if ($arParams["NOTE_MESSAGE"] <> '')
 		{
 			ShowNote($arParams["NOTE_MESSAGE"]);
 		}
 
-		if (strlen($arParams["ERROR_MESSAGE"]) > 0)
+		if ($arParams["ERROR_MESSAGE"] <> '')
 		{
 			ShowError($arParams["ERROR_MESSAGE"]);
 		}
@@ -1169,13 +1189,13 @@ if (strPos($componentPage, "user_files")!== false || strPos($componentPage, "gro
 				Photogalley
 ********************************************************************/
 elseif (
-	strPos($componentPage, "user_photo") !== false
-	|| strPos($componentPage, "group_photo") !== false
+	mb_strpos($componentPage, "user_photo") !== false
+	|| mb_strpos($componentPage, "group_photo") !== false
 )
 {
 	if (
-		strPos($componentPage, "user_photofull") !== false
-		|| strPos($componentPage, "group_photofull") !== false
+		mb_strpos($componentPage, "user_photofull") !== false
+		|| mb_strpos($componentPage, "group_photofull") !== false
 	)
 	{
 		$componentPage = str_replace("_photofull", "_photo", $componentPage);
@@ -1201,8 +1221,8 @@ elseif (
 				Forum
 ********************************************************************/
 elseif (
-	strPos($componentPage, "user_forum") !== false
-	|| strPos($componentPage, "group_forum") !== false
+	mb_strpos($componentPage, "user_forum") !== false
+	|| mb_strpos($componentPage, "group_forum") !== false
 	|| $componentPage == "user"
 	|| $componentPage == "group"
 	|| $componentPage == "index"
@@ -1228,8 +1248,8 @@ elseif (
 				Content Search
 ********************************************************************/
 elseif (
-	strPos($componentPage, "user_content_search") !== false
-	|| strPos($componentPage, "group_content_search") !== false
+	mb_strpos($componentPage, "user_content_search") !== false
+	|| mb_strpos($componentPage, "group_content_search") !== false
 )
 {
 	$path = str_replace(array("\\", "//"), "/", dirname(__FILE__)."/include/search.php");
@@ -1264,7 +1284,7 @@ elseif ($componentPage == "bizproc_task_list")
 ********************************************************************/
 
 if (
-	(strpos($componentPage, 'user_tasks') !== false || $componentPage == 'user_templates_template')
+	(mb_strpos($componentPage, 'user_tasks') !== false || $componentPage == 'user_templates_template')
 	&& !\Bitrix\Main\Loader::includeModule('tasks')
 )
 {
@@ -1277,14 +1297,14 @@ if (
 
 if (
 	!in_array($componentPage, array("message_form_mess", "messages_chat", "messages_users_messages"))
-	&& IntVal($arResult["VARIABLES"]["user_id"]) > 0 
+	&& intval($arResult["VARIABLES"]["user_id"]) > 0
 	&& $arResult["VARIABLES"]["user_id"] != $USER->GetID()
 )
 {
 	$arContext = array();
 	if (
 		isset($_REQUEST["entityType"])
-		&& strlen($_REQUEST["entityType"]) > 0
+		&& $_REQUEST["entityType"] <> ''
 	)
 	{
 		$arContext["ENTITY_TYPE"] = $_REQUEST["entityType"];
@@ -1314,7 +1334,9 @@ if (
 		return;
 	}
 
-	if (!CSocNetUser::CanProfileView($USER->GetID(), intval($arResult["VARIABLES"]["user_id"]), SITE_ID, $arContext))
+	if (
+		$this->request->get('IFRAME_TYPE') != 'SIDE_SLIDER'
+		&& !CSocNetUser::CanProfileView($USER->GetID(), intval($arResult["VARIABLES"]["user_id"]), SITE_ID, $arContext))
 	{
 		$bAccessFound = false;
 		if ($componentPage == "user_blog_post")

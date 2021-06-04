@@ -1,6 +1,7 @@
 <?
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions < "W")
@@ -33,7 +34,7 @@ if (($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "W")
 
 	foreach($arID as $ID)
 	{
-		if(strlen($ID)<=0)
+		if($ID == '')
 			continue;
 
 		switch($_REQUEST['action'])
@@ -64,7 +65,7 @@ $arDeliveryHandlersList = array();
 $rsDeliveryHandlers = CSaleDeliveryHandler::GetAdminList(array($by => $order));
 while ($arHandler = $rsDeliveryHandlers->GetNext())
 {
-	if (strlen($arHandler["LID"]) > 0)
+	if ($arHandler["LID"] <> '')
 		$arDeliveryHandlersList[$arHandler["SID"]][$arHandler["LID"]] = $arHandler;
 	else
 		$arDeliveryHandlersList[$arHandler["SID"]] = array("ALL" => $arHandler);

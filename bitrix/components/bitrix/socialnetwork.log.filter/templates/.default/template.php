@@ -41,7 +41,7 @@ foreach (array("flt_created_by_id", "flt_group_id", "flt_to_user_id", "flt_date_
 			)
 			|| (
 				!is_array($_GET[$param])
-				&& strlen($_GET[$param]) > 0
+				&& $_GET[$param] <> ''
 				&& $_GET[$param] !== "0"
 			)
 		)
@@ -234,7 +234,7 @@ if ($arResult["MODE"] == "AJAX")
 			?><input type="hidden" name="log_filter_submit" value="Y"><?
 			if ($isFiltered)
 			{
-				?><a href="<?=$APPLICATION->GetCurPageParam("preset_filter_id=".(array_key_exists("preset_filter_id", $_GET) && strlen($_GET["preset_filter_id"]) > 0 ? htmlspecialcharsbx($_GET["preset_filter_id"]) : "clearall"), array("flt_created_by_id","flt_group_id","flt_to_user_id","flt_date_datesel","flt_date_days","flt_date_from","flt_date_to","flt_date_to","flt_show_hidden","skip_subscribe","preset_filter_id","sessid","bxajaxid", "log_filter_submit", "FILTER_CREATEDBY","SONET_FILTER_MODE", "set_follow_type","CREATED_BY_CODE","TO_CODE"), false)?>" class="popup-window-button popup-window-button-link popup-window-button-link-cancel"><span class="popup-window-button-link-text"><?=GetMessage("SONET_C30_T_RESET")?></span></a><?
+				?><a href="<?=$APPLICATION->GetCurPageParam("preset_filter_id=".(array_key_exists("preset_filter_id", $_GET) && $_GET["preset_filter_id"] <> '' ? htmlspecialcharsbx($_GET["preset_filter_id"]) : "clearall"), array("flt_created_by_id","flt_group_id","flt_to_user_id","flt_date_datesel","flt_date_days","flt_date_from","flt_date_to","flt_date_to","flt_show_hidden","skip_subscribe","preset_filter_id","sessid","bxajaxid", "log_filter_submit", "FILTER_CREATEDBY","SONET_FILTER_MODE", "set_follow_type","CREATED_BY_CODE","TO_CODE"), false)?>" class="popup-window-button popup-window-button-link popup-window-button-link-cancel"><span class="popup-window-button-link-text"><?=GetMessage("SONET_C30_T_RESET")?></span></a><?
 			}
 		?></div>
 		<input type="hidden" name="skip_subscribe" value="<?=(isset($_REQUEST["skip_subscribe"]) && $_REQUEST["skip_subscribe"] == "Y" ? "Y" : "N")?>">
@@ -249,8 +249,8 @@ else
 	{
 		$this->SetViewTarget((
 				SITE_TEMPLATE_ID === "bitrix24"
-				? (strlen($arParams["PAGETITLE_TARGET"]) > 0 ? $arParams["PAGETITLE_TARGET"] : "pagetitle")
-				: (strlen($arParams["TARGET_ID"]) > 0 ? $arParams["TARGET_ID"] : "sonet_blog_form")
+				? ($arParams["PAGETITLE_TARGET"] <> '' ? $arParams["PAGETITLE_TARGET"] : "pagetitle")
+				: ($arParams["TARGET_ID"] <> '' ? $arParams["TARGET_ID"] : "sonet_blog_form")
 			),
 			50
 		);
@@ -361,8 +361,8 @@ else
 						type: 'EXPERT_MODE',
 						reload: true,
 						title: '<?=GetMessageJS("SONET_C30_F_EXPERT_MODE_POPUP_TITLE")?>',
-						description1: '<?=GetMessageJS("SONET_C30_F_EXPERT_MODE_POPUP_TEXT1")?>',
-						description2: '<?=GetMessageJS("SONET_C30_F_EXPERT_MODE_POPUP_TEXT2")?>',
+						description1: '<?=GetMessageJS("SONET_C30_F_EXPERT_MODE_POPUP_TEXT1A")?>',
+						description2: '<?=GetMessageJS("SONET_C30_F_EXPERT_MODE_POPUP_TEXT2A")?>',
 						descriptionImage: {
 							src: '<?=CUtil::JSEscape($this->GetFolder())?>/images/expert_mode/<?=GetMessageJS("SONET_C30_F_EXPERT_MODE_IMAGENAME")?>.png',
 							width: 354,
@@ -489,7 +489,7 @@ else
 		$this->SetViewTarget('inside_pagetitle', 0);
 		$filterID = (isset($arParams["FILTER_ID"]) ? $arParams["FILTER_ID"] : 'LIVEFEED');
 
-		?><div class="pagetitle-container pagetitle-flexible-space" style="overflow: hidden;" id="<?=htmlspecialcharsbx($filterID)?>_filter_container"><div id="<?=htmlspecialcharsbx($filterID)?>_filter_container_max" class="pagetitle-container-max pagetitle-container-max-rounded"><?
+		?><div class="pagetitle-container pagetitle-flexible-space" style="overflow: hidden;flex-shrink: 0;" id="<?=htmlspecialcharsbx($filterID)?>_filter_container"><div id="<?=htmlspecialcharsbx($filterID)?>_filter_container_max" class="pagetitle-container-max pagetitle-container-max-rounded"><?
 		$APPLICATION->IncludeComponent(
 			'bitrix:main.ui.filter',
 			'',
@@ -546,9 +546,7 @@ else
 		)
 		{
 			?>
-			<div id="feed_filter_button" class="webform-small-button webform-small-button-transparent sonet-filter-menu-settings-icon webform-rounded-cogwheel">
-				<span class="webform-button-icon"></span>
-			</div>
+			<button id="feed_filter_button" class="ui-btn ui-btn-link ui-btn-filter-button ui-btn-themes"></button>
 			<script>
 				BX.ready(function () {
 					BX.bind(BX('feed_filter_button'), 'click', function() {
@@ -589,7 +587,7 @@ else
 		unset($_SESSION["SL_EXPERT_MODE_HINT"]);
 		?><div id="feed_filter_hint_expert" class="feed-smart-follow-hint-wrap"><?
 		?><div class="feed-smart-follow-hint"><?
-			?><?=GetMessage("SONET_C30_EXPERT_MODE_HINT");?><?
+			?><?=GetMessage("SONET_C30_EXPERT_MODE_HINTA");?><?
 			?><span class="popup-window-close-icon feed-smart-follow-hint-close" id="feed_filter_hint_expert_close"></span><?
 		?></div><?
 		?></div><?

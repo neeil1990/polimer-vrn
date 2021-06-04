@@ -183,11 +183,11 @@ function __prepareArrayFromXml(array $item, $code = false)
 			}
 			if (is_array($value['#']))
 			{
-				$fields[strtoupper($key)] = __prepareArrayFromXml($value);
+				$fields[mb_strtoupper($key)] = __prepareArrayFromXml($value);
 			}
 			else
 			{
-				$fields[strtoupper($key)] = $value['#'];
+				$fields[mb_strtoupper($key)] = $value['#'];
 			}
 		}
 	}
@@ -196,7 +196,11 @@ function __prepareArrayFromXml(array $item, $code = false)
 }
 
 // process
-if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
+if (
+	$request->get('start') == 'Y' &&
+	$server->getRequestMethod() == 'POST' &&
+	check_bitrix_sessid()
+)
 {
 	require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_js.php');
 
@@ -214,7 +218,7 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 		'last_id' => (int)$request->get('last_id'),
 		'count' => (int)$request->get('count'),
 		'has_files' => (int)$request->get('has_files'),
-		'xml_pos' => unserialize($request->get('xml_pos')),
+		'xml_pos' => explode('|', $request->get('xml_pos')),
 		'left_margin' => 0,
 		'right_margin' => 0,
 		'all' => 0,
@@ -231,7 +235,7 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 	$dataExist = false;
 	$startTime = time();
 	$import = new CXMLFileStream;
-	$filesPath = $server->getDocumentRoot() . substr($NS['url_data_file'], 0, -4) . '_files';
+	$filesPath = $server->getDocumentRoot().mb_substr($NS['url_data_file'], 0, -4) . '_files';
 
 	// get langs
 	$langs = array();
@@ -363,10 +367,10 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 							{
 								foreach ($langs as $lng => $lang)
 								{
-									if ($lng !== strtoupper($lng) && isset($field[$code][strtoupper($lng)]))
+									if ($lng !== mb_strtoupper($lng) && isset($field[$code][mb_strtoupper($lng)]))
 									{
-										$field[$code][$lng] = $field[$code][strtoupper($lng)];
-										unset($field[$code][strtoupper($lng)]);
+										$field[$code][$lng] = $field[$code][mb_strtoupper($lng)];
+										unset($field[$code][mb_strtoupper($lng)]);
 									}
 								}
 							}
@@ -527,9 +531,9 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 											Loc::getMessage('ADMIN_TOOLS_ERROR_IMPORT_ITEM_UNKNOWN', array('#CODE#' => $key));
 								return;
 							}
-							if (substr($value, 0, 10) == 'serialize#')
+							if (mb_substr($value, 0, 10) == 'serialize#')
 							{
-								$value = unserialize(substr($value, 10));
+								$value = unserialize(mb_substr($value, 10));
 							}
 							// get base type
 							$userFelds[$key]['BASE_TYPE'] = '';
@@ -656,7 +660,7 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 				$allSize = filesize($server->getDocumentRoot() . $NS['url_data_file']);
 				$NS['percent'] = round($curSize / $allSize * 100, 2);
 			}
-			$NS['xml_pos'] = serialize($NS['xml_pos']);
+			$NS['xml_pos'] = implode('|', $NS['xml_pos']);
 		}
 	}
 	else

@@ -29,9 +29,9 @@ IncludeModuleLangFile(__FILE__);
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/classes/general/backup.php");
 $strBXError = '';
 $bGzip = function_exists('gzcompress');
-$bMcrypt = function_exists('mcrypt_encrypt') || function_exists('openssl_encrypt');
+$encrypt = function_exists('openssl_encrypt');
 $bHash = function_exists('hash');
-$bBitrixCloud = $bMcrypt && $bHash;
+$bBitrixCloud = $encrypt && $bHash;
 if (!CModule::IncludeModule('bitrixcloud'))
 {
 	$bBitrixCloud = false;
@@ -43,8 +43,13 @@ elseif (!CModule::IncludeModule('clouds'))
 	$strBXError = GetMessage('ERR_NO_CLOUDS');
 }
 
-if (function_exists('mb_internal_encoding'))
-	mb_internal_encoding('ISO-8859-1');
+
+if($bBitrixCloud)
+{
+	$backup = CBitrixCloudBackup::getInstance();
+	$arFiles = $backup->listFiles();
+	$backup->saveToOptions();
+}
 
 define('DOCUMENT_ROOT', rtrim(str_replace('\\','/',$_SERVER['DOCUMENT_ROOT']),'/'));
 
@@ -75,7 +80,7 @@ elseif($_REQUEST['process'] == "Y")
 		RaiseErrorAndDie(GetMessage("DUMP_MAIN_SESISON_ERROR"));
 
 	require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_js.php");
-	$NS =& $_SESSION['BX_DUMP_STATE'];
+	$NS =& \Bitrix\Main\Application::getInstance()->getSession()['BX_DUMP_STATE'];
 	if($_REQUEST['action'] == 'start')
 	{
 		define('NO_TIME', true);
@@ -103,7 +108,7 @@ elseif($_REQUEST['process'] == "Y")
 		$NS['BUCKET_ID'] = intval($_REQUEST['dump_bucket_id']);
 		COption::SetOptionInt("main", "dump_bucket_id", $NS['BUCKET_ID']);
 
-		if ($bMcrypt && $_REQUEST['dump_encrypt_key'])
+		if ($encrypt && $_REQUEST['dump_encrypt_key'])
 		{
 			$NS['dump_encrypt_key'] =  $_REQUEST['dump_encrypt_key'];
 //			if (!defined('BX_UTF') || !BX_UTF)
@@ -136,7 +141,6 @@ elseif($_REQUEST['process'] == "Y")
 			COption::SetOptionInt("main", "dump_base_skip_stat", 0);
 			COption::SetOptionInt("main", "dump_base_skip_search", 0);
 			COption::SetOptionInt("main", "dump_base_skip_log", 0);
-			COption::SetOptionInt("main", "skip_symlinks", 0);
 
 			if ($arAllBucket)
 			{
@@ -151,7 +155,6 @@ elseif($_REQUEST['process'] == "Y")
 		}
 		else
 		{
-			COption::SetOptionInt("main", "skip_symlinks", $_REQUEST['skip_symlinks'] == 'Y');
 			COption::SetOptionInt("main", "dump_max_exec_time", intval($_REQUEST['dump_max_exec_time']) < 5 ? 5 : $_REQUEST['dump_max_exec_time']);
 			COption::SetOptionInt("main", "dump_max_exec_time_sleep", $_REQUEST['dump_max_exec_time_sleep']);
 			$dump_archive_size_limit = intval($_REQUEST['dump_archive_size_limit']);
@@ -274,7 +277,7 @@ elseif($_REQUEST['process'] == "Y")
 	}
 	else
 	{
-		$ar = unserialize(COption::GetOptionString("main","skip_mask_array"));
+		$ar = unserialize(COption::GetOptionString("main","skip_mask_array"), ['allowed_classes' => false]);
 		$skip_mask_array = is_array($ar) ? $ar : array();
 	}
 
@@ -600,7 +603,7 @@ elseif($_REQUEST['process'] == "Y")
 					RaiseErrorAndDie(GetMessage("MAIN_DUMP_NO_CLOUDS_MODULE"));
 
 				$file_size = filesize($NS["arc_name"]);
-				$file_name = $NS['BUCKET_ID'] == -1 ? basename($NS['arc_name']) : substr($NS['arc_name'],strlen(DOCUMENT_ROOT));
+				$file_name = $NS['BUCKET_ID'] == -1? basename($NS['arc_name']) : substr($NS['arc_name'], strlen(DOCUMENT_ROOT));
 				$obUpload = new CCloudStorageUpload($file_name);
 
 				if (!$NS['upload_start_time'])
@@ -638,7 +641,12 @@ elseif($_REQUEST['process'] == "Y")
 						}
 					}
 					else
-						$obBucket = unserialize($NS['obBucket']);
+					{
+						$obBucket = unserialize(
+							$NS['obBucket'],
+							['allowed_classes' => ['CBitrixCloudBackupBucket']]
+						);
+					}
 
 					$obBucket->Init();
 					$obBucket->GetService()->setPublic(false);
@@ -843,10 +851,10 @@ $editTab = new CAdminTabControl("editTab", $aTabs, true, true);
 
 if ($DB->type != 'MYSQL')
 	echo BeginNote().GetMessage('MAIN_DUMP_MYSQL_ONLY').EndNote();
-if (!$bMcrypt || !$bHash)
+if (!$encrypt || !$bHash)
 {
 	CAdminMessage::ShowMessage(array(
-		"MESSAGE" => ($bMcrypt ? '' : GetMessage("MAIN_DUMP_NOT_INSTALLED")).($bHash ? '' : ' '.GetMessage('MAIN_DUMP_NOT_INSTALLED_HASH')),
+		"MESSAGE" => ($encrypt ? '' : GetMessage("MAIN_DUMP_NOT_INSTALLED1")).($bHash ? '' : ' '.GetMessage('MAIN_DUMP_NOT_INSTALLED_HASH')),
 		"DETAILS" => GetMessage("MAIN_DUMP_NO_ENC_FUNCTIONS"),
 		"TYPE" => "ERROR",
 		"HTML" => true));
@@ -982,7 +990,6 @@ function CheckActiveStart()
 		start = document.fd1.dump_file_public.checked || document.fd1.dump_file_kernel.checked;
 
 		document.fd1.max_file_size.disabled = !start;
-		document.fd1.skip_symlinks.disabled = !start;
 		document.fd1.skip_mask.disabled = !start;
 
 		var mask = start && document.fd1.skip_mask.checked;
@@ -1154,9 +1161,6 @@ function DoDump()
 		if(document.fd1.dump_file_kernel.checked)
 			queryString+='&dump_file_kernel=Y';
 
-		if(document.fd1.skip_symlinks.checked)
-			queryString+='&skip_symlinks=Y';
-
 		if(document.fd1.skip_mask.checked)
 		{
 			queryString+='&skip_mask=Y';
@@ -1277,9 +1281,8 @@ function getTableSize()
 		<td class="adm-detail-valign-top" width="40%"><?=GetMessage('DUMP_MAIN_BITRIX_CLOUD_DESC')?><span class="required"><sup>1</sup></span>:</td>
 		<td width="60%">
 		<?
-			$backup = CBitrixCloudBackup::getInstance();
-			$arFiles = $backup->listFiles();
-			$backup->saveToOptions();
+		if(is_object($backup))
+		{
 			CAdminMessage::ShowMessage(array(
 				"TYPE" => "PROGRESS",
 				"DETAILS" => GetMessage("BCL_BACKUP_USAGE", array(
@@ -1290,6 +1293,7 @@ function getTableSize()
 				"PROGRESS_TOTAL" => $quota,
 				"PROGRESS_VALUE" => $usage,
 			));
+		}
 		?>
 		</td>
 	</tr>
@@ -1329,14 +1333,15 @@ function getTableSize()
 		<td>
 			<?
 				if ($s = COption::GetOptionString("main", "dump_site_id", $NS['dump_site_id']))
-					$dump_site_id = unserialize($s);
+					$dump_site_id = unserialize($s, ['allowed_classes' => false]);
 				else
 					$dump_site_id = array();
 				$i = 0;
 				foreach($arSitePath as $path => $val)
 				{
 					$path = rtrim(str_replace('\\','/',$path),'/');
-					list($k,$v) = each($val);
+					$k = key($val);
+					$v = current($val);
 					echo '<div><input type=checkbox id="dump_site_id'.$i.'" value="'.htmlspecialcharsbx($k).'" '.(in_array($k, $dump_site_id) ? ' checked' : '').'> <label for="dump_site_id'.$i.'">'.htmlspecialcharsbx($v).'</label></div>';
 					$i++;
 				}
@@ -1416,7 +1421,7 @@ if ($arAllBucket)
 			<?
 			$i=-1;
 
-			$res = unserialize(COption::GetOptionString("main","skip_mask_array"));
+			$res = unserialize(COption::GetOptionString("main","skip_mask_array"), ['allowed_classes' => false]);
 			$skip_mask_array = is_array($res)?$res:array();
 
 			foreach($skip_mask_array as $mask)
@@ -1440,10 +1445,6 @@ if ($arAllBucket)
 		<td><input type="text" name="max_file_size" size="10" value="<?=IntOption("dump_max_file_size", 0)?>" <?=CBackup::CheckDumpFiles() ? '' : "disabled"?>>
 		<?echo GetMessage("MAIN_DUMP_FILE_MAX_SIZE_kb")?></td>
 	</tr>
-	<tr>
-		<td><?echo GetMessage("MAIN_DUMP_SKIP_SYMLINKS")?></td>
-		<td><input type="checkbox" name="skip_symlinks" value="Y" <?=IntOption("skip_symlinks", 0) ? "checked" : ''?>></td>
-	</tr>
 
 
 
@@ -1453,7 +1454,7 @@ if ($arAllBucket)
 	</tr>
 	<tr>
 		<td><?=GetMessage("MAIN_DUMP_ENABLE_ENC")?><span class="required"><sup>4</sup></td>
-		<td><input type="checkbox" name="dump_encrypt" value="Y" <?=(IntOption("dump_encrypt", 0) ? "checked" : "")?> <?=$bMcrypt && !$bBitrixCloud  ? '' : 'disabled'?>></td>
+		<td><input type="checkbox" name="dump_encrypt" value="Y" <?=(IntOption("dump_encrypt", 0) ? "checked" : "")?> <?=$encrypt && !$bBitrixCloud  ? '' : 'disabled'?>></td>
 	</tr>
 	<tr>
 		<td width=40%><?=GetMessage('INTEGRITY_CHECK_OPTION')?></td>

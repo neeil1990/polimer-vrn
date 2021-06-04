@@ -28,7 +28,7 @@ else if($arResult["imageUploadFrame"] == "Y")
 			top.bxBlogImageId = '<?=$arResult["Image"]["ID"]?>';
 			top.bxBlogImageIdWidth = '<?=CUtil::JSEscape($arResult["Image"]["WIDTH"])?>';
 			top.bxBlogImageIdSrc = '<?=CUtil::JSEscape($arResult["Image"]["SRC"])?>';
-		<?elseif(strlen($arResult["ERROR_MESSAGE"]) > 0):?>
+		<?elseif($arResult["ERROR_MESSAGE"] <> ''):?>
 			top.bxBlogImageError = '<?=CUtil::JSEscape($arResult["ERROR_MESSAGE"])?>';
 		<?endif;?>
 	</script>
@@ -134,7 +134,11 @@ if (
 	$blockClassName .= " feed-comments-block-nav";
 }
 
-?><div class="<?=$blockClassName?>" id="blg-comment-<?=$arParams["ID"]?>"><?
+?><div
+ class="<?=$blockClassName?>" id="blg-comment-<?=$arParams["ID"]?>"
+ data-bx-comments-entity-xml-id="<?=\Bitrix\Main\Text\HtmlFilter::encode($arParams['ENTITY_XML_ID'])?>"
+ data-bx-follow="<?=($arParams['FOLLOW'] === 'Y' ? 'Y' : 'N')?>"
+><?
 	?><a name="comments"></a><?
 	?><?=$arResult["OUTPUT_LIST"]["HTML"]?><?
 ?></div><?
@@ -159,7 +163,7 @@ BX.ready(function() {
 
 if ($GLOBALS["USER"]->IsAuthorized() && CModule::IncludeModule("pull") && CPullOptions::GetNginxStatus()) { ?>
 <script type="text/javascript">
-BX.addCustomEvent("onPullEvent-unicomments", function(command, params) { if (params["ENTITY_XML_ID"] == '<?=$arParams["ENTITY_XML_ID"]?>') { BX.show(BX('blg-comment-<?=$arParams["ID"]?>')); } } );
+BX.addCustomEvent("onPullEvent-unicomments", function(command, params) { if (params["ENTITY_XML_ID"] == '<?=$arParams["ENTITY_XML_ID"]?>' && BX('blg-comment-<?=$arParams["ID"]?>')) { BX.show(BX('blg-comment-<?=$arParams["ID"]?>')); } } );
 </script>
 <? }
 if ($arResult["CanUserComment"])

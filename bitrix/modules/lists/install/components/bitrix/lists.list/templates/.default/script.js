@@ -43,7 +43,7 @@ BX.Lists.ListClass = (function ()
 			{
 				var popupItems = {
 					id: this.listAction[k].hasOwnProperty('id') ? this.listAction[k].id : '',
-					text : this.listAction[k].text,
+					text : BX.util.htmlspecialchars(this.listAction[k].text),
 					onclick : this.listAction[k].action
 				};
 				if(this.listAction[k].hasOwnProperty('items'))
@@ -52,7 +52,7 @@ BX.Lists.ListClass = (function ()
 					for(var i = 0; i < this.listAction[k].items.length; i++)
 					{
 						popupItems.items.push({
-							text: this.listAction[k].items[i].text,
+							text: BX.util.htmlspecialchars(this.listAction[k].items[i].text),
 							onclick: this.listAction[k].items[i].action
 						});
 					}
@@ -102,7 +102,7 @@ BX.Lists.ListClass = (function ()
 			for(var k = 0; k < this.listActionAdd.length; k++)
 			{
 				this.addPopupItems.push({
-					text : this.listActionAdd[k].text,
+					text : BX.util.htmlspecialchars(this.listActionAdd[k].text),
 					onclick : this.listActionAdd[k].action
 				});
 			}
@@ -274,6 +274,28 @@ BX.Lists.ListClass = (function ()
 				}
 			}, this)
 		});
+	};
+
+	ListClass.prototype.unLock = function (elementId)
+	{
+		BX.ajax.runAction("lists.controller.lock.unLock", {
+			data: {
+				element_id: elementId,
+				iblock_type_id: this.iblockTypeId,
+				iblock_id: this.iblockId,
+				socnet_group_id: this.socnetGroupId
+			}
+		}).then(function (response) {
+			this.reloadGrid();
+		}.bind(this), function (response) {});
+	};
+
+	ListClass.prototype.reloadGrid = function ()
+	{
+		var reloadParams = {}, gridObject;
+		gridObject = BX.Main.gridManager.getById(this.gridId);
+		if(gridObject.hasOwnProperty("instance"))
+			gridObject.instance.reloadTable("POST", reloadParams);
 	};
 
 	ListClass.prototype.editSection = function (currentSectionId)

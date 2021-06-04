@@ -19,7 +19,7 @@ $io = CBXVirtualIo::GetInstance();
 
 $path = $io->CombinePath("/", $path);
 
-$arParsedPath = CFileMan::ParsePath(Array($site, $path), true, false, "", $logical == "Y");
+$arParsedPath = CFileMan::ParsePath(Array($site, $path), true, false, "", ($_REQUEST["logical"] == "Y"));
 $menufilename = $path;
 
 $name = preg_replace("/[^a-z0-9_]/i", "", $_REQUEST["name"]);
@@ -29,6 +29,7 @@ $abs_path = $io->CombinePath($DOC_ROOT, $menufilename);
 
 $strWarning = "";
 $module_id = "fileman";
+
 //delete menu file
 if($_REQUEST["action"] == "delete" && check_bitrix_sessid())
 {
@@ -44,7 +45,7 @@ if($_REQUEST["action"] == "delete" && check_bitrix_sessid())
 				'site' => $site,
 				'path' => $menufilename,
 				'content' => $f->GetContents(),
-				'perm' => CFileMan::FetchFileAccessPerm($arPath_m, true),
+				'perm' => CFileMan::FetchFileAccessPerm($arPath_m),
 			)
 		);
 
@@ -59,10 +60,10 @@ if($_REQUEST["action"] == "delete" && check_bitrix_sessid())
 
 		if(COption::GetOptionString($module_id, "log_menu", "Y")=="Y")
 		{
-			$mt = COption::GetOptionString("fileman", "menutypes", $default_value, $site);
-			$mt = unserialize(str_replace("\\", "", $mt));
+			$mt = COption::GetOptionString("fileman", "menutypes", "", $site);
+			$mt = unserialize(str_replace("\\", "", $mt), ['allowed_classes' => false]);
 			$res_log['menu_name'] = $mt[$name];
-			$res_log['path'] = substr($path, 1);
+			$res_log['path'] = mb_substr($path, 1);
 			CEventLog::Log(
 				"content",
 				"MENU_DELETE",
@@ -91,7 +92,7 @@ if($_REQUEST["action"] == "delete" && check_bitrix_sessid())
 	die();
 }
 
-if($io->FileExists($abs_path) && strlen($new)<=0)
+if($io->FileExists($abs_path) && $new == '')
 	$bEdit = true;
 else
 	$bEdit = false;
@@ -106,7 +107,7 @@ if(!$USER->CanDoOperation('fileman_edit_existent_files') || !$USER->CanDoFileOpe
 }
 else
 {
-	if($REQUEST_METHOD=="POST" && $_REQUEST['save'] == 'Y')
+	if($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST['save'] == 'Y')
 	{
 		if (!is_array($ids)) $ids = array();
 
@@ -130,38 +131,16 @@ else
 
 			$aMenuItem = Array($arValues["text_".$num], $arValues["link_".$num]);
 
-			if ($arValues['additional_params_'.$num])
-				$arAdditionalParams = @unserialize($arValues['additional_params_'.$num]);
-			else
-				$arAdditionalParams = array(array(), array());
+			$arAdditionalParams = array(array(), array());
+			if (check_bitrix_sessid() && $arValues['additional_params_'.$num] && CheckSerializedData($arValues['additional_params_'.$num]))
+			{
+				$arAdditionalParams = @unserialize($arValues['additional_params_'.$num], ['allowed_classes' => false]);
+			}
 
 			$aMenuItem = array_merge($aMenuItem, $arAdditionalParams);
 
-			/*
-			$arAddLinks = Array();
-			$additional_link = $arValues["additional_link_".$num];
-			$arAddLinksTmp = explode("\n", $additional_link);
-			for($j=0; $j<count($arAddLinksTmp); $j++)
-			{
-				if(strlen(trim($arAddLinksTmp[$j]))>0)
-					$arAddLinks[] = trim($arAddLinksTmp[$j]);
-			}
-			$aMenuItem[] = $arAddLinks;
-
-			$arParams = Array();
-			$param_cnt = IntVal(${"param_cnt_".$num});
-			for($j=1; $j<=IntVal($param_cnt); $j++)
-			{
-				$param_name = trim($arValues["param_name_".$num."_".$j]);
-				$param_value = trim($arValues["param_value_".$num."_".$j]);
-				if(strlen($param_name)>0 || strlen($param_value)>0)
-					$arParams[$param_name]=$param_value;
-			}
-			$aMenuItem[] = $arParams;
-			*/
-
 			$aMenuLinksTmp_[] = $aMenuItem;
-			$aMenuSort[] = IntVal(${"sort_".$num});
+			$aMenuSort[] = intval(${"sort_".$num});
 		}
 
 		$aMenuLinksTmp = $aMenuLinksTmp_;
@@ -210,14 +189,14 @@ else
 					)
 				);
 
-			CFileMan::SaveMenu(Array($site, $menufilename), $aMenuLinksTmp, $sMenuTemplateTmp);
+			CFileMan::SaveMenu(Array($site, $menufilename), $aMenuLinksTmp, $res["sMenuTemplate"]);
 
 			if(COption::GetOptionString($module_id, "log_menu", "Y")=="Y")
 			{
 				$mt = COption::GetOptionString("fileman", "menutypes", false, $site);
-				$mt = unserialize(str_replace("\\", "", $mt));
+				$mt = unserialize(str_replace("\\", "", $mt), ['allowed_classes' => false]);
 				$res_log['menu_name'] = $mt[$name];
-				$res_log['path'] = substr($path, 1);
+				$res_log['path'] = mb_substr($path, 1);
 				if ($bEdit)
 					CEventLog::Log(
 						"content",
@@ -261,7 +240,7 @@ $arMenuTypes = GetMenuTypes($site);
 $TITLE = GetMessage("MENU_EDIT_TITLE_".($bEdit ? "EDIT" : "ADD"));
 $DESCRIPTION = str_replace(
 	array("#TYPE#", "#DIR#"),
-	array(strlen($arMenuTypes[$name]) > 0 ? $arMenuTypes[$name] : $name, $path),
+	array($arMenuTypes[$name] <> '' ? $arMenuTypes[$name] : $name, $path),
 	GetMessage("MENU_EDIT_DESCRIPTION_".($bEdit ? "EDIT" : "ADD"))
 );
 
@@ -296,7 +275,7 @@ if($strWarning <> "")
 // ======================== Show content ============================= //
 $obJSPopup->StartContent();
 
-if($bEdit && strlen($strWarning)<=0)
+if($bEdit && $strWarning == '')
 {
 	$res = CFileMan::GetMenuArray($abs_path);
 	$aMenuLinksTmp = $res["aMenuLinks"];
@@ -322,7 +301,7 @@ if(!is_array($aMenuLinksTmp))
 
 	<div id="bx_menu_layout" class="bx-menu-layout"><?
 	$itemcnt = 0;
-	for($i=1; $i<=count($aMenuLinksTmp); $i++):
+	for($i = 1, $n = count($aMenuLinksTmp); $i <= $n; $i++):
 		$itemcnt++;
 		$aMenuLinksItem = $aMenuLinksTmp[$i-1];
 	?><div class="bx-menu-placement" id="bx_menu_placement_<?=$i?>"><div class="bx-edit-menu-item" id="bx_menu_row_<?=$i?>"><table border="0" cellpadding="0" cellspacing="0" class="bx-width100 internal" class="menu-table"><tbody>
@@ -335,12 +314,12 @@ if(!is_array($aMenuLinksTmp))
 		<span class="rowcontrol drag" title="<?=GetMessage('MENU_EDIT_TOOLTIP_DRAG')?>"></span>
 		</td>
 		</td><td>
-			<div onmouseout="rowMouseOut(this)" onmouseover="rowMouseOver(this)" class="edit-field view-area" id="view_area_text_<?=$i?>" onclick="editArea('text_<?=$i?>')" title="<?=GetMessage('MENU_EDIT_TOOLTIP_TEXT_EDIT')?>"><?=strlen($aMenuLinksItem[0]) > 0 ? htmlspecialcharsbx($aMenuLinksItem[0]) : GetMessage('MENU_EDIT_JS_NONAME')?></div>
+			<div onmouseout="rowMouseOut(this)" onmouseover="rowMouseOver(this)" class="edit-field view-area" id="view_area_text_<?=$i?>" onclick="editArea('text_<?=$i?>')" title="<?=GetMessage('MENU_EDIT_TOOLTIP_TEXT_EDIT')?>"><?=$aMenuLinksItem[0] <> '' ? htmlspecialcharsbx($aMenuLinksItem[0]) : GetMessage('MENU_EDIT_JS_NONAME')?></div>
 			<div class="edit-area" id="edit_area_text_<?=$i?>" style="display: none;"><input type="text" style="width: 220px;" name="text_<?echo $i?>" value="<?=htmlspecialcharsbx($aMenuLinksItem[0])?>" onblur="viewArea('text_<?=$i?>')" />
 </div>
 		</td>
 		<td>
-			<div onmouseout="rowMouseOut(this)" onmouseover="rowMouseOver(this)" class="edit-field view-area" id="view_area_link_<?=$i?>" onclick="editArea('link_<?=$i?>')" title="<?=GetMessage('MENU_EDIT_TOOLTIP_LINK_EDIT')?>"><?=strlen($aMenuLinksItem[1]) > 0 ? htmlspecialcharsbx($aMenuLinksItem[1]) : GetMessage('MENU_EDIT_JS_NONAME')?></div>
+			<div onmouseout="rowMouseOut(this)" onmouseover="rowMouseOver(this)" class="edit-field view-area" id="view_area_link_<?=$i?>" onclick="editArea('link_<?=$i?>')" title="<?=GetMessage('MENU_EDIT_TOOLTIP_LINK_EDIT')?>"><?=$aMenuLinksItem[1] <> '' ? htmlspecialcharsbx($aMenuLinksItem[1]) : GetMessage('MENU_EDIT_JS_NONAME')?></div>
 			<div class="edit-area" id="edit_area_link_<?=$i?>" style="display: none;"><input type="text" style="width: 220px;" name="link_<?echo $i?>" value="<?=htmlspecialcharsbx($aMenuLinksItem[1])?>" onblur="viewArea('link_<?=$i?>')" /></div>
 		</td>
 		<td>
@@ -505,8 +484,8 @@ function menuAdd()
 	$out = ob_get_contents();
 	ob_end_clean();
 	$out = trim($out);
-	$unscript_pos = strpos($out, '</script>');
-	$out = substr($out, 8, $unscript_pos-8);
+	$unscript_pos = mb_strpos($out, '</script>');
+	$out = mb_substr($out, 8, $unscript_pos - 8);
 	$out = trim($out);
 
 	$out = CUtil::JSEscape($out);

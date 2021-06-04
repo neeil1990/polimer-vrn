@@ -7,24 +7,25 @@
  */
 namespace Bitrix\Sender\Entity;
 
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\DB;
 use Bitrix\Main\Error;
 use Bitrix\Main\InvalidOperationException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Result;
 use Bitrix\Main\Type\Date;
-
-use Bitrix\Sender\Message as MainMessage;
+use Bitrix\Main\Type\DateTime;
 use Bitrix\Sender\Dispatch;
+use Bitrix\Sender\Integration;
+use Bitrix\Sender\Internals\Model\LetterSegmentTable;
+use Bitrix\Sender\Internals\Model\LetterTable;
+use Bitrix\Sender\Internals\Model\MessageFieldTable;
+use Bitrix\Sender\Message as MainMessage;
 use Bitrix\Sender\Posting;
-use Bitrix\Sender\Templates;
-use Bitrix\Sender\TemplateTable;
 use Bitrix\Sender\Recipient;
 use Bitrix\Sender\Security;
-use Bitrix\Sender\Integration;
-
-use Bitrix\Sender\Internals\Model\LetterTable;
-use Bitrix\Sender\Internals\Model\LetterSegmentTable;
+use Bitrix\Sender\Templates;
+use Bitrix\Sender\TemplateTable;
 
 Loc::loadMessages(__FILE__);
 
@@ -35,6 +36,10 @@ class Letter extends Base
 
 	/** @var  MainMessage\Adapter $message Message. */
 	protected $message;
+
+	/** @var null|array $messagesCache Created messages by type
+	 */
+	protected $messagesCache = [];
 
 	/** @var  Dispatch\Duration $duration Duration. */
 	protected $duration;
@@ -84,25 +89,7 @@ class Letter extends Base
 	{
 		if (!isset($parameters['select']))
 		{
-			$parameters['select'] = array(
-				'*',
-				'SITE_ID' => 'CAMPAIGN.SITE_ID',
-				'CAMPAIGN_ACTIVE' => 'CAMPAIGN.ACTIVE',
-
-				'DATE_SEND' => 'CURRENT_POSTING.DATE_SEND',
-				'DATE_PAUSE' => 'CURRENT_POSTING.DATE_PAUSE',
-				'DATE_SENT' => 'CURRENT_POSTING.DATE_SENT',
-
-				'COUNT_SEND_ALL' => 'CURRENT_POSTING.COUNT_SEND_ALL',
-				'COUNT_SEND_NONE' => 'CURRENT_POSTING.COUNT_SEND_NONE',
-				'COUNT_SEND_ERROR' => 'CURRENT_POSTING.COUNT_SEND_ERROR',
-				'COUNT_SEND_SUCCESS' => 'CURRENT_POSTING.COUNT_SEND_SUCCESS',
-				'COUNT_SEND_DENY' => 'CURRENT_POSTING.COUNT_SEND_DENY',
-
-				'USER_NAME' => 'CREATED_BY_USER.NAME',
-				'USER_LAST_NAME' => 'CREATED_BY_USER.LAST_NAME',
-				'USER_ID' => 'CREATED_BY',
-			);
+			$parameters['select'] = static::getDefaultSelectFields();
 		}
 		if (!isset($parameters['filter']))
 		{
@@ -132,6 +119,70 @@ class Letter extends Base
 		}
 
 		return LetterTable::getList($parameters);
+	}
+
+	public static function getDefaultSelectFields()
+	{
+		return array(
+			'*',
+			'SITE_ID' => 'CAMPAIGN.SITE_ID',
+			'CAMPAIGN_ACTIVE' => 'CAMPAIGN.ACTIVE',
+
+			'DATE_SEND' => 'CURRENT_POSTING.DATE_SEND',
+			'DATE_PAUSE' => 'CURRENT_POSTING.DATE_PAUSE',
+			'DATE_SENT' => 'CURRENT_POSTING.DATE_SENT',
+
+			'COUNT_SEND_ALL' => 'CURRENT_POSTING.COUNT_SEND_ALL',
+			'COUNT_SEND_NONE' => 'CURRENT_POSTING.COUNT_SEND_NONE',
+			'COUNT_SEND_ERROR' => 'CURRENT_POSTING.COUNT_SEND_ERROR',
+			'COUNT_SEND_SUCCESS' => 'CURRENT_POSTING.COUNT_SEND_SUCCESS',
+			'COUNT_SEND_DENY' => 'CURRENT_POSTING.COUNT_SEND_DENY',
+
+			'USER_NAME' => 'CREATED_BY_USER.NAME',
+			'USER_LAST_NAME' => 'CREATED_BY_USER.LAST_NAME',
+			'USER_ID' => 'CREATED_BY',
+		);
+	}
+	/**
+	 * Get list with message fields
+	 * @param array $parameters Getlist params.
+	 * @return DB\ArrayResult
+	 * @throws \Bitrix\Main\ArgumentException
+	 * @throws \Bitrix\Main\ObjectPropertyException
+	 * @throws \Bitrix\Main\SystemException
+	 */
+	public static function getListWithMessageFields(array $parameters = array())
+	{
+		$result = [];
+		$messageIds = [];
+		$list = static::getList($parameters);
+		while ($item = $list->fetch())
+		{
+			$result[] = $item;
+			if ($item['MESSAGE_ID'])
+			{
+				$messageIds[] = $item['MESSAGE_ID'];
+			}
+		}
+		if ($messageIds)
+		{
+			$messageFields = [];
+			$rows = MessageFieldTable::getList(['filter' => ['=MESSAGE_ID' => $messageIds]]);
+			while ($messageField = $rows->fetch())
+			{
+				$messageFields[$messageField['MESSAGE_ID']][] = $messageField;
+			}
+			foreach ($result as $key => $item)
+			{
+				if ($messageFields[$item['MESSAGE_ID']])
+				{
+					$result[$key]['MESSAGE_FIELDS'] = $messageFields[$item['MESSAGE_ID']];
+				}
+			}
+		}
+		$dbResult = new \Bitrix\Main\DB\ArrayResult($result);
+		$dbResult->setCount($list->getCount());
+		return $dbResult;
 	}
 
 	/**
@@ -269,8 +320,15 @@ class Letter extends Base
 			return null;
 		}
 
-		$message = MainMessage\Adapter::create($code);
-		if ($message->isAds())
+		try
+		{
+			$message = MainMessage\Adapter::create($code);
+		} catch (ArgumentException $e)
+		{
+			return null;
+		}
+
+		if ($message->isAds() || $message->isMarketing())
 		{
 			$instance = new Ad();
 		}
@@ -278,9 +336,13 @@ class Letter extends Base
 		{
 			$instance = new Rc();
 		}
-		else
+		elseif ($message->isMailing())
 		{
 			$instance = new Letter();
+		}
+		else
+		{
+			$instance = new Toloka();
 		}
 
 		return $instance;
@@ -348,7 +410,14 @@ class Letter extends Base
 		// segment check
 		if(!is_array($segmentsInclude) || count($segmentsInclude) == 0)
 		{
-			if ($data['IS_TRIGGER'] <> 'Y' && $previousData['IS_TRIGGER'] <> 'Y')
+			if (
+				(
+					isset($data['NOT_USE_SEGMENTS'])
+					&& !$data['NOT_USE_SEGMENTS']
+				)
+				&& $data['IS_TRIGGER'] <> 'Y'
+				&& $previousData['IS_TRIGGER'] <> 'Y'
+			)
 			{
 				$this->addError(Loc::getMessage('SENDER_ENTITY_LETTER_ERROR_NO_SEGMENTS'));
 				return $id;
@@ -359,7 +428,7 @@ class Letter extends Base
 		// campaign setting
 		if (!isset($data['CAMPAIGN_ID']))
 		{
-			$data['CAMPAIGN_ID'] = Campaign::getDefaultId();
+			$data['CAMPAIGN_ID'] = Campaign::getDefaultId(SITE_ID);
 			$this->set('CAMPAIGN_ID', $data['CAMPAIGN_ID']);
 		}
 
@@ -384,19 +453,23 @@ class Letter extends Base
 			$data['REITERATE'] = 'Y';
 		}
 
+
 		if ($this->filterDataByChanging($data, $previousData))
 		{
 			$id = $this->saveByEntity(LetterTable::getEntity(), $id, $data);
 		}
 
-		if ($this->hasErrors())
-		{
-			return $id;
-		}
-
 		if ($this->canChangeSegments())
 		{
 			$this->saveDataSegments($id, $segmentsInclude, $segmentsExclude);
+
+			$data['DATE_UPDATE'] = new DateTime();
+			$this->saveByEntity(LetterTable::getEntity(), $id, $data);
+		}
+
+		if ($this->hasErrors())
+		{
+			return $id;
 		}
 
 		// update template use count
@@ -467,24 +540,33 @@ class Letter extends Base
 		);
 
 		$oldSegments = $this->loadDataSegments($id);
+		$letter = LetterTable::getById($id)->fetch();
 		LetterSegmentTable::delete(array('LETTER_ID' => $id));
 
 		$isChanged = false;
+		$dataToInsert = [];
 		foreach ($segmentsList as $segments)
 		{
-			foreach ($segments['list'] as $segmentId)
+			if(empty($segments['list']))
 			{
-				$result = LetterSegmentTable::add(array(
-					'LETTER_ID' => $id,
-					'SEGMENT_ID' => $segmentId,
-					'INCLUDE' => $segments['include'],
-				));
-				$result->isSuccess();
+				continue;
 			}
 
 			$typeCode = $segments['include'] ? 'INCLUDE' : 'EXCLUDE';
-			$newest = self::getArrayDiffNewest($segments['list'], $oldSegments[$typeCode]);
-			$removed = self::getArrayDiffRemoved($segments['list'], $oldSegments[$typeCode]);
+			$list = [];
+			foreach ($segments['list'] as $segment)
+			{
+				$list[] = ['DATE_UPDATE' => $letter['DATE_UPDATE'], 'ID' => $segment];
+				$dataToInsert[] = array(
+					'LETTER_ID' => $id,
+					'SEGMENT_ID' => $segment,
+					'INCLUDE' => $segments['include'],
+				);
+			}
+
+			$newest = self::getArrayDiffNewest($list, $oldSegments[$typeCode]);
+			$removed = self::getArrayDiffRemoved($list, $oldSegments[$typeCode]);
+
 			if (count($newest) === 0 && count($removed) === 0)
 			{
 				continue;
@@ -494,23 +576,32 @@ class Letter extends Base
 			{
 				Segment::updateUseCounters($newest, $segments['include']);
 			}
+
 			$isChanged = true;
+		}
+		if(!empty($dataToInsert))
+		{
+			LetterSegmentTable::addMulti($dataToInsert);
 		}
 
 		if ($isChanged && $this->getId() && $this->get('POSTING_ID'))
 		{
-			Posting\Builder::create()->run($this->get('POSTING_ID'), false);
+			Posting\Builder::create()
+				->run($this->get('POSTING_ID'), false);
 		}
 	}
 
 	private static function getArrayDiffNewest(array $current, array $old)
 	{
-		return array_diff($current, $old);
+		return array_udiff($current, $old, function($first, $second)
+		{
+			return $first['DATE_UPDATE'] < $second['DATE_UPDATE'] || $first['ID'] != $second['ID'];
+		});
 	}
 
 	private static function getArrayDiffRemoved(array $current, array $old)
 	{
-		return array_diff($old, $current);
+		return self::getArrayDiffNewest($old, $current);
 	}
 
 	protected function updateTemplateUseCount(array $data, array $previousData)
@@ -553,7 +644,10 @@ class Letter extends Base
 		$segments = $this->loadDataSegments($id);
 		foreach ($segments as $typeCode => $list)
 		{
-			$data["SEGMENTS_$typeCode"] = $list;
+			foreach($list as $item)
+			{
+				$data["SEGMENTS_$typeCode"][] = $item['ID'];
+			}
 		}
 
 		return $data;
@@ -569,7 +663,7 @@ class Letter extends Base
 		return (
 			$this->getState()->wasStartedSending()
 			&&
-			!$this->getState()->isSendingPlanned()
+			!$this->getState()->isPlanned()
 			&&
 			$this->getMessage()->hasStatistics()
 		);
@@ -595,6 +689,7 @@ class Letter extends Base
 	{
 		$data = array('INCLUDE' => array(), 'EXCLUDE' => array());
 		$segments = LetterSegmentTable::getList(array(
+			'select' => ['INCLUDE', 'LETTER_ID', 'SEGMENT_ID', 'DATE_UPDATE' => 'SEGMENT.DATE_UPDATE'],
 			'filter'=>array(
 				'=LETTER_ID'=> $id
 			)
@@ -603,11 +698,13 @@ class Letter extends Base
 		{
 			if ($segment['INCLUDE'])
 			{
-				$data['INCLUDE'][] = $segment['SEGMENT_ID'];
+				$data['INCLUDE'][] =
+					[ 'ID' => $segment['SEGMENT_ID'], 'DATE_UPDATE' => $segment['DATE_UPDATE']];
 			}
 			else
 			{
-				$data['EXCLUDE'][] = $segment['SEGMENT_ID'];
+				$data['EXCLUDE'][] =
+					[ 'ID' => $segment['SEGMENT_ID'], 'DATE_UPDATE' => $segment['DATE_UPDATE']];
 			}
 		}
 
@@ -634,14 +731,28 @@ class Letter extends Base
 	 * Get Message instance.
 	 *
 	 * @return MainMessage\Adapter
+	 * @throws \Bitrix\Main\ArgumentException
 	 */
 	public function getMessage()
 	{
 		$messageCode = $this->get('MESSAGE_CODE') ?: MainMessage\Adapter::CODE_MAIL;
 		$messageId = $this->get('MESSAGE_ID') ?: null;
 
-		if ($this->message && $this->message->getCode() === $messageCode)
+		$messageFields = [];
+		if ($this->data['MESSAGE_FIELDS'])
 		{
+			foreach ($this->data['MESSAGE_FIELDS'] as $field)
+			{
+				$messageFields[$field['CODE']] = $field['VALUE'];
+			}
+		}
+		if ($this->messagesCache && $this->messagesCache[$messageCode])
+		{
+			$this->message = $this->messagesCache[$messageCode];
+			if ($messageFields)
+			{
+				$this->message->setConfigurationData($messageFields);
+			}
 			return $this->message;
 		}
 
@@ -649,7 +760,13 @@ class Letter extends Base
 		$createdById = $this->get('CREATED_BY') ?: Security\User::current()->getId();
 		$this->message->getConfiguration()->set('LETTER_CREATED_BY_ID', $createdById);
 		$this->message->setSiteId($this->get('SITE_ID'));
+		if ($messageFields)
+		{
+			$this->message->setConfigurationData($messageFields);
+		}
 		$this->message->loadConfiguration($messageId);
+
+		$this->messagesCache[$messageCode] = $this->message;
 
 		return $this->message;
 	}
@@ -845,6 +962,7 @@ class Letter extends Base
 			'TEMPLATE_TYPE' => $this->get('TEMPLATE_TYPE'),
 			'TEMPLATE_ID' => $this->get('TEMPLATE_ID'),
 			'CREATED_BY' => $this->getUser()->getId(),
+			'UPDATED_BY' => $this->getUser()->getId(),
 			'IS_TRIGGER' => $this->get('IS_TRIGGER'),
 			'TITLE' => Loc::getMessage('SENDER_ENTITY_LETTER_COPY_PREFIX') . ' ' . $this->get('TITLE'),
 			'SEGMENTS_INCLUDE' => $this->get('SEGMENTS_INCLUDE'),

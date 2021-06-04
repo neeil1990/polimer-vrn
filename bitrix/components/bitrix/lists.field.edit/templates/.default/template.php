@@ -45,14 +45,13 @@ elseif(!IsModuleInstalled("intranet"))
 }
 ?>
 <div class="pagetitle-container pagetitle-align-right-container <?=$pagetitleAlignRightContainer?>">
-	<a href="<?=$arResult["LIST_FIELDS_URL"]?>" class="lists-list-back">
+	<a href="<?=$arResult["LIST_FIELDS_URL"]?>" class="ui-btn ui-btn-sm ui-btn-link ui-btn-themes lists-list-back">
 		<?=GetMessage("CT_BLFE_TOOLBAR_RETURN_LIST_ELEMENT")?>
 	</a>
 	<?if($listAction):?>
-		<span id="lists-title-action" class="webform-small-button webform-small-button-transparent bx-filter-button">
-		<span class="webform-small-button-text"><?=GetMessage("CT_BLFE_TOOLBAR_ACTION")?></span>
-		<span id="lists-title-action-icon" class="webform-small-button-icon"></span>
-	</span>
+		<span id="lists-title-action" class="ui-btn ui-btn-sm ui-btn-light-border ui-btn-dropdown ui-btn-themes">
+			<?=GetMessage("CT_BLFE_TOOLBAR_ACTION")?>
+		</span>
 	<?endif;?>
 </div>
 <?
@@ -626,7 +625,7 @@ if(is_array($arResult["LIST"]))
 		$html .= '
 			<br><br>
 			<a class="href-action" href="javascript:void(0)" onclick="BX.Lists[\''.$jsClass.'\'].toggleInput(\'import\'); return false;">'.GetMessage("CT_BLFE_ENUM_IMPORT").'</a>
-			<div id="import" style="'.(strlen($arResult["FORM_DATA"]["LIST_TEXT_VALUES"]) > 0? '': 'display:none; ').'width:100%">
+			<div id="import" style="'.($arResult["FORM_DATA"]["LIST_TEXT_VALUES"] <> ''? '': 'display:none; ').'width:100%">
 				<p>'.GetMessage("CT_BLFE_ENUM_IMPORT_HINT").'</p>
 				<textarea name="LIST_TEXT_VALUES" id="LIST_TEXT_VALUES" style="width:100%" rows="20">'.htmlspecialcharsex($arResult["FORM_DATA"]["LIST_TEXT_VALUES"]).'</textarea>
 			</div>
@@ -635,7 +634,7 @@ if(is_array($arResult["LIST"]))
 		$html .= '
 			<br><br>
 			<a class="href-action" href="javascript:void(0)" onclick="BX.Lists[\''.$jsClass.'\'].toggleInput(\'defaults\'); return false;">'.($arResult["FORM_DATA"]["MULTIPLE"] == "Y"? GetMessage("CT_BLFE_ENUM_DEFAULTS"): GetMessage("CT_BLFE_ENUM_DEFAULT")).'</a>
-			<div id="defaults" style="'.(strlen($arResult["FORM_DATA"]["LIST_TEXT_VALUES"]) > 0? '': 'display:none; ').'width:100%">
+			<div id="defaults" style="'.($arResult["FORM_DATA"]["LIST_TEXT_VALUES"] <> ''? '': 'display:none; ').'width:100%">
 			<br>
 		';
 

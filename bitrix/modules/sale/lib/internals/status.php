@@ -59,7 +59,6 @@ class StatusTable extends Main\Entity\DataManager
 			)),
 
 			new Main\Entity\StringField('COLOR', array(
-				'default_value' => 'Y',
 				'title'         => Loc::getMessage('B_SALE_STATUS_COLOR'),
 			)),
 

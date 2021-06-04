@@ -553,7 +553,7 @@ class CWiki
 
 			foreach ($arPatterns as $arPattern)
 			{
-				if(strpos($newText, $arPattern["search"]) !== false)
+				if(mb_strpos($newText, $arPattern["search"]) !== false)
 				{
 					$newText = preg_replace($arPattern["pattern"], $arPattern["replacement"], $newText);
 					$bChanged = true;
@@ -562,7 +562,7 @@ class CWiki
 
 
 			if ($isCategory)
-				if(strpos($newText, $catSearch) !== false)
+				if(mb_strpos($newText, $catSearch) !== false)
 				{
 					$newText = $this->RenameCategoryOnPage($newText, $sCatName, $newName);
 					$bChanged = true;
@@ -887,19 +887,37 @@ class CWiki
 				{
 					$sTag = trim($sTag);
 					$arTag = array('NAME' => $sTag);
-					if (!empty($arComponentParams) && isset($arComponentParams['PATH_TO_SEARCH']))
+					if (
+						!empty($arComponentParams)
+						&& (
+							isset($arComponentParams['PATH_TO_SEARCH'])
+							|| isset($arComponentParams['~PATH_TO_TAG'])
+						)
+					)
 					{
-						$arP = $arComponentParams['IN_COMPLEX'] == 'Y' && $arComponentParams['SEF_MODE'] == 'N' ? array($arComponentParams['OPER_VAR'] => 'search') : array();
-						$arP['tags'] = rawurlencode($sTag);
-						$arTag['LINK'] = CHTTP::urlAddParams(
-									CComponentEngine::MakePathFromTemplate($arComponentParams['PATH_TO_SEARCH'],
-										array(
-											'wiki_name' => $arComponentParams['ELEMENT_NAME'],
-											'group_id' => CWikiSocnet::$iSocNetId
-										)
-									),
-									$arP
-								);
+						if (isset($arComponentParams['PATH_TO_TAG']))
+						{
+							$arTag['LINK'] = \CComponentEngine::MakePathFromTemplate($arComponentParams['~PATH_TO_TAG'],
+								[
+									'group_id' => CWikiSocnet::$iSocNetId,
+									'tag' => rawurlencode($sTag)
+								]
+							);
+						}
+						else
+						{
+							$arP = $arComponentParams['IN_COMPLEX'] == 'Y' && $arComponentParams['SEF_MODE'] == 'N' ? array($arComponentParams['OPER_VAR'] => 'search') : array();
+							$arP['tags'] = rawurlencode($sTag);
+							$arTag['LINK'] = CHTTP::urlAddParams(
+								CComponentEngine::MakePathFromTemplate($arComponentParams['PATH_TO_SEARCH'],
+									array(
+										'wiki_name' => $arComponentParams['ELEMENT_NAME'],
+										'group_id' => CWikiSocnet::$iSocNetId
+									)
+								),
+								$arP
+							);
+						}
 					}
 					$arResult['_TAGS'][] = $arTag;
 				}

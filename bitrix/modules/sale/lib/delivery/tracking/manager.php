@@ -12,6 +12,7 @@ use Bitrix\Main\SystemException;
 use Bitrix\Sale\Delivery\Services;
 use Bitrix\Sale\Internals\ShipmentTable;
 use Bitrix\Sale\Order;
+use Bitrix\Sale;
 use Bitrix\Sale\PropertyValueCollection;
 use Bitrix\Sale\Result;
 use Bitrix\Sale\Shipment;
@@ -191,10 +192,10 @@ class Manager
 			return $result;
 		}
 
-		if(strlen($trackingNumber) > 0 && $trackingNumber != $shipment['TRACKING_NUMBER'])
+		if($trackingNumber <> '' && $trackingNumber != $shipment['TRACKING_NUMBER'])
 			$shipment['TRACKING_NUMBER'] = $trackingNumber;
 
-		if(strlen($shipment['TRACKING_NUMBER']) <= 0)
+		if($shipment['TRACKING_NUMBER'] == '')
 			return $result;
 
 		$result = $this->getStatus($shipment);
@@ -228,7 +229,7 @@ class Manager
 	 */
 	protected static function getMappedStatuses()
 	{
-		$result = unserialize(Option::get('sale', 'tracking_map_statuses',''));
+		$result = unserialize(Option::get('sale', 'tracking_map_statuses',''), ['allowed_classes' => false]);
 
 		if(!is_array($result))
 			$result = array();
@@ -249,7 +250,7 @@ class Manager
 	 */
 	protected function getStatus($shipment)
 	{
-		$result = new \Bitrix\Sale\Result();
+		$result = new StatusResult();
 
 		if(intval($shipment['DELIVERY_ID']) <= 0)
 			throw new ArgumentNullException('deliveryId');
@@ -284,7 +285,7 @@ class Manager
 
 		$class = $deliveryService->getTrackingClass();
 
-		if(strlen($class) > 0)
+		if($class <> '')
 		{
 			$result = $this->createTrackingObject(
 				$class,
@@ -306,7 +307,7 @@ class Manager
 	 */
 	protected function createTrackingObject($className, array $params, Services\Base $deliveryService)
 	{
-		if(strlen($className) <= 0)
+		if($className == '')
 			throw new ArgumentNullException('className');
 
 		if(!class_exists($className))
@@ -421,7 +422,7 @@ class Manager
 			if(!isset($shipmentsData[$shipment['DELIVERY_ID']]))
 				$shipmentsData[$shipment['DELIVERY_ID']] = array();
 
-			if(strlen($shipment['TRACKING_NUMBER']) <= 0)
+			if($shipment['TRACKING_NUMBER'] == '')
 				continue;
 
 			$shipmentsData[$shipment['DELIVERY_ID']][$shipment['TRACKING_NUMBER']] = array(
@@ -555,9 +556,13 @@ class Manager
 	{
 		$result = new Result();
 
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
 		foreach($params as $param)
 		{
-			if(intval($param->status) <= 0 && strlen($param->description) <= 0)
+			if(intval($param->status) <= 0 && $param->description == '')
 				continue;
 
 			$mappedStatuses = $this->getMappedStatuses();
@@ -565,7 +570,7 @@ class Manager
 			if(!empty($mappedStatuses[$param->status]))
 			{
 				/** @var Order $order */
-				$order = Order::load($param->orderId);
+				$order = $orderClass::load($param->orderId);
 				$shipmentCollection = null;
 				$oShipment = null;
 
@@ -620,6 +625,10 @@ class Manager
 		foreach($params as $status)
 			$paramsByShipmentId[$status->shipmentId] = $status;
 
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
 		$res = ShipmentTable::getList(array(
 			'filter' => array(
 				'=ID' => array_keys($paramsByShipmentId)
@@ -653,7 +662,7 @@ class Manager
 		{
 			$userEmail = '';
 			$userName = '';
-			$order = Order::load($paramsByShipmentId[$data['SHIPMENT_NO']]->orderId);
+			$order = $orderClass::load($paramsByShipmentId[$data['SHIPMENT_NO']]->orderId);
 
 			/** @var PropertyValueCollection $propertyCollection */
 			if ($propertyCollection = $order->getPropertyCollection())
@@ -669,7 +678,7 @@ class Manager
 				$userEmail = $data['EMAIL'];
 
 			if(empty($userName))
-				$userName = $data["USER_NAME"].((strlen($data["USER_NAME"])<=0 || strlen($data["USER_LAST_NAME"])<=0) ? "" : " ").$data["USER_LAST_NAME"];
+				$userName = $data["USER_NAME"].(($data["USER_NAME"] == '' || $data["USER_LAST_NAME"] == '') ? "" : " ").$data["USER_LAST_NAME"];
 
 			$siteFields = \CAllEvent::GetSiteFieldsArray($data['SITE_ID']);
 
@@ -704,7 +713,7 @@ class Manager
 
 			$deliveryTrackingUrl = '';
 
-			if(strlen($trackingUrl) > 0)
+			if($trackingUrl <> '')
 			{
 				$deliveryTrackingUrl = Loc::getMessage(
 					'SALE_DTM_SHIPMENT_STATUS_TRACKING_URL',

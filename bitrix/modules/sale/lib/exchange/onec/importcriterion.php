@@ -86,7 +86,7 @@ class ImportCriterionOneCCml2 extends ImportCriterionBase
 		}
 
 		if(($entity->getField('VERSION_1C') != $fields['VERSION_1C']) ||
-			(strlen($entity->getField('VERSION_1C'))<=0 || strlen($fields['VERSION_1C'])<=0)
+			($entity->getField('VERSION_1C') == '' || $fields['VERSION_1C'] == '')
 		)
 		{
 			return true;
@@ -106,9 +106,8 @@ class CriterionOrder extends ImportCriterionOneCCml2
      */
     public function equalsBasketItemTax(Sale\BasketItem $basketItem, array $fields)
     {
-        if($fields['TAX']['VAT_RATE'] != $basketItem->getVatRate() &&
-            ($fields['TAX']['VAT_INCLUDED']<>'Y' && $fields['PRICE']<>$basketItem->getPrice())
-        )
+        if($fields['TAX']['VAT_RATE'] != $basketItem->getVatRate()
+			|| $fields['TAX']['VAT_INCLUDED']<>$basketItem->getField('VAT_INCLUDED'))
         {
             return true;
         }
@@ -337,7 +336,7 @@ class CriterionProfile extends ImportCriterionOneCCml2
         }
 
         if(($entity->getField('USER_PROFILE_VERSION') != $fields['VERSION_1C']) ||
-            (strlen($entity->getField('USER_PROFILE_VERSION'))<=0 || strlen($fields['VERSION_1C'])<=0)
+            ($entity->getField('USER_PROFILE_VERSION') == '' || $fields['VERSION_1C'] == '')
         )
         {
             return true;

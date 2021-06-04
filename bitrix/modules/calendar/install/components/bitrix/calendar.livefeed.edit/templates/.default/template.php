@@ -157,7 +157,7 @@ $APPLICATION->IncludeComponent(
 
 	<div  class="feed-event-location">
 		<label style="display: inline-block;" for="event-location<?=$id?>"><?= GetMessage('ECLF_EVENT_LOCATION')?></label>
-		<input type="text" id="event-location<?=$id?>" value="" class="calendar-inp calendar-inp-loc" name="EVENT_LOCATION"/>
+		<input type="text" id="event-location<?=$id?>" value="" class="calendar-inp calendar-inp-loc"/>
 		<input id="event-location-new<?=$id?>" type="hidden" value=""/>
 	</div>
 </div>
@@ -174,18 +174,20 @@ $APPLICATION->IncludeComponent(
 				"LAZYLOAD" => 'Y',
 				"LIST" => [],
 				"INPUT_NAME" => 'EVENT_DEST_CODES[]',
-				"USE_SYMBOLIC_ID" => "Y",
+				"USE_SYMBOLIC_ID" => true,
 				"BUTTON_SELECT_CAPTION" => \Bitrix\Main\Localization\Loc::getMessage("ECLF_DESTINATION_ADD_USERS"),
 				"BUTTON_SELECT_CAPTION_MORE" => \Bitrix\Main\Localization\Loc::getMessage("ECLF_DESTINATION_ADD_MORE"),
 				"API_VERSION" => 3,
 				"SELECTOR_OPTIONS" => array(
 					'lazyLoad' => 'Y',
-					'context' => 'CALENDAR',
+					'context' => \Bitrix\Calendar\Util::getUserSelectorContext(),
 					'contextCode' => '',
 					'enableSonetgroups' => 'Y',
 					'departmentSelectDisable' => 'N',
 					'showVacations' => 'Y',
-					'enableAll' => 'Y'
+					'enableAll' => 'Y',
+					'allowSearchEmailUsers' => 'Y',
+					'allowEmailInvitation' => 'Y'
 				)
 			]
 		);

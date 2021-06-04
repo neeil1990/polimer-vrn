@@ -35,13 +35,35 @@ class CAllVoteAnswer
 		if (is_set($arFields, "MESSAGE") || $ACTION == "ADD"):
 			//$arFields["MESSAGE"] = trim($arFields["MESSAGE"]);
 			$arFields["MESSAGE"] = ($arFields["MESSAGE"] != ' ') ? trim($arFields["MESSAGE"]):' ';
-			if (strlen($arFields["MESSAGE"]) <= 0):
+			if ($arFields["MESSAGE"] == ''):
 				$aMsg[] = array(
 					"id" => "MESSAGE", 
 					"text" => GetMessage("VOTE_FORGOT_MESSAGE"));
 			endif;
 		endif;
-		
+
+		if (array_key_exists("IMAGE_ID", $arFields))
+		{
+			if (!is_array($arFields["IMAGE_ID"]))
+			{
+				$arFields["IMAGE_ID"] = intval($arFields["IMAGE_ID"]);
+			}
+			else if ($arFields["IMAGE_ID"]["name"] == '' && $arFields["IMAGE_ID"]["del"] == '')
+			{
+				unset($arFields["IMAGE_ID"]);
+			}
+			else if ($str = CFile::CheckImageFile($arFields["IMAGE_ID"]))
+			{
+				$aMsg[] = array(
+					"id" => "IMAGE_ID",
+					"text" => "Answer: ".$str);
+			}
+			else
+			{
+				$arFields["IMAGE_ID"]["MODULE_ID"] = "vote";
+			}
+		}
+
 		if (is_set($arFields, "ACTIVE") || $ACTION == "ADD") $arFields["ACTIVE"] = ($arFields["ACTIVE"] == "N" ? "N" : "Y");
 		unset($arFields["TIMESTAMP_X"]);
 		if (is_set($arFields, "C_SORT") || $ACTION == "ADD") $arFields["C_SORT"] = (intval($arFields["C_SORT"]) > 0 ? intval($arFields["C_SORT"]) : 100);
@@ -50,8 +72,8 @@ class CAllVoteAnswer
 		if (is_set($arFields, "FIELD_WIDTH") || $ACTION == "ADD") $arFields["FIELD_WIDTH"] = intval($arFields["FIELD_WIDTH"]);
 		if (is_set($arFields, "FIELD_HEIGHT") || $ACTION == "ADD") $arFields["FIELD_HEIGHT"] = intval($arFields["FIELD_HEIGHT"]);
 		
-		if (is_set($arFields, "FIELD_PARAM") || $ACTION == "ADD") $arFields["FIELD_PARAM"] = substr(trim($arFields["FIELD_PARAM"]), 0, 255);
-		if (is_set($arFields, "COLOR") || $ACTION == "ADD") $arFields["COLOR"] = substr(trim($arFields["COLOR"]), 0, 7);
+		if (is_set($arFields, "FIELD_PARAM") || $ACTION == "ADD") $arFields["FIELD_PARAM"] = mb_substr(trim($arFields["FIELD_PARAM"]), 0, 255)?: "";
+		if (is_set($arFields, "COLOR") || $ACTION == "ADD") $arFields["COLOR"] = mb_substr(trim($arFields["COLOR"]), 0, 7)?: "";
 		
 		if(!empty($aMsg))
 		{
@@ -75,6 +97,15 @@ class CAllVoteAnswer
 /***************** /Event ******************************************/
 		if (empty($arFields))
 			return false;
+
+		if (
+			array_key_exists("IMAGE_ID", $arFields) &&
+			is_array($arFields["IMAGE_ID"])
+		)
+		{
+			$arFields["IMAGE_ID"]["MODULE_ID"] = "vote";
+			CFile::SaveForDB($arFields, "IMAGE_ID", "vote");
+		}
 
 		if ($DB->type == "ORACLE")
 			$arFields["ID"] = $DB->NextID("SQ_B_VOTE_ANSWER");
@@ -102,11 +133,20 @@ class CAllVoteAnswer
 			return false;
 /***************** Event onBeforeVoteQuestionUpdate ****************/
 		foreach (GetModuleEvents("vote", "onBeforeVoteAnswerUpdate", true) as $arEvent)
-			if (ExecuteModuleEventEx($arEvent, array(&$ID, &$arFields)) === false)
+			if (ExecuteModuleEventEx($arEvent, array($ID, &$arFields)) === false)
 				return false;
 /***************** /Event ******************************************/
 		if (empty($arFields))
 			return false;
+
+		if (
+			array_key_exists("IMAGE_ID", $arFields) &&
+			is_array($arFields["IMAGE_ID"])
+		)
+		{
+			$arFields["IMAGE_ID"]["MODULE_ID"] = "vote";
+			CFile::SaveForDB($arFields, "IMAGE_ID", "vote");
+		}
 
 		$arFields["~TIMESTAMP_X"] = $DB->GetNowFunction();
 		$strUpdate = $DB->PrepareUpdate("b_vote_answer", $arFields);
@@ -177,7 +217,7 @@ class CAllVoteAnswer
 		{
 			if(empty($val) || $val === "NOT_REF")
 				continue;
-			$key = strtoupper($key);
+			$key = mb_strtoupper($key);
 			switch($key)
 			{
 				case "ID":
@@ -245,7 +285,7 @@ class CAllVoteAnswer
 			$key_res = VoteGetFilterOperation($key);
 			$strNegative = $key_res["NEGATIVE"];
 			$strOperation = $key_res["OPERATION"];
-			$key = strtoupper($key_res["FIELD"]);
+			$key = mb_strtoupper($key_res["FIELD"]);
 			
 			switch($key)
 			{
@@ -311,7 +351,8 @@ class CAllVoteAnswer
 		
 		foreach ($arOrder as $by => $order)
 		{
-			$by = strtoupper($by); $order = strtoupper($order);
+			$by = mb_strtoupper($by);
+			$order = mb_strtoupper($order);
 			$by = (in_array($by, array("ACTIVE", "QUESTION_ID", "C_SORT", "COUNTER")) ? $by : "ID");
 			if ($order!="ASC") $order = "DESC";
 			if ($by == "ACTIVE") $arSqlOrder[] = " VA.ACTIVE ".$order." ";

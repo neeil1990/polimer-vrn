@@ -17,9 +17,7 @@ Class socialnetwork extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -103,7 +101,7 @@ Class socialnetwork extends CModule
 			);
 		}
 
-		$arFilter = (strlen($site_id) > 0 ? array("ID" => $site_id) : array());
+		$arFilter = ($site_id <> '' ? array("ID" => $site_id) : array());
 
 		$dbSites = CSite::GetList(($b = ""), ($o = ""), $arFilter);
 		while ($arSite = $dbSites->Fetch())
@@ -195,6 +193,9 @@ Class socialnetwork extends CModule
 		$eventManager->registerEventHandler('socialnetwork', '\Bitrix\Socialnetwork\Log::'.\Bitrix\Main\Entity\DataManager::EVENT_ON_AFTER_UPDATE, 'socialnetwork', '\Bitrix\Socialnetwork\Item\LogRight', 'OnAfterLogUpdate');
 		$eventManager->registerEventHandler('socialnetwork', '\Bitrix\Socialnetwork\Log::'.\Bitrix\Main\Entity\DataManager::EVENT_ON_AFTER_UPDATE, 'socialnetwork', '\Bitrix\Socialnetwork\Item\LogIndex', 'OnAfterLogUpdate');
 		$eventManager->registerEventHandler('bitrix24', 'OnManualModuleAddDelete', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Bitrix24\Bitrix24Event', 'OnManualModuleAddDelete');
+		$eventManager->registerEventHandler('landing', 'OnBuildSourceList', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Landing\Livefeed', 'onBuildSourceListHandler');
+		$eventManager->registerEventHandler('forum', 'onTaskCommentContentViewed', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Forum', 'onTaskCommentContentViewed');
+		$eventManager->registerEventHandler('tasks', 'onTaskUserOptionChanged', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Tasks\Task', 'onTaskUserOptionChanged');
 
 		CAgent::AddAgent("CSocNetMessages::SendEventAgent();", "socialnetwork", "N", 600);
 
@@ -202,18 +203,18 @@ Class socialnetwork extends CModule
 		if (!is_array($arUserOptions) || count($arUserOptions) <= 0)
 		{
 			$sOptions = 'a:1:{s:7:"GADGETS";a:10:{s:18:"SONET_USER_LINKS@1";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:0;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:20:"SONET_USER_FRIENDS@2";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:1;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:21:"SONET_USER_BIRTHDAY@3";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:2;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:19:"SONET_USER_GROUPS@4";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:3;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:17:"SONET_USER_HEAD@5";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:4;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:19:"SONET_USER_HONOUR@6";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:5;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:20:"SONET_USER_ABSENCE@7";a:4:{s:6:"COLUMN";i:0;s:3:"ROW";i:6;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:17:"SONET_USER_DESC@8";a:4:{s:6:"COLUMN";i:1;s:3:"ROW";i:0;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}s:22:"SONET_USER_ACTIVITY@21";a:3:{s:6:"COLUMN";i:1;s:3:"ROW";i:1;s:4:"HIDE";s:1:"N";}s:7:"TASKS@9";a:4:{s:6:"COLUMN";i:1;s:3:"ROW";i:2;s:8:"USERDATA";N;s:4:"HIDE";s:1:"N";}}}';
-			$arOptions = unserialize($sOptions);
+			$arOptions = unserialize($sOptions, [ 'allowed_classes' => false ]);
 			CUserOptions::SetOption("intranet", "~gadgets_sonet_user", $arOptions, false, 0);
 
 			$sOptions = 'a:1:{s:7:"GADGETS";a:7:{s:18:"SONET_GROUP_DESC@1";a:3:{s:6:"COLUMN";i:0;s:3:"ROW";i:0;s:4:"HIDE";s:1:"N";}s:16:"UPDATES_ENTITY@9";a:3:{s:6:"COLUMN";i:0;s:3:"ROW";i:1;s:4:"HIDE";s:1:"N";}s:7:"TASKS@4";a:3:{s:6:"COLUMN";i:0;s:3:"ROW";i:2;s:4:"HIDE";s:1:"N";}s:18:"SONET_GROUP_TAGS@5";a:3:{s:6:"COLUMN";i:0;s:3:"ROW";i:3;s:4:"HIDE";s:1:"N";}s:19:"SONET_GROUP_LINKS@6";a:3:{s:6:"COLUMN";i:1;s:3:"ROW";i:0;s:4:"HIDE";s:1:"N";}s:19:"SONET_GROUP_USERS@7";a:3:{s:6:"COLUMN";i:1;s:3:"ROW";i:1;s:4:"HIDE";s:1:"N";}s:18:"SONET_GROUP_MODS@8";a:3:{s:6:"COLUMN";i:1;s:3:"ROW";i:2;s:4:"HIDE";s:1:"N";}}}';
-			$arOptions = unserialize($sOptions);
+			$arOptions = unserialize($sOptions, [ 'allowed_classes' => false ]);
 			CUserOptions::SetOption("intranet", "~gadgets_sonet_group", $arOptions, false, 0);
 		}
 
 		$this->__SetLogFilter();
 
 		CModule::IncludeModule("socialnetwork");
-		if(strtolower($DB->type) == 'mysql')
+		if($DB->type == 'MYSQL')
 		{
 			$errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/socialnetwork/install/db/".$DBType."/install_ft.sql");
 			if ($errors === false)
@@ -427,6 +428,9 @@ Class socialnetwork extends CModule
 		$eventManager->unregisterEventHandler('socialnetwork', '\Bitrix\Socialnetwork\Log::'.\Bitrix\Main\Entity\DataManager::EVENT_ON_AFTER_UPDATE, 'socialnetwork', '\Bitrix\Socialnetwork\Item\LogRight', 'OnAfterLogUpdate');
 		$eventManager->unregisterEventHandler('socialnetwork', '\Bitrix\Socialnetwork\Log::'.\Bitrix\Main\Entity\DataManager::EVENT_ON_AFTER_UPDATE, 'socialnetwork', '\Bitrix\Socialnetwork\Item\LogIndex', 'OnAfterLogUpdate');
 		$eventManager->unregisterEventHandler('bitrix24', 'OnManualModuleAddDelete', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Bitrix24\Bitrix24Event', 'OnManualModuleAddDelete');
+		$eventManager->unregisterEventHandler('landing', 'OnBuildSourceList', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Landing\Livefeed', 'onBuildSourceListHandler');
+		$eventManager->unregisterEventHandler('forum', 'onTaskCommentContentViewed', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Forum\TaskComment', 'onViewed');
+		$eventManager->unregisterEventHandler('tasks', 'onTaskUserOptionChanged', 'socialnetwork', '\Bitrix\Socialnetwork\Integration\Tasks\Task', 'onTaskUserOptionChanged');
 
 		UnRegisterModule("socialnetwork");
 		return true;
@@ -891,7 +895,7 @@ Class socialnetwork extends CModule
 		if($ar["C"] <= 0)
 		{
 			$pathInMessage = (array_key_exists("public_path", $_REQUEST) ? $_REQUEST["public_path"] : "");
-			if (strlen($pathInMessage) <= 0)
+			if ($pathInMessage == '')
 			{
 				if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intranet"))
 					$pathInMessage = "/company/personal/";
@@ -937,7 +941,7 @@ Class socialnetwork extends CModule
 		$dbSites = CSite::GetList(($b = ""), ($o = ""), Array("ACTIVE" => "Y"));
 		while ($arSite = $dbSites->GetNext())
 		{
-			if (strlen($_REQUEST{"install_site_id_".$arSite["ID"]}) > 0)
+			if ($_REQUEST{"install_site_id_".$arSite["ID"]} <> '')
 			{
 				$arInstallParams[$arSite["ID"]]["install_site_id"] = $_REQUEST{"install_site_id_".$arSite["ID"]};
 				$arInstallParams[$arSite["ID"]]["installPath"] = $_REQUEST{"public_path_".$arSite["ID"]};
@@ -974,7 +978,7 @@ Class socialnetwork extends CModule
 	function DoInstall()
 	{
 		global $APPLICATION, $step;
-		$step = IntVal($step);
+		$step = intval($step);
 		if ($step < 2)
 			$APPLICATION->IncludeAdminFile(Loc::getMessage("SONET_INSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/socialnetwork/install/step1.php");
 		elseif($step==2)
@@ -992,7 +996,7 @@ Class socialnetwork extends CModule
 	function DoUninstall()
 	{
 		global $APPLICATION, $step;
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 			$APPLICATION->IncludeAdminFile(Loc::getMessage("SONET_INSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/socialnetwork/install/unstep1.php");
 		elseif($step==2)

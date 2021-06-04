@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_40.1.THREE_COLS_CAROUSEL_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
@@ -41,7 +42,7 @@ return array(
 		'.landing-block-node-card-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_40.1.THREE_COLS_CAROUSEL_NODES_LANDINGBLOCKNODECARDIMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 695, 'height' => 1135),
+			'dimensions' => array('width' => 610, 'height' => 1000),
 		),
 	),
 	'style' => array(
@@ -72,6 +73,10 @@ return array(
 		'.landing-block-node-card-button-container' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_40.1.THREE_COLS_CAROUSEL_STYLE_LANDINGBLOCKNODECARDBUTTON'),
 			'type' => 'text-align',
+		),
+		'.landing-block-node-card' => array(
+			'name' => Loc::getMessage('LANDING_BLOCK_40.1.THREE_COLS_CAROUSEL_CARDS_LANDINGBLOCKNODECARD'),
+			'type' => 'align-self',
 		),
 	),
 	'assets' => array(

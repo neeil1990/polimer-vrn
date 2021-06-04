@@ -1,7 +1,12 @@
-<?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
+<?php
+
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+
+\Bitrix\Main\UI\Extension::load("ui.buttons");
+?>
 <div class="bp-setconstants <?if ($arParams['POPUP']):?>bp-setconstants-popup<?endif?>">
 <?
-if (strlen($arResult["FatalErrorMessage"]) > 0)
+if ($arResult["FatalErrorMessage"] <> '')
 {
 	?>
 	<span class="bp-question"><span>!</span><?= htmlspecialcharsbx($arResult["FatalErrorMessage"]) ?></span>
@@ -9,7 +14,7 @@ if (strlen($arResult["FatalErrorMessage"]) > 0)
 }
 else
 {
-	if (strlen($arResult["ErrorMessage"]) > 0)
+	if ($arResult["ErrorMessage"] <> '')
 	{
 		?>
 		<span class="bp-question"><span>!</span><?= htmlspecialcharsbx($arResult["ErrorMessage"]) ?></span>
@@ -56,7 +61,7 @@ else
 		{
 			?>
 			<span class="bp-question-title"><?= htmlspecialcharsbx($arParameter["Name"]) ?>:</span>
-			<?if (strlen($arParameter["Description"]) > 0):?>
+			<?if ($arParameter["Description"] <> ''):?>
 			<p class="hint"><?=htmlspecialcharsbx($arParameter["Description"])?></p>
 			<?endif?>
 			<div class="bp-question-item"><?

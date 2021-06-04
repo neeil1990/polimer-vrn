@@ -3,7 +3,7 @@
 	Topics
 **************************************!*****************************/
 	require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-	require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/forum/include.php");
+	\Bitrix\Main\Loader::includeModule("forum");
 	$forumModulePermissions = $APPLICATION->GetGroupRight("forum");
 	if ($forumModulePermissions == "D")
 		$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
@@ -105,19 +105,19 @@
 	}
 
 	$arFilter = array();
-	$FORUM_ID = intVal($FORUM_ID);
+	$FORUM_ID = intval($FORUM_ID);
 	if ($FORUM_ID > 0):
 		$arFilter["FORUM_ID"] = $FORUM_ID;
 	endif;
 	$TITLE = trim($TITLE);
-	if (strLen($TITLE) > 0):
+	if ($TITLE <> ''):
 		$arFilter["TITLE"] = $TITLE;
 	endif;
 	$DESCRIPTION = trim($DESCRIPTION);
-	if (strLen($DESCRIPTION) > 0):
+	if ($DESCRIPTION <> ''):
 		$arFilter["DESCRIPTION"] = $DESCRIPTION;
 	endif;
-	$USER_START_ID = intVal($USER_START_ID);
+	$USER_START_ID = intval($USER_START_ID);
 	if ($USER_START_ID > 0):
 		$arFilter["USER_START_ID"] = $USER_START_ID;
 	elseif (trim($_REQUEST["USER_START_ID"]) == "0"):
@@ -159,12 +159,13 @@
 
 
 /*******************************************************************/
+$clearCache = false;
 if ($lAdmin->EditAction() && $forumModulePermissions >= "R")
 {
 	$sError = ""; $sOk = "";
 	foreach ($FIELDS as $ID => $arFields)
 	{
-		$ID = intVal($ID);
+		$ID = intval($ID);
 
 		if (!$lAdmin->IsUpdated($ID)):
 			continue;
@@ -206,6 +207,7 @@ if ($lAdmin->EditAction() && $forumModulePermissions >= "R")
 		}
 		else
 		{
+			$clearCache = true;
 			if (is_set($arFields, "STATE") && $arFields["STATE"] != $res["STATE"])
 			{
 				CForumEventLog::Log("topic", ($arFields["STATE"] == "Y" ? "open" : "close"), $ID, serialize($res));
@@ -241,7 +243,7 @@ if($arID = $lAdmin->GroupAction())
 	{
 
 	}
-	elseif ($_REQUEST['action'] == "move" && intVal($_REQUEST['move_to']) <= 0)
+	elseif ($_REQUEST['action'] == "move" && intval($_REQUEST['move_to']) <= 0)
 	{
 		$lAdmin->AddFilterError(GetMessage("FM_WRONG_FORUM_ID"));
 	}
@@ -268,13 +270,14 @@ if($arID = $lAdmin->GroupAction())
 		}
 		else
 		{
+			$clearCache = true;
 			switch($_REQUEST['action'])
 			{
 				case "delete":
 					ForumDeleteTopic($arID, $sError, $sOk);
 					break;
 				case "move":
-					if (!CForumTopic::MoveTopic2Forum($arID, intVal($_REQUEST['move_to']))):
+					if (!CForumTopic::MoveTopic2Forum($arID, intval($_REQUEST['move_to']))):
 						$ex = $APPLICATION->GetException();
 						if ($ex && $err = $ex->GetString()):
 							$lAdmin->AddUpdateError($err, $ID);
@@ -289,6 +292,47 @@ if($arID = $lAdmin->GroupAction())
 	if (!empty($sError))
 	{
 		$lAdmin->AddFilterError($sError);
+	}
+}
+if ($clearCache)
+{
+	// Clear cache.
+	$arSites = array();
+	if ($db_res = CSite::GetList($by = "sort", $order = "asc"))
+	{
+		while ($res = $db_res->GetNext())
+		{
+			$arSites[] = $res["LID"];
+		}
+	}
+	$nameSpace = "bitrix";
+	$arComponentPath = array(
+		$nameSpace.":forum.index",
+		$nameSpace.":forum.rss",
+		$nameSpace.":forum.search",
+		$nameSpace.":forum.statistic",
+		$nameSpace.":forum.topic.active",
+		$nameSpace.":forum.topic.move",
+		$nameSpace.":forum.topic.reviews",
+		$nameSpace.":forum.topic.search",
+		$nameSpace.":forum.user.list",
+		$nameSpace.":forum.user.post");
+	foreach ($arComponentPath as $path)
+	{
+		$componentRelativePath = CComponentEngine::MakeComponentPath($path);
+		$arComponentDescription = CComponentUtil::GetComponentDescr($path);
+		if ($componentRelativePath == '' || !is_array($arComponentDescription))
+			continue;
+		elseif (!array_key_exists("CACHE_PATH", $arComponentDescription))
+			continue;
+		foreach ($arSites as $siteId)
+		{
+			$path = $componentRelativePath;
+			if ($arComponentDescription["CACHE_PATH"] == "Y")
+				$path = "/".$siteId.$path;
+			if (!empty($path))
+				BXClearCache(true, $path);
+		}
 	}
 }
 

@@ -5,5 +5,5 @@ $MESS["BPCLDA_ERROR_DT_1"] = "Некоректний тип документа."
 $MESS["BPCLDA_DOC_TYPE_1"] = "Тип документа";
 $MESS["BPCLDA_DT_LISTS"] = "Списки";
 $MESS["BPCLDA_DT_PROCESSES"] = "Процеси";
-$MESS["BPCLDA_DT_LISTS_SOCNET_1"] = "Списки груп та проектів";
+$MESS["BPCLDA_DT_LISTS_SOCNET_1"] = "Списки груп та проєктів";
 ?>

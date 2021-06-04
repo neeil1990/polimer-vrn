@@ -8,10 +8,13 @@ use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Config\Option;
 use Bitrix\Sale\Internals\StatusTable;
 use Bitrix\Sale;
+use \Bitrix\Sale\Exchange\Integration\Admin;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
 Loader::includeModule('sale');
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/prolog.php");
+
+\Bitrix\Main\UI\Extension::load('sale.admin_order_list');
 
 // include functions
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/general/admin_tool.php");
@@ -28,19 +31,27 @@ $LOCAL_STATUS_CACHE = array();
 
 Loc::loadMessages(__FILE__);
 
+$request = \Bitrix\Main\Context::getCurrent()->getRequest();
+$link = Admin\Link::getInstance();
+$publicMode = $adminPage->publicMode;
 $arUserGroups = $USER->GetUserGroupArray();
 $intUserID = (int)$USER->GetID();
+
+$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+
+/** @var Sale\Order $orderClass */
+$orderClass = $registry->getOrderClassName();
 
 $isUserResponsible = false;
 
 $arAccessibleSites = array();
 $dbAccessibleSites = CSaleGroupAccessToSite::GetList(
-		array(),
-		array("GROUP_ID" => $arUserGroups),
-		false,
-		false,
-		array("SITE_ID")
-	);
+	array(),
+	array("GROUP_ID" => $arUserGroups),
+	false,
+	false,
+	array("SITE_ID")
+);
 while ($arAccessibleSite = $dbAccessibleSites->Fetch())
 {
 	if(!in_array($arAccessibleSite["SITE_ID"], $arAccessibleSites))
@@ -52,10 +63,12 @@ $bExport = (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'excel');
 $sTableID = "tbl_sale_order";
 $oSort = new CAdminSorting($sTableID, "ID", "desc");
 $lAdmin = new CAdminSaleList($sTableID, $oSort);
+
 $runtimeFields = array();
 
 $arFilterFields = array(
 	"filter_universal",
+	"filter_is_sync_b24",
 	"filter_id_from",
 	"filter_id_to",
 	"filter_account_number",
@@ -83,7 +96,10 @@ $arFilterFields = array(
 	"filter_buyer",
 	"filter_product_id",
 	"filter_product_xml_id",
+	"filter_catalog_xml_id",
 	"filter_affiliate_id",
+	"filter_order_use_discounts",
+	"filter_order_use_coupons",
 	"filter_discount_coupon",
 	"filter_person_type",
 	"filter_user_id",
@@ -154,7 +170,7 @@ while ($arProps = $dbProps->fetch())
 $lAdmin->InitFilter($arFilterFields);
 
 $filter_lang = trim($filter_lang);
-if(strlen($filter_lang) > 0)
+if($filter_lang <> '')
 {
 	if(!in_array($filter_lang, $arAccessibleSites) && $saleModulePermissions < "W")
 		$filter_lang = "";
@@ -164,8 +180,8 @@ $arFilter = array();
 $arSelectFields = array();
 $userCompanyList = array();
 
-if(IntVal($filter_id_from)>0) $arFilter[">=ID"] = IntVal($filter_id_from);
-if(IntVal($filter_id_to)>0) $arFilter["<=ID"] = IntVal($filter_id_to);
+if(intval($filter_id_from)>0) $arFilter[">=ID"] = intval($filter_id_from);
+if(intval($filter_id_to)>0) $arFilter["<=ID"] = intval($filter_id_to);
 if(strval(trim($filter_date_from)) != '')
 {
 	$arFilter[">=DATE_INSERT"] = trim($filter_date_from);
@@ -174,7 +190,7 @@ if(strval(trim($filter_date_to)) != '')
 {
 	if($arDate = ParseDateTime($filter_date_to, CSite::GetDateFormat("FULL", SITE_ID)))
 	{
-		if(StrLen($filter_date_to) < 11)
+		if(mb_strlen($filter_date_to) < 11)
 		{
 			$arDate["HH"] = 23;
 			$arDate["MI"] = 59;
@@ -205,7 +221,7 @@ if(strval(trim($filter_date_update_to)) != '')
 {
 	if($arDate = ParseDateTime($filter_date_update_to, CSite::GetDateFormat("FULL", SITE_ID)))
 	{
-		if(StrLen($filter_date_update_to) < 11)
+		if(mb_strlen($filter_date_update_to) < 11)
 		{
 			$arDate["HH"] = 23;
 			$arDate["MI"] = 59;
@@ -230,7 +246,7 @@ if(strval(trim($filter_date_paid_to)) != '')
 {
 	if($arDate = ParseDateTime($filter_date_paid_to, CSite::GetDateFormat("FULL", SITE_ID)))
 	{
-		if(StrLen($filter_date_paid_to) < 11)
+		if(mb_strlen($filter_date_paid_to) < 11)
 		{
 			$arDate["HH"] = 23;
 			$arDate["MI"] = 59;
@@ -255,7 +271,7 @@ if(strval(trim($filter_date_allow_delivery_to)) != '')
 {
 	if($arDate = ParseDateTime($filter_date_allow_delivery_to, CSite::GetDateFormat("FULL", SITE_ID)))
 	{
-		if(StrLen($filter_date_allow_delivery_to) < 11)
+		if(mb_strlen($filter_date_allow_delivery_to) < 11)
 		{
 			$arDate["HH"] = 23;
 			$arDate["MI"] = 59;
@@ -271,10 +287,10 @@ if(strval(trim($filter_date_allow_delivery_to)) != '')
 	}
 }
 
-if(strlen($filter_lang)>0 && $filter_lang!="NOT_REF") $arFilter["=LID"] = trim($filter_lang);
-if(strlen($filter_currency)>0) $arFilter["CURRENCY"] = trim($filter_currency);
+if($filter_lang <> '' && $filter_lang!="NOT_REF") $arFilter["=LID"] = trim($filter_lang);
+if($filter_currency <> '') $arFilter["CURRENCY"] = trim($filter_currency);
 
-if (isset($filter_status) && !is_array($filter_status) && strlen($filter_status) > 0)
+if (isset($filter_status) && !is_array($filter_status) && $filter_status <> '')
 {
 	$filter_status = array($filter_status);
 }
@@ -289,13 +305,13 @@ if (isset($filter_status) && is_array($filter_status) && count($filter_status) >
 		}
 	}
 }
-if (strlen($filter_by_recommendation)>0) $arFilter["=BY_RECOMMENDATION"] = trim($filter_by_recommendation);
-if(strlen($filter_date_status_from)>0) $arFilter[">=DATE_STATUS"] = trim($filter_date_status_from);
-if(strlen($filter_date_status_to)>0)
+if ($filter_by_recommendation <> '') $arFilter["=BY_RECOMMENDATION"] = trim($filter_by_recommendation);
+if($filter_date_status_from <> '') $arFilter[">=DATE_STATUS"] = trim($filter_date_status_from);
+if($filter_date_status_to <> '')
 {
 	if($arDate = ParseDateTime($filter_date_status_to, CSite::GetDateFormat("FULL", SITE_ID)))
 	{
-		if(StrLen($filter_date_status_to) < 11)
+		if(mb_strlen($filter_date_status_to) < 11)
 		{
 			$arDate["HH"] = 23;
 			$arDate["MI"] = 59;
@@ -311,30 +327,55 @@ if(strlen($filter_date_status_to)>0)
 	}
 }
 
-if(strlen($filter_payed)>0) $arFilter["=PAYED"] = trim($filter_payed);
-if(strlen($filter_canceled)>0) $arFilter["=CANCELED"] = trim($filter_canceled);
-if(strlen($filter_deducted)>0) $arFilter["=DEDUCTED"] = trim($filter_deducted);
-if(strlen($filter_allow_delivery)>0) $arFilter["=ALLOW_DELIVERY"] = trim($filter_allow_delivery);
-if(strlen($filter_marked)>0) $arFilter["=MARKED"] = trim($filter_marked);
-if(strlen($filter_buyer)>0) $arFilter["%BUYER"] = trim($filter_buyer);
-if(strlen($filter_user_login)>0) $arFilter["USER.LOGIN"] = trim($filter_user_login);
-if(strlen($filter_user_email)>0) $arFilter["USER.EMAIL"] = trim($filter_user_email);
-if(IntVal($filter_user_id)>0) $arFilter["=USER_ID"] = IntVal($filter_user_id);
+if($filter_is_sync_b24 <> '') $arFilter["=IS_SYNC_B24"] = trim($filter_is_sync_b24);
+if($filter_payed <> '') $arFilter["=PAYED"] = trim($filter_payed);
+if($filter_canceled <> '') $arFilter["=CANCELED"] = trim($filter_canceled);
+if($filter_deducted <> '') $arFilter["=DEDUCTED"] = trim($filter_deducted);
+if($filter_allow_delivery <> '') $arFilter["=ALLOW_DELIVERY"] = trim($filter_allow_delivery);
+if($filter_marked <> '') $arFilter["=MARKED"] = trim($filter_marked);
+if($filter_buyer <> '') $arFilter["%BUYER"] = trim($filter_buyer);
+if($filter_user_login <> '') $arFilter["USER.LOGIN"] = trim($filter_user_login);
+if($filter_user_email <> '') $arFilter["USER.EMAIL"] = trim($filter_user_email);
+if(intval($filter_user_id)>0) $arFilter["=USER_ID"] = intval($filter_user_id);
 if(is_array($filter_group_id) && count($filter_group_id) > 0)
 {
 	foreach($filter_group_id as $v)
 	{
-		if(IntVal($v) > 0)
+		if(intval($v) > 0)
 			$arFilter["USER_GROUP.GROUP_ID"][] = $v;
 	}
 }
 
-if(IntVal($filter_affiliate_id)>0) $arFilter["AFFILIATE_ID"] = IntVal($filter_affiliate_id);
-if(strlen($filter_discount_coupon)>0) $arFilter["=ORDER_COUPONS.COUPON"] = trim($filter_discount_coupon);
+if(intval($filter_affiliate_id)>0) $arFilter["AFFILIATE_ID"] = intval($filter_affiliate_id);
+if(isset($filter_discount_coupon) && $filter_discount_coupon <> '') $arFilter["=ORDER_COUPONS.COUPON"] = trim($filter_discount_coupon);
+if (isset($filter_order_use_discounts))
+{
+	switch ($filter_order_use_discounts)
+	{
+		case 'Y':
+			$arFilter['>ORDER_DISCOUNT_RULES.ID'] = 0;
+			break;
+		case 'N':
+			$arFilter['=ORDER_DISCOUNT_RULES.ID'] = null;
+			break;
+	}
+}
+if (isset($filter_order_use_coupons))
+{
+	switch ($filter_order_use_coupons)
+	{
+		case 'Y':
+			$arFilter['>ORDER_COUPONS.ID'] = 0;
+			break;
+		case 'N':
+			$arFilter['=ORDER_COUPONS.ID'] = null;
+			break;
+	}
+}
 if(floatval($filter_price_from)>0) $arFilter[">=PRICE"] = floatval($filter_price_from);
 if(floatval($filter_price_to)>0) $arFilter["<=PRICE"] = floatval($filter_price_to);
-if(strlen($filter_xml_id)>0) $arFilter["%XML_ID"] = trim($filter_xml_id);
-if(strlen($filter_tracking_number)>0) $arFilter["%SHIPMENT.TRACKING_NUMBER"] = trim($filter_tracking_number);
+if($filter_xml_id <> '') $arFilter["%XML_ID"] = trim($filter_xml_id);
+if($filter_tracking_number <> '') $arFilter["%SHIPMENT.TRACKING_NUMBER"] = trim($filter_tracking_number);
 
 if(strval(trim($filter_delivery_doc_date_from)) != '')
 {
@@ -344,7 +385,7 @@ if(strval(trim($filter_delivery_doc_date_to)) != '')
 {
 	if($arDate = ParseDateTime($filter_delivery_doc_date_to, CSite::GetDateFormat("FULL", SITE_ID)))
 	{
-		if(StrLen($filter_delivery_doc_date_to) < 11)
+		if(mb_strlen($filter_delivery_doc_date_to) < 11)
 		{
 			$arDate["HH"] = 23;
 			$arDate["MI"] = 59;
@@ -361,11 +402,11 @@ if(strval(trim($filter_delivery_doc_date_to)) != '')
 }
 
 
-if(isset($filter_universal) && strlen($filter_universal) > 0)
+if(isset($filter_universal) && $filter_universal <> '')
 	$arFilter["NAME_SEARCH"] = trim($filter_universal);
-if(strlen($filter_account_number)>0) $arFilter["ACCOUNT_NUMBER"] = trim($filter_account_number);
+if($filter_account_number <> '') $arFilter["ACCOUNT_NUMBER"] = trim($filter_account_number);
 
-if(strlen($filter_sum_paid) > 0)
+if($filter_sum_paid <> '')
 {
 	if($filter_sum_paid == "Y")
 		$arFilter[">SUM_PAID"] = 0;
@@ -407,7 +448,7 @@ if(!empty($filter_pay_system) && is_array($filter_pay_system))
 		$whereExpression .= "PAY_SYSTEM_ID = ".intval($filterPaySystemId);
 	}
 
-	if(strlen($whereExpression) > 0)
+	if($whereExpression <> '')
 	{
 		$whereExpression .= ")";
 
@@ -423,7 +464,7 @@ if(!empty($filter_pay_system) && is_array($filter_pay_system))
 	}
 }
 
-if(!empty($filter_tracking_number) && strlen($filter_tracking_number) > 0)
+if(!empty($filter_tracking_number) && $filter_tracking_number <> '')
 {
 	$runtimeFields["REQUIRED_PS_PRESENTED"] = array(
 		'data_type' => 'boolean',
@@ -469,28 +510,39 @@ if(!empty($filter_delivery_service) && is_array($filter_delivery_service))
 	}
 }
 
-if(!empty($filter_product_id) || !empty($filter_product_xml_id))
+if(!empty($filter_product_id) || !empty($filter_product_xml_id)|| !empty($filter_catalog_xml_id))
 {
-
 	$whereExpression = "";
 	if (intval($filter_product_id) > 0)
 	{
 		$whereExpression .= "(PRODUCT_ID = ".intval($filter_product_id);
 	}
 
-	if (strval(trim($filter_product_xml_id)) != "")
+	$filterProductFields = [
+		'PRODUCT_XML_ID' => $filter_product_xml_id,
+		'CATALOG_XML_ID' => $filter_catalog_xml_id
+	];
+
+	foreach ($filterProductFields as $code=>$filterValue)
 	{
-		if($whereExpression == "")
-			$whereExpression .= "(";
-		else
-			$whereExpression .= " AND ";
+		if (strval(trim($filterValue)) != "")
+		{
+			if ($whereExpression == "")
+			{
+				$whereExpression .= "(";
+			}
+			else
+			{
+				$whereExpression .= " AND ";
+			}
 
-		/** @var \Bitrix\Main\DB\Connection $connection */
-		$connection = \Bitrix\Main\Application::getConnection();
-		/** @var \Bitrix\Main\DB\SqlHelper $sqlHelper */
-		$sqlHelper = $connection->getSqlHelper();
+			/** @var \Bitrix\Main\DB\Connection $connection */
+			$connection = \Bitrix\Main\Application::getConnection();
+			/** @var \Bitrix\Main\DB\SqlHelper $sqlHelper */
+			$sqlHelper = $connection->getSqlHelper();
 
-		$whereExpression .= "PRODUCT_XML_ID = '".$sqlHelper->forSql($filter_product_xml_id)."'";
+			$whereExpression .= "{$code} = '".$sqlHelper->forSql($filterValue)."'";
+		}
 	}
 
 	if(strval($whereExpression) != "")
@@ -517,7 +569,7 @@ foreach ($arOrderProps as $key => $value)
 	if($value["IS_FILTERED"] == "Y" && $value["TYPE"] != "MULTIPLE")
 	{
 		$tmp = trim(${"filter_prop_".$key});
-		if(StrLen($tmp) > 0)
+		if($tmp <> '')
 		{
 			if($value["TYPE"]=="STRING" && !preg_match("/^\d+$/", $tmp))
 				$filterName = "%PROPERTY_VALUE_".$key;
@@ -535,7 +587,7 @@ foreach ($arOrderPropsCode as $key => $value)
 	if($value["IS_FILTERED"] == "Y" && $value["TYPE"] != "MULTIPLE")
 	{
 		$tmp = trim(${"filter_prop_".$key});
-		if(StrLen($tmp) > 0)
+		if($tmp <> '')
 		{
 			if($value["TYPE"]=="STRING" && !preg_match("/^\d+$/", $tmp))
 				$filterName = "%PROPERTY_VAL_BY_CODE_".$key;
@@ -550,7 +602,7 @@ foreach ($arOrderPropsCode as $key => $value)
 
 if($saleModulePermissions < "W")
 {
-	if(strlen($filter_lang) <= 0 && count($arAccessibleSites) > 0)
+	if($filter_lang == '' && count($arAccessibleSites) > 0)
 		$arFilter["=LID"] = $arAccessibleSites;
 }
 
@@ -633,7 +685,7 @@ if($lAdmin->EditAction() && $saleModulePermissions >= "U")
 			continue;
 
 		/** @var \Bitrix\Sale\Order $editOrder */
-		$editOrder = \Bitrix\Sale\Order::load($ID);
+		$editOrder = $orderClass::load($ID);
 
 		if($editOrder)
 		{
@@ -664,10 +716,22 @@ if($lAdmin->EditAction() && $saleModulePermissions >= "U")
 				}
 			}
 
+			if(array_key_exists("IS_SYNC_B24", $arFields)
+				&& ($arFields["IS_SYNC_B24"] == "Y" || $arFields["IS_SYNC_B24"] == "N")
+				&& $arFields["IS_SYNC_B24"] != $editOrder->getField("IS_SYNC_B24"))
+			{
+				/** @var \Bitrix\Sale\Result $res */
+				$res = $editOrder->setField("IS_SYNC_B24", $arFields["IS_SYNC_B24"]);
+				if($res->isSuccess())
+				{
+					$isOrderNeedSave = true;
+				}
+			}
+
 			$statusId = $editOrder->getField("STATUS_ID");
 
 			if(array_key_exists("STATUS_ID", $arFields)
-				&& strlen($arFields["STATUS_ID"]) > 0
+				&& $arFields["STATUS_ID"] <> ''
 				&& $arFields["STATUS_ID"] != $statusId)
 			{
 				$statusesList = \Bitrix\Sale\OrderStatus::getAllowedUserStatuses(
@@ -723,7 +787,7 @@ $bShowBasketProps = ((string)\Bitrix\Main\Config\Option::get('sale', 'show_baske
 
 //Filters by foreign entities
 //User params
-if(isset($arFilterTmp["NAME_SEARCH"]) && strlen($arFilterTmp["NAME_SEARCH"]) > 0)
+if(isset($arFilterTmp["NAME_SEARCH"]) && $arFilterTmp["NAME_SEARCH"] <> '')
 {
 	$nameSearch = $arFilterTmp["NAME_SEARCH"];
 
@@ -747,8 +811,8 @@ foreach ($arOrderPropsCode as $key => $value)
 		continue;
 
 	if(
-		(isset($filterOrderProps["PROPERTY_VAL_BY_CODE_".$key]) && strlen($filterOrderProps["PROPERTY_VAL_BY_CODE_".$key]) > 0)
-		|| (isset($filterOrderProps["%PROPERTY_VAL_BY_CODE_".$key]) && strlen($filterOrderProps["%PROPERTY_VAL_BY_CODE_".$key]) > 0)
+		(isset($filterOrderProps["PROPERTY_VAL_BY_CODE_".$key]) && $filterOrderProps["PROPERTY_VAL_BY_CODE_".$key] <> '')
+		|| (isset($filterOrderProps["%PROPERTY_VAL_BY_CODE_".$key]) && $filterOrderProps["%PROPERTY_VAL_BY_CODE_".$key] <> '')
 	)
 	{
 		$propIterator++;
@@ -778,8 +842,8 @@ foreach ($arOrderProps as $key => $value)
 		continue;
 
 	if(
-		(isset($filterOrderProps["PROPERTY_VALUE_".$key]) && strlen($filterOrderProps["PROPERTY_VALUE_".$key]) > 0)
-		|| (isset($filterOrderProps["%PROPERTY_VALUE_".$key]) && strlen($filterOrderProps["%PROPERTY_VALUE_".$key]) > 0)
+		(isset($filterOrderProps["PROPERTY_VALUE_".$key]) && $filterOrderProps["PROPERTY_VALUE_".$key] <> '')
+		|| (isset($filterOrderProps["%PROPERTY_VALUE_".$key]) && $filterOrderProps["%PROPERTY_VALUE_".$key] <> '')
 	)
 	{
 		$runtimeFields['PROP_'.$propIterator] = array(
@@ -801,6 +865,14 @@ foreach ($arOrderProps as $key => $value)
 
 foreach(GetModuleEvents("sale", "OnOrderListFilter", true) as $arEvent)
 	$arFilterTmp = ExecuteModuleEventEx($arEvent, array($arFilterTmp));
+
+if(
+	array_key_exists('=SOURCE.TRADING_PLATFORM_ID', $arFilterTmp)
+	|| in_array('SOURCE_NAME', $arSelectFields)
+	|| $by == 'SOURCE_NAME')
+{
+	addSourceNameToRuntimeAndSelect($runtimeFields, $arSelectFields);
+}
 
 $arID = array();
 
@@ -825,7 +897,8 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 	$dbOrderList = \Bitrix\Sale\Internals\OrderTable::getList(array(
 		'order' => array($by => $order),
 		'filter' => $filter,
-		'select' => array("ID", "PERSON_TYPE_ID", "PAYED", "CANCELED", "DEDUCTED", "STATUS_ID")
+		'select' => array_merge(["ID", "PERSON_TYPE_ID", "PAYED", "CANCELED", "DEDUCTED", "STATUS_ID"], $arSelectFields),
+		'runtime' => $runtimeFields
 	));
 
 	while ($arOrderList = $dbOrderList->fetch())
@@ -838,13 +911,13 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 
 	foreach ($arID as $ID)
 	{
-		if(strlen($ID) <= 0)
+		if($ID == '')
 			continue;
 
-		if($_REQUEST['action'] != "unlock" && substr($_REQUEST['action'], 0, strlen("status_")) != "status_")
+		if($_REQUEST['action'] != "unlock" && mb_substr($_REQUEST['action'], 0, mb_strlen("status_")) != "status_")
 		{
 			/** @var \Bitrix\Sale\Order $saleOrder */
-			if(!($saleOrder = \Bitrix\Sale\Order::load($ID)))
+			if(!($saleOrder = $orderClass::load($ID)))
 			{
 				$lAdmin->AddGroupError(Loc::getMessage("SO_NO_ORDER", array("#ID#" => $ID)));
 				continue;
@@ -870,11 +943,11 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 
 					try
 					{
-						$res = \Bitrix\Sale\Order::delete($ID);
+						$res = $orderClass::delete($ID);
 					}
 					catch (Exception $e)
 					{
-						$res = \Bitrix\Sale\Order::deleteNoDemand($ID);
+						$res = $orderClass::deleteNoDemand($ID);
 					}
 
 					if (!$res->isSuccess())
@@ -983,7 +1056,7 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 								array(
 									'##ORDER_N##' => $saleOrder->getField('ACCOUNT_NUMBER'),
 									'##SHIPMENT_ID##' => $shipment->getId()
-							));
+								));
 
 							$allowedDeliveryStatusesUpdate = \Bitrix\Sale\DeliveryStatus::getStatusesUserCanDoOperations($USER->GetID(), array('update'));
 							$allowUpdate = in_array($shipment->getField("STATUS_ID"), $allowedDeliveryStatusesUpdate);
@@ -1144,7 +1217,7 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 							array(
 								'##ORDER_N##' => $saleOrder->getField('ACCOUNT_NUMBER'),
 								'##PAYMENT_ID##' => $payment->getId()
-						));
+							));
 
 						$allowedStatusesView = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations($USER->GetID(), array('view'));
 						$allowView = in_array($saleOrder->getField("STATUS_ID"), $allowedStatusesView);
@@ -1163,7 +1236,7 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 							$lAdmin->AddGroupError(Loc::getMessage('SALE_UPDATE_PAYMENT_STATUS_PS_NOT_FOUND').'. '.$payMsg);
 							continue;
 						}
-						
+
 						if(!$paySystem->isCheckable())
 						{
 							$lAdmin->AddActionSuccessMessage(
@@ -1175,7 +1248,7 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 
 							continue;
 						}
-						
+
 						$setResult = $paySystem->check($payment);
 
 						if (!$setResult->isSuccess())
@@ -1257,13 +1330,12 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 					echo '<script>window.parent.location = "sale_delivery_request.php?lang='.LANGUAGE_ID.'";</script>';
 					die();
 					break;
-
 				default:
-					if(substr($_REQUEST['action'], 0, strlen("status_")) == "status_")
+					if(mb_substr($_REQUEST['action'], 0, mb_strlen("status_")) == "status_")
 					{
-						$statusID = substr($_REQUEST['action'], strlen("status_"));
+						$statusID = mb_substr($_REQUEST['action'], mb_strlen("status_"));
 
-						if(strlen($statusID) > 0)
+						if($statusID <> '')
 						{
 							$resStatus = StatusTable::getList(array(
 								'select' => array('ID', 'NAME' => 'Bitrix\Sale\Internals\StatusLangTable:STATUS.NAME'),
@@ -1280,7 +1352,7 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 								{
 									if($arAffectedOrders[$ID]["STATUS_ID"] != $statusID)
 									{
-										$saleOrder = \Bitrix\Sale\Order::load($ID);
+										$saleOrder = $orderClass::load($ID);
 										$res = $saleOrder->setField("STATUS_ID", $statusID);
 
 										if(!$res->isSuccess())
@@ -1314,7 +1386,7 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 						}
 					}
 
-				break;
+					break;
 			}
 
 			if ($isOrderSaved)
@@ -1326,37 +1398,38 @@ if(($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "P")
 }
 
 $arColumn2Field = array(
-		"ID" => array("ID"),
-		"ACCOUNT_NUMBER" => array("ACCOUNT_NUMBER"),
-		"LID" => array("LID"),
-		"PERSON_TYPE" => array("PERSON_TYPE_ID"),
-		"PAYED" => array("PAYED", "DATE_PAYED", "EMP_PAYED_ID"),
-		"CANCELED" => array("CANCELED", "DATE_CANCELED", "EMP_CANCELED_ID"),
-		"DEDUCTED" => array("DEDUCTED"),
-		"MARKED" => array("MARKED", "DATE_MARKED", "EMP_MARKED_ID", "REASON_MARKED"),
-		"STATUS_ID" => array("STATUS_ID", "DATE_STATUS", "EMP_STATUS_ID"),
-		"STATUS" => array("STATUS_ID", "DATE_STATUS", "EMP_STATUS_ID"),
-		"PRICE_DELIVERY" => array("PRICE_DELIVERY", "CURRENCY"),
-		"PRICE" => array("PRICE", "CURRENCY"),
-		"SUM_PAID" => array("SUM_PAID", "CURRENCY"),
-		"USER" => array("USER_ID"),
-		"DATE_INSERT" => array("DATE_INSERT"),
-		"DATE_UPDATE" => array("DATE_UPDATE"),
-		"TAX_VALUE" => array("TAX_VALUE", "CURRENCY"),
-		"LOCK_STATUS" => array("LOCK_STATUS", "LOCK_USER_NAME"),
-		"BASKET" => array(),
-		"COMMENTS" => array("COMMENTS"),
-		"REASON_CANCELED" => array("REASON_CANCELED"),
-		"REASON_MARKED" => array("REASON_MARKED"),
-		"USER_EMAIL" => array("USER_EMAIL"),
-		"USER_DESCRIPTION" => array("USER_DESCRIPTION"),
-		"EXTERNAL_ORDER" => array("EXTERNAL_ORDER"),
-		"SOURCE_NAME" => array("SOURCE_NAME"),
-		"XML_ID" => array("XML_ID"),
-		"COMPANY_ID" => array("COMPANY_ID"),
-		"RESPONSIBLE_ID" => array("RESPONSIBLE_ID"),
-		"AFFILIATE_ID" => array("AFFILIATE_ID"),
-	);
+	"ID" => array("ID"),
+	"ACCOUNT_NUMBER" => array("ACCOUNT_NUMBER"),
+	"LID" => array("LID"),
+	"PERSON_TYPE" => array("PERSON_TYPE_ID"),
+	"IS_SYNC_B24" => array("IS_SYNC_B24"),
+	"PAYED" => array("PAYED", "DATE_PAYED", "EMP_PAYED_ID"),
+	"CANCELED" => array("CANCELED", "DATE_CANCELED", "EMP_CANCELED_ID"),
+	"DEDUCTED" => array("DEDUCTED"),
+	"MARKED" => array("MARKED", "DATE_MARKED", "EMP_MARKED_ID", "REASON_MARKED"),
+	"STATUS_ID" => array("STATUS_ID", "DATE_STATUS", "EMP_STATUS_ID"),
+	"STATUS" => array("STATUS_ID", "DATE_STATUS", "EMP_STATUS_ID"),
+	"PRICE_DELIVERY" => array("PRICE_DELIVERY", "CURRENCY"),
+	"PRICE" => array("PRICE", "CURRENCY"),
+	"SUM_PAID" => array("SUM_PAID", "CURRENCY"),
+	"USER" => array("USER_ID"),
+	"DATE_INSERT" => array("DATE_INSERT"),
+	"DATE_UPDATE" => array("DATE_UPDATE"),
+	"TAX_VALUE" => array("TAX_VALUE", "CURRENCY"),
+	"LOCK_STATUS" => array("LOCK_STATUS", "LOCK_USER_NAME"),
+	"BASKET" => array(),
+	"COMMENTS" => array("COMMENTS"),
+	"REASON_CANCELED" => array("REASON_CANCELED"),
+	"REASON_MARKED" => array("REASON_MARKED"),
+	"USER_EMAIL" => array("USER_EMAIL"),
+	"USER_DESCRIPTION" => array("USER_DESCRIPTION"),
+	"EXTERNAL_ORDER" => array("EXTERNAL_ORDER"),
+	"SOURCE_NAME" => array("SOURCE_NAME"),
+	"XML_ID" => array("XML_ID"),
+	"COMPANY_ID" => array("COMPANY_ID"),
+	"RESPONSIBLE_ID" => array("RESPONSIBLE_ID"),
+	"AFFILIATE_ID" => array("AFFILIATE_ID"),
+);
 
 $arHeaders = array(
 	array("id"=>"DATE_INSERT","content"=>Loc::getMessage("SI_DATE_INSERT"), "sort"=>"DATE_INSERT", "default"=>true),
@@ -1410,6 +1483,7 @@ $arHeaders = array(
 	array("id"=>"XML_ID","content"=>Loc::getMessage("SO_XML_ID"), "sort"=>"XML_ID", "default"=>false),
 	array("id"=>"COMPANY_ID","content"=>Loc::getMessage("SALE_F_COMPANY_ID"), "sort"=>"COMPANY_ID", "default"=>false),
 	array("id"=>"RESPONSIBLE_ID","content"=>Loc::getMessage("SALE_F_RESPONSIBLE_ID"), "sort"=>"RESPONSIBLE_ID", "default"=>false),
+	array("id"=>"IS_SYNC_B24","content"=>Loc::getMessage("SALE_F_IS_SYNC_B24"), "sort"=>"IS_SYNC_B24", "default"=>($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)),
 
 	array("id"=>"AFFILIATE_ID","content"=>Loc::getMessage("SI_AFFILIATE"), "sort"=>"AFFILIATE_ID", "default"=>false),
 );
@@ -1441,18 +1515,29 @@ $arSelectFields[] = "LID";
 $arSelectFields[] = "LOCK_STATUS";
 $arSelectFields[] = "LOCK_USER_NAME";
 
+if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
+{
+	$lAdmin->AddVisibleHeaderColumn("IS_SYNC_B24");
+}
+
 $arVisibleColumns = $lAdmin->GetVisibleHeaderColumns();
+
+if(in_array('SOURCE_NAME', $arVisibleColumns))
+{
+	addSourceNameToRuntimeAndSelect($runtimeFields, $arSelectFields);
+}
+
 $bNeedProps = false;
 $bNeedBasket = false;
 foreach ($arVisibleColumns as $visibleColumn)
 {
-	if(!$bNeedProps && SubStr($visibleColumn, 0, StrLen("PROP_")) == "PROP_")
+	if(!$bNeedProps && mb_substr($visibleColumn, 0, mb_strlen("PROP_")) == "PROP_")
 		$bNeedProps = true;
 	if(
 		!$bNeedBasket
 		&& $visibleColumn != 'BASKET_DISCOUNT_COUPON'
 		&& $visibleColumn != 'BASKET_DISCOUNT_NAME'
-		&& strpos($visibleColumn, "BASKET") !== false
+		&& mb_strpos($visibleColumn, "BASKET") !== false
 	)
 		$bNeedBasket = true;
 
@@ -1476,9 +1561,9 @@ $dbSite = CSite::GetList($b, $o, array());
 while ($arSite = $dbSite->Fetch())
 {
 	$serverName[$arSite["LID"]] = $arSite["SERVER_NAME"];
-	if(strlen($serverName[$arSite["LID"]]) <= 0)
+	if($serverName[$arSite["LID"]] == '')
 	{
-		if(defined("SITE_SERVER_NAME") && strlen(SITE_SERVER_NAME) > 0)
+		if(defined("SITE_SERVER_NAME") && SITE_SERVER_NAME <> '')
 			$serverName[$arSite["LID"]] = SITE_SERVER_NAME;
 		else
 			$serverName[$arSite["LID"]] = \Bitrix\Main\Config\Option::get("main", "server_name", "");
@@ -1517,7 +1602,8 @@ if(!empty($by) && in_array($by, $arSelectFields))
 		$arFilterOrder[$by] = $order;
 }
 
-$sScript = "";
+$sScript = "
+							var topWindow = (window.BX||window.parent.BX).PageObject.getRootWindow();";
 $usePageNavigation = true;
 $navyParams = array();
 
@@ -1544,22 +1630,6 @@ if (in_array('USER_EMAIL', $arSelectFields))
 	$arSelectFields["USER_EMAIL"] = 'USER.EMAIL';
 
 	if ($searchIndex = array_search('USER_EMAIL', $arSelectFields))
-		unset($arSelectFields[$searchIndex]);
-}
-
-if(array_key_exists('=SOURCE.TRADING_PLATFORM_ID', $arFilterTmp) || in_array('SOURCE_NAME', $arSelectFields))
-{
-	$runtimeFields['SOURCE'] = array(
-		'data_type' => 'Bitrix\Sale\TradingPlatform\OrderTable',
-		'reference' => array(
-			'ref.ORDER_ID' => 'this.ID',
-		),
-		'join_type' => 'left'
-	);
-
-	$arSelectFields["SOURCE_NAME"] = 'SOURCE.TRADING_PLATFORM.NAME';
-
-	if ($searchIndex = array_search('SOURCE_NAME', $arSelectFields))
 		unset($arSelectFields[$searchIndex]);
 }
 
@@ -1702,9 +1772,9 @@ if (!empty($orderList) && is_array($orderList))
 	{
 		$basketItemIds = array();
 		$dbItemsList = \Bitrix\Sale\Internals\BasketTable::getList(array(
-						   'order' => array('ID' => 'ASC'),
-						   'filter' => array('=ORDER_ID' => array_keys($orderList))
-					   ));
+			'order' => array('ID' => 'ASC'),
+			'filter' => array('=ORDER_ID' => array_keys($orderList))
+		));
 
 		while ($item = $dbItemsList->fetch())
 		{
@@ -1783,10 +1853,17 @@ if (!empty($orderList) && is_array($orderList))
 			}
 		}
 
+		$href = $link
+			->create()
+			->setFilterParams(GetFilterParams("filter_"))
+			->fill()
+			->setField('ID', $orderId)
+			->setPageByType(Admin\Registry::SALE_ORDER_VIEW)
+			->build();
 		/**
 		 * build row
 		 */
-		$rowsList[$arOrder['ID']] = $row =& $lAdmin->AddRow($orderId, $arOrder, "sale_order_view.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_"));
+		$rowsList[$arOrder['ID']] = $row =& $lAdmin->AddRow($orderId, $arOrder, $href);
 
 		$lamp = "/bitrix/images/sale/".$arOrder['LOCK_STATUS'].".gif";
 
@@ -1809,7 +1886,15 @@ if (!empty($orderList) && is_array($orderList))
 			$idTmp .= 'style="color: red;"';
 		}
 
-		$idTmp .=" href='/bitrix/admin/sale_order_view.php?ID=".$orderId.GetFilterParams("filter_")."&lang=".LANGUAGE_ID."' title='".Loc::getMessage("SALE_DETAIL_DESCR")."'>##ID##</a></b></td>";
+		$href = $link
+			->create()
+			->setFilterParams(GetFilterParams("filter_"))
+			->fill()
+			->setField('ID', $orderId)
+			->setPageByType(Admin\Registry::SALE_ORDER_VIEW)
+			->build();
+
+		$idTmp .=" href='".$href."' title='".Loc::getMessage("SALE_DETAIL_DESCR")."'>##ID##</a></b></td>";
 		$idTmp .= "</tr>";
 
 		if($isRecommended)
@@ -1875,22 +1960,38 @@ if (!empty($orderList) && is_array($orderList))
 		}
 		$row->AddField("PERSON_TYPE", $fieldValue);
 
+		//IS_SYNC_B24
+		$fieldValue = "";
+		if(in_array("IS_SYNC_B24", $arVisibleColumns))
+		{
+			$fieldValue .= '<span id="IS_SYNC_B24_'.$arOrder['ID'].'" style="'.(($arOrder["IS_SYNC_B24"] == "Y") ? "color: #ff2400;" : "").'" >'.(($arOrder["IS_SYNC_B24"] == "Y") ? Loc::getMessage("SO_YES") : Loc::getMessage("SO_NO"))."</span>";
+
+			if($row->bEditMode != true)
+			{
+				$row->AddField("IS_SYNC_B24", $fieldValue);
+			}
+			else
+			{
+				$row->AddCheckField("IS_SYNC_B24");
+			}
+		}
+
 		//PAYED
 		$fieldValue = "";
 		if(in_array("PAYED", $arVisibleColumns))
 		{
 			$fieldValue .= '<span id="payed_'.$arOrder['ID'].'">'.(($arOrder["PAYED"] == "Y") ? Loc::getMessage("SO_YES") : Loc::getMessage("SO_NO"))."</span>";
 			$fieldValueTmp = $arOrder["DATE_PAYED"];
-			if(strlen($arOrder["DATE_PAYED"]) > 0)
+			if($arOrder["DATE_PAYED"] <> '')
 			{
-				if(IntVal($arOrder["EMP_PAYED_ID"]) > 0)
+				if(intval($arOrder["EMP_PAYED_ID"]) > 0)
 					$fieldValueTmp .= '<br />'.$formattedUserNames[$arOrder["EMP_PAYED_ID"]];
 
 				if(!$bExport)
 				{
 					$sScript .= "
-							new top.BX.CHint({
-								parent: top.BX('payed_".$arOrder["ID"]."'),
+							new topWindow.BX.CHint({
+								parent: topWindow.BX('payed_".$arOrder["ID"]."'),
 								show_timeout: 10,
 								hide_timeout: 100,
 								dx: 2,
@@ -1913,16 +2014,16 @@ if (!empty($orderList) && is_array($orderList))
 			{
 				$fieldValue .= '<span id="cancel_'.$arOrder['ID'].'">'.(($arOrder["CANCELED"] == "Y") ? Loc::getMessage("SO_YES") : Loc::getMessage("SO_NO"))."</span>";
 				$fieldValueTmp = $arOrder["DATE_CANCELED"];
-				if(IntVal($arOrder["DATE_CANCELED"]) > 0)
+				if(intval($arOrder["DATE_CANCELED"]) > 0)
 				{
-					if(IntVal($arOrder["EMP_CANCELED_ID"]) > 0)
+					if(intval($arOrder["EMP_CANCELED_ID"]) > 0)
 						$fieldValueTmp .= '<br />'.$formattedUserNames[$arOrder["EMP_CANCELED_ID"]];
 
 					if(!$bExport)
 					{
 						$sScript .= "
-							new top.BX.CHint({
-								parent: top.BX('cancel_".$arOrder["ID"]."'),
+							new topWindow.BX.CHint({
+								parent: topWindow.BX('cancel_".$arOrder["ID"]."'),
 								show_timeout: 10,
 								hide_timeout: 100,
 								dx: 2,
@@ -1996,13 +2097,13 @@ if (!empty($orderList) && is_array($orderList))
 
 					$fieldValue .= $arOrder["DATE_STATUS"];
 
-					if(IntVal($arOrder["EMP_STATUS_ID"]) > 0)
+					if(intval($arOrder["EMP_STATUS_ID"]) > 0)
 						$fieldValue .= '<br />'.$formattedUserNames[$arOrder["EMP_STATUS_ID"]];
 					$fieldValue .= "</div>";
 				}
 				$colorRGB = array();
 				$colorRGB = sscanf($LOCAL_STATUS_CACHE[$arOrder["STATUS_ID"]]['COLOR'], "#%02x%02x%02x");
-				if (count($colorRGB))
+				if (is_array($colorRGB) && count($colorRGB))
 				{
 					$color = "background:rgba(".$colorRGB[0].",".$colorRGB[1].",".$colorRGB[2].",0.6);";
 					$fieldValue = '<div style=	"'.$color.'
@@ -2106,14 +2207,14 @@ if (!empty($orderList) && is_array($orderList))
 					}
 
 
-					if(IntVal($arOrder["EMP_STATUS_ID"]) > 0)
+					if(intval($arOrder["EMP_STATUS_ID"]) > 0)
 						$fieldValueTmp .= '<br />'.$formattedUserNames[$arOrder["EMP_STATUS_ID"]];
 
 					if(!$bExport)
 					{
 						$sScript .= "
-							new top.BX.CHint({
-								parent: top.BX('status_order_".$arOrder["ID"]."'),
+							new topWindow.BX.CHint({
+								parent: topWindow.BX('status_order_".$arOrder["ID"]."'),
 								show_timeout: 10,
 								hide_timeout: 100,
 								dx: 2,
@@ -2166,12 +2267,12 @@ if (!empty($orderList) && is_array($orderList))
 		{
 			$fieldValue .= '<span id="MARKED_'.$arOrder['ID'].'" style="'.(($arOrder["MARKED"] == "Y") ? "color: #ff2400;" : "").'" >'.(($arOrder["MARKED"] == "Y") ? Loc::getMessage("SO_YES") : Loc::getMessage("SO_NO"))."</span>";
 			$fieldValueTmp = $arOrder["DATE_MARKED"];
-			if(strlen($arOrder["DATE_MARKED"]) > 0)
+			if($arOrder["DATE_MARKED"] <> '')
 			{
-				if(IntVal($arOrder["EMP_MARKED_ID"]) > 0)
+				if(intval($arOrder["EMP_MARKED_ID"]) > 0)
 					$fieldValueTmp .= '<br />'.$formattedUserNames[$arOrder["EMP_MARKED_ID"]];
 
-				if($arOrder["MARKED"] == "Y" && isset($arOrder["REASON_MARKED"]) && strlen($arOrder["REASON_MARKED"]) > 0)
+				if($arOrder["MARKED"] == "Y" && isset($arOrder["REASON_MARKED"]) && $arOrder["REASON_MARKED"] <> '')
 				{
 					$fieldValueTmp .= "<br/>".$arOrder["REASON_MARKED"];
 				}
@@ -2179,8 +2280,8 @@ if (!empty($orderList) && is_array($orderList))
 				if(!$bExport)
 				{
 					$sScript .= "
-							new top.BX.CHint({
-								parent: top.BX('MARKED_".$arOrder["ID"]."'),
+							new topWindow.BX.CHint({
+								parent: topWindow.BX('MARKED_".$arOrder["ID"]."'),
 								show_timeout: 10,
 								hide_timeout: 100,
 								dx: 2,
@@ -2206,7 +2307,13 @@ if (!empty($orderList) && is_array($orderList))
 		$fieldValue = "";
 
 		if(in_array("USER", $arVisibleColumns))
+		{
 			$fieldValue = GetFormatedUserName($arOrder["USER_ID"], false, false);
+			if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
+			{
+				$fieldValue = strip_tags($fieldValue);
+			}
+		}
 
 		$row->AddField("USER", $fieldValue);
 
@@ -2222,7 +2329,16 @@ if (!empty($orderList) && is_array($orderList))
 			));
 			while($payment = $res->fetch())
 			{
-				$payment["ID_LINKED"] = '[<a href="/bitrix/admin/sale_order_payment_edit.php?order_id='.$arOrder['ID'].'&payment_id='.$payment["ID"].'&lang='.LANGUAGE_ID.'">'.$payment["ID"].'</a>]';
+				$href = $link
+					->create()
+					->setFilterParams(false)
+					->fill()
+					->setField('order_id', $arOrder['ID'])
+					->setField('payment_id', $payment["ID"])
+					->setPageByType(Admin\Registry::SALE_ORDER_PAYMENT_EDIT)
+					->build();
+
+				$payment["ID_LINKED"] = '[<a href="'.$href.'">'.$payment["ID"].'</a>]';
 				$payments[] = $payment;
 			}
 			unset($payment, $res);
@@ -2252,7 +2368,7 @@ if (!empty($orderList) && is_array($orderList))
 					$fieldValue .= $payment["ID_LINKED"].", ".
 						htmlspecialcharsbx($payment["PAY_SYSTEM_NAME"]).", ".
 						($payment["PAID"] == "Y" ? Loc::getMessage("SOA_PAYMENTS_PAID") :  Loc::getMessage("SOA_PAYMENTS_UNPAID")).", ".
-						(strlen($payment["PS_STATUS"]) > 0 ? Loc::getMessage("SOA_PAYMENTS_STATUS").": ".htmlspecialcharsbx($payment["PS_STATUS"]).", " : "").
+						($payment["PS_STATUS"] <> '' ? Loc::getMessage("SOA_PAYMENTS_STATUS").": ".htmlspecialcharsbx($payment["PS_STATUS"]).", " : "").
 						'<span style="white-space:nowrap;">'.SaleFormatCurrency($payment["SUM"], $payment["CURRENCY"]).'</span>';
 
 					if($paymentCount > 1)
@@ -2435,6 +2551,11 @@ if (!empty($orderList) && is_array($orderList))
 				$setItemClass = "";
 				$linkClass = "";
 
+				if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
+				{
+					$arItem["DETAIL_PAGE_URL"] = '';
+				}
+
 				if(CSaleBasketHelper::isSetItem($arItem))
 				{
 					$hidden = 'style="display:none"';
@@ -2450,15 +2571,15 @@ if (!empty($orderList) && is_array($orderList))
 
 				$fieldValue .= "[".$arItem["PRODUCT_ID"]."] ";
 
-				if(strpos($arItem["DETAIL_PAGE_URL"], "http") === false)
+				if(mb_strpos($arItem["DETAIL_PAGE_URL"], "http") === false)
 					$url = "//".$serverName[$arOrder["LID"]].htmlspecialcharsBack($arItem["DETAIL_PAGE_URL"]);
 				else
 					$url = htmlspecialcharsBack($arItem["DETAIL_PAGE_URL"]);
 
-				if(strlen($arItem["DETAIL_PAGE_URL"]) > 0)
+				if($arItem["DETAIL_PAGE_URL"] <> '')
 					$fieldValue .= '<a href="'.htmlspecialcharsbx($url).'" class="'.$linkClass.'">';
 				$fieldValue .= htmlspecialcharsbx($arItem["NAME"]);
-				if(strlen($arItem["DETAIL_PAGE_URL"]) > 0)
+				if($arItem["DETAIL_PAGE_URL"] <> '')
 					$fieldValue .= "</a>";
 
 				$fieldValue .= " <nobr>(".Sale\BasketItem::formatQuantity($arItem["QUANTITY"])." ".htmlspecialcharsbx($measure).")</nobr>";
@@ -2483,31 +2604,31 @@ if (!empty($orderList) && is_array($orderList))
 
 				$fieldValue .= "</div>";
 
-				if(strlen($arItem["NAME"]) > 0)
+				if($arItem["NAME"] <> '')
 				{
 					$fieldName .= "<nobr>";
-					if(strlen($arItem["DETAIL_PAGE_URL"]) > 0)
+					if($arItem["DETAIL_PAGE_URL"] <> '')
 						$fieldName .= '<a href="'.$url.'">';
 					$fieldName .= htmlspecialcharsbx($arItem["NAME"]);
-					if(strlen($arItem["DETAIL_PAGE_URL"]) > 0)
+					if($arItem["DETAIL_PAGE_URL"] <> '')
 						$fieldName .= "</a>";
 					$fieldName .= "</nobr>";
 				}
 				else
 					$fieldName .= "<br />";
-				if(strlen($arItem["QUANTITY"]) > 0)
+				if($arItem["QUANTITY"] <> '')
 					$fieldQuantity .= htmlspecialcharsbx(Sale\BasketItem::formatQuantity($arItem["QUANTITY"]))." ".htmlspecialcharsbx($measure);
 				else
 					$fieldQuantity .= "<br />";
-				if(strlen($arItem["PRODUCT_ID"]) > 0)
+				if($arItem["PRODUCT_ID"] <> '')
 					$fieldProductID .= htmlspecialcharsbx($arItem["PRODUCT_ID"]);
 				else
 					$fieldProductID .= "<br />";
-				if(strlen($arItem["PRICE"]) > 0)
+				if($arItem["PRICE"] <> '')
 					$fieldPrice .= "<nobr>".SaleFormatCurrency($arItem["PRICE"], $arItem["CURRENCY"])."</nobr>";
 				else
 					$fieldPrice .= "<br />";
-				if(strlen($arItem["WEIGHT"]) > 0)
+				if($arItem["WEIGHT"] <> '')
 				{
 					if((float)$WEIGHT_KOEF[$arOrder["LID"]] > 0)
 						$fieldWeightCalc = (float)($arItem["WEIGHT"]/$WEIGHT_KOEF[$arOrder["LID"]]);
@@ -2521,38 +2642,39 @@ if (!empty($orderList) && is_array($orderList))
 				}
 				else
 					$fieldWeight .= "<br />";
-				if(strlen($arItem["NOTES"]) > 0)
+				if($arItem["NOTES"] <> '')
 					$fieldNotes .= $arItem["NOTES"];
 				else
 					$fieldNotes .= "<br />";
-				if(strlen($arItem["DISCOUNT_PRICE"]) > 0)
+				if($arItem["DISCOUNT_PRICE"] <> '')
 					$fieldDiscountPrice .= "<nobr>".SaleFormatCurrency($arItem["DISCOUNT_PRICE"], $arItem["CURRENCY"])."</nobr>";
 				else
 					$fieldDiscountPrice .= "<br />";
-				if(strlen($arItem["CATALOG_XML_ID"]) > 0)
+				if($arItem["CATALOG_XML_ID"] <> '')
 					$fieldCatalogXML .= $arItem["CATALOG_XML_ID"];
 				else
 					$fieldCatalogXML .= "<br />";
-				if(strlen($arItem["PRODUCT_XML_ID"]) > 0)
+				if($arItem["PRODUCT_XML_ID"] <> '')
 					$fieldProductXML .= $arItem["PRODUCT_XML_ID"];
 				else
 					$fieldProductXML .= "<br />";
-				if(strlen($arItem["DISCOUNT_VALUE"]) > 0)
+				if($arItem["DISCOUNT_VALUE"] <> '')
 				{
 					$fieldDiscountValue .= roundEx($arItem["DISCOUNT_VALUE"], 2);
-					if(strpos($arItem["DISCOUNT_VALUE"], "%") !== false)
+					if(mb_strpos($arItem["DISCOUNT_VALUE"], "%") !== false)
 						$fieldDiscountValue .= "%";
 				}
 				else
 					$fieldDiscountValue .= "<br />";
 
-				if(strlen($arItem["VAT_RATE"]) > 0)
+				if($arItem["VAT_RATE"] <> '')
 					$fieldVatRate .= $arItem["VAT_RATE"];
 				else
 					$fieldVatRate .= "<br />";
 			}
 			unset($arItem);
 		}
+
 		$row->AddField("BASKET", $fieldValue);
 		$row->AddField("BASKET_NAME", $fieldName);
 		$row->AddField("BASKET_QUANTITY", $fieldQuantity);
@@ -2569,13 +2691,13 @@ if (!empty($orderList) && is_array($orderList))
 		if($bNeedProps)
 		{
 			/** @var \Bitrix\Sale\Order $propOrder */
-			$propOrder = \Bitrix\Sale\Order::load($arOrder["ID"]);
+			$propOrder = $orderClass::load($arOrder["ID"]);
 
 			/** @var Bitrix\Sale\PropertyValue  $property */
 			foreach($propOrder->getPropertyCollection() as $property)
 			{
 				$code = $property->getField("CODE");
-				$colName = "PROP_".(strlen($code) > 0 ? $code :  $property->getField("ORDER_PROPS_ID"));
+				$colName = "PROP_".($code <> '' ? $code :  $property->getField("ORDER_PROPS_ID"));
 				$row->AddField($colName, $property->getViewHtml());
 			}
 		}
@@ -2600,7 +2722,16 @@ if (!empty($orderList) && is_array($orderList))
 
 			while($shipment = $res->fetch())
 			{
-				$shipment["ID_LINKED"] = '[<a href="/bitrix/admin/sale_order_shipment_edit.php?order_id='.$arOrder['ID'].'&shipment_id='.$shipment["ID"].'&lang='.LANGUAGE_ID.'"  title="'.Loc::getMessage('SALE_O_SHIPMENT_ID_TITLE', array('#SHIPMENT_ID#' => $shipment["ID"])).'">'.$shipment["ID"].'</a>]';
+				$href = $link
+					->create()
+					->setFilterParams(false)
+					->fill()
+					->setField('order_id', $arOrder['ID'])
+					->setField('shipment_id', $shipment["ID"])
+					->setPageByType(Admin\Registry::SALE_ORDER_SHIPMENT_EDIT)
+					->build();
+
+				$shipment["ID_LINKED"] = '[<a href="'.$href.'"  title="'.Loc::getMessage('SALE_O_SHIPMENT_ID_TITLE', array('#SHIPMENT_ID#' => $shipment["ID"])).'">'.$shipment["ID"].'</a>]';
 				$shipments[] = $shipment;
 			}
 
@@ -2642,15 +2773,15 @@ if (!empty($orderList) && is_array($orderList))
 					}
 
 					$fieldValue .= $shipment["ID_LINKED"].", ".
-						(strlen($shipment["DELIVERY_NAME"]) > 0 ? htmlspecialcharsbx($shipment["DELIVERY_NAME"]).", " : "").
+						($shipment["DELIVERY_NAME"] <> '' ? htmlspecialcharsbx($shipment["DELIVERY_NAME"]).", " : "").
 						'<span style="white-space:nowrap;">'.SaleFormatCurrency($shipment["PRICE_DELIVERY"], $shipment["CURRENCY"])."</span>, ".
 						($shipment["ALLOW_DELIVERY"] == "Y" ? Loc::getMessage("SOA_SHIPMENTS_ALLOW_DELIVERY") : Loc::getMessage("SOA_SHIPMENTS_NOT_ALLOW_DELIVERY")).", ".
 						($shipment["CANCELED"] == "Y" ? Loc::getMessage("SOA_SHIPMENTS_CANCELED").", " : "").
 						($shipment["DEDUCTED"] == "Y" ? Loc::getMessage("SOA_SHIPMENTS_DEDUCTED").", " : "").
 						($shipment["MARKED"] == "Y" ? Loc::getMessage("SOA_SHIPMENTS_MARKED").", " : "").
-						(strlen($shipment["TRACKING_NUMBER"]) > 0 ? htmlspecialcharsbx($shipment["TRACKING_NUMBER"]).", " : "");
+						($shipment["TRACKING_NUMBER"] <> '' ? htmlspecialcharsbx($shipment["TRACKING_NUMBER"]).", " : "");
 
-					if(strlen($shipment["STATUS_ID"]) > 0)
+					if($shipment["STATUS_ID"] <> '')
 						$fieldValue .= $shipmentStatuses[$shipment["STATUS_ID"]] ? htmlspecialcharsbx($shipmentStatuses[$shipment["STATUS_ID"]]) : Loc::getMessage("SOA_SHIPMENTS_STATUS").": ".$shipment["STATUS_ID"];
 
 					if($shipmentCount > 1)
@@ -2687,16 +2818,16 @@ if (!empty($orderList) && is_array($orderList))
 						$fieldValue .= $tmp;
 
 					$fieldValueTmp = $shipment["DATE_ALLOW_DELIVERY"];
-					if(strlen($shipment["DATE_ALLOW_DELIVERY"]) > 0)
+					if($shipment["DATE_ALLOW_DELIVERY"] <> '')
 					{
-						if(IntVal($shipment["EMP_ALLOW_DELIVERY_ID"]) > 0)
+						if(intval($shipment["EMP_ALLOW_DELIVERY_ID"]) > 0)
 							$fieldValueTmp .= '<br />'.$formattedUserNames[$shipment["EMP_ALLOW_DELIVERY_ID"]];
 
 						if(!$bExport)
 						{
 							$sScript .= "
-								new top.BX.CHint({
-									parent: top.BX('allow_deliv_".$shipment["ID"]."'),
+								new topWindow.BX.CHint({
+									parent: topWindow.BX('allow_deliv_".$shipment["ID"]."'),
 									show_timeout: 10,
 									hide_timeout: 100,
 									dx: 2,
@@ -2716,7 +2847,7 @@ if (!empty($orderList) && is_array($orderList))
 			$fieldValue = "";
 			foreach($shipments as $shipment)
 			{
-				$tmp = strlen($shipment["DATE_ALLOW_DELIVERY"]) > 0 ? $shipment["DATE_ALLOW_DELIVERY"] : Loc::getMessage("SO_NO");
+				$tmp = $shipment["DATE_ALLOW_DELIVERY"] <> '' ? $shipment["DATE_ALLOW_DELIVERY"] : Loc::getMessage("SO_NO");
 
 				if(count($shipments) > 1)
 					$fieldValue .= $shipment["ID_LINKED"]." ".$tmp."<hr>";
@@ -2763,16 +2894,16 @@ if (!empty($orderList) && is_array($orderList))
 						$fieldValue .= "<hr>";
 
 					$fieldValueTmp = $shipment["DATE_DEDUCTED"];
-					if(strlen($shipment["DATE_DEDUCTED"]) > 0)
+					if($shipment["DATE_DEDUCTED"] <> '')
 					{
-						if(IntVal($shipment["EMP_DEDUCTED_ID"]) > 0)
+						if(intval($shipment["EMP_DEDUCTED_ID"]) > 0)
 							$fieldValueTmp .= '<br />'.$formattedUserNames[$shipment["EMP_DEDUCTED_ID"]];
 
 						if(!$bExport)
 						{
 							$sScript .= "
-								new top.BX.CHint({
-									parent: top.BX('DEDUCTED_".$shipment["ID"]."'),
+								new topWindow.BX.CHint({
+									parent: topWindow.BX('DEDUCTED_".$shipment["ID"]."'),
 									show_timeout: 10,
 									hide_timeout: 100,
 									dx: 2,
@@ -2791,7 +2922,7 @@ if (!empty($orderList) && is_array($orderList))
 			$fieldValue = "";
 			foreach($shipments as $shipment)
 			{
-				$tmp = strlen($shipment["DELIVERY_DOC_NUM"]) > 0 ? htmlspecialcharsbx($shipment["DELIVERY_DOC_NUM"]) : Loc::getMessage("SO_NO");
+				$tmp = $shipment["DELIVERY_DOC_NUM"] <> '' ? htmlspecialcharsbx($shipment["DELIVERY_DOC_NUM"]) : Loc::getMessage("SO_NO");
 
 				if(count($shipments) > 1)
 					$fieldValue .= $shipment["ID_LINKED"]." ".$tmp."<hr>";
@@ -2804,7 +2935,7 @@ if (!empty($orderList) && is_array($orderList))
 			$fieldValue = "";
 			foreach($shipments as $shipment)
 			{
-				$tmp = strlen($shipment["DELIVERY_DOC_DATE"]) > 0 ? $shipment["DELIVERY_DOC_DATE"] : Loc::getMessage("SO_NO");
+				$tmp = $shipment["DELIVERY_DOC_DATE"] <> '' ? $shipment["DELIVERY_DOC_DATE"] : Loc::getMessage("SO_NO");
 
 				if(count($shipments) > 1)
 					$fieldValue .= $shipment["ID_LINKED"]." ".$tmp."<hr>";
@@ -2885,42 +3016,49 @@ if (!empty($orderList) && is_array($orderList))
 		}
 		$row->AddField("AFFILIATE_ID", $fieldValue);
 
-		$arActions = array();
-
-		if(($arOrder['LOCK_STATUS'] == "red" && $saleModulePermissions >= "W") || $arOrder['LOCK_STATUS'] == "yellow")
+		if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
 		{
-			$arActions[] = array(
-				"ICON" => "unlock",
-				"TEXT" => Loc::getMessage("IBEL_A_UNLOCK"),
-				"TITLE" => Loc::getMessage("IBLOCK_UNLOCK_ALT"),
-				"ACTION" => $lAdmin->ActionDoGroup($arOrder["ID"], "unlock", '')
-			);
-			$arActions[] = array("SEPARATOR" => true);
+			//do nothing
 		}
-
-		$arActions[] = array("ICON"=>"view", "TEXT"=>Loc::getMessage("SALE_DETAIL_DESCR"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_view.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_")), "DEFAULT"=>true);
-		$arActions[] = array("ICON"=>"copy", "TEXT"=>Loc::getMessage("SOA_ORDER_COPY"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_create.php?ID=".$orderId."&lang=".LANGUAGE_ID."&".'SITE_ID='.$arOrder['LID'].'&'.bitrix_sessid_get().GetFilterParams("filter_")));
-		$arActions[] = array("ICON"=>"print", "TEXT"=>Loc::getMessage("SALE_PRINT_DESCR"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_print.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_")));
-
-		if($arOrder['LOCK_STATUS'] != "red")
+		else
 		{
-			if($saleModulePermissions >= "W" || !empty($permDeleteOrderList[$orderId]))
-				$arActions[] = array("ICON"=>"", "TEXT"=>Loc::getMessage("SOAN_LIST_ARCHIVE"), "ACTION"=>"if(confirm('".Loc::getMessage('SALE_CONFIRM_ARCHIVE_MESSAGE')."')) ".$lAdmin->ActionDoGroup($arOrder['ID'], 'archive'));
+			$arActions = array();
 
-			if (!empty($permUpdateOrderList[$orderId]))
+			if(($arOrder['LOCK_STATUS'] == "red" && $saleModulePermissions >= "W") || $arOrder['LOCK_STATUS'] == "yellow")
 			{
-				$arActions[] = array("ICON"=>"edit", "TEXT"=>Loc::getMessage("SALE_OEDIT_DESCR"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_edit.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_")));
-			}
-
-			if($saleModulePermissions == "W"
-				|| $arOrder["PAYED"] != "Y" && !empty($permDeleteOrderList[$orderId]))
-			{
+				$arActions[] = array(
+					"ICON" => "unlock",
+					"TEXT" => Loc::getMessage("IBEL_A_UNLOCK"),
+					"TITLE" => Loc::getMessage("IBLOCK_UNLOCK_ALT"),
+					"ACTION" => $lAdmin->ActionDoGroup($arOrder["ID"], "unlock", '')
+				);
 				$arActions[] = array("SEPARATOR" => true);
-				$arActions[] = array("ICON"=>"delete", "TEXT"=>Loc::getMessage("SALE_DELETE_DESCR"), "ACTION"=>"if(confirm('".Loc::getMessage('SALE_CONFIRM_DEL_MESSAGE')."')) ".$lAdmin->ActionDoGroup($orderId, "delete", GetFilterParams("filter_", false)));
 			}
-		}
 
-		$row->AddActions($arActions);
+			$arActions[] = array("ICON"=>"view", "TEXT"=>Loc::getMessage("SALE_DETAIL_DESCR"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_view.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_")), "DEFAULT"=>true);
+			$arActions[] = array("ICON"=>"copy", "TEXT"=>Loc::getMessage("SOA_ORDER_COPY"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_create.php?ID=".$orderId."&lang=".LANGUAGE_ID."&".'SITE_ID='.$arOrder['LID'].'&'.bitrix_sessid_get().GetFilterParams("filter_")));
+			$arActions[] = array("ICON"=>"print", "TEXT"=>Loc::getMessage("SALE_PRINT_DESCR"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_print.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_")));
+
+			if($arOrder['LOCK_STATUS'] != "red")
+			{
+				if($saleModulePermissions >= "W" || !empty($permDeleteOrderList[$orderId]))
+					$arActions[] = array("ICON"=>"", "TEXT"=>Loc::getMessage("SOAN_LIST_ARCHIVE"), "ACTION"=>"if(confirm('".Loc::getMessage('SALE_CONFIRM_ARCHIVE_MESSAGE')."')) ".$lAdmin->ActionDoGroup($arOrder['ID'], 'archive'));
+
+				if (!empty($permUpdateOrderList[$orderId]))
+				{
+					$arActions[] = array("ICON"=>"edit", "TEXT"=>Loc::getMessage("SALE_OEDIT_DESCR"), "ACTION"=>$lAdmin->ActionRedirect("sale_order_edit.php?ID=".$orderId."&lang=".LANGUAGE_ID.GetFilterParams("filter_")));
+				}
+
+				if($saleModulePermissions == "W"
+					|| $arOrder["PAYED"] != "Y" && !empty($permDeleteOrderList[$orderId]))
+				{
+					$arActions[] = array("SEPARATOR" => true);
+					$arActions[] = array("ICON"=>"delete", "TEXT"=>Loc::getMessage("SALE_DELETE_DESCR"), "ACTION"=>"if(confirm('".Loc::getMessage('SALE_CONFIRM_DEL_MESSAGE')."')) ".$lAdmin->ActionDoGroup($orderId, "delete", GetFilterParams("filter_", false)));
+				}
+			}
+
+			$row->AddActions($arActions);
+		}
 	}
 }
 
@@ -3023,8 +3161,8 @@ if($saleModulePermissions == "W")
 	$rcmFilter['>BASKET.RECOMMENDATION'] = 0;
 
 	$runtime = array(
-			new \Bitrix\Main\Entity\ExpressionField('SUM', 'SUM(%s * %s)', array('BASKET.PRICE', 'BASKET.QUANTITY')),
-			new \Bitrix\Main\Entity\ExpressionField('COUNT', 'COUNT(sale_internals_order.ID)')
+		new \Bitrix\Main\Entity\ExpressionField('SUM', 'SUM(%s * %s)', array('BASKET.PRICE', 'BASKET.QUANTITY')),
+		new \Bitrix\Main\Entity\ExpressionField('COUNT', 'COUNT(sale_internals_order.ID)')
 	);
 
 	if(!empty($runtimeFields) && is_array($runtimeFields))
@@ -3114,7 +3252,7 @@ elseif ($saleModulePermissions < "W")
 		foreach ($arOrdersSum as $key => $value)
 		{
 			$arFooterArray[] = array(
-			"title" => Loc::getMessage("SOAN_ITOG")." ".$key.":",
+				"title" => Loc::getMessage("SOAN_ITOG")." ".$key.":",
 				"value" => $value
 			);
 		}
@@ -3182,102 +3320,110 @@ $lAdmin->BeginEpilogContent();
 echo "<script>", $sScript, "\nif(document.getElementById('order_sum')) {setTimeout(function(){document.getElementById('order_sum').innerHTML = '".CUtil::JSEscape($order_sum)."';}, 10);}\n","</script>";
 echo "<script>", $sScript, "\nif(document.getElementById('bigdatabar')) {setTimeout(function(){document.getElementById('bigdatabar').innerHTML = '".CUtil::JSEscape($bigdataWidgetHtml)."';}, 10);}\n","</script>";
 ?>
-<script>
-function exportData(val)
-{
-	var oForm = document.form_<?= $sTableID ?>;
-	var expType = oForm.action_target.checked;
-	var oid = [];
-	if(!expType)
-	{
-		var num = oForm.elements.length;
-		for (var i = 0; i < num; i++)
+	<script>
+		function exportData(val)
 		{
-			if(oForm.elements[i].tagName.toUpperCase() == "INPUT"
-				&& oForm.elements[i].type.toUpperCase() == "CHECKBOX"
-				&& oForm.elements[i].name.toUpperCase() == "ID[]"
-				&& oForm.elements[i].checked == true)
+			var oForm = document.form_<?= $sTableID ?>;
+			var expType = oForm.action_target.checked;
+			var oid = [];
+			if(!expType)
 			{
-				oid.push(oForm.elements[i].value);
+				var num = oForm.elements.length;
+				for (var i = 0; i < num; i++)
+				{
+					if(oForm.elements[i].tagName.toUpperCase() == "INPUT"
+						&& oForm.elements[i].type.toUpperCase() == "CHECKBOX"
+						&& oForm.elements[i].name.toUpperCase() == "ID[]"
+						&& oForm.elements[i].checked == true)
+					{
+						oid.push(oForm.elements[i].value);
+					}
+				}
 			}
-		}
-	}
 
-	var url = (val == "excel") ? 'sale_order.php' : 'sale_order_export.php';
-	url += "?EXPORT_FORMAT=" + val;
-	if (val !== "excel")
-	{
-		url += "&" + "<?= CUtil::JSEscape(GetFilterParams("filter_", false)); ?>";
-	}
-	var exportForm = BX.create('form', {
-		attrs: {
-			method: 'post',
-			target: '_blank'
-		}
-	});
-	exportForm.action = url;
-	exportForm.appendChild(BX.create('input', {
-		attrs: {
-			type: 'hidden',
-			name: 'csrf_token',
-			value: BX.message('bitrix_sessid')
-		}
-	}));
-	if (val == "excel")
-	{
-		exportForm.appendChild(BX.create('input', {
-			attrs: {
-				type: 'hidden',
-				name: 'mode',
-				value: 'excel'
+			var url = (val == "excel") ? 'sale_order.php' : 'sale_order_export.php';
+			url += "?EXPORT_FORMAT=" + val;
+			if (val !== "excel")
+			{
+				url += "&" + "<?= CUtil::JSEscape(GetFilterParams("filter_", false)); ?>";
 			}
-		}));
-	}
-	for (var i = 0; i < oid.length; i++)
-	{
-		exportForm.appendChild(BX.create('input', {
-			attrs: {
-				type: 'hidden',
-				name: 'OID[]',
-				value: oid[i]
+			var exportForm = BX.create('form', {
+				attrs: {
+					method: 'post',
+					target: '_blank'
+				}
+			});
+			exportForm.action = url;
+			exportForm.appendChild(BX.create('input', {
+				attrs: {
+					type: 'hidden',
+					name: 'csrf_token',
+					value: BX.message('bitrix_sessid')
+				}
+			}));
+			if (val == "excel")
+			{
+				exportForm.appendChild(BX.create('input', {
+					attrs: {
+						type: 'hidden',
+						name: 'mode',
+						value: 'excel'
+					}
+				}));
 			}
-		}));
-	}
-	document.body.appendChild(exportForm);
-	exportForm.submit();
-	exportForm.remove();
-}
-</script>
+			for (var i = 0; i < oid.length; i++)
+			{
+				exportForm.appendChild(BX.create('input', {
+					attrs: {
+						type: 'hidden',
+						name: 'OID[]',
+						value: oid[i]
+					}
+				}));
+			}
+			document.body.appendChild(exportForm);
+			exportForm.submit();
+			exportForm.remove();
+		}
+	</script>
 <?
+
 $lAdmin->EndEpilogContent();
 
-$arGroupActionsTmp = array(
-	"delete" => Loc::getMessage("MAIN_ADMIN_LIST_DELETE"),
-	"cancel" => Loc::getMessage("SOAN_LIST_CANCEL"),
-	"cancel_n" => Loc::getMessage("SOAN_LIST_CANCEL_N"),
-	"allow_delivery" => Loc::getMessage("SALE_SHIPMENT_ALLOW_DELIVERY"),
-	"allow_delivery_n" => Loc::getMessage("SALE_SHIPMENT_ALLOW_DELIVERY_N"),
-	"deducted" => Loc::getMessage("SALE_SHIPMENT_DEDUCTED"),
-	"deducted_n" => Loc::getMessage("SALE_SHIPMENT_DEDUCTED_N"),
-	"update_payment_status" => Loc::getMessage("SALE_UPDATE_PAYMENT_STATUS"),
-	"paid" => Loc::getMessage("SALE_ORDER_PAID"),
-	"paid_n" => Loc::getMessage("SALE_ORDER_PAID_N"),
-	"delivery_requests" => Loc::getMessage("SALE_SEND_DELIVERY_REQUEST"),
-);
-	
-if($saleModulePermissions >= "W" || !empty($permDeleteOrderList))
+if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
 {
-	$arGroupActionsTmp["archive"] =  array(
-		"action" => "
+	//do nothing
+}
+else
+{
+	$arGroupActionsTmp = array(
+		"delete" => Loc::getMessage("MAIN_ADMIN_LIST_DELETE"),
+		"cancel" => Loc::getMessage("SOAN_LIST_CANCEL"),
+		"cancel_n" => Loc::getMessage("SOAN_LIST_CANCEL_N"),
+		"allow_delivery" => Loc::getMessage("SALE_SHIPMENT_ALLOW_DELIVERY"),
+		"allow_delivery_n" => Loc::getMessage("SALE_SHIPMENT_ALLOW_DELIVERY_N"),
+		"deducted" => Loc::getMessage("SALE_SHIPMENT_DEDUCTED"),
+		"deducted_n" => Loc::getMessage("SALE_SHIPMENT_DEDUCTED_N"),
+		"update_payment_status" => Loc::getMessage("SALE_UPDATE_PAYMENT_STATUS"),
+		"paid" => Loc::getMessage("SALE_ORDER_PAID"),
+		"paid_n" => Loc::getMessage("SALE_ORDER_PAID_N"),
+		"delivery_requests" => Loc::getMessage("SALE_SEND_DELIVERY_REQUEST"),
+
+	);
+
+	if($saleModulePermissions >= "W" || !empty($permDeleteOrderList))
+	{
+		$arGroupActionsTmp["archive"] =  array(
+			"action" => "
 			if (window.confirm('".Loc::getMessage('SALE_CONFIRM_ARCHIVE_GROUP')."') && BX(form_".$sTableID."))
 			{
 				BX.submit( BX(form_".$sTableID."), 'archive');
 			}
 		",
-		"value" => "archive",
-		"name" => Loc::getMessage("SOAN_LIST_ARCHIVE")
-	);
-}
+			"value" => "archive",
+			"name" => Loc::getMessage("SOAN_LIST_ARCHIVE")
+		);
+	}
 
 	$allowedStatusesFrom = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations($intUserID, array('from'));
 
@@ -3310,45 +3456,46 @@ if($saleModulePermissions >= "W" || !empty($permDeleteOrderList))
 	}
 
 	$arGroupActionsTmp["export_csv"] = array(
-			"action" => "exportData('csv')",
-			"value" => "export_csv",
-			"name" => str_replace("#EXP#", "CSV", Loc::getMessage("SOAN_EXPORT_2"))
-		);
+		"action" => "exportData('csv')",
+		"value" => "export_csv",
+		"name" => str_replace("#EXP#", "CSV", Loc::getMessage("SOAN_EXPORT_2"))
+	);
 	$arGroupActionsTmp["export_commerceml"] = array(
-			"action" => "exportData('commerceml')",
-			"value" => "export_commerceml",
-			"name" => str_replace("#EXP#", "CommerceML", Loc::getMessage("SOAN_EXPORT_2"))
-		);
+		"action" => "exportData('commerceml')",
+		"value" => "export_commerceml",
+		"name" => str_replace("#EXP#", "CommerceML", Loc::getMessage("SOAN_EXPORT_2"))
+	);
 	$arGroupActionsTmp["export_commerceml2"] = array(
-			"action" => "exportData('commerceml2')",
-			"value" => "export_commerceml2",
-			"name" => str_replace("#EXP#", "CommerceML 2.0", Loc::getMessage("SOAN_EXPORT_2"))
-		);
+		"action" => "exportData('commerceml2')",
+		"value" => "export_commerceml2",
+		"name" => str_replace("#EXP#", "CommerceML 2.0", Loc::getMessage("SOAN_EXPORT_2"))
+	);
 
-$strPath2Export = BX_PERSONAL_ROOT."/php_interface/include/sale_export/";
-if(file_exists($_SERVER["DOCUMENT_ROOT"].$strPath2Export))
-{
-	if($handle = opendir($_SERVER["DOCUMENT_ROOT"].$strPath2Export))
+	$strPath2Export = BX_PERSONAL_ROOT."/php_interface/include/sale_export/";
+	if(file_exists($_SERVER["DOCUMENT_ROOT"].$strPath2Export))
 	{
-		while (($file = readdir($handle)) !== false)
+		if($handle = opendir($_SERVER["DOCUMENT_ROOT"].$strPath2Export))
 		{
-			if($file == "." || $file == "..")
-				continue;
-			if(is_file($_SERVER["DOCUMENT_ROOT"].$strPath2Export.$file) && substr($file, strlen($file)-4)==".php")
+			while (($file = readdir($handle)) !== false)
 			{
-				$export_name = substr($file, 0, strlen($file) - 4);
-				$arGroupActionsTmp["export_".$export_name] = array(
-					"action" => "exportData('".$export_name."')",
-					"value" => "export_".$export_name,
-					"name" => str_replace("#EXP#", $export_name, Loc::getMessage("SOAN_EXPORT_2"))
-				);
+				if($file == "." || $file == "..")
+					continue;
+				if(is_file($_SERVER["DOCUMENT_ROOT"].$strPath2Export.$file) && mb_substr($file, mb_strlen($file) - 4) == ".php")
+				{
+					$export_name = mb_substr($file, 0, mb_strlen($file) - 4);
+					$arGroupActionsTmp["export_".$export_name] = array(
+						"action" => "exportData('".$export_name."')",
+						"value" => "export_".$export_name,
+						"name" => str_replace("#EXP#", $export_name, Loc::getMessage("SOAN_EXPORT_2"))
+					);
+				}
 			}
 		}
+		closedir($handle);
 	}
-	closedir($handle);
+	$lAdmin->AddGroupActionTable($arGroupActionsTmp);
 }
 
-$lAdmin->AddGroupActionTable($arGroupActionsTmp);
 $aContext = array();
 
 if($saleModulePermissions >= 'P')
@@ -3356,107 +3503,124 @@ if($saleModulePermissions >= 'P')
 	$allowedStatusesUpdate = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations($intUserID, array('update'));
 }
 
-if($saleModulePermissions == "W" || ($saleModulePermissions >= 'P' && !empty($allowedStatusesUpdate) ))
+if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
 {
-	$siteLID = "";
-	$arSiteMenu = array();
-	$arSitesShop = array();
-	$arSitesTmp = array();
-	$rsSites = CSite::GetList($b = "id", $o = "asc", Array("ACTIVE" => "Y"));
 
-	while ($arSite = $rsSites->GetNext())
+	$aContext[] = [
+		"TEXT" => Loc::getMessage("SOAN_UPLOAD_FROM_REGISTRY_LINK"),
+		"ICON" => "btn_green",
+		"TITLE" => Loc::getMessage("SOAN_UPLOAD_FROM_REGISTRY_TITLE"),
+		"ONCLICK" => "ordersSync()"
+	];
+
+	$lAdmin->AddAdminContextMenu($aContext, false, false);
+	$lAdmin->CheckListMode();
+}
+else
+{
+	if($saleModulePermissions == "W" || ($saleModulePermissions >= 'P' && !empty($allowedStatusesUpdate) ))
 	{
-		if($saleModulePermissions < "W" && count($arAccessibleSites) > 0)
+		$siteLID = "";
+		$arSiteMenu = array();
+		$arSitesShop = array();
+		$arSitesTmp = array();
+		$rsSites = CSite::GetList($b = "id", $o = "asc", Array("ACTIVE" => "Y"));
+
+		while ($arSite = $rsSites->GetNext())
 		{
-			if(!in_array($arSite['ID'], $arAccessibleSites))
+			if($saleModulePermissions < "W" && count($arAccessibleSites) > 0)
 			{
-				continue;
+				if(!in_array($arSite['ID'], $arAccessibleSites))
+				{
+					continue;
+				}
 			}
+
+			$site = Option::get("sale", "SHOP_SITE_".$arSite["ID"], "");
+
+			if($arSite["ID"] == $site)
+			{
+				$arSitesShop[] = array("ID" => $arSite["ID"], "NAME" => $arSite["NAME"]);
+			}
+
+			$arSitesTmp[] = array("ID" => $arSite["ID"], "NAME" => $arSite["NAME"]);
 		}
 
-		$site = Option::get("sale", "SHOP_SITE_".$arSite["ID"], "");
-
-		if($arSite["ID"] == $site)
-		{
-			$arSitesShop[] = array("ID" => $arSite["ID"], "NAME" => $arSite["NAME"]);
-		}
-
-		$arSitesTmp[] = array("ID" => $arSite["ID"], "NAME" => $arSite["NAME"]);
-	}
-
-	$rsCount = count($arSitesShop);
-	if($rsCount <= 0)
-	{
-		$arSitesShop = $arSitesTmp;
 		$rsCount = count($arSitesShop);
-	}
-
-	if($rsCount == 1)
-	{
-		$siteLID = "&SITE_ID=".$arSitesShop[0]["ID"];
-	}
-	else
-	{
-		foreach ($arSitesShop as &$val)
+		if($rsCount <= 0)
 		{
-			$arSiteMenu[] = array(
-				"TEXT" => $val["NAME"]." (".$val["ID"].")",
-				"ACTION" => "window.location = 'sale_order_create.php?lang=".LANGUAGE_ID."&SITE_ID=".$val["ID"]."';"
-			);
+			$arSitesShop = $arSitesTmp;
+			$rsCount = count($arSitesShop);
 		}
-		if(isset($val))
-			unset($val);
-	}
 
-	$aContext = array(
-		array(
-			"TEXT" => Loc::getMessage("SALE_A_NEWORDER"),
-			"ICON" => "btn_new",
-			"LINK" => "sale_order_create.php?lang=".LANGUAGE_ID.$siteLID,
-			"TITLE" => Loc::getMessage("SALE_A_NEWORDER_TITLE"),
-			"MENU" => $arSiteMenu
-		),
-		array(
-			"TEXT" => Loc::getMessage("SALE_O_CONTEXT_B_DELIVERY_REQUESTS"),
-			"TITLE" => Loc::getMessage("SALE_O_CONTEXT_B_DELIVERY_REQUESTS_TITLE"),
-			"MENU" => array(
-				array(
-					"TEXT" => Loc::getMessage('SALE_O_CONTEXT_B_DELIVERY_REQUESTS_SELECTED'),
-					"ONCLICK" =>"sendDeliveryRequestsForCurrentOrders(true)",
-				),
-				array(
-					"TEXT" => Loc::getMessage('SALE_O_CONTEXT_B_DELIVERY_REQUESTS_ALL'),
-					"ONCLICK" =>"sendDeliveryRequestsForCurrentOrders(false)",
+		if($rsCount == 1)
+		{
+			$siteLID = "&SITE_ID=".$arSitesShop[0]["ID"];
+		}
+		else
+		{
+			foreach ($arSitesShop as &$val)
+			{
+				$arSiteMenu[] = array(
+					"TEXT" => $val["NAME"]." (".$val["ID"].")",
+					"ACTION" => "window.location = 'sale_order_create.php?lang=".LANGUAGE_ID."&SITE_ID=".$val["ID"]."';"
+				);
+			}
+			if(isset($val))
+				unset($val);
+		}
+
+		$aContext = array(
+			array(
+				"TEXT" => Loc::getMessage("SALE_A_NEWORDER"),
+				"ICON" => "btn_new",
+				"LINK" => "sale_order_create.php?lang=".LANGUAGE_ID.$siteLID,
+				"TITLE" => Loc::getMessage("SALE_A_NEWORDER_TITLE"),
+				"MENU" => $arSiteMenu
+			),
+			array(
+				"TEXT" => Loc::getMessage("SALE_O_CONTEXT_B_DELIVERY_REQUESTS"),
+				"TITLE" => Loc::getMessage("SALE_O_CONTEXT_B_DELIVERY_REQUESTS_TITLE"),
+				"MENU" => array(
+					array(
+						"TEXT" => Loc::getMessage('SALE_O_CONTEXT_B_DELIVERY_REQUESTS_SELECTED'),
+						"ONCLICK" =>"sendDeliveryRequestsForCurrentOrders(true)",
+					),
+					array(
+						"TEXT" => Loc::getMessage('SALE_O_CONTEXT_B_DELIVERY_REQUESTS_ALL'),
+						"ONCLICK" =>"sendDeliveryRequestsForCurrentOrders(false)",
+					)
 				)
 			)
-		)
-	);
-}
+		);
+	}
 
-$allowedStatusesDelete = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations($intUserID, array('delete'));
+	$allowedStatusesDelete = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations($intUserID, array('delete'));
 
-if ($saleModulePermissions == "W" || !empty($allowedStatusesDelete))
-{
-	$aContext[] = array(
-		"TEXT" => Loc::getMessage("SOAN_ARCHIVE_LINK"),
-		"LINK" => "sale_archive.php?lang=".LANGUAGE_ID.$siteLID,
-		"TITLE" => Loc::getMessage("SOAN_ARCHIVE_LINK_TITLE")
-	);
+	if ($saleModulePermissions == "W" || !empty($allowedStatusesDelete))
+	{
+		$aContext[] = array(
+			"TEXT" => Loc::getMessage("SOAN_ARCHIVE_LINK"),
+			"LINK" => "sale_archive.php?lang=".LANGUAGE_ID.$siteLID,
+			"TITLE" => Loc::getMessage("SOAN_ARCHIVE_LINK_TITLE")
+		);
+	}
+
+	/** @global CUser $USER */
+	global $USER;
+	$aAdditionalMenu = array();
+	if($USER->CanDoOperation("install_updates"))
+	{
+		$aAdditionalMenu[] = array(
+			"TEXT" => Loc::getMessage("SOAN_MARKETPLACE_ADD_NEW"),
+			"GLOBAL_ICON" => "adm-menu-marketplace",
+			"LINK" => "update_system_market.php?category=112&lang=".LANGUAGE_ID.$siteLID,
+			"TITLE" => Loc::getMessage("SOAN_MARKETPLACE_ADD_NEW_TITLE")
+		);
+	}
+	$lAdmin->AddAdminContextMenu($aContext, true, true, $aAdditionalMenu);
+	$lAdmin->CheckListMode();
 }
-/** @global CUser $USER */
-global $USER;
-$aAdditionalMenu = array();
-if($USER->CanDoOperation("install_updates"))
-{
-	$aAdditionalMenu[] = array(
-		"TEXT" => Loc::getMessage("SOAN_MARKETPLACE_ADD_NEW"),
-		"GLOBAL_ICON" => "adm-menu-marketplace",
-		"LINK" => "update_system_market.php?category=112&lang=".LANGUAGE_ID.$siteLID,
-		"TITLE" => Loc::getMessage("SOAN_MARKETPLACE_ADD_NEW_TITLE")
-	);
-}
-$lAdmin->AddAdminContextMenu($aContext, true, true, $aAdditionalMenu);
-$lAdmin->CheckListMode();
 
 \Bitrix\Main\Page\Asset::getInstance()->addString('<style>.adm-filter-item-center, .adm-filter-content {overflow: visible !important;}</style>');
 
@@ -3467,285 +3631,305 @@ $lAdmin->CheckListMode();
 $APPLICATION->SetTitle(Loc::getMessage("SALE_SECTION_TITLE"));
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php");
 
-?>
-<script type="text/javascript">
-function fToggleSetItems(setParentId)
+if (!$publicMode && \Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
 {
-	var elements = document.getElementsByClassName('set_item_' + setParentId);
-	var hide = false;
-
-	for (var i = 0; i < elements.length; ++i)
-	{
-		if(elements[i].style.display == 'none' || elements[i].style.display == '')
-		{
-			elements[i].style.display = 'table-row';
-			hide = true;
-		}
-		else
-			elements[i].style.display = 'none';
-	}
-
-	if(hide)
-		BX("set_toggle_link_" + setParentId).innerHTML = '<?=Loc::getMessage("SOA_HIDE_SET")?>';
-	else
-		BX("set_toggle_link_" + setParentId).innerHTML = '<?=Loc::getMessage("SOA_SHOW_SET")?>';
+	$APPLICATION->IncludeComponent("bitrix:sale.admin.page.stub", ".default");
 }
-</script>
-<form name="find_form" method="GET" action="<?echo $APPLICATION->GetCurPage()?>?">
-<?
-$arFilterFieldsTmp = array(
-	"filter_universal" => Loc::getMessage("SOA_ROW_BUYER"),
-	"filter_date_insert" => Loc::getMessage("SALE_F_DATE"),
-	"filter_date_update" => Loc::getMessage("SALE_F_DATE_UPDATE"),
-	"filter_id_from" => Loc::getMessage("SALE_F_ID"),
-	"filter_account_number" => Loc::getMessage("SALE_F_ACCOUNT_NUMBER"),
-	"filter_currency" => Loc::getMessage("SALE_F_LANG_CUR"),
-	"filter_price" => Loc::getMessage("SOA_F_PRICE"),
-	"filter_status" => Loc::getMessage("SALE_F_STATUS"),
-	"filter_date_status_from" => Loc::getMessage("SALE_F_DATE_STATUS"),
-	"filter_by_recommendation" => Loc::getMessage("SALE_F_BY_RECOMMENDATION"),
-	"filter_payed" => Loc::getMessage("SALE_F_PAYED"),
-	"filter_pay_system" => Loc::getMessage("SALE_F_PAY_SYSTEM"),
-	"filter_delivery_service" => Loc::getMessage("SALE_F_DELIVERY_SERVICE"),
-	"filter_person_type" => Loc::getMessage("SALE_F_PERSON_TYPE"),
-	"filter_canceled" => Loc::getMessage("SALE_F_CANCELED"),
-	"filter_deducted" => Loc::getMessage("SALE_F_DEDUCTED"),
-	"filter_allow_delivery" => Loc::getMessage("SALE_F_ALLOW_DELIVERY"),
-	"filter_date_paid" => Loc::getMessage("SALE_F_DATE_PAID"),
-	"filter_date_allow_delivery" => Loc::getMessage("SALE_F_DATE_ALLOW_DELIVERY"),
-	"filter_marked" => Loc::getMessage("SALE_F_MARKED"),
-	"filter_user_id" => Loc::getMessage("SALE_F_USER_ID"),
-	"filter_user_login" => Loc::getMessage("SALE_F_USER_LOGIN"),
-	"filter_user_email" => Loc::getMessage("SALE_F_USER_EMAIL"),
-	"filter_group_id" => Loc::getMessage("SALE_F_USER_GROUP_ID"),
-	"filter_product_id" => Loc::getMessage("SO_PRODUCT_ID"),
-	"filter_product_xml_id" => Loc::getMessage("SO_PRODUCT_XML_ID"),
-	"filter_affiliate_id" => Loc::getMessage("SO_AFFILIATE_ID"),
-	"filter_coupon" => Loc::getMessage("SALE_ORDER_LIST_HEADER_NAME_COUPONS"),
-	"filter_sum_paid" => Loc::getMessage("SO_SUM_PAID"),
-	"filter_xml_id" => Loc::getMessage("SO_XML_ID"),
-	"filter_tracking_number" => Loc::getMessage("SOA_TRACKING_NUMBER"),
-	"filter_delivery_doc_date" => Loc::getMessage("SOA_DELIVERY_DOC_DATE"),
-	"filter_source" => Loc::getMessage("SALE_F_SOURCE"),
-	"filter_company_id" => Loc::getMessage("SALE_F_COMPANY_ID"),
-	"filter_responsible_id" => Loc::getMessage("SALE_F_RESPONSIBLE_ID")
-);
-
-$isManyPersonTypes = false;
-$allOrderProps = $arOrderPropsCode + $arOrderProps;
-
-$propsIndex = array();
-$orderPropertyFilterList = array();
-$orderPropertyFilterListTmp = array();
-foreach($allOrderProps as $key => $data)
+else
 {
-	if($data["IS_FILTERED"] == "Y" && $data["TYPE"] != "MULTIPLE")
-	{
-		if (!$isManyPersonTypes)
+	?>
+	<script type="text/javascript">
+		function fToggleSetItems(setParentId)
 		{
-			if (array_key_exists($data['NAME'], $propsIndex))
+			var elements = document.getElementsByClassName('set_item_' + setParentId);
+			var hide = false;
+
+			for (var i = 0; i < elements.length; ++i)
 			{
-				if (count($propsIndex[$data['NAME']]) > 1)
+				if(elements[i].style.display == 'none' || elements[i].style.display == '')
 				{
-					$isManyPersonTypes = true;
+					elements[i].style.display = 'table-row';
+					hide = true;
 				}
-				elseif (!in_array($data['PERSON_TYPE_ID'], $propsIndex[$data['NAME']]))
+				else
+					elements[i].style.display = 'none';
+			}
+
+			if(hide)
+				BX("set_toggle_link_" + setParentId).innerHTML = '<?=Loc::getMessage("SOA_HIDE_SET")?>';
+			else
+				BX("set_toggle_link_" + setParentId).innerHTML = '<?=Loc::getMessage("SOA_SHOW_SET")?>';
+		}
+	</script>
+	<form name="find_form" method="GET" action="<?echo $APPLICATION->GetCurPage()?>?">
+		<?
+		$arFilterFieldsTmp = array(
+			"filter_universal" => Loc::getMessage("SOA_ROW_BUYER"),
+			"filter_is_sync_b24" => Loc::getMessage("SALE_F_IS_SYNC_B24"),
+			"filter_date_insert" => Loc::getMessage("SALE_F_DATE"),
+			"filter_date_update" => Loc::getMessage("SALE_F_DATE_UPDATE"),
+			"filter_id_from" => Loc::getMessage("SALE_F_ID"),
+			"filter_account_number" => Loc::getMessage("SALE_F_ACCOUNT_NUMBER"),
+			"filter_currency" => Loc::getMessage("SALE_F_LANG_CUR"),
+			"filter_price" => Loc::getMessage("SOA_F_PRICE"),
+			"filter_status" => Loc::getMessage("SALE_F_STATUS"),
+			"filter_date_status_from" => Loc::getMessage("SALE_F_DATE_STATUS"),
+			"filter_by_recommendation" => Loc::getMessage("SALE_F_BY_RECOMMENDATION"),
+			"filter_payed" => Loc::getMessage("SALE_F_PAYED"),
+			"filter_pay_system" => Loc::getMessage("SALE_F_PAY_SYSTEM"),
+			"filter_delivery_service" => Loc::getMessage("SALE_F_DELIVERY_SERVICE"),
+			"filter_person_type" => Loc::getMessage("SALE_F_PERSON_TYPE"),
+			"filter_canceled" => Loc::getMessage("SALE_F_CANCELED"),
+			"filter_deducted" => Loc::getMessage("SALE_F_DEDUCTED"),
+			"filter_allow_delivery" => Loc::getMessage("SALE_F_ALLOW_DELIVERY"),
+			"filter_date_paid" => Loc::getMessage("SALE_F_DATE_PAID"),
+			"filter_date_allow_delivery" => Loc::getMessage("SALE_F_DATE_ALLOW_DELIVERY"),
+			"filter_marked" => Loc::getMessage("SALE_F_MARKED"),
+			"filter_user_id" => Loc::getMessage("SALE_F_USER_ID"),
+			"filter_user_login" => Loc::getMessage("SALE_F_USER_LOGIN"),
+			"filter_user_email" => Loc::getMessage("SALE_F_USER_EMAIL"),
+			"filter_group_id" => Loc::getMessage("SALE_F_USER_GROUP_ID"),
+			"filter_product_id" => Loc::getMessage("SO_PRODUCT_ID"),
+			"filter_product_xml_id" => Loc::getMessage("SO_PRODUCT_XML_ID"),
+			"filter_catalog_xml_id" => Loc::getMessage("SOA_BASKET_CATALOG_XML_ID"),
+			"filter_affiliate_id" => Loc::getMessage("SO_AFFILIATE_ID"),
+			"filter_order_use_discounts" => Loc::getMessage("SALE_ORDER_LIST_FILTER_NAME_ORDER_USE_DISCOUNTS"),
+			"filter_order_use_coupons" => Loc::getMessage("SALE_ORDER_LIST_FILTER_NAME_ORDER_USE_COUPONS"),
+			"filter_coupon" => Loc::getMessage("SALE_ORDER_LIST_HEADER_NAME_COUPONS"),
+			"filter_sum_paid" => Loc::getMessage("SO_SUM_PAID"),
+			"filter_xml_id" => Loc::getMessage("SO_XML_ID"),
+			"filter_tracking_number" => Loc::getMessage("SOA_TRACKING_NUMBER"),
+			"filter_delivery_doc_date" => Loc::getMessage("SOA_DELIVERY_DOC_DATE"),
+			"filter_source" => Loc::getMessage("SALE_F_SOURCE"),
+			"filter_company_id" => Loc::getMessage("SALE_F_COMPANY_ID"),
+			"filter_responsible_id" => Loc::getMessage("SALE_F_RESPONSIBLE_ID")
+		);
+
+		$isManyPersonTypes = false;
+		$allOrderProps = $arOrderPropsCode + $arOrderProps;
+
+		$propsIndex = array();
+		$orderPropertyFilterList = array();
+		$orderPropertyFilterListTmp = array();
+		foreach($allOrderProps as $key => $data)
+		{
+			if($data["IS_FILTERED"] == "Y" && $data["TYPE"] != "MULTIPLE")
+			{
+				if (!$isManyPersonTypes)
 				{
-					$isManyPersonTypes = true;
+					if (array_key_exists($data['NAME'], $propsIndex))
+					{
+						if (count($propsIndex[$data['NAME']]) > 1)
+						{
+							$isManyPersonTypes = true;
+						}
+						elseif (!in_array($data['PERSON_TYPE_ID'], $propsIndex[$data['NAME']]))
+						{
+							$isManyPersonTypes = true;
+						}
+					}
+
+					$propsIndex[$data['NAME']][] = $data['PERSON_TYPE_ID'];
+				}
+
+				$orderPropertyFilterListTmp[$data['LID']][$key] = $data;
+			}
+		}
+
+		foreach ($orderPropertyFilterListTmp as $propertyLid => $propertyListData)
+		{
+			if (!empty($propertyListData) && is_array($propertyListData))
+			{
+				foreach ($propertyListData as $key => $propertyData)
+				{
+					$orderPropertyFilterList[$key] = $propertyData;
+					$arFilterFieldsTmp[] = htmlspecialcharsbx($propertyData["NAME"]) . ($isManyPersonTypes ? " (".htmlspecialcharsbx($propertyData["PERSON_TYPE_NAME"]).") [".htmlspecialcharsbx($propertyData["LID"])."]" : "");
 				}
 			}
 
-			$propsIndex[$data['NAME']][] = $data['PERSON_TYPE_ID'];
 		}
 
-		$orderPropertyFilterListTmp[$data['LID']][$key] = $data;
-	}
-}
+		$oFilter = new CAdminFilter(
+			$sTableID."_filter",
+			$arFilterFieldsTmp
+		);
 
-foreach ($orderPropertyFilterListTmp as $propertyLid => $propertyListData)
-{
-	if (!empty($propertyListData) && is_array($propertyListData))
-	{
-		foreach ($propertyListData as $key => $propertyData)
-		{
-			$orderPropertyFilterList[$key] = $propertyData;
-			$arFilterFieldsTmp[] = htmlspecialcharsbx($propertyData["NAME"]) . ($isManyPersonTypes ? " (".htmlspecialcharsbx($propertyData["PERSON_TYPE_NAME"]).") [".htmlspecialcharsbx($propertyData["LID"])."]" : "");
-		}
-	}
+		$oFilter->SetDefaultRows(array("filter_universal", "filter_status", "filter_canceled"));
 
-}
-
-$oFilter = new CAdminFilter(
-	$sTableID."_filter",
-	$arFilterFieldsTmp
-);
-
-$oFilter->SetDefaultRows(array("filter_universal", "filter_status", "filter_canceled"));
-
-$oFilter->AddPreset(array(
-		"ID" => "find_prioritet",
-		"NAME" => Loc::getMessage("SOA_PRESET_PRIORITET"),
-		"FIELDS" => array(
-			"filter_status" => "N",
-			"filter_price_from" => "10000",
-			"filter_price_to" => ""
+		$oFilter->AddPreset(array(
+			"ID" => "find_prioritet",
+			"NAME" => Loc::getMessage("SOA_PRESET_PRIORITET"),
+			"FIELDS" => array(
+				"filter_status" => "N",
+				"filter_price_from" => "10000",
+				"filter_price_to" => ""
 			),
-		//"SORT_FIELD" => array("DATE_INSERT" => "DESC"),
-	));
+			//"SORT_FIELD" => array("DATE_INSERT" => "DESC"),
+		));
 
-$oFilter->AddPreset(array(
-		"ID" => "find_allow_payed",
-		"NAME" => Loc::getMessage("SOA_PRESET_PAYED"),
-		"FIELDS" => array(
-			"filter_canceled" => "N",
-			"filter_payed" => "Y"
+		$oFilter->AddPreset(array(
+			"ID" => "find_allow_payed",
+			"NAME" => Loc::getMessage("SOA_PRESET_PAYED"),
+			"FIELDS" => array(
+				"filter_canceled" => "N",
+				"filter_payed" => "Y"
 			),
-		//"SORT_FIELD" => array("DATE_UPDATE" => "DESC"),
-	));
+			//"SORT_FIELD" => array("DATE_UPDATE" => "DESC"),
+		));
 
-$oFilter->AddPreset(array(
-		"ID" => "find_order_null",
-		"NAME" => Loc::getMessage("SOA_PRESET_ORDER_NULL"),
-		"FIELDS" => array(
-			"filter_canceled" => "N",
-			"filter_payed" => "",
-			"filter_status" => array("N", "P"),
-			"filter_date_update_from_FILTER_PERIOD" => "before",
-			"filter_date_update_from_FILTER_DIRECTION" => "previous",
-			"filter_date_update_to" => ConvertTimeStamp(AddToTimeStamp(Array("DD" => -7))),
+		$oFilter->AddPreset(array(
+			"ID" => "find_order_null",
+			"NAME" => Loc::getMessage("SOA_PRESET_ORDER_NULL"),
+			"FIELDS" => array(
+				"filter_canceled" => "N",
+				"filter_payed" => "",
+				"filter_status" => array("N", "P"),
+				"filter_date_update_from_FILTER_PERIOD" => "before",
+				"filter_date_update_from_FILTER_DIRECTION" => "previous",
+				"filter_date_update_to" => ConvertTimeStamp(AddToTimeStamp(Array("DD" => -7))),
 			),
-		//"SORT_FIELD" => array("DATE_UPDATE" => "DESC"),
-	));
+			//"SORT_FIELD" => array("DATE_UPDATE" => "DESC"),
+		));
 
-$oFilter->Begin();
-?>
-	<tr>
-		<td><?=Loc::getMessage('SOA_ROW_BUYER')?>:</td>
-		<td>
-			<input type="text" name="filter_universal" value="<?echo htmlspecialcharsbx($filter_universal)?>" size="40">
-		</td>
-	</tr>
-	<tr>
-		<td><b><?echo Loc::getMessage("SALE_F_DATE");?>:</b></td>
-		<td>
-			<?echo CalendarPeriod("filter_date_from", $filter_date_from, "filter_date_to", $filter_date_to, "find_form", "Y")?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_DATE_UPDATE");?>:</td>
-		<td>
-			<?echo CalendarPeriod("filter_date_update_from", $filter_date_update_from, "filter_date_update_to", $filter_date_update_to, "find_form", "Y")?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_ID");?>:</td>
-		<td>
-			<script type="text/javascript">
-				function filter_id_from_Change()
-				{
-					if(document.find_form.filter_id_to.value.length<=0)
+		$oFilter->Begin();
+		?>
+		<tr>
+			<td><?=Loc::getMessage('SOA_ROW_BUYER')?>:</td>
+			<td>
+				<input type="text" name="filter_universal" value="<?echo htmlspecialcharsbx($filter_universal)?>" size="40">
+			</td>
+		</tr>
+		<tr>
+			<td><b><?echo Loc::getMessage("SALE_F_IS_SYNC_B24");?>:</b></td>
+			<td>
+				<select name="filter_is_sync_b24">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_is_sync_b24=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_is_sync_b24=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><b><?echo Loc::getMessage("SALE_F_DATE");?>:</b></td>
+			<td>
+				<?echo CalendarPeriod("filter_date_from", $filter_date_from, "filter_date_to", $filter_date_to, "find_form", "Y")?>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_DATE_UPDATE");?>:</td>
+			<td>
+				<?echo CalendarPeriod("filter_date_update_from", $filter_date_update_from, "filter_date_update_to", $filter_date_update_to, "find_form", "Y")?>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_ID");?>:</td>
+			<td>
+				<script type="text/javascript">
+					function filter_id_from_Change()
 					{
-						document.find_form.filter_id_to.value = document.find_form.filter_id_from.value;
+						if(document.find_form.filter_id_to.value.length<=0)
+						{
+							document.find_form.filter_id_to.value = document.find_form.filter_id_from.value;
+						}
 					}
-				}
-			</script>
-			<?echo Loc::getMessage("SALE_F_FROM");?>
-			<input type="text" name="filter_id_from" OnChange="filter_id_from_Change()" value="<?echo (IntVal($filter_id_from)>0)?IntVal($filter_id_from):""?>" size="10">
-			<?echo Loc::getMessage("SALE_F_TO");?>
-			<input type="text" name="filter_id_to" value="<?echo (IntVal($filter_id_to)>0)?IntVal($filter_id_to):""?>" size="10">
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_ACCOUNT_NUMBER");?>:</td>
-		<td>
-			<input type="text" name="filter_account_number" value="<?echo htmlspecialcharsbx($filter_account_number)?>" size="10">
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_LANG_CUR");?>:</td>
-		<td>
-			<select name="filter_lang">
-				<option value=""><?= htmlspecialcharsbx(Loc::getMessage("SALE_F_ALL")) ?></option>
+				</script>
+				<?echo Loc::getMessage("SALE_F_FROM");?>
+				<input type="text" name="filter_id_from" OnChange="filter_id_from_Change()" value="<?echo (intval($filter_id_from)>0)?intval($filter_id_from):""?>" size="10">
+				<?echo Loc::getMessage("SALE_F_TO");?>
+				<input type="text" name="filter_id_to" value="<?echo (intval($filter_id_to)>0)?intval($filter_id_to):""?>" size="10">
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_ACCOUNT_NUMBER");?>:</td>
+			<td>
+				<input type="text" name="filter_account_number" value="<?echo htmlspecialcharsbx($filter_account_number)?>" size="10">
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_LANG_CUR");?>:</td>
+			<td>
+				<select name="filter_lang">
+					<option value=""><?= htmlspecialcharsbx(Loc::getMessage("SALE_F_ALL")) ?></option>
+					<?
+					$b1 = "SORT";
+					$o1 = "ASC";
+					$dbSitesList = CLang::GetList($b1, $o1);
+					while ($arSitesList = $dbSitesList->Fetch())
+					{
+						if(!in_array($arSitesList["LID"], $arAccessibleSites)
+							&& $saleModulePermissions < "W")
+							continue;
+
+						?><option value="<?= htmlspecialcharsbx($arSitesList["LID"])?>"<?if($arSitesList["LID"] == $filter_lang) echo " selected";?>>[<?= htmlspecialcharsbx($arSitesList["LID"]) ?>]&nbsp;<?= htmlspecialcharsbx($arSitesList["NAME"]) ?></option><?
+					}
+					?>
+				</select>
+				/
+				<?echo CCurrency::SelectBox("filter_currency", $filter_currency, Loc::getMessage("SALE_F_ALL"), false, "", ""); ?>
+			</td>
+		</tr>
+		<tr>
+			<td><?=Loc::getMessage("SOA_F_PRICE");?>:</td>
+			<td>
+				<?echo Loc::getMessage("SOA_F_PRICE_FROM");?>
+				<input type="text" name="filter_price_from" value="<?=(floatval($filter_price_from)>0)?floatval($filter_price_from):""?>" size="3">
+
+				<?echo Loc::getMessage("SOA_F_PRICE_TO");?>
+				<input type="text" name="filter_price_to" value="<?=(floatval($filter_price_to)>0)?floatval($filter_price_to):""?>" size="3">
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><?echo Loc::getMessage("SALE_F_STATUS")?>:</td>
+			<td valign="top">
+				<select name="filter_status[]" multiple size="3">
+					<?
+					$statusesList = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations(
+						$USER->GetID(),
+						array('view')
+					);
+
+					$allStatusNames = \Bitrix\Sale\OrderStatus::getAllStatusesNames();
+
+					foreach($statusesList as  $statusCode)
+					{
+						if (!$statusName = $allStatusNames[$statusCode])
+							continue;
+						?><option value="<?= htmlspecialcharsbx($statusCode) ?>"<?if(is_array($filter_status) && in_array($statusCode, $filter_status)) echo " selected"?>>[<?= htmlspecialcharsbx($statusCode) ?>] <?= htmlspecialcharsbx($statusName) ?></option><?
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_DATE_STATUS");?>:</td>
+			<td>
+				<?echo CalendarPeriod("filter_date_status_from", $filter_date_status_from, "filter_date_status_to", $filter_date_status_to, "find_form", "Y")?>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_BY_RECOMMENDATION")?>:</td>
+			<td>
+				<select name="filter_by_recommendation">
+					<option value=""><?echo GetMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if ($filter_by_recommendation=="Y") echo " selected"?>><?echo GetMessage("SALE_YES")?></option>
+					<option value="N"<?if ($filter_by_recommendation=="N") echo " selected"?>><?echo GetMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_PAYED")?>:</td>
+			<td>
+				<select name="filter_payed">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_payed=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_payed=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?=Loc::getMessage("SALE_F_PAY_SYSTEM")?>:</td>
+			<td>
 				<?
-				$b1 = "SORT";
-				$o1 = "ASC";
-				$dbSitesList = CLang::GetList($b1, $o1);
-				while ($arSitesList = $dbSitesList->Fetch())
-				{
-					if(!in_array($arSitesList["LID"], $arAccessibleSites)
-						&& $saleModulePermissions < "W")
-						continue;
-
-					?><option value="<?= htmlspecialcharsbx($arSitesList["LID"])?>"<?if($arSitesList["LID"] == $filter_lang) echo " selected";?>>[<?= htmlspecialcharsbx($arSitesList["LID"]) ?>]&nbsp;<?= htmlspecialcharsbx($arSitesList["NAME"]) ?></option><?
-				}
-				?>
-			</select>
-			/
-			<?echo CCurrency::SelectBox("filter_currency", $filter_currency, Loc::getMessage("SALE_F_ALL"), false, "", ""); ?>
-		</td>
-	</tr>
-	<tr>
-		<td><?=Loc::getMessage("SOA_F_PRICE");?>:</td>
-		<td>
-			<?echo Loc::getMessage("SOA_F_PRICE_FROM");?>
-			<input type="text" name="filter_price_from" value="<?=(floatval($filter_price_from)>0)?floatval($filter_price_from):""?>" size="3">
-
-			<?echo Loc::getMessage("SOA_F_PRICE_TO");?>
-			<input type="text" name="filter_price_to" value="<?=(floatval($filter_price_to)>0)?floatval($filter_price_to):""?>" size="3">
-		</td>
-	</tr>
-	<tr>
-		<td valign="top"><?echo Loc::getMessage("SALE_F_STATUS")?>:</td>
-		<td valign="top">
-			<select name="filter_status[]" multiple size="3">
-				<?
-				$statusesList = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations(
-					$USER->GetID(),
-					array('view')
-				);
-
-				$allStatusNames = \Bitrix\Sale\OrderStatus::getAllStatusesNames();
-
-				foreach($statusesList as  $statusCode)
-				{
-					if (!$statusName = $allStatusNames[$statusCode])
-						continue;
-					?><option value="<?= htmlspecialcharsbx($statusCode) ?>"<?if(is_array($filter_status) && in_array($statusCode, $filter_status)) echo " selected"?>>[<?= htmlspecialcharsbx($statusCode) ?>] <?= htmlspecialcharsbx($statusName) ?></option><?
-				}
-				?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_DATE_STATUS");?>:</td>
-		<td>
-			<?echo CalendarPeriod("filter_date_status_from", $filter_date_status_from, "filter_date_status_to", $filter_date_status_to, "find_form", "Y")?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_BY_RECOMMENDATION")?>:</td>
-		<td>
-			<select name="filter_by_recommendation">
-				<option value=""><?echo GetMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if ($filter_by_recommendation=="Y") echo " selected"?>><?echo GetMessage("SALE_YES")?></option>
-				<option value="N"<?if ($filter_by_recommendation=="N") echo " selected"?>><?echo GetMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_PAYED")?>:</td>
-		<td>
-			<select name="filter_payed">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if($filter_payed=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
-				<option value="N"<?if($filter_payed=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?=Loc::getMessage("SALE_F_PAY_SYSTEM")?>:</td>
-		<td>
-			<?
 				$ptRes = Sale\Internals\PersonTypeTable::getList(array(
 					'order' => array("SORT"=>"ASC", "NAME"=>"ASC")
 				));
@@ -3753,332 +3937,356 @@ $oFilter->Begin();
 				$personTypes = array();
 				while ($personType = $ptRes->fetch())
 					$personTypes[$personType['ID']] = $personType;
-			?>
-			<select name="filter_pay_system[]" multiple size="3">
-				<option value=""><?echo GetMessage("SALE_F_ALL")?></option>
-				<?
-				$res = \Bitrix\Sale\PaySystem\Manager::getList(array(
-					'select' => array('ID', 'NAME'),
-					'filter' => array('ACTIVE' => 'Y'),
-					'order' => array("SORT"=>"ASC", "NAME"=>"ASC")
-				));
-
-				$paySystemList = array();
-				while ($paySystem = $res->fetch())
-					$paySystemList[$paySystem['ID']]['NAME'] = $paySystem['NAME'];
-
-				if ($paySystemList):
-					$dbRestRes = Sale\Services\PaySystem\Restrictions\Manager::getList(array(
-						'select' => array('SERVICE_ID', 'PARAMS'),
-						'filter' => array(
-							'=CLASS_NAME' => '\\'.\Bitrix\Sale\Services\PaySystem\Restrictions\PersonType::class,
-							'SERVICE_ID' => array_keys($paySystemList)
-						)
+				?>
+				<select name="filter_pay_system[]" multiple size="3">
+					<option value=""><?echo GetMessage("SALE_F_ALL")?></option>
+					<?
+					$res = \Bitrix\Sale\PaySystem\Manager::getList(array(
+						'select' => array('ID', 'NAME'),
+						'filter' => array('ACTIVE' => 'Y'),
+						'order' => array("SORT"=>"ASC", "NAME"=>"ASC")
 					));
 
-					while ($ptParams = $dbRestRes->fetch())
-						$paySystemList[$ptParams['SERVICE_ID']]['PERSON_TYPE_ID'] = $ptParams['PARAMS']['PERSON_TYPE_ID'];
+					$paySystemList = array();
+					while ($paySystem = $res->fetch())
+						$paySystemList[$paySystem['ID']]['NAME'] = $paySystem['NAME'];
 
-					foreach ($paySystemList as $psId => $paySystem):
-						$personTypeString = '';
-						if ($paySystem['PERSON_TYPE_ID'])
+					if ($paySystemList):
+						$dbRestRes = Sale\Services\PaySystem\Restrictions\Manager::getList(array(
+							'select' => array('SERVICE_ID', 'PARAMS'),
+							'filter' => array(
+								'=CLASS_NAME' => '\\'.\Bitrix\Sale\Services\PaySystem\Restrictions\PersonType::class,
+								'SERVICE_ID' => array_keys($paySystemList)
+							)
+						));
+
+						while ($ptParams = $dbRestRes->fetch())
+							$paySystemList[$ptParams['SERVICE_ID']]['PERSON_TYPE_ID'] = $ptParams['PARAMS']['PERSON_TYPE_ID'];
+
+						foreach ($paySystemList as $psId => $paySystem):
+							$personTypeString = '';
+							if ($paySystem['PERSON_TYPE_ID'])
+							{
+								$psPt = array();
+								foreach ($paySystem['PERSON_TYPE_ID'] as $ptId)
+									$psPt[] = ((mb_strlen($personTypes[$ptId]['NAME']) > 15) ? mb_substr($personTypes[$ptId]['NAME'], 0, 6)."...".mb_substr($personTypes[$ptId]['NAME'], -7) : $personTypes[$ptId]['NAME'])."/".$personTypes[$ptId]["LID"]."";
+								if ($psPt)
+									$personTypeString = ' ('.join(', ', $psPt).')';
+							}
+							?><option title="<?echo htmlspecialcharsbx($paySystem["NAME"].$personTypeString);?>" value="<?echo htmlspecialcharsbx($psId)?>"<?if(is_array($filter_pay_system) && in_array($psId, $filter_pay_system)) echo " selected"?>>[<?echo htmlspecialcharsbx($psId) ?>] <?echo htmlspecialcharsbx($paySystem["NAME"].$personTypeString);?></option>
+						<?endforeach;?>
+					<?endif;?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?=Loc::getMessage("SALE_F_DELIVERY_SERVICE")?>:</td>
+			<td>
+				<select name="filter_delivery_service[]" multiple size="3">
+					<option value=""><?echo GetMessage("SALE_F_ALL")?></option>
+					<?
+
+					Sale\Delivery\Services\Manager::getHandlersList();
+					$deliveryServiceParentListParent = array();
+					$deliveryServiceListAll = array();
+					$deliveryServiceList = array();
+
+					$res = Sale\Delivery\Services\Table::getList(array(
+						'select' => array('ID', 'NAME', 'PARENT_ID', 'CLASS_NAME', 'PARENT_NAME' => 'PARENT.NAME'),
+						'filter' => array('ACTIVE' => 'Y'),
+						'order' => array("SORT"=>"ASC", "NAME"=>"ASC")
+					));
+
+					while ($deliveryService = $res->fetch())
+					{
+						if(intval($deliveryService['PARENT_ID']) == 0)
 						{
-							$psPt = array();
-							foreach ($paySystem['PERSON_TYPE_ID'] as $ptId)
-								$psPt[] = ((strlen($personTypes[$ptId]['NAME']) > 15) ? substr($personTypes[$ptId]['NAME'], 0, 6)."...".substr($personTypes[$ptId]['NAME'], -7) : $personTypes[$ptId]['NAME'])."/".$personTypes[$ptId]["LID"]."";
-							if ($psPt)
-								$personTypeString = ' ('.join(', ', $psPt).')';
+							$deliveryServiceParentListParent[$deliveryService['ID']] = $deliveryService['NAME'];
 						}
-						?><option title="<?echo htmlspecialcharsbx($paySystem["NAME"].$personTypeString);?>" value="<?echo htmlspecialcharsbx($psId)?>"<?if(is_array($filter_pay_system) && in_array($psId, $filter_pay_system)) echo " selected"?>>[<?echo htmlspecialcharsbx($psId) ?>] <?echo htmlspecialcharsbx($paySystem["NAME"].$personTypeString);?></option>
-					<?endforeach;?>
-				<?endif;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?=Loc::getMessage("SALE_F_DELIVERY_SERVICE")?>:</td>
-		<td>
-			<select name="filter_delivery_service[]" multiple size="3">
-				<option value=""><?echo GetMessage("SALE_F_ALL")?></option>
-				<?
-
-				Sale\Delivery\Services\Manager::getHandlersList();
-				$deliveryServiceParentListParent = array();
-				$deliveryServiceListAll = array();
-				$deliveryServiceList = array();
-
-				$res = Sale\Delivery\Services\Table::getList(array(
-					 'select' => array('ID', 'NAME', 'PARENT_ID', 'CLASS_NAME', 'PARENT_NAME' => 'PARENT.NAME'),
-					 'filter' => array('ACTIVE' => 'Y'),
-					 'order' => array("SORT"=>"ASC", "NAME"=>"ASC")
-				 ));
-
-				while ($deliveryService = $res->fetch())
-				{
-					if(intval($deliveryService['PARENT_ID']) == 0)
-					{
-						$deliveryServiceParentListParent[$deliveryService['ID']] = $deliveryService['NAME'];
-					}
-					elseif(class_exists($deliveryService['CLASS_NAME']) && $deliveryService['CLASS_NAME']::canHasProfiles())
-					{
-						$deliveryServiceParentListParent[$deliveryService['ID']] = $deliveryService['PARENT_NAME'].':'.$deliveryService['NAME'];
-					}
-					else
-					{
-						$deliveryServiceListAll[$deliveryService['PARENT_ID']][$deliveryService['ID']] = $deliveryService['NAME'];
-					}
-				}
-
-				foreach($deliveryServiceParentListParent as $deliveryServiceParentId => $deliveryServiceParentName)
-				{
-					if (!empty($deliveryServiceListAll[$deliveryServiceParentId]))
-					{
-						foreach($deliveryServiceListAll[$deliveryServiceParentId] as $deliveryServiceId => $deliveryServiceName)
+						elseif(class_exists($deliveryService['CLASS_NAME']) && $deliveryService['CLASS_NAME']::canHasProfiles())
 						{
-							$deliveryServiceList[$deliveryServiceId] = $deliveryServiceParentName.":".$deliveryServiceName;
+							$deliveryServiceParentListParent[$deliveryService['ID']] = $deliveryService['PARENT_NAME'].':'.$deliveryService['NAME'];
+						}
+						else
+						{
+							$deliveryServiceListAll[$deliveryService['PARENT_ID']][$deliveryService['ID']] = $deliveryService['NAME'];
 						}
 					}
-					else
+
+					foreach($deliveryServiceParentListParent as $deliveryServiceParentId => $deliveryServiceParentName)
 					{
-						$deliveryServiceList[$deliveryServiceParentId] = $deliveryServiceParentName;
+						if (!empty($deliveryServiceListAll[$deliveryServiceParentId]))
+						{
+							foreach($deliveryServiceListAll[$deliveryServiceParentId] as $deliveryServiceId => $deliveryServiceName)
+							{
+								$deliveryServiceList[$deliveryServiceId] = $deliveryServiceParentName.":".$deliveryServiceName;
+							}
+						}
+						else
+						{
+							$deliveryServiceList[$deliveryServiceParentId] = $deliveryServiceParentName;
+						}
+
 					}
 
-				}
-
-				if (!empty($deliveryServiceList))
-				{
-					foreach ($deliveryServiceList as $deliveryServiceId => $deliveryServiceName)
+					if (!empty($deliveryServiceList))
 					{
-						?><option title="<?echo htmlspecialcharsbx($deliveryServiceName);?>" value="<?echo htmlspecialcharsbx($deliveryServiceId)?>"<?if(is_array($filter_delivery_service) && in_array($deliveryServiceId, $filter_delivery_service)) echo " selected"?>>[<?echo htmlspecialcharsbx($deliveryServiceId) ?>] <?echo htmlspecialcharsbx($deliveryServiceName);?></option><?
-					}
+						foreach ($deliveryServiceList as $deliveryServiceId => $deliveryServiceName)
+						{
+							?><option title="<?echo htmlspecialcharsbx($deliveryServiceName);?>" value="<?echo htmlspecialcharsbx($deliveryServiceId)?>"<?if(is_array($filter_delivery_service) && in_array($deliveryServiceId, $filter_delivery_service)) echo " selected"?>>[<?echo htmlspecialcharsbx($deliveryServiceId) ?>] <?echo htmlspecialcharsbx($deliveryServiceName);?></option><?
+						}
 
-				}
-				?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_PERSON_TYPE");?>:</td>
-		<td>
-			<select name="filter_person_type[]" multiple size="3">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_PERSON_TYPE");?>:</td>
+			<td>
+				<select name="filter_person_type[]" multiple size="3">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<?
+					foreach ($personTypes as $personType):
+						?><option value="<?echo htmlspecialcharsbx($personType["ID"])?>"<?if(is_array($filter_person_type) && in_array($personType["ID"], $filter_person_type)) echo " selected"?>>[<?echo htmlspecialcharsbx($personType["ID"]) ?>] <?echo htmlspecialcharsbx($personType["NAME"])?> <?echo "(".htmlspecialcharsbx($personType["LID"]).")";?></option><?
+					endforeach;
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_CANCELED")?>:</td>
+			<td>
+				<select name="filter_canceled">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_canceled=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_canceled=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_DEDUCTED")?>:</td>
+			<td>
+				<select name="filter_deducted">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_deducted=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_deducted=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_ALLOW_DELIVERY")?>:</td>
+			<td>
+				<select name="filter_allow_delivery">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_deducted=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_deducted=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_DATE_PAID");?>:</td>
+			<td>
+				<?echo CalendarPeriod("filter_date_paid_from", $filter_date_paid_from, "filter_date_paid_to", $filter_date_paid_to, "find_form", "Y")?>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_DATE_ALLOW_DELIVERY");?>:</td>
+			<td>
+				<?echo CalendarPeriod("filter_date_allow_delivery_from", $filter_date_allow_delivery_from, "filter_date_allow_delivery_to", $filter_date_allow_delivery_to, "find_form", "Y")?>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_MARKED")?>:</td>
+			<td>
+				<select name="filter_marked">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_marked=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_marked=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_USER_ID");?>:</td>
+			<td>
+				<?echo FindUserID("filter_user_id", $filter_user_id, "", "find_form");?>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_USER_LOGIN");?>:</td>
+			<td>
+				<input type="text" name="filter_user_login" value="<?echo htmlspecialcharsbx($filter_user_login)?>" size="40">
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_USER_EMAIL");?>:</td>
+			<td>
+				<input type="text" name="filter_user_email" value="<?echo htmlspecialcharsbx($filter_user_email)?>" size="40">
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_USER_GROUP_ID")?>:</td>
+			<td>
 				<?
-				foreach ($personTypes as $personType):
-					?><option value="<?echo htmlspecialcharsbx($personType["ID"])?>"<?if(is_array($filter_person_type) && in_array($personType["ID"], $filter_person_type)) echo " selected"?>>[<?echo htmlspecialcharsbx($personType["ID"]) ?>] <?echo htmlspecialcharsbx($personType["NAME"])?> <?echo "(".htmlspecialcharsbx($personType["LID"]).")";?></option><?
-				endforeach;
+				$z = CGroup::GetDropDownList("AND ID!=2");
+				echo SelectBoxM("filter_group_id[]", $z, $filter_group_id, "", false, 5);
 				?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_CANCELED")?>:</td>
-		<td>
-			<select name="filter_canceled">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if($filter_canceled=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
-				<option value="N"<?if($filter_canceled=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_DEDUCTED")?>:</td>
-		<td>
-			<select name="filter_deducted">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if($filter_deducted=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
-				<option value="N"<?if($filter_deducted=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_ALLOW_DELIVERY")?>:</td>
-		<td>
-			<select name="filter_allow_delivery">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if($filter_deducted=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
-				<option value="N"<?if($filter_deducted=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_DATE_PAID");?>:</td>
-		<td>
-			<?echo CalendarPeriod("filter_date_paid_from", $filter_date_paid_from, "filter_date_paid_to", $filter_date_paid_to, "find_form", "Y")?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_DATE_ALLOW_DELIVERY");?>:</td>
-		<td>
-			<?echo CalendarPeriod("filter_date_allow_delivery_from", $filter_date_allow_delivery_from, "filter_date_allow_delivery_to", $filter_date_allow_delivery_to, "find_form", "Y")?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_MARKED")?>:</td>
-		<td>
-			<select name="filter_marked">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if($filter_marked=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
-				<option value="N"<?if($filter_marked=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_USER_ID");?>:</td>
-		<td>
-			<?echo FindUserID("filter_user_id", $filter_user_id, "", "find_form");?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_USER_LOGIN");?>:</td>
-		<td>
-			<input type="text" name="filter_user_login" value="<?echo htmlspecialcharsbx($filter_user_login)?>" size="40">
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_USER_EMAIL");?>:</td>
-		<td>
-			<input type="text" name="filter_user_email" value="<?echo htmlspecialcharsbx($filter_user_email)?>" size="40">
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_USER_GROUP_ID")?>:</td>
-		<td>
-			<?
-			$z = CGroup::GetDropDownList("AND ID!=2");
-			echo SelectBoxM("filter_group_id[]", $z, $filter_group_id, "", false, 5);
-			?>
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SO_PRODUCT_ID")?></td>
-		<td>
-			<script type="text/javascript">
-			function FillProductFields(arParams)
-			{
-				if(arParams["id"])
-					document.find_form.filter_product_id.value = arParams["id"];
-
-				el = document.getElementById("product_name_alt");
-				if(el)
-					el.innerHTML = arParams["name"] ? arParams["name"] : '';
-			}
-
-			function showProductSearchDialog()
-			{
-				var popup = makeProductSearchDialog({
-					caller: 'order',
-					lang: '<?=LANGUAGE_ID?>',
-					callback: 'FillProductFields'
-				});
-				popup.Show();
-			}
-
-			function makeProductSearchDialog(params)
-			{
-				var caller = params.caller || '',
-					lang = params.lang || 'ru',
-					site_id = params.site_id || '',
-					callback = params.callback || '',
-					store_id = params.store_id || '0';
-
-				var popup = new BX.CDialog({
-					content_url: '/bitrix/tools/sale/product_search_dialog.php?lang='+lang+'&LID='+site_id+'&caller=' + caller + '&func_name='+callback+'&STORE_FROM_ID='+store_id,
-					height: Math.max(500, window.innerHeight-400),
-					width: Math.max(800, window.innerWidth-400),
-					draggable: true,
-					resizable: true,
-					min_height: 500,
-					min_width: 800
-				});
-				BX.addCustomEvent(popup, 'onWindowRegister', BX.defer(function(){
-					popup.Get().style.position = 'fixed';
-					popup.Get().style.top = (parseInt(popup.Get().style.top) - BX.GetWindowScrollPos().scrollTop) + 'px';
-				}));
-				return popup;
-			}
-			</script>
-			<input name="filter_product_id" value="<?= htmlspecialcharsbx($filter_product_id) ?>" size="5" type="text">&nbsp;<input type="button" value="..." id="cat_prod_button" onClick="showProductSearchDialog()"><span id="product_name_alt" class="adm-filter-text-search"></span>
-		</td>
-	</tr>
-	<tr>
-		<td><?= Loc::getMessage("SO_PRODUCT_XML_ID") ?>:</td>
-		<td><input name="filter_product_xml_id" value="<?= htmlspecialcharsbx($filter_product_xml_id) ?>" size="40" type="text"></td>
-	</tr>
-	<tr>
-		<td><?= Loc::getMessage("SO_AFFILIATE_ID") ?>:</td>
-		<td>
-			<input type="text" name="filter_affiliate_id" value="<?= htmlspecialcharsbx($filter_affiliate_id) ?>" size="10" maxlength="10">
-			<IFRAME name="hiddenframe_affiliate" id="id_hiddenframe_affiliate" src="" width="0" height="0" style="width:0px; height:0px; border: 0px"></IFRAME>
-			<input type="button" class="button" name="FindAffiliate" OnClick="window.open('/bitrix/admin/sale_affiliate_search.php?func_name=SetAffiliateID', '', 'scrollbars=yes,resizable=yes,width=800,height=500,top='+Math.floor((screen.height - 500)/2-14)+',left='+Math.floor((screen.width - 400)/2-5));" value="...">
-			<span id="div_affiliate_name"></span>
-			<script type="text/javascript">
-			function SetAffiliateID(id)
-			{
-				document.find_form.filter_affiliate_id.value = id;
-			}
-
-			function SetAffiliateName(val)
-			{
-				if(val != "NA")
-					document.getElementById('div_affiliate_name').innerHTML = val;
-				else
-					document.getElementById('div_affiliate_name').innerHTML = '<?= Loc::getMessage("SO1_NO_AFFILIATE") ?>';
-			}
-
-			var affiliateID = '';
-			function ChangeAffiliateName()
-			{
-				if(affiliateID != document.find_form.filter_affiliate_id.value)
-				{
-					affiliateID = document.find_form.filter_affiliate_id.value;
-					if(affiliateID != '' && !isNaN(parseInt(affiliateID, 10)))
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SO_PRODUCT_ID")?></td>
+			<td>
+				<script type="text/javascript">
+					function FillProductFields(arParams)
 					{
-						document.getElementById('div_affiliate_name').innerHTML = '<i><?= Loc::getMessage("SO1_WAIT") ?></i>';
-						window.frames["hiddenframe_affiliate"].location.replace('/bitrix/admin/sale_affiliate_get.php?ID=' + affiliateID + '&func_name=SetAffiliateName');
-					}
-					else
-						document.getElementById('div_affiliate_name').innerHTML = '';
-				}
-				timerID = setTimeout('ChangeAffiliateName()',2000);
-			}
-			ChangeAffiliateName();
-			</script>
-		</td>
-	</tr>
-	<tr>
-		<td><?= Loc::getMessage("SALE_ORDER_LIST_HEADER_NAME_COUPONS") ?>:</td>
-		<td><input name="filter_discount_coupon" value="<?= htmlspecialcharsbx($filter_discount_coupon) ?>" size="40" type="text"></td>
-	</tr>
-	<tr>
-		<td><?= Loc::getMessage("SO_SUM_PAID") ?>:</td>
-		<td>
-			<select name="filter_sum_paid">
-				<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
-				<option value="Y"<?if($filter_sum_paid=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
-				<option value="N"<?if($filter_sum_paid=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?=Loc::getMessage('SO_XML_ID')?>:</td>
-		<td>
-			<input type="text" name="filter_xml_id" value="<?echo htmlspecialcharsbx($filter_xml_id)?>" size="40">
-		</td>
-	</tr>
+						if(arParams["id"])
+							document.find_form.filter_product_id.value = arParams["id"];
 
-	<tr>
-		<td><?=Loc::getMessage('SOA_TRACKING_NUMBER')?>:</td>
-		<td>
-			<input type="text" name="filter_tracking_number" value="<?echo htmlspecialcharsbx($filter_tracking_number)?>" size="40">
-		</td>
-	</tr>
-	<tr>
-		<td><?echo Loc::getMessage("SALE_F_DELIVERY_DOC_DATE");?>:</td>
-		<td>
-			<?echo CalendarPeriod("filter_delivery_doc_date_from", $filter_delivery_doc_date_from, "filter_delivery_doc_date_to", $filter_delivery_doc_date_to, "find_form", "Y")?>
-		</td>
-	</tr>
-	<?
+						el = document.getElementById("product_name_alt");
+						if(el)
+							el.innerHTML = arParams["name"] ? arParams["name"] : '';
+					}
+
+					function showProductSearchDialog()
+					{
+						var popup = makeProductSearchDialog({
+							caller: 'order',
+							lang: '<?=LANGUAGE_ID?>',
+							callback: 'FillProductFields'
+						});
+						popup.Show();
+					}
+
+					function makeProductSearchDialog(params)
+					{
+						var caller = params.caller || '',
+							lang = params.lang || 'ru',
+							site_id = params.site_id || '',
+							callback = params.callback || '',
+							store_id = params.store_id || '0';
+
+						var popup = new BX.CDialog({
+							content_url: '/bitrix/tools/sale/product_search_dialog.php?lang='+lang+'&LID='+site_id+'&caller=' + caller + '&func_name='+callback+'&STORE_FROM_ID='+store_id,
+							height: Math.max(500, window.innerHeight-400),
+							width: Math.max(800, window.innerWidth-400),
+							draggable: true,
+							resizable: true,
+							min_height: 500,
+							min_width: 800
+						});
+						BX.addCustomEvent(popup, 'onWindowRegister', BX.defer(function(){
+							popup.Get().style.position = 'fixed';
+							popup.Get().style.top = (parseInt(popup.Get().style.top) - BX.GetWindowScrollPos().scrollTop) + 'px';
+						}));
+						return popup;
+					}
+				</script>
+				<input name="filter_product_id" value="<?= htmlspecialcharsbx($filter_product_id) ?>" size="5" type="text">&nbsp;<input type="button" value="..." id="cat_prod_button" onClick="showProductSearchDialog()"><span id="product_name_alt" class="adm-filter-text-search"></span>
+			</td>
+		</tr>
+		<tr>
+			<td><?= Loc::getMessage("SO_PRODUCT_XML_ID") ?>:</td>
+			<td><input name="filter_product_xml_id" value="<?= htmlspecialcharsbx($filter_product_xml_id) ?>" size="40" type="text"></td>
+		</tr>
+		<tr>
+			<td><?= Loc::getMessage("SOA_BASKET_CATALOG_XML_ID") ?>:</td>
+			<td><input name="filter_catalog_xml_id" value="<?= htmlspecialcharsbx($filter_catalog_xml_id) ?>" size="40" type="text"></td>
+		</tr>
+		<tr>
+			<td><?= Loc::getMessage("SO_AFFILIATE_ID") ?>:</td>
+			<td>
+				<input type="text" name="filter_affiliate_id" value="<?= htmlspecialcharsbx($filter_affiliate_id) ?>" size="10" maxlength="10">
+				<IFRAME name="hiddenframe_affiliate" id="id_hiddenframe_affiliate" src="" width="0" height="0" style="width:0px; height:0px; border: 0px"></IFRAME>
+				<input type="button" class="button" name="FindAffiliate" OnClick="window.open('/bitrix/admin/sale_affiliate_search.php?func_name=SetAffiliateID', '', 'scrollbars=yes,resizable=yes,width=800,height=500,top='+Math.floor((screen.height - 500)/2-14)+',left='+Math.floor((screen.width - 400)/2-5));" value="...">
+				<span id="div_affiliate_name"></span>
+				<script type="text/javascript">
+					function SetAffiliateID(id)
+					{
+						document.find_form.filter_affiliate_id.value = id;
+					}
+
+					function SetAffiliateName(val)
+					{
+						if(val != "NA")
+							document.getElementById('div_affiliate_name').innerHTML = val;
+						else
+							document.getElementById('div_affiliate_name').innerHTML = '<?= Loc::getMessage("SO1_NO_AFFILIATE") ?>';
+					}
+
+					var affiliateID = '';
+					function ChangeAffiliateName()
+					{
+						if(affiliateID != document.find_form.filter_affiliate_id.value)
+						{
+							affiliateID = document.find_form.filter_affiliate_id.value;
+							if(affiliateID != '' && !isNaN(parseInt(affiliateID, 10)))
+							{
+								document.getElementById('div_affiliate_name').innerHTML = '<i><?= Loc::getMessage("SO1_WAIT") ?></i>';
+								window.frames["hiddenframe_affiliate"].location.replace('/bitrix/admin/sale_affiliate_get.php?ID=' + affiliateID + '&func_name=SetAffiliateName');
+							}
+							else
+								document.getElementById('div_affiliate_name').innerHTML = '';
+						}
+						timerID = setTimeout('ChangeAffiliateName()',2000);
+					}
+					ChangeAffiliateName();
+				</script>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_ORDER_LIST_FILTER_NAME_ORDER_USE_DISCOUNTS")?>:</td>
+			<td>
+				<select name="filter_order_use_discounts">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_order_use_discounts=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_order_use_discounts=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_ORDER_LIST_FILTER_NAME_ORDER_USE_COUPONS")?>:</td>
+			<td>
+				<select name="filter_order_use_coupons">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_order_use_coupons=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_order_use_coupons=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?= Loc::getMessage("SALE_ORDER_LIST_HEADER_NAME_COUPONS") ?>:</td>
+			<td><input name="filter_discount_coupon" value="<?= htmlspecialcharsbx($filter_discount_coupon) ?>" size="40" type="text"></td>
+		</tr>
+		<tr>
+			<td><?= Loc::getMessage("SO_SUM_PAID") ?>:</td>
+			<td>
+				<select name="filter_sum_paid">
+					<option value=""><?echo Loc::getMessage("SALE_F_ALL")?></option>
+					<option value="Y"<?if($filter_sum_paid=="Y") echo " selected"?>><?echo Loc::getMessage("SALE_YES")?></option>
+					<option value="N"<?if($filter_sum_paid=="N") echo " selected"?>><?echo Loc::getMessage("SALE_NO")?></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?=Loc::getMessage('SO_XML_ID')?>:</td>
+			<td>
+				<input type="text" name="filter_xml_id" value="<?echo htmlspecialcharsbx($filter_xml_id)?>" size="40">
+			</td>
+		</tr>
+
+		<tr>
+			<td><?=Loc::getMessage('SOA_TRACKING_NUMBER')?>:</td>
+			<td>
+				<input type="text" name="filter_tracking_number" value="<?echo htmlspecialcharsbx($filter_tracking_number)?>" size="40">
+			</td>
+		</tr>
+		<tr>
+			<td><?echo Loc::getMessage("SALE_F_DELIVERY_DOC_DATE");?>:</td>
+			<td>
+				<?echo CalendarPeriod("filter_delivery_doc_date_from", $filter_delivery_doc_date_from, "filter_delivery_doc_date_to", $filter_delivery_doc_date_to, "find_form", "Y")?>
+			</td>
+		</tr>
+		<?
 		$tPlatformList = array(
 			0 => Loc::getMessage("SALE_F_ALL"),
 			-1 => Loc::getMessage("SALE_F_NONE")
@@ -4091,128 +4299,201 @@ $oFilter->Begin();
 		while($tPlatform = $dbRes->fetch())
 			$tPlatformList[$tPlatform['ID']] = $tPlatform['NAME'];
 
-	?>
-	<tr>
-		<td><?= Loc::getMessage("SALE_F_SOURCE") ?>:</td>
-		<td>
-			<select name="filter_source">
-				<?foreach($tPlatformList as $id => $name):?>
-					<option value="<?=$id?>"<?=$filter_source == $id ? ' selected' : ''?>><?=$name?></option>
-				<?endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?=Loc::getMessage("SALE_F_COMPANY_ID") ?>:</td>
-		<td>
-			<select name="filter_company_id">
-				<option value=""><?=Loc::getMessage("SALE_F_ALL") ?></option>
-				<?foreach($companyListNames as $id => $name):?>
-					<option value="<?=$id?>"<?=$filter_company_id == $id ? ' selected' : ''?>><?=$name?></option>
-				<?endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td><?= Loc::getMessage("SALE_F_RESPONSIBLE_ID") ?>:</td>
-		<td>
-			<?echo FindUserID("filter_responsible_id", $filter_responsible_id, "", "find_form");?>
-		</td>
-	</tr>
+		?>
+		<tr>
+			<td><?= Loc::getMessage("SALE_F_SOURCE") ?>:</td>
+			<td>
+				<select name="filter_source">
+					<?foreach($tPlatformList as $id => $name):?>
+						<option value="<?=$id?>"<?=$filter_source == $id ? ' selected' : ''?>><?=$name?></option>
+					<?endforeach;?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?=Loc::getMessage("SALE_F_COMPANY_ID") ?>:</td>
+			<td>
+				<select name="filter_company_id">
+					<option value=""><?=Loc::getMessage("SALE_F_ALL") ?></option>
+					<?foreach($companyListNames as $id => $name):?>
+						<option value="<?=$id?>"<?=$filter_company_id == $id ? ' selected' : ''?>><?=$name?></option>
+					<?endforeach;?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><?= Loc::getMessage("SALE_F_RESPONSIBLE_ID") ?>:</td>
+			<td>
+				<?echo FindUserID("filter_responsible_id", $filter_responsible_id, "", "find_form");?>
+			</td>
+		</tr>
+
+		<?
+		foreach ($orderPropertyFilterList as $key => $value)
+		{
+			if($value["IS_FILTERED"] == "Y" && $value["TYPE"] != "MULTIPLE")
+			{
+				?>
+				<tr>
+					<td valign="top"><?= htmlspecialcharsbx($value["NAME"]) ?>:
+						<?
+						if ($isManyPersonTypes)
+						{
+							?><small><?=(htmlspecialcharsbx($value["PERSON_TYPE_NAME"])." [".htmlspecialcharsbx($value["LID"])."]")?></small><?
+						}
+						?></td>
+					<td valign="top" style="overflow: visible; ">
+						<?
+						$inputParams  =  $value["SETTINGS"];
+						$inputParams["TYPE"] = $value["TYPE"];
+						$inputParams["IS_FILTER_FIELD"] = true;
+
+						if($value["TYPE"] == "ENUM")
+						{
+							$inputParams["OPTIONS"] = array("" => Loc::getMessage("SALE_F_ALL"));
+							$inputParams["OPTIONS"] = $inputParams["OPTIONS"] + \Bitrix\Sale\PropertyValue::loadOptions($value["ID"]);
+						}
+
+						echo \Bitrix\Sale\Internals\Input\Manager::getFilterEditHtml(
+							"filter_prop_".$key,
+							$inputParams,
+							${"filter_prop_".$key}
+						);
+						?>
+						<?=ShowFilterLogicHelp()?>
+					</td>
+				</tr>
+				<?
+			}
+		}
+
+		$oFilter->Buttons(
+			array(
+				"table_id" => $sTableID,
+				"url" => $link->create()
+					->setPage($APPLICATION->GetCurPage())
+					->setLang(false)
+					->setFilterParams(false)
+					->fill()
+					->build(),
+				"form" => "find_form"
+			)
+		);
+		$oFilter->End();
+		?>
+	</form>
 
 	<?
-	foreach ($orderPropertyFilterList as $key => $value)
+	if($link->getType() !== Admin\ModeType::APP_LAYOUT_TYPE):?>
+		<div class="adm-c-bigdatabar" id="bigdatabar">
+			<?=$bigdataWidgetHtml?>
+		</div>
+	<?endif;?>
+
+	<?
+	$lAdmin->DisplayList();
+
+	echo BeginNote();
+	?>
+	<span id="order_sum"><? echo $order_sum;?></span>
+	<?echo EndNote();?>
+
+	<?
+	if($link->getType() == Admin\ModeType::APP_LAYOUT_TYPE)
 	{
-		if($value["IS_FILTERED"] == "Y" && $value["TYPE"] != "MULTIPLE")
-		{
-			?>
-			<tr>
-				<td valign="top"><?= htmlspecialcharsbx($value["NAME"]) ?>:
-					<?
-					if ($isManyPersonTypes)
-					{
-						?><small><?=(htmlspecialcharsbx($value["PERSON_TYPE_NAME"])." [".htmlspecialcharsbx($value["LID"])."]")?></small><?
-					}
-					?></td>
-				<td valign="top" style="overflow: visible; ">
-					<?
-					$inputParams  =  $value["SETTINGS"];
-					$inputParams["TYPE"] = $value["TYPE"];
-					$inputParams["IS_FILTER_FIELD"] = true;
-
-					if($value["TYPE"] == "ENUM")
-					{
-						$inputParams["OPTIONS"] = array("" => Loc::getMessage("SALE_F_ALL"));
-						$inputParams["OPTIONS"] = $inputParams["OPTIONS"] + \Bitrix\Sale\PropertyValue::loadOptions($value["ID"]);
-					}
-
-					echo \Bitrix\Sale\Internals\Input\Manager::getFilterEditHtml(
-						"filter_prop_".$key,
-						$inputParams,
-						${"filter_prop_".$key}
-					);
-					?>
-					<?=ShowFilterLogicHelp()?>
-				</td>
-			</tr>
-			<?
-		}
-	}
-
-$oFilter->Buttons(
-	array(
-		"table_id" => $sTableID,
-		"url" => $APPLICATION->GetCurPage(),
-		"form" => "find_form"
-	)
-);
-$oFilter->End();
-?>
-</form>
-
-<div class="adm-c-bigdatabar" id="bigdatabar">
-	<?=$bigdataWidgetHtml?>
-</div>
-<?
-$lAdmin->DisplayList();
-
-echo BeginNote();
-?>
-<span id="order_sum"><? echo $order_sum;?></span>
-<?echo EndNote();?>
-
-<script type="text/javascript">
-	function sendDeliveryRequestsForCurrentOrders(selectedOnly)
-	{
-		var ordersListForm = BX('form_tbl_sale_order');
-
-		if(BX('tbl_sale_order_check_all') && ordersListForm)
-		{
-			if(!selectedOnly)
-			{
-				BX.fireEvent(BX('tbl_sale_order_check_all'), 'click');
-			}
-			else
-			{
-				var selected = BX('tbl_sale_order_selected_count');
-
-				if(selected && !BX.hasClass(selected, 'adm-table-counter-visible'))
+		?>
+		<script type="text/javascript">
+			BX.ready(
+				function()
 				{
-					alert("<?=Loc::getMessage('SALE_O_CONTEXT_B_DELIVERY_REQUESTS_SELECTION_NEEDED')?>");
-					return;
+					BX.message({
+						"SALE_O_CONTEXT_B_IS_SYNC_B24_REGISTRY_CLOSE": "<?=GetMessageJS('SALE_O_CONTEXT_B_IS_SYNC_B24_REGISTRY_CLOSE')?>",
+						"SALE_O_CONTEXT_B_IS_SYNC_B24_TITLE": "<?=GetMessageJS('SALE_O_CONTEXT_B_IS_SYNC_B24_TITLE')?>",
+						"SALE_O_CONTEXT_B_IS_SYNC_B24_SELECTION_NEEDED": "<?=GetMessageJS('SALE_O_CONTEXT_B_IS_SYNC_B24_SELECTION_NEEDED')?>",
+						"SALE_O_CONTEXT_B_IS_SYNC_B24_REGISTRY_SENDED": "<?=GetMessageJS('SALE_O_CONTEXT_B_IS_SYNC_B24_REGISTRY_SENDED')?>",
+						"SALE_O_CONTEXT_B_IS_SYNC_B24_REGISTRY_SEND_YES": "<?=GetMessageJS('SALE_O_CONTEXT_B_IS_SYNC_B24_REGISTRY_SEND_YES')?>",
+						"SALE_O_CONTEXT_B_IS_SYNC_B24_SELECTION_MORE_THREE": "<?=GetMessageJS('SALE_O_CONTEXT_B_IS_SYNC_B24_SELECTION_MORE_THREE')?>"
+					});
+
+					document.querySelector('[data-role="adm-task-toolbar"]').remove();
+					document.querySelector('[class="adm-filter-setting"]').remove();
+				}
+			);
+
+			function ordersSync()
+			{
+				BX.Sale.AdminIntegrationOrderList.initialize({
+					"form": BX("form_<?=$sTableID?>"),
+					"restEntityInfo": <?=CUtil::PhpToJSObject([
+					'entityId' => $request->get('entityId'),
+					'entityTypeId' => $request->get('entityTypeId')
+				])?>});
+				BX.Sale.AdminIntegrationOrderList.sendOrdersToRestApplication();
+			}
+		</script>
+		<?
+	}
+	else
+	{
+		?>
+		<script type="text/javascript">
+
+			function sendDeliveryRequestsForCurrentOrders(selectedOnly)
+			{
+				var ordersListForm = BX('form_tbl_sale_order');
+
+				if(BX('tbl_sale_order_check_all') && ordersListForm)
+				{
+					if(!selectedOnly)
+					{
+						BX.fireEvent(BX('tbl_sale_order_check_all'), 'click');
+					}
+					else
+					{
+						var selected = BX('tbl_sale_order_selected_count');
+
+						if(selected && !BX.hasClass(selected, 'adm-table-counter-visible'))
+						{
+							alert("<?=Loc::getMessage('SALE_O_CONTEXT_B_DELIVERY_REQUESTS_SELECTION_NEEDED')?>");
+							return;
+						}
+					}
+
+					if(ordersListForm.action)
+					{
+						ordersListForm.action.value='delivery_requests';
+						BX.fireEvent(ordersListForm.action, 'change');
+
+						if(ordersListForm.apply)
+							BX.fireEvent(ordersListForm.apply, 'click');
+					}
 				}
 			}
-
-			if(ordersListForm.action)
-			{
-				ordersListForm.action.value='delivery_requests';
-				BX.fireEvent(ordersListForm.action, 'change');
-
-				if(ordersListForm.apply)
-					BX.fireEvent(ordersListForm.apply, 'click');
-			}
-		}
+		</script>
+		<?
 	}
-</script>
+}
+require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
 
-<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
+function addSourceNameToRuntimeAndSelect(&$runtimeFields, &$arSelectFields)
+{
+	if(isset($runtimeFields['SOURCE']))
+	{
+		return;
+	}
+
+	$runtimeFields['SOURCE'] = array(
+		'data_type' => 'Bitrix\Sale\TradingPlatform\OrderTable',
+		'reference' => array(
+			'ref.ORDER_ID' => 'this.ID',
+		),
+		'join_type' => 'left'
+	);
+
+	$arSelectFields["SOURCE_NAME"] = 'SOURCE.TRADING_PLATFORM.NAME';
+
+	if ($searchIndex = array_search('SOURCE_NAME', $arSelectFields))
+	{
+		unset($arSelectFields[$searchIndex]);
+	}
+}

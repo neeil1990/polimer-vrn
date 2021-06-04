@@ -35,11 +35,13 @@ class SaleAccountPay extends \CBitrixComponent
 	{
 		global $APPLICATION;
 
-		$this->checkModules();
-
 		$this->errorCollection = new Main\ErrorCollection();
+		if (!$this->checkModules())
+		{
+			return $params;
+		}
 
-		if ((!isset($params["VAR"]) || strlen($params["VAR"])<=0))
+		if ((!isset($params["VAR"]) || $params["VAR"] == ''))
 		{
 			$params["VAR"] = "buyMoney";
 		}
@@ -54,7 +56,7 @@ class SaleAccountPay extends \CBitrixComponent
 			$params['PERSON_TYPE'] = 1;
 		}
 
-		if (strlen($params["PATH_TO_PAYMENT"]) <= 0)
+		if ($params["PATH_TO_PAYMENT"] == '')
 		{
 			$params["PATH_TO_PAYMENT"] = "/personal/order/payment";
 		}
@@ -63,7 +65,7 @@ class SaleAccountPay extends \CBitrixComponent
 			$params["PATH_TO_PAYMENT"] = trim($params["PATH_TO_PAYMENT"]);
 		}
 
-		if (strlen($params["PATH_TO_BASKET"]) <= 0)
+		if ($params["PATH_TO_BASKET"] == '')
 		{
 			$params["PATH_TO_BASKET"] = "/personal/cart";
 		}
@@ -88,7 +90,7 @@ class SaleAccountPay extends \CBitrixComponent
 				$params["SELL_USER_INPUT"] = "Y";
 			}
 
-			if (strlen($params["PRODUCT_PROVIDER_CLASS"])<=0)
+			if ($params["PRODUCT_PROVIDER_CLASS"] == '')
 			{
 				$params["PRODUCT_PROVIDER_CLASS"] = "\\Bitrix\\Sale\\ProviderAccountPay";
 			}
@@ -111,7 +113,7 @@ class SaleAccountPay extends \CBitrixComponent
 		}
 		else
 		{
-			if (strlen($params["CALLBACK_NAME"])<=0)
+			if ($params["CALLBACK_NAME"] == '')
 			{
 				$params["CALLBACK_NAME"] = "PayUserAccountDeliveryOrderCallback";
 			}
@@ -137,6 +139,13 @@ class SaleAccountPay extends \CBitrixComponent
 			$this->errorCollection->setError(new Main\Error(Loc::getMessage('SAP_MODULE_NOT_INSTALL')));
 			return false;
 		}
+
+		if (!CBXFeatures::IsFeatureEnabled('SaleAccounts'))
+		{
+			$this->errorCollection->setError(new Main\Error(Loc::getMessage('SAP_FEATURE_NOT_ALLOW')));
+			return false;
+		}
+
 		return true;
 	}
 
@@ -148,7 +157,7 @@ class SaleAccountPay extends \CBitrixComponent
 	{
 		global $APPLICATION;
 
-		$amountArray = unserialize(Main\Config\Option::get("sale", "pay_amount"));
+		$amountArray = unserialize(Main\Config\Option::get("sale", "pay_amount"), ['allowed_classes' => false]);
 
 		if (empty($amountArray))
 		{
@@ -178,7 +187,7 @@ class SaleAccountPay extends \CBitrixComponent
 		foreach ($this->arResult["PAY_ACCOUNT_AMOUNT"] as $key => $value)
 		{
 			$tmp = $value;
-			if (strlen($this->arParams["SELL_CURRENCY"]) > 0)
+			if ($this->arParams["SELL_CURRENCY"] <> '')
 			{
 				if ($value["CURRENCY"] != $this->arParams["SELL_CURRENCY"])
 				{
@@ -270,8 +279,17 @@ class SaleAccountPay extends \CBitrixComponent
 
 		if ($this->errorCollection->isEmpty())
 		{
-			$currencyList = CCurrencyLang::GetFormatDescription($this->arParams["SELL_CURRENCY"]);
-			$this->arResult['FORMATED_CURRENCY'] = $currencyList['FORMAT_STRING'];
+			$parsedFormat = \CCurrencyLang::getParsedCurrencyFormat($this->arParams["SELL_CURRENCY"]);
+			if (!empty($parsedFormat))
+			{
+				$index = array_search('#', $parsedFormat);
+				if ($index !== false)
+				{
+					$parsedFormat[$index] = '';
+				}
+
+				$this->arResult['FORMATED_CURRENCY'] = trim(implode('', $parsedFormat));
+			}
 
 			$signer = new Main\Security\Sign\Signer;
 			$ajaxParams = array(
@@ -293,13 +311,13 @@ class SaleAccountPay extends \CBitrixComponent
 		global $APPLICATION;
 		$templateName = null;
 
-		if ($this->checkModules())
+		if ($this->errorCollection->isEmpty())
 		{
 			/** @var Main\HttpRequest $request */
 			$request = Application::getInstance()->getContext()->getRequest();
 			$request->addFilter(new \Bitrix\Main\Web\PostDecodeFilter);
 
-			if ($this->arParams["SET_TITLE"]!="N")
+			if ($this->arParams["SET_TITLE"] !== "N")
 			{
 				$APPLICATION->SetTitle(Loc::getMessage('SAP_TITLE'));
 			}
@@ -316,7 +334,7 @@ class SaleAccountPay extends \CBitrixComponent
 				{
 					$this->fillArrayResultOld();
 
-					if (strlen($request[$this->arParams["VAR"]]) > 0)
+					if ($request[$this->arParams["VAR"]] <> '')
 					{
 						$this->sendToBasketOld($request);
 					}
@@ -340,7 +358,7 @@ class SaleAccountPay extends \CBitrixComponent
 	 */
 	protected function setRegistry()
 	{
-		$this->registry = Sale\Registry::getInstance(Sale\Order::getRegistryType());
+		$this->registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
 	}
 
 	/**

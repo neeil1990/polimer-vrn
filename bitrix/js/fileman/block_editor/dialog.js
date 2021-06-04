@@ -514,6 +514,21 @@ BXBlockEditorEditDialogColumn.prototype =
 		this.switchDefaultColumn(container);
 	},
 
+	hideAllColumns: function(container)
+	{
+		var columnList = this.getColumnList(container);
+		for(var i in columnList)
+		{
+			if (!columnList.hasOwnProperty(i))
+			{
+				continue;
+			}
+
+			var column = columnList[i];
+			column.style.display = 'none';
+		}
+	},
+
 	switchDefaultColumn: function(container)
 	{
 		var columnNumList = this.getColumnList(container);
@@ -525,6 +540,7 @@ BXBlockEditorEditDialogColumn.prototype =
 
 	onLoadSetting: function(eventParams)
 	{
+		this.hideAllColumns(eventParams.container.container);
 		this.switchDefaultColumn(eventParams.container.container);
 	},
 
@@ -619,15 +635,15 @@ BXBlockEditorSocial.prototype =
 		var href = this.getItemControl(item, 'href');
 		var name = this.getItemControl(item, 'name');
 
-		href.value = elementSelect.value;
-		name.value = elementSelect.options[elementSelect.selectedIndex].text;
+		href.value =  elementSelect.value;
+		name.value =  elementSelect.options[elementSelect.selectedIndex].text;
 	},
 
 	addItem: function(href, name)
 	{
 		var html = this.templateItem.innerHTML;
-		html = html.replace('#href#', href);
-		html = html.replace('#name#', name);
+		html = html.replace('#href#', BX.util.htmlspecialchars(href));
+		html = html.replace('#name#', BX.util.htmlspecialchars(name));
 
 		var div = BX.create('div', {
 			'attrs': {'data-bx-block-editor-social-item': 'item'},

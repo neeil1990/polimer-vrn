@@ -121,7 +121,7 @@ class CSecurityEvent
 		}
 		else
 		{
-			if (strlen($timestamp) <= 0)
+			if ($timestamp == '')
 			{
 				$days = COption::getOptionInt("main", "event_log_cleanup_days", 7);
 				if ($days > 7)

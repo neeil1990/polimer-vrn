@@ -18,9 +18,9 @@ if ($arResult['AVAILABLE'])
 	{
 		echo (isset($arResult["CONTENT_VIEW_CNT"]) ? $arResult["CONTENT_VIEW_CNT"] : 0);
 	}
-	elseif (SITE_TEMPLATE_ID == 'bitrix24')
+	elseif (SITE_TEMPLATE_ID === 'bitrix24')
 	{
-		?><span class="tariff-lock" onclick="B24.licenseInfoPopup.show('contentViewCounter', '<?=htmlspecialcharsbx(GetMessageJS("SCVC_TEMPLATE_LICENSE_TITLE"))?>', '<?=htmlspecialcharsbx(GetMessageJS("SCVC_TEMPLATE_LICENSE_TEXT"))?>')"></span><?
+		?><span class="tariff-lock" onclick="B24.licenseInfoPopup.show('contentViewCounter', '<?=htmlspecialcharsbx(GetMessageJS("SCVC_TEMPLATE_LICENSE_TITLE2"))?>', '<?=htmlspecialcharsbx(GetMessageJS("SCVC_TEMPLATE_LICENSE_TEXT2"))?>')"></span><?
 	}
 	?></span><?
 ?></span><?
@@ -41,7 +41,8 @@ if ($arResult['AVAILABLE'])
 		ratingCounter.init({
 			contentId : '<?=htmlspecialcharsbx($arResult["CONTENT_ID"])?>',
 			nodeId : 'feed-post-contentview-cnt-<?=htmlspecialcharsbx($arResult["CONTENT_ID"])?>',
-			pathToUserProfile : '<?=htmlspecialcharsbx($arResult["PATH_TO_USER_PROFILE"])?>'
+			pathToUserProfile : '<?=htmlspecialcharsbx($arResult["PATH_TO_USER_PROFILE"])?>',
+			isSet : '<?=($arResult["IS_SET"] == 'Y' ? 'Y' : 'N')?>'
 		});
 	});
 	</script><?

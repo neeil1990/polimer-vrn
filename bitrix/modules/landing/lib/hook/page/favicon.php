@@ -2,7 +2,9 @@
 namespace Bitrix\Landing\Hook\Page;
 
 use \Bitrix\Landing\Field;
+use \Bitrix\Landing\File;
 use \Bitrix\Landing\Manager;
+use \Bitrix\Landing\PublicAction;
 use \Bitrix\Main\Localization\Loc;
 
 Loc::loadMessages(__FILE__);
@@ -17,7 +19,23 @@ class Favicon extends \Bitrix\Landing\Hook\Page
 	{
 		return array(
 			'PICTURE' => new Field\Hidden('PICTURE', array(
-				'title' => Loc::getMessage('LANDING_HOOK_FI_PICTURE')
+				'title' => Loc::getMessage('LANDING_HOOK_FI_PICTURE'),
+				'fetch_data_modification' => function($value)
+				{
+					if (PublicAction::restApplication())
+					{
+						if ($value > 0)
+						{
+							$path = File::getFilePath($value);
+							if ($path)
+							{
+								$path = Manager::getUrlFromFile($path);
+								return $path;
+							}
+						}
+					}
+					return $value;
+				}
 			))
 		);
 	}
@@ -29,6 +47,15 @@ class Favicon extends \Bitrix\Landing\Hook\Page
 	public function getTitle()
 	{
 		return Loc::getMessage('LANDING_HOOK_FI_PICTURE');
+	}
+
+	/**
+	 * Exec or not hook in edit mode.
+	 * @return boolean
+	 */
+	public function enabledInEditMode()
+	{
+		return false;
 	}
 
 	/**
@@ -74,7 +101,8 @@ class Favicon extends \Bitrix\Landing\Hook\Page
 					),
 					BX_RESIZE_IMAGE_EXACT
 				);
-				$ext = array_pop(explode('.', $file['src']));
+				$srcExplode = explode('.', $file['src']);
+				$ext = array_pop($srcExplode);
 				$icons .= '<link rel="icon" type="image/' . $ext .
 						  '" href="' . $file['src'] . '" sizes="' . $size . '">';
 			}

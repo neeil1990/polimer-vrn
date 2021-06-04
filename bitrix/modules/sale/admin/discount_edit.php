@@ -68,12 +68,12 @@ if ($discountID > 0)
 
 $discountGroupsToShow = [];
 
-if ($adminSidePanelHelper->isPublicSidePanel())
+if ($adminSidePanelHelper->isPublicSidePanel()
+	&& \Bitrix\Main\Loader::includeModule('crm')
+	&& \Bitrix\Main\Loader::includeModule('bitrix24')
+)
 {
-	if (\Bitrix\Main\Loader::includeModule('crm'))
-	{
-		$discountGroupsToShow = \Bitrix\Crm\Order\BuyerGroup::getPublicList();
-	}
+	$discountGroupsToShow = \Bitrix\Crm\Order\BuyerGroup::getPublicList();
 }
 else
 {
@@ -143,7 +143,7 @@ if (
 				$CONDITIONS = base64_decode($_POST['CONDITIONS']);
 				if (CheckSerializedData($CONDITIONS))
 				{
-					$CONDITIONS = unserialize($CONDITIONS);
+					$CONDITIONS = unserialize($CONDITIONS, ['allowed_classes' => false]);
 					$boolCond = true;
 				}
 				else
@@ -188,7 +188,7 @@ if (
 				$ACTIONS = base64_decode($_POST['ACTIONS']);
 				if (CheckSerializedData($ACTIONS))
 				{
-					$ACTIONS = unserialize($ACTIONS);
+					$ACTIONS = unserialize($ACTIONS, ['allowed_classes' => false]);
 					$boolAct = true;
 				}
 				else
@@ -216,7 +216,10 @@ if (
 		$arGroupID = $_POST['USER_GROUPS'];
 	}
 
-	if ($adminSidePanelHelper->isPublicSidePanel() && \Bitrix\Main\Loader::includeModule('crm'))
+	if ($adminSidePanelHelper->isPublicSidePanel()
+		&& \Bitrix\Main\Loader::includeModule('crm')
+		&& \Bitrix\Main\Loader::includeModule('bitrix24')
+	)
 	{
 		$discountGroupList = [];
 
@@ -230,7 +233,7 @@ if (
 	}
 
 	Main\Type\Collection::normalizeArrayValuesByInt($arGroupID, true);
-	
+
 	$arFields = array(
 		"LID" => (array_key_exists('LID', $_POST) ? $_POST['LID'] : ''),
 		"NAME" => (array_key_exists('NAME', $_POST) ? $_POST['NAME'] : ''),
@@ -649,7 +652,7 @@ $control->BeginNextFormTab();
 			if (!is_array($arDiscount['ACTIONS']))
 			{
 				if (CheckSerializedData($arDiscount['ACTIONS']))
-					$arDiscount['ACTIONS'] = unserialize($arDiscount['ACTIONS']);
+					$arDiscount['ACTIONS'] = unserialize($arDiscount['ACTIONS'], ['allowed_classes' => false]);
 				else
 					$arDiscount['ACTIONS'] = '';
 			}
@@ -661,12 +664,7 @@ $control->BeginNextFormTab();
 				'INIT_CONTROLS' => array(
 					'SITE_ID' => $arDiscount['LID'],
 					'CURRENCY' => CSaleLang::GetLangCurrency($arDiscount['LID']),
-				),
-				'SYSTEM_MESSAGES' => array(
-					'SELECT_CONTROL' => GetMessage('BT_SALE_DISCOUNT_ACTIONS_SELECT_CONTROL'),
-					'ADD_CONTROL' => GetMessage('BT_SALE_DISCOUNT_ACTIONS_ADD_CONTROL'),
-					'DELETE_CONTROL' => GetMessage('BT_SALE_DISCOUNT_ACTIONS_DELETE_CONTROL'),
-				),
+				)
 			);
 			$obAct = new CSaleActionTree();
 			$boolAct = $obAct->Init(BT_COND_MODE_DEFAULT, BT_COND_BUILD_SALE_ACTIONS, $arCondParams);
@@ -694,7 +692,7 @@ $control->BeginNextFormTab();
 			if (!is_array($arDiscount['CONDITIONS']))
 			{
 				if (CheckSerializedData($arDiscount['CONDITIONS']))
-					$arDiscount['CONDITIONS'] = unserialize($arDiscount['CONDITIONS']);
+					$arDiscount['CONDITIONS'] = unserialize($arDiscount['CONDITIONS'], ['allowed_classes' => false]);
 				else
 					$arDiscount['CONDITIONS'] = '';
 			}

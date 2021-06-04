@@ -7,7 +7,7 @@
 
 <div class="voting-form-box">
 
-	<?if (strlen($arResult["VOTE"]["TITLE"])>0) : ?>
+	<?if ($arResult["VOTE"]["TITLE"] <> '') : ?>
 		<b><?echo $arResult["VOTE"]["TITLE"];?></b><br />
 	<?endif;?>
 
@@ -91,6 +91,7 @@
 
 					<?case 2://dropdown?>
 						<select name="vote_dropdown_<?=$arAnswer["QUESTION_ID"]?>" <?=$arAnswer["~FIELD_PARAM"]?>>
+							<option value=""><?=GetMessage("VOTE_DROPDOWN_SET")?></option>
 						<?foreach ($arAnswer["DROPDOWN"] as $arDropDown):?>
 							<option value="<?=$arDropDown["ID"]?>" <?=($arDropDown["ID"] === $value)?'selected="selected"':''?>><?=$arDropDown["MESSAGE"]?></option>
 						<?endforeach?>
@@ -106,7 +107,7 @@
 					<?break?>
 
 					<?case 4://text field?>
-						<label><?if (strlen(trim($arAnswer["MESSAGE"]))>0):?>
+						<label><?if (trim($arAnswer["MESSAGE"]) <> ''):?>
 							<?=$arAnswer["MESSAGE"]?><br />
 						<?endif?>
 						<input type="text" name="vote_field_<?=$arAnswer["ID"]?>" value="<?=$value?>" size="<?=$arAnswer["FIELD_WIDTH"]?>" <?=$arAnswer["~FIELD_PARAM"]?> /></label>
@@ -114,7 +115,7 @@
 					<?break?>
 
 					<?case 5://memo?>
-						<label><?if (strlen(trim($arAnswer["MESSAGE"]))>0):?>
+						<label><?if (trim($arAnswer["MESSAGE"]) <> ''):?>
 							<?=$arAnswer["MESSAGE"]?><br />
 						<?endif?>
 						<textarea name="vote_memo_<?=$arAnswer["ID"]?>" <?=$arAnswer["~FIELD_PARAM"]?> cols="<?=$arAnswer["FIELD_WIDTH"]?>" rows="<?=$arAnswer["FIELD_HEIGHT"]?>"><?=$value?></textarea></label>
@@ -139,7 +140,7 @@
 			</div>
 			<div class="vote-reply-field-captcha-label">
 				<label for="captcha_word"><?=GetMessage("F_CAPTCHA_PROMT")?><span class='starrequired'>*</span></label><br />
-				<input type="text" size="20" name="captcha_word" />
+				<input type="text" size="20" name="captcha_word" autocomplete="off" />
 			</div>
 		</div>
 		<? endif // CAPTCHA_CODE ?>

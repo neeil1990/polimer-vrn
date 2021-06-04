@@ -11,12 +11,13 @@ use Bitrix\Main\Application;
 use Bitrix\Main\Error;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Type\DateTime;
-use Bitrix\Sender\ContactTable;
-use Bitrix\Sender\ListTable;
-use Bitrix\Sender\GroupTable;
-use Bitrix\Sender\GroupConnectorTable;
 use Bitrix\Sender\Connector;
+use Bitrix\Sender\ContactTable;
+use Bitrix\Sender\GroupConnectorTable;
+use Bitrix\Sender\GroupDealCategoryTable;
+use Bitrix\Sender\GroupTable;
 use Bitrix\Sender\Internals\Model\GroupCounterTable;
+use Bitrix\Sender\ListTable;
 
 Loc::loadMessages(__FILE__);
 
@@ -113,6 +114,7 @@ class Segment extends Base
 				continue;
 			}
 
+			$groupConnector['ENDPOINT']['FILTER_ID'] = $groupConnector['FILTER_ID'];
 			$data['ENDPOINTS'][] = $groupConnector['ENDPOINT'];
 		}
 
@@ -131,12 +133,6 @@ class Segment extends Base
 		$endpoints = $data['ENDPOINTS'];
 		unset($data['ENDPOINTS']);
 
-		if(!is_array($endpoints) || count($endpoints) == 0)
-		{
-			$this->addError(Loc::getMessage('SENDER_ENTITY_SEGMENT_ERROR_NO_FILTERS'));
-			return $id;
-		}
-
 		$id = $this->saveByEntity(GroupTable::getEntity(), $id, $data);
 		if ($this->hasErrors())
 		{
@@ -145,39 +141,83 @@ class Segment extends Base
 
 		$dataCounters = array();
 		GroupConnectorTable::delete(array('GROUP_ID' => $id));
-		foreach ($endpoints as $endpoint)
+
+		if ($endpoints)
 		{
-			$connector = Connector\Manager::getConnector($endpoint);
-			if (!$connector)
+			foreach ($endpoints as $endpoint)
+			{
+				$connector = Connector\Manager::getConnector($endpoint);
+				if (!$connector)
+				{
+					continue;
+				}
+
+				if ($this->isFilterOnly() && !($connector instanceof Connector\BaseFilter))
+				{
+					continue;
+				}
+
+				$connector->setFieldValues($endpoint['FIELDS']);
+				$endpoint['FIELDS'] = $connector->getFieldValues();
+				$statFields = $connector->getStatFields();
+
+				foreach (array_intersect($statFields, array_keys($endpoint['FIELDS'])) as $field)
+				{
+					\Bitrix\Sender\Log::stat('segment_field', $field, $id);
+				}
+
+				$groupConnector = array(
+					'GROUP_ID' => $id,
+					'NAME' => $connector->getName(),
+					'ENDPOINT' => $endpoint,
+					'ADDRESS_COUNT' => $connector->getDataCounter()->getSummary()
+				);
+
+				if($endpoint['FILTER_ID'])
+				{
+					$groupConnector['FILTER_ID'] = $endpoint['FILTER_ID'];
+				}
+
+				$connectorResultDb = GroupConnectorTable::add($groupConnector);
+				if($connectorResultDb->isSuccess())
+				{
+					$dataCounters[] = $connector->getDataCounter();
+				}
+
+				$this->updateDealCategory($id, $connector);
+			}
+
+			$this->updateAddressCounters($id, $dataCounters);
+		}
+
+		return $id;
+	}
+
+	private function updateDealCategory(int $groupId, $connector)
+	{
+		$groupDealCategory = [];
+
+		foreach ($connector->getFieldValues() as $fieldKey => $fieldValue)
+		{
+			if($fieldKey != 'DEAL_CATEGORY_ID')
 			{
 				continue;
 			}
+			GroupDealCategoryTable::delete(array('GROUP_ID' => $groupId));
 
-			if ($this->isFilterOnly() && !($connector instanceof Connector\BaseFilter))
+			foreach ($fieldValue as $dealCategory)
 			{
-				continue;
-			}
-
-			$connector->setFieldValues($endpoint['FIELDS']);
-			$endpoint['FIELDS'] = $connector->getFieldValues();
-
-			$groupConnector = array(
-				'GROUP_ID' => $id,
-				'NAME' => $connector->getName(),
-				'ENDPOINT' => $endpoint,
-				'ADDRESS_COUNT' => $connector->getDataCounter()->getSummary()
-			);
-
-			$connectorResultDb = GroupConnectorTable::add($groupConnector);
-			if($connectorResultDb->isSuccess())
-			{
-				$dataCounters[] = $connector->getDataCounter();
+				$groupDealCategory[] = [
+					'GROUP_ID' => $groupId,
+					'DEAL_CATEGORY_ID' => $dealCategory
+				];
 			}
 		}
 
-		$this->updateAddressCounters($id, $dataCounters);
-
-		return $id;
+		if(!empty($groupDealCategory))
+		{
+			GroupDealCategoryTable::addMulti($groupDealCategory);
+		}
 	}
 
 	/**
@@ -413,8 +453,9 @@ class Segment extends Base
 		$tableName = GroupTable::getTableName();
 		$now = Application::getConnection()->getSqlHelper()->convertToDbDateTime(new DateTime());
 		$ids = array();
-		foreach ($list as $id)
+		foreach ($list as $element)
 		{
+			$id = $element['ID'];
 			if (!$id || !is_numeric($id))
 			{
 				continue;

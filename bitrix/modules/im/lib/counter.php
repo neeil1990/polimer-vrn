@@ -13,7 +13,7 @@ class Counter
 	const TYPE_MESSENGER = 'messenger';
 	const MODULE_ID = 'im';
 
-	public static function get($userId)
+	public static function get($userId = null)
 	{
 		$result = Array(
 			'TYPE' => Array(
@@ -27,6 +27,8 @@ class Counter
 			'CHAT' => Array(),
 			'LINES' => Array(),
 		);
+
+		$userId = Common::getUserId($userId);
 		if ($userId <= 0)
 		{
 			return $result;
@@ -39,11 +41,11 @@ class Counter
 		}
 
 		$query = "
-			SELECT R1.CHAT_ID, R1.MESSAGE_TYPE, IF(R2.USER_ID > 0, R2.USER_ID, 0) PRIVATE_USER_ID, R1.COUNTER, IF(RC.USER_ID > 0, 'Y', 'N') IN_RECENT
+			SELECT R1.CHAT_ID, R1.MESSAGE_TYPE, IF(R2.USER_ID > 0, R2.USER_ID, 0) PRIVATE_USER_ID, R1.COUNTER, IF(RC.USER_ID > 0, 'Y', 'N') IN_RECENT, RC.UNREAD
 			FROM b_im_relation R1 
 			LEFT JOIN b_im_relation R2 ON R1.MESSAGE_TYPE = '".IM_MESSAGE_PRIVATE."' AND R2.CHAT_ID = R1.CHAT_ID AND R2.USER_ID <> R1.USER_ID
 			LEFT JOIN b_im_recent RC ON RC.USER_ID = R1.USER_ID AND RC.ITEM_TYPE = R1.MESSAGE_TYPE AND RC.ITEM_ID = IF(R1.MESSAGE_TYPE = '".IM_MESSAGE_PRIVATE."', R2.USER_ID, R1.CHAT_ID)
-			WHERE R1.USER_ID = ".intval($userId)." AND R1.STATUS <> ".IM_STATUS_READ."
+			WHERE R1.USER_ID = ".intval($userId)." AND (R1.STATUS <> ".IM_STATUS_READ." OR RC.UNREAD = 'Y')
 		";
 		$counters = \Bitrix\Main\Application::getInstance()->getConnection()->query($query)->fetchAll();
 
@@ -62,9 +64,18 @@ class Counter
 				}
 				if ($entity['MESSAGE_TYPE'] == IM_MESSAGE_PRIVATE)
 				{
-					$result['TYPE']['ALL'] += (int)$entity['COUNTER'];
-					$result['TYPE']['DIALOG'] += (int)$entity['COUNTER'];
-					$result['DIALOG'][$entity['PRIVATE_USER_ID']] = (int)$entity['COUNTER'];
+					if ($entity['COUNTER'] > 0)
+					{
+						$result['TYPE']['ALL'] += (int)$entity['COUNTER'];
+						$result['TYPE']['DIALOG'] += (int)$entity['COUNTER'];
+						$result['DIALOG'][$entity['PRIVATE_USER_ID']] = (int)$entity['COUNTER'];
+					}
+					else if ($entity['UNREAD'] === 'Y')
+					{
+						$result['TYPE']['ALL']++;
+						$result['TYPE']['DIALOG']++;
+						$result['DIALOG'][$entity['PRIVATE_USER_ID']] = 1;
+					}
 				}
 				else if ($entity['MESSAGE_TYPE'] == IM_MESSAGE_OPEN_LINE)
 				{
@@ -74,9 +85,19 @@ class Counter
 				}
 				else
 				{
-					$result['TYPE']['ALL'] += (int)$entity['COUNTER'];
-					$result['TYPE']['CHAT'] += (int)$entity['COUNTER'];
-					$result['CHAT'][$entity['CHAT_ID']] = (int)$entity['COUNTER'];
+					if ($entity['COUNTER'] > 0)
+					{
+						$result['TYPE']['ALL'] += (int)$entity['COUNTER'];
+						$result['TYPE']['CHAT'] += (int)$entity['COUNTER'];
+						$result['CHAT'][$entity['CHAT_ID']] = (int)$entity['COUNTER'];
+					}
+					else if ($entity['UNREAD'] === 'Y')
+					{
+						$result['TYPE']['ALL']++;
+						$result['TYPE']['CHAT']++;
+						$result['CHAT'][$entity['CHAT_ID']] = 1;
+					}
+
 				}
 			}
 		}
@@ -104,10 +125,11 @@ class Counter
 		return true;
 	}
 
-	public static function getChatCounter($chatId, $userId)
+	public static function getChatCounter($chatId, $userId = null)
 	{
 		$chatId = intval($chatId);
-		$userId = intval($userId);
+		$userId = Common::getUserId($userId);
+
 		if ($chatId <= 0 || $userId <= 0)
 		{
 			return false;
@@ -118,9 +140,9 @@ class Counter
 		return intval($counters['CHAT'][$chatId]);
 	}
 
-	public static function getDialogCounter($userId, $opponentUserId)
+	public static function getDialogCounter($opponentUserId, $userId = null)
 	{
-		$userId = intval($userId);
+		$userId = Common::getUserId($userId);
 		$opponentUserId = intval($opponentUserId);
 		if ($userId <= 0 || $opponentUserId <= 0)
 		{
@@ -132,9 +154,9 @@ class Counter
 		return intval($counters['DIALOG'][$opponentUserId]);
 	}
 
-	public static function getNotifyCounter($userId)
+	public static function getNotifyCounter($userId = null)
 	{
-		$userId = intval($userId);
+		$userId = Common::getUserId($userId);
 		if ($userId <= 0)
 		{
 			return false;

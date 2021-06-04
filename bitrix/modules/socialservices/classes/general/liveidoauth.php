@@ -19,7 +19,15 @@ class CSocServLiveIDOAuth extends CSocServAuth
 		return array(
 			array("liveid_appid", GetMessage("socserv_liveid_client_id"), "", Array("text", 40)),
 			array("liveid_appsecret", GetMessage("socserv_liveid_client_secret"), "", Array("text", 40)),
-			array("note"=>GetMessage("socserv_liveid_form_note", array('#URL#'=>\CHTTP::URN2URI("/bitrix/tools/oauth/liveid.php")))),
+			array(
+				'note' => getMessage(
+					'socserv_liveid_form_note_2',
+					array(
+						'#URL#' => \CHttp::urn2uri('/bitrix/tools/oauth/liveid.php'),
+						'#MAIL_URL#' => \CHttp::urn2uri('/bitrix/tools/mail_oauth.php'),
+					)
+				),
+			),
 		);
 	}
 
@@ -75,8 +83,11 @@ class CSocServLiveIDOAuth extends CSocServAuth
 		$userId = intval($this->userId);
 		if($userId > 0)
 		{
-			$dbSocservUser = CSocServAuthDB::GetList(array(), array('USER_ID' => $userId, "EXTERNAL_AUTH_ID" => "LiveIDOAuth"), false, false, array("OATOKEN", "REFRESH_TOKEN", "OATOKEN_EXPIRES"));
-			if($arOauth = $dbSocservUser->Fetch())
+			$dbSocservUser = \Bitrix\Socialservices\UserTable::getList([
+				'filter' => ['=USER_ID' => $userId, "=EXTERNAL_AUTH_ID" => "LiveIDOAuth"],
+				'select' => ["OATOKEN", "REFRESH_TOKEN", "OATOKEN_EXPIRES"]
+			]);
+			if($arOauth = $dbSocservUser->fetch())
 			{
 				$accessToken = $arOauth["OATOKEN"];
 
@@ -152,7 +163,7 @@ class CSocServLiveIDOAuth extends CSocServAuth
 
 					if(isset($arLiveIDUser['expires_in']))
 						$arFields["OATOKEN_EXPIRES"] = time() + $arLiveIDUser['expires_in'];
-					if(strlen(SITE_ID) > 0)
+					if(SITE_ID <> '')
 						$arFields["SITE_ID"] = SITE_ID;
 					$bSuccess = $this->AuthorizeUser($arFields);
 
@@ -177,7 +188,7 @@ class CSocServLiveIDOAuth extends CSocServAuth
 			if(isset($arState['backurl']) || isset($arState['redirect_url']))
 			{
 				$url = !empty($arState['redirect_url']) ? $arState['redirect_url'] : $arState['backurl'];
-				if(substr($url, 0, 1) !== "#")
+				if(mb_substr($url, 0, 1) !== "#")
 				{
 					$parseUrl = parse_url($url);
 					$urlPath = $parseUrl["path"];
@@ -187,7 +198,7 @@ class CSocServLiveIDOAuth extends CSocServAuth
 					{
 						foreach($aRemove as $param)
 						{
-							if(strpos($value, $param."=") === 0)
+							if(mb_strpos($value, $param."=") === 0)
 							{
 								unset($arUrlQuery[$key]);
 								break;
@@ -221,7 +232,7 @@ class CSocServLiveIDOAuth extends CSocServAuth
 				: $APPLICATION->GetCurPageParam(('auth_service_id='.self::ID.'&auth_service_error='.$bSuccess), $aRemove);
 		}
 
-		if($addParams && CModule::IncludeModule("socialnetwork") && strpos($url, "current_fieldset=") === false)
+		if($addParams && CModule::IncludeModule("socialnetwork") && mb_strpos($url, "current_fieldset=") === false)
 			$url = (preg_match("/\?/", $url)) ? $url."&current_fieldset=SOCSERV" : $url."?current_fieldset=SOCSERV";
 
 		$url = CUtil::JSEscape($url);
@@ -495,15 +506,11 @@ class CLiveIDOAuthInterface
 
 		if(is_object($USER))
 		{
-			$dbSocservUser = CSocServAuthDB::GetList(
-				array(), array(
-					'USER_ID' => $USER->GetID(),
-					"EXTERNAL_AUTH_ID" => CSocServLiveIDOAuth::ID
-				),
-				false, false,
-				array("USER_ID", "OATOKEN", "OATOKEN_EXPIRES", "REFRESH_TOKEN")
-			);
-			return $dbSocservUser->Fetch();
+			$dbSocservUser = \Bitrix\Socialservices\UserTable::getList([
+				'filter' => ['=USER_ID' => $USER->GetID(), "=EXTERNAL_AUTH_ID" => CSocServLiveIDOAuth::ID],
+				'select' => ["USER_ID", "OATOKEN", "OATOKEN_EXPIRES", "REFRESH_TOKEN"]
+			]);
+			return $dbSocservUser->fetch();
 		}
 
 		return false;
@@ -534,9 +541,15 @@ class CLiveIDOAuthInterface
 			$this->accessTokenExpires = $arResult["expires_in"];
 			if($save && intval($userId) > 0)
 			{
-				$dbSocservUser = CSocServAuthDB::GetList(array(), array('USER_ID' => intval($userId), "EXTERNAL_AUTH_ID" => "LiveIDOAuth"), false, false, array("ID"));
-				if($arOauth = $dbSocservUser->Fetch())
-					CSocServAuthDB::Update($arOauth["ID"], array("OATOKEN" => $this->access_token,"OATOKEN_EXPIRES" => time() + $this->accessTokenExpires));
+				$dbSocservUser = \Bitrix\Socialservices\UserTable::getList([
+					'filter' => [
+						'=USER_ID' => intval($userId),
+						"=EXTERNAL_AUTH_ID" => 'LiveIDOAuth'
+					],
+					'select' => ["ID"]
+				]);
+				if($arOauth = $dbSocservUser->fetch())
+					\Bitrix\Socialservices\UserTable::update($arOauth["ID"], array("OATOKEN" => $this->access_token, "OATOKEN_EXPIRES" => time() + $this->accessTokenExpires));
 			}
 			return true;
 		}

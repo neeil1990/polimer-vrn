@@ -32,7 +32,8 @@
 		this.onValueChangeHandler = data.onValueChange ? data.onValueChange : (function() {});
 		this.dragStartHandler = typeof data.onDragStart === "function" ? data.onDragStart : (function() {});
 		this.dragEndHandler = typeof data.onDragEnd === "function" ? data.onDragEnd : (function() {});
-		this.jsDD = this.frame ? window.top.jsDD : window.jsDD;
+		var rootWindow = BX.Landing.PageObject.getRootWindow();
+		this.jsDD = this.frame ? rootWindow.jsDD : window.jsDD;
 		this.value = null;
 		this.valueFrom = null;
 		this.valueTo = null;
@@ -56,6 +57,14 @@
 				this.value = this.items[0].value;
 			}
 		}
+
+		var onMouseUp = function(event) {
+			this.jsDD.stopDrag(event);
+		}.bind(this);
+
+		BX.Event.bind(window, 'mouseup', onMouseUp);
+		BX.Event.bind(rootWindow, 'mouseup', onMouseUp);
+		BX.Event.bind(window.top, 'mouseup', onMouseUp);
 
 		this.setValue(this.content, true);
 	};
@@ -368,10 +377,10 @@
 						this.sliderTo.style.transform = "translateX(-" + result.valuePercent + "%)";
 						this.sliderTo.style.left = result.valuePercent + "%";
 					}.bind(this));
-				}
 
-				this.value = value;
-				this.updateValuePosition(result.valuePercent);
+					this.value = value;
+					this.updateValuePosition(result.valuePercent);
+				}
 			}
 
 			if (!preventEvent)

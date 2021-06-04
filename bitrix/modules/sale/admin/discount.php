@@ -12,6 +12,11 @@ use Bitrix\Main,
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_before.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/sale/prolog.php');
 
+/** @global CAdminPage $adminPage */
+global $adminPage;
+/** @global CAdminSidePanelHelper $adminSidePanelHelper */
+global $adminSidePanelHelper;
+
 $publicMode = $adminPage->publicMode;
 $selfFolderUrl = $adminPage->getSelfFolderUrl();
 
@@ -24,13 +29,13 @@ Loader::includeModule('sale');
 Loc::loadMessages(__FILE__);
 
 $catalogNamePostfix = ' (' . Loc::getMessage('BT_SALE_DISCOUNT_LIST_MESS_TITLE_CATALOG_ID') . ')';
-$catalogNamePostfixLength = strlen($catalogNamePostfix);
+$catalogNamePostfixLength = mb_strlen($catalogNamePostfix);
 
 $enableDiscountConstructor = Sale\Config\Feature::isDiscountConstructorEnabled();
 
 $adminListTableID = 'tbl_sale_discount';
 
-$adminSort = new CAdminSorting($adminListTableID, 'ID', 'ASC');
+$adminSort = new CAdminUiSorting($adminListTableID, 'ID', 'ASC');
 $adminList = new CAdminUiList($adminListTableID, $adminSort);
 
 $filterSiteList = array();
@@ -313,6 +318,7 @@ $headerList['NAME'] = array(
 	'id' => 'NAME',
 	'content' => Loc::getMessage('BT_SALE_DISCOUNT_ADM_TITLE_NAME'),
 	'title' => Loc::getMessage('BX_SALE_ADM_DSC_HEADER_TITLE_NAME'),
+	'sort' => 'NAME',
 	'default' => true
 );
 $headerList['ACTIVE'] = array(
@@ -771,49 +777,71 @@ $adminList->AddGroupActionTable([
 	"deactivate" => Loc::getMessage("MAIN_ADMIN_LIST_DEACTIVATE")
 ]);
 
-if (!$readOnly && !isset($filter['=PRESET_ID']) && $enableDiscountConstructor)
+$aContext = [];
+if (!$readOnly && !isset($filter['=PRESET_ID']))
 {
-	$siteLID = '';
-	$arSiteMenu = array();
+	if ($enableDiscountConstructor)
+	{
 
-	if (count($arSitesShop) == 1)
-	{
-		$siteLID = "&LID=".$arSitesShop[0]['ID'];
-	}
-	else
-	{
-		foreach ($arSitesShop as $val)
+		$siteLID = '';
+		$arSiteMenu = array();
+
+		if (count($arSitesShop) == 1)
 		{
-			$editUrl = $selfFolderUrl."sale_discount_edit.php?lang=".LANGUAGE_ID."&LID=".$val['ID'];
-			$editUrl = $adminSidePanelHelper->editUrlToPublicPage($editUrl);
-			$arSiteMenu[] = array(
-				"TEXT" => $val["NAME"]." (".$val['ID'].")",
-				"LINK" => $editUrl
-			);
+			$siteLID = "&LID=".$arSitesShop[0]['ID'];
 		}
-	}
-	$addUrl = $selfFolderUrl."sale_discount_edit.php?lang=".LANGUAGE_ID.$siteLID;
-	$addUrl = $adminSidePanelHelper->editUrlToPublicPage($addUrl);
-	$aContext = array(
-		array(
+		else
+		{
+			foreach ($arSitesShop as $val)
+			{
+				$editUrl = $selfFolderUrl."sale_discount_edit.php?lang=".LANGUAGE_ID."&LID=".$val['ID'];
+				$editUrl = $adminSidePanelHelper->editUrlToPublicPage($editUrl);
+				$arSiteMenu[] = array(
+					"TEXT" => $val["NAME"]." (".$val['ID'].")",
+					"LINK" => $editUrl
+				);
+			}
+		}
+		$addUrl = $selfFolderUrl."sale_discount_edit.php?lang=".LANGUAGE_ID.$siteLID;
+		$addUrl = $adminSidePanelHelper->editUrlToPublicPage($addUrl);
+		$aContext[] = [
 			"TEXT" => Loc::getMessage("BT_SALE_DISCOUNT_LIST_MESS_NEW_DISCOUNT"),
 			"ICON" => "btn_new",
 			"LINK" => $addUrl,
 			"TITLE" => Loc::getMessage("BT_SALE_DISCOUNT_LIST_MESS_NEW_DISCOUNT_TITLE"),
 			"MENU" => $arSiteMenu
-		),
-	);
-
-	$adminList->setContextSettings(array("pagePath" => $selfFolderUrl."sale_discount.php"));
-	$adminList->AddAdminContextMenu($aContext);
+		];
+	}
+	else
+	{
+		$helpLink = Sale\Config\Feature::getDiscountConstructorHelpLink();
+		if (!empty($helpLink))
+		{
+			$aContext[] = [
+				"TEXT" => Loc::getMessage("BT_SALE_DISCOUNT_LIST_MESS_NEW_DISCOUNT"),
+				"ICON" => "btn_lock",
+				$helpLink['TYPE'] => $helpLink['LINK'],
+				"TITLE" => Loc::getMessage("BT_SALE_DISCOUNT_LIST_MESS_NEW_DISCOUNT_TITLE"),
+			];
+		}
+		unset($helpLink);
+	}
 }
+$adminList->setContextSettings(array("pagePath" => $selfFolderUrl."sale_discount.php"));
+$adminList->AddAdminContextMenu($aContext);
+unset($aContext);
 
 $adminList->CheckListMode();
 
 $APPLICATION->SetTitle(Loc::getMessage('BT_SALE_DISCOUNT_LIST_MESS_TITLE'));
 require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_after.php');
-
-$adminList->DisplayFilter($filterFields);
-$adminList->DisplayList();
-
+if (!$publicMode && \Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
+{
+	$APPLICATION->IncludeComponent("bitrix:sale.admin.page.stub", ".default");
+}
+else
+{
+	$adminList->DisplayFilter($filterFields);
+	$adminList->DisplayList();
+}
 require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/epilog_admin.php');

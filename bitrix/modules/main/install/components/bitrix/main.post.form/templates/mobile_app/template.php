@@ -1,4 +1,7 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+
+Bitrix\Main\UI\Extension::load('mobile.utils');
+
 //\Bitrix\Main\Page\Asset::getInstance()->addJs($templateFolder."/script.js");
 //$arParams["FORM_ID"] =
 //$arParams["NAME_TEMPLATE"]
@@ -47,7 +50,8 @@ foreach ($arParams["UPLOADS"] as $v)
 			BX.MPF.createInstance(<?=CUtil::PhpToJSObject(array(
 				"formId" => $arParams["FORM_ID"],
 				"text" => array_change_key_case($arParams["TEXT"], CASE_LOWER),
-				"CID" => $arParams["UPLOADS_CID"]
+				"CID" => $arParams["UPLOADS_CID"],
+				"forumContext" => (!empty($arParams["FORUM_CONTEXT"]) ? $arParams["FORUM_CONTEXT"] : '')
 			))?>);
 			BX.removeCustomEvent(window, "main.post.form/mobile", f);
 		};

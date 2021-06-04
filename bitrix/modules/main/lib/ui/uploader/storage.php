@@ -56,7 +56,7 @@ class Storage implements Storable
 			"tmp_name" => $newFile,
 			"type" => $file["type"]
 		));
-		if (substr($newFile, -strlen($file['tmp_name'])) == $file['tmp_name'])
+		if (mb_substr($newFile, -mb_strlen($file['tmp_name'])) == $file['tmp_name'])
 		{
 
 		}
@@ -199,33 +199,33 @@ class CloudStorage extends Storage implements Storable
 		$result = new Result();
 		$absPath = \CTempFile::getAbsoluteRoot();
 		$relativePath = $path;
-		if (substr($path, 0, strlen($absPath)) == $absPath && strpos($path, "/bxu/") > 0)
-			$relativePath = substr($path, strpos($path, "/bxu/"));
+		if (mb_substr($path, 0, mb_strlen($absPath)) == $absPath && mb_strpos($path, "/bxu/") > 0)
+			$relativePath = mb_substr($path, mb_strpos($path, "/bxu/"));
 		$subdir = explode("/", trim($relativePath, "/"));
 		$filename = array_pop($subdir);
-		if (!isset($_SESSION["upload_tmp"]))
+		if (!isset(\Bitrix\Main\Application::getInstance()->getSession()["upload_tmp"]))
 		{
-			$_SESSION["upload_tmp"] = array();
+			\Bitrix\Main\Application::getInstance()->getSession()["upload_tmp"] = array();
 		}
 
-		if (!isset($_SESSION["upload_tmp"][$path]))
+		if (!isset(\Bitrix\Main\Application::getInstance()->getSession()["upload_tmp"][$path]))
 		{
-			$relativePath = $_SESSION["upload_tmp"][$path] =\CCloudTempFile::GetDirectoryName($bucket, 12).$filename;
+			$relativePath = \Bitrix\Main\Application::getInstance()->getSession()["upload_tmp"][$path] =\CCloudTempFile::GetDirectoryName($bucket, 12).$filename;
 		}
 		else
 		{
-			$relativePath = $_SESSION["upload_tmp"][$path];
+			$relativePath = \Bitrix\Main\Application::getInstance()->getSession()["upload_tmp"][$path];
 		}
 
 		$upload = new \CCloudStorageUpload($relativePath);
 		$finished = false;
 		if(!$upload->isStarted() && !$upload->start($bucket->ID, $file["size"], $file["type"]))
 		{
-			$result->addError(new Error("File transfer into Cloud is failed.", "BXU346.2"));
+			$result->addError(new Error(Loc::getMessage("BXU_FileTransferIntoTheCloudIsFailed"), "BXU346.2"));
 		}
 		else if (!($fileContent = \Bitrix\Main\IO\File::getFileContents($file["tmp_name"])))
 		{
-			$result->addError(new Error("It is impossible to get file content.", "BXU346.3"));
+			$result->addError(new Error(Loc::getMessage("BXU_FileIsFailedToRead"), "BXU346.3"));
 		}
 		else
 		{
@@ -270,36 +270,57 @@ class CloudStorage extends Storage implements Storable
 	public function copy($path, array $file)
 	{
 		$result = parent::copy($path, $file);
-		if ($result->isSuccess() && !array_key_exists('start', $file))
+		if ($result->isSuccess())
 		{
-			$res = $result->getData();
-			$file["tmp_name"] = $res["tmp_name"];
-			$file["size"] = $res["size"];
-			$file["type"] = $res["type"];
-			$img = \CFile::GetImageSize($file["tmp_name"]);
-			$file["width"] = $img[0];
-			$file["height"] = $img[1];
-			if ($bucket = $this->findBucket($file))
+			if (!array_key_exists('start', $file))
 			{
-				unset($file["count"]);
-				if (($r = $this->moveIntoCloud($bucket, $file["tmp_name"], $file)) && $r->isSuccess())
+				$res = $result->getData();
+				$file["tmp_name"] = $res["tmp_name"];
+				$file["size"] = $res["size"];
+				$file["type"] = $res["type"];
+				$info = (new \Bitrix\Main\File\Image($file["tmp_name"]))->getInfo();
+				if($info)
 				{
-					$res = $r->getData();
-					$result->setData(array(
-						"size" => $file["size"],
-						"file_size" => $file["size"],
-						"tmp_name" => $res["tmp_name"],
-						"type" => $file["type"],
-						"width" => $file["width"],
-						"height" => $file["height"],
-						"bucketId" => $bucket->ID
-					));
+					$file["width"] = $info->getWidth();
+					$file["height"] = $info->getHeight();
 				}
-				if ($r->getErrors())
+				else
 				{
-					$result->addErrors($r->getErrors());
+					$file["width"] = 0;
+					$file["height"] = 0;
 				}
-				@unlink($path);
+				if ($bucket = $this->findBucket($file))
+				{
+					unset($file["count"]);
+					if (($r = $this->moveIntoCloud($bucket, $file["tmp_name"], $file)) && $r->isSuccess())
+					{
+						$res = $r->getData();
+						$result->setData(array(
+							"size" => $file["size"],
+							"file_size" => $file["size"],
+							"tmp_name" => $res["tmp_name"],
+							"type" => $file["type"],
+							"width" => $file["width"],
+							"height" => $file["height"],
+							"bucketId" => $bucket->ID
+						));
+					}
+					if ($r->getErrors())
+					{
+						$result->addErrors($r->getErrors());
+					}
+					@unlink($path);
+				}
+			}
+			else if ($file["start"] <= 0)
+			{
+				$res = $result->getData();
+				if (($info = (new \Bitrix\Main\File\Image($file["tmp_name"]))->getInfo()))
+				{
+					$file["width"] = $info->getWidth();
+					$file["height"] = $info->getHeight();
+					$result->setData(array_merge($res, ["width" => $file["width"], "height" => $file["height"]]));
+				}
 			}
 		}
 		return $result;
@@ -311,51 +332,6 @@ class CloudStorage extends Storage implements Storable
 	 */
 	public function copyChunk($path, array $file)
 	{
-		$res = "";
-		if (substr($file["~type"], 0, 6) == "image/")
-		{
-			$result = parent::copyChunk($path, $file);
-
-			if ($result->isSuccess())
-			{
-				$file["chunks"][$file["chunkId"]] = "does not matter"; // if picture is already uploaded
-				if (count($file["chunks"]) == $file["count"])
-				{
-					parent::__destruct();
-					$file["type"] = $file["~type"];
-					$file["tmp_name"] = $path;
-					$file["size"] = filesize($path);
-					$img = \CFile::GetImageSize($file["tmp_name"]);
-					$file["width"] = $img[0];
-					$file["height"] = $img[1];
-
-					if ($bucket = $this->findBucket($file))
-					{
-						unset($file["count"]);
-						if (($r = $this->moveIntoCloud($bucket, $path, $file)) && $r->isSuccess())
-						{
-							$res = $r->getData();
-							$result->setData(array(
-								"size" => $file["size"],
-								"file_size" => $file["size"],
-								"tmp_name" => $res["tmp_name"],
-								"type" => $file["type"],
-								"width" => $file["width"],
-								"height" => $file["height"],
-								"bucketId" => $bucket->ID
-							));
-						}
-						else
-						{
-							$result->addError($r->getErrorCollection()->current());
-						}
-						@unlink($path);
-					}
-				}
-			}
-			return $result;
-		}
-
 		if ($bucket = $this->findBucket(array(
 			"name" => $file["~name"],
 			"size" => $file["~size"],

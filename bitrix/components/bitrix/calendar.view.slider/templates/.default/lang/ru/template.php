@@ -12,7 +12,7 @@ $MESS["EC_VIEW_SLIDER_COPY_LINK"] = "Скопировать ссылку на с
 $MESS["EC_VIEW_ATTENDEES_TITLE"] = "Участники";
 $MESS["EC_VIEW_ATTENDEES_ADD"] = "пригласить еще";
 $MESS["EC_VIEW_HOST"] = "Организатор";
-$MESS["EC_VIEW_CREATED_BY"] = "Создатель";
+$MESS["EC_VIEW_CREATED_BY"] = "Автор";
 $MESS["EC_VIEW_STATUS_TITLE_Y"] = "участвуют";
 $MESS["EC_VIEW_STATUS_TITLE_Q"] = "приглашены";
 $MESS["EC_VIEW_STATUS_TITLE_I"] = "возможно";
@@ -21,4 +21,5 @@ $MESS["EC_VIEW_REMINDERS"] = "Напоминание";
 $MESS["EC_VIEW_REMINDER_ADD"] = "Напомнить";
 $MESS["EC_VIEW_SECTION"] = "Календарь";
 $MESS["EC_VIEW_SLIDER_EVENT_NOT_FOUND"] = "Событие не найдено или не может быть показано.";
+$MESS["EC_VIEW_SLIDER_CHAT_LINK"] = "Чат с участниками";
 ?>

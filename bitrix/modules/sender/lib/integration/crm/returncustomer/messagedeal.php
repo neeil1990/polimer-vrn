@@ -8,11 +8,12 @@
 
 namespace Bitrix\Sender\Integration\Crm\ReturnCustomer;
 
+use Bitrix\Crm\Category\DealCategory;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Sender\Integration\Crm\Connectors\Helper;
 use Bitrix\Sender\Internals\PrettyDate;
 use Bitrix\Sender\Message;
 use Bitrix\Sender\PostingRecipientTable;
-use Bitrix\Crm\Category\DealCategory;
 
 /**
  * Class MessageDeal
@@ -49,13 +50,26 @@ class MessageDeal extends MessageBase
 					'menu' => array_map(
 						function ($item)
 						{
-							return [
+							return array(
 								'id' => '#' . $item['CODE'] . '#',
 								'text' => $item['NAME'],
 								'title' => $item['DESC'],
-							];
+								'items' => $item['ITEMS']?array_map(
+									function ($item)
+									{
+										return array(
+											'id' => '#' . $item['CODE'] . '#',
+											'text' => $item['NAME'],
+											'title' => $item['DESC']
+										);
+									}, $item['ITEMS']
+								) : []
+							);
 						},
-						PostingRecipientTable::getPersonalizeList()
+						array_merge(
+							Helper::getPersonalizeFieldsFromConnectors(),
+							PostingRecipientTable::getPersonalizeList()
+						)
 					),
 				],
 			],
@@ -81,6 +95,23 @@ class MessageDeal extends MessageBase
 				'hint' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_ALWAYS_ADD_HINT'),
 			],
 			[
+				'type' => Message\ConfigurationOption::TYPE_CHECKBOX,
+				'code' => 'FROM_PREVIOUS',
+				'name' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_CREATE_FROM_PREVIOUS'),
+				'required' => false,
+				'hint' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_CREATE_FROM_PREVIOUS_HINT'),
+			],
+			[
+				'type' => Message\ConfigurationOption::TYPE_NUMBER,
+				'code' => 'DEAL_DAYS_AGO',
+				'name' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_DEAL_DAYS_AGO'),
+				'required' => false,
+				'value'  => 1,
+				'min_value'  => 0,
+				'max_value'  => 366,
+				'hint' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_DEAL_DAYS_AGO_HINT'),
+			],
+			[
 				'type' => 'text',
 				'code' => 'COMMENT',
 				'name' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_COMMENT'),
@@ -92,6 +123,7 @@ class MessageDeal extends MessageBase
 				'code' => 'CATEGORY_ID',
 				'name' => Loc::getMessage('SENDER_INTEGRATION_CRM_RC_MESSAGE_CONFIG_DEAL_CATEGORY_ID'),
 				'required' => false,
+				'show_in_filter' => true,
 				'items' => array_merge(
 					array_map(
 						function ($category)

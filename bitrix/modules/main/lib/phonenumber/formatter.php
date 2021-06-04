@@ -170,7 +170,7 @@ class Formatter
 		{
 			foreach ($leadingDigits as $leadingDigitsSample)
 			{
-				$re = '/^' . $leadingDigitsSample . '/';
+				$re = '/' . $leadingDigitsSample . '/A';
 				if(preg_match($re, $phoneNumber, $matches))
 				{
 					return $matches;
@@ -179,7 +179,7 @@ class Formatter
 		}
 		else
 		{
-			$re = '/^' . $leadingDigits . '/';
+			$re = '/' . $leadingDigits . '/A';
 			if(preg_match($re, $phoneNumber, $matches))
 			{
 				return $matches;
@@ -303,13 +303,13 @@ class Formatter
 			return false;
 		}
 
-		if (strpos($phoneNumber, $nationalPrefix) === 0)
+		if (mb_strpos($phoneNumber, $nationalPrefix) === 0)
 		{
 			// Some Japanese numbers (e.g. 00777123) might be mistaken to contain the national prefix
 			// when written without it (e.g. 0777123) if we just do prefix matching. To tackle that, we
 			// check the validity of the number if the assumed national prefix is removed (777123 won't
 			// be valid in Japan).
-			$a = substr($phoneNumber, strlen($nationalPrefix));
+			$a = mb_substr($phoneNumber, mb_strlen($nationalPrefix));
 
 			return Parser::getInstance()->parse($a, $countryMetadata['id'])->isValid();
 		}

@@ -116,7 +116,7 @@ else
 		$arTable = $rsTables->Fetch();
 		if($arTable)
 		{
-			if(strlen($arTable["LAST_ID"]) <= 0)
+			if($arTable["LAST_ID"] == '')
 				$strError = CreateNodeTable($nodeDB1, $nodeDB2, $arTable["TABLE_NAME"]);
 
 			if($strError)
@@ -131,12 +131,12 @@ else
 			$di = 0;
 			$last_id = '';
 			$strInsert = "";
-			if(strlen($arTable["KEY_COLUMN"]) > 0)
+			if($arTable["KEY_COLUMN"] <> '')
 			{
 				$strSelect = "
 					SELECT *
 					FROM ".$arTable["TABLE_NAME"]."
-					".(strlen($arTable["LAST_ID"]) > 0? "WHERE ".$arTable["KEY_COLUMN"]." > '".$arTable["LAST_ID"]."'": "")."
+					".($arTable["LAST_ID"] <> ''? "WHERE ".$arTable["KEY_COLUMN"]." > '".$arTable["LAST_ID"]."'": "")."
 					ORDER BY ".$arTable["KEY_COLUMN"]."
 					LIMIT 1000
 				";
@@ -146,7 +146,7 @@ else
 				$strSelect = "
 					SELECT *
 					FROM ".$arTable["TABLE_NAME"]."
-					LIMIT ".(strlen($arTable["LAST_ID"]) > 0? $arTable["LAST_ID"].", ": "")."1000
+					LIMIT ".($arTable["LAST_ID"] <> ''? $arTable["LAST_ID"].", ": "")."1000
 				";
 			}
 			$rsSource = $nodeDB1->Query($strSelect, false, '', array("fixed_connection"=>true));
@@ -186,7 +186,7 @@ else
 				else
 					$last_id = $i;
 
-				if(strlen($strInsert) > 102400)
+				if(mb_strlen($strInsert) > 102400)
 				{
 					$nodeDB2->Query($strInsert, false, '', array("fixed_connection"=>true));
 					$strInsert = "";
@@ -202,30 +202,30 @@ else
 					break;
 			}
 
-			if(strlen($strInsert))
+			if($strInsert <> '')
 			{
-				$nodeDB2->Query($strInsert, false, '', array("fixed_connection"=>true));
+				$nodeDB2->Query($strInsert, false, '', array("fixed_connection" => true));
 			}
 
 			if($arSource)
 			{
 				$DB->Query("
 					UPDATE b_cluster_table
-					SET LAST_ID = ".(strlen($arTable["KEY_COLUMN"]) > 0?
+					SET LAST_ID = ".($arTable["KEY_COLUMN"] <> ''?
 							$arSource[$arTable["KEY_COLUMN"]]:
 							$i)."
 					,REC_COUNT = ".$i."
 					WHERE ID = '".$arTable["ID"]."'
 				", false, '', array("fixed_connection"=>true));
 			}
-			elseif(strlen($last_id))
+			elseif($last_id <> '')
 			{
 				$DB->Query("
 					UPDATE b_cluster_table
 					SET LAST_ID = ".$last_id."
 					,REC_COUNT = ".$i."
 					WHERE ID = '".$arTable["ID"]."'
-				", false, '', array("fixed_connection"=>true));
+				", false, '', array("fixed_connection" => true));
 			}
 			else
 			{

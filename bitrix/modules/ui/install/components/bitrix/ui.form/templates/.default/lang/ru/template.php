@@ -1,4 +1,3 @@
-<?
-$MESS["UI_FORM_BUTTON_SAVE"] = "Сохранить";
-$MESS["UI_FORM_BUTTON_CANCEL"] = "Отменить";
-?>
+<?php
+$MESS["UI_FORM_ENTITY_FIELD_ADD"] = "Добавить";
+$MESS["UI_FORM_ENTITY_FIELD_EMPTY"] = "не заполнено";

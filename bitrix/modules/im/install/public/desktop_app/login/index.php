@@ -3,8 +3,8 @@
  * @global CUser $USER
  * @global CMain $APPLICATION
  */
-use Bitrix\Main;
 use Bitrix\Main\Authentication\ApplicationPasswordTable as ApplicationPasswordTable;
+use Bitrix\Main\Context;
 
 if ($_SERVER["REQUEST_METHOD"] == "OPTIONS")
 {
@@ -14,9 +14,25 @@ if ($_SERVER["REQUEST_METHOD"] == "OPTIONS")
 	die('');
 }
 
+define("BX_SKIP_USER_LIMIT_CHECK", true);
 define("ADMIN_SECTION",false);
 require($_SERVER["DOCUMENT_ROOT"]."/desktop_app/headers.php");
+
+if (!defined("BX_FORCE_DISABLE_SEPARATED_SESSION_MODE"))
+{
+	if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('%Bitrix24.Disk/([0-9.]+)%i', $_SERVER['HTTP_USER_AGENT']))
+	{
+		define("BX_FORCE_DISABLE_SEPARATED_SESSION_MODE", true);
+	}
+}
+
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
+
+if (!CModule::IncludeModule('im'))
+{
+	sendResponse(["success" => false, "code" => "module_not_installed", "reason" => 'Im module is not installed'], "403 Forbidden");
+	exit;
+}
 
 if (!IsModuleInstalled('bitrix24'))
 {
@@ -25,8 +41,8 @@ if (!IsModuleInstalled('bitrix24'))
 
 if ($_POST['action'] != 'login')
 {
-	CHTTP::SetStatus("403 Forbidden");
-	die();
+	sendResponse(["success" => false, "code" => "method_not_permitted", "reason" => 'Method not permitted'], "403 Forbidden");
+	exit;
 }
 
 IncludeModuleLangFile($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/im/install/public/desktop_app/login/index.php");
@@ -64,72 +80,122 @@ if ($result !== true || !$USER->IsAuthorized())
 		$answer["needOtp"] = true;
 	}
 
-	CHTTP::SetStatus("401 Unauthorized");
-}
-else
-{
-	$answer = array(
-		"success" => true,
-		"sessionId" => session_id(),
-		"bitrixSessionId" => bitrix_sessid()
-	);
-
-	if(
-		($_POST['renew_password'] == 'y' || $_POST['otp'] <> '')
-		&& $USER->GetParam("APPLICATION_ID") === null
-	)
+	if ($result && $result["CODE"])
 	{
-		$code = '';
-		if (strlen($_POST['user_os_mark']) > 0)
+		if ($result["CODE"] === 'ERROR_NETWORK')
 		{
-			$code = md5($_POST['user_os_mark'].$_POST['user_account']);
-		}
+			$answer["code"] = "network_error";
+			sendResponse($answer, "521 Internal Bitrix24.Network error");
 
-		if ($code <> '')
-		{
-			$orm = ApplicationPasswordTable::getList(Array(
-				'select' => Array('ID'),
-				'filter' => Array(
-					'=USER_ID' => $USER->GetID(),
-					'=CODE' => $code
-				)
-			));
-			if($row = $orm->fetch())
+			if (!empty($_POST['LOGIN']))
 			{
-				ApplicationPasswordTable::delete($row['ID']);
+				$dbRes = CUser::GetList($by, $order, array("LOGIN_EQUAL_EXACT" => $_POST['LOGIN']), array('FIELDS' => array('ID')));
+				$arUser = $dbRes->fetch();
+				if ($arUser)
+				{
+					$user = new CUser;
+					$user->Update($arUser['ID'], ["LOGIN_ATTEMPTS" => 0]);
+				}
 			}
+
+			exit;
 		}
 
-		$password = ApplicationPasswordTable::generatePassword();
+		$answer["code"] = $result["CODE"];
+	}
 
-		$res = ApplicationPasswordTable::add(array(
-			'USER_ID' => $USER->GetID(),
-			'APPLICATION_ID' => 'desktop',
-			'PASSWORD' => $password,
-			'DATE_CREATE' => new Main\Type\DateTime(),
-			'CODE' => $code,
-			'COMMENT' => GetMessage('DESKTOP_APP_GENERATOR'),
-			'SYSCOMMENT' => GetMessage('DESKTOP_APP_TITE'),
+	sendResponse($answer, "401 Unauthorized");
+	exit;
+}
+
+if ($USER->IsAuthorized() && !isAccessAllowed())
+{
+	sendResponse(["success" => false, "code" => "blocked_type", "reason" => 'Access denied for this type of user'], "401 Unauthorized");
+	exit;
+}
+
+if (
+	\Bitrix\Main\Loader::includeModule('bitrix24') &&
+	mb_strpos(Context::getCurrent()->getRequest()->getUserAgent(), 'Bitrix24.Disk') !== false &&
+	\Bitrix\Bitrix24\Limits\User::isUserRestricted($USER->GetID())
+)
+{
+	header('Access-Control-Allow-Origin: *');
+	sendResponse(["success" => false, "code" => "restricted_access"], "401 Unauthorized");
+	exit;
+}
+
+$answer = array(
+	"success" => true,
+	"desktopRevision" => \Bitrix\Im\Revision::getDesktop(),
+	"userId" => $USER->GetID(),
+	"sessionId" => session_id(),
+	"bitrixSessionId" => bitrix_sessid()
+);
+
+if(
+	($_POST['renew_password'] == 'y' || $_POST['otp'] <> '')
+	&& $USER->GetParam("APPLICATION_ID") === null
+)
+{
+	$code = '';
+	if ($_POST['user_os_mark'] <> '')
+	{
+		$code = md5($_POST['user_os_mark'].$_POST['user_account']);
+	}
+
+	if ($code <> '')
+	{
+		$orm = ApplicationPasswordTable::getList(Array(
+			'select' => Array('ID'),
+			'filter' => Array(
+				'=USER_ID' => $USER->GetID(),
+				'=CODE' => $code
+			)
 		));
-		if($res->isSuccess())
+		if($row = $orm->fetch())
 		{
-			$answer["appPassword"] = $password;
+			ApplicationPasswordTable::delete($row['ID']);
 		}
+	}
+
+	$password = ApplicationPasswordTable::generatePassword();
+
+	$res = ApplicationPasswordTable::add(array(
+		'USER_ID' => $USER->GetID(),
+		'APPLICATION_ID' => 'desktop',
+		'PASSWORD' => $password,
+		'DATE_CREATE' => new \Bitrix\Main\Type\DateTime(),
+		'CODE' => $code,
+		'COMMENT' => GetMessage('DESKTOP_APP_GENERATOR'),
+		'SYSCOMMENT' => GetMessage('DESKTOP_APP_TITE'),
+	));
+	if($res->isSuccess())
+	{
+		$answer["appPassword"] = $password;
 	}
 }
 
-if (isset($_REQUEST['json']) && $_REQUEST['json'] == 'y')
-{
-	header('Content-Type: application/json');
-	echo Main\Web\Json::encode($answer);
-}
-else
-{
-	echo toJsObject($answer);
-}
+sendResponse($answer);
 
-function toJsObject(array $answer)
+
+
+
+
+// helper function
+function sendResponse(array $answer, string $httpCode = '200 OK')
 {
+	\CHTTP::SetStatus($httpCode);
+
+	if (isset($_REQUEST['json']) && $_REQUEST['json'] == 'y')
+	{
+		header('Content-Type: application/json');
+		echo \Bitrix\Main\Web\Json::encode($answer);
+
+		\Bitrix\Main\Application::getInstance()->end();
+		return true;
+	}
+
 	$answerParts = array();
 	foreach($answer as $attr => $value)
 	{
@@ -146,8 +212,39 @@ function toJsObject(array $answer)
 				break;
 		}
 
-		$answerParts[] = $attr.": ".$value;	
+		$answerParts[] = $attr.": ".$value;
 	}
 
-	return "{".implode(", ", $answerParts)."}";
+	echo "{".implode(", ", $answerParts)."}";
+
+	\Bitrix\Main\Application::getInstance()->end();
+
+	return true;
+}
+
+function isAccessAllowed()
+{
+	global $USER;
+
+	if ($USER->IsAdmin())
+	{
+		return true;
+	}
+
+	if (!\Bitrix\Main\Loader::includeModule('intranet'))
+	{
+		return true;
+	}
+
+	if (\Bitrix\Intranet\Util::isIntranetUser())
+	{
+		return true;
+	}
+
+	if (\Bitrix\Intranet\Util::isExtranetUser())
+	{
+		return true;
+	}
+
+	return false;
 }

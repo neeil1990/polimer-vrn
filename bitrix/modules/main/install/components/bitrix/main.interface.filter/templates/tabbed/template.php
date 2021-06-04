@@ -1,7 +1,11 @@
 <?php
 if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)die();
 
-CJSCore::Init(array('popup', 'date'));
+\Bitrix\Main\UI\Extension::load([
+    'popup',
+    'date',
+    'main.parambag',
+]);
 
 $presets = isset($arParams['~FILTER_PRESETS']) ? $arParams['~FILTER_PRESETS'] : array();
 $savedItems = isset($arResult['OPTIONS'])
@@ -33,7 +37,7 @@ $infos = array();
 $visibilityMap = isset($arResult['FILTER_ROWS']) ? $arResult['FILTER_ROWS'] : array();
 
 $gridID = $arParams['GRID_ID'];
-$gridIDLc = strtolower($gridID);
+$gridIDLc = mb_strtolower($gridID);
 $filterID = "{$gridID}_FILTER";
 $formName = "filter_{$gridID}";
 $containerID = "flt_wrapper_{$gridIDLc}";
@@ -96,7 +100,7 @@ foreach($visibilityMap as $fieldVisibility)
 	}
 }
 
-$options = CUserOptions::GetOption('main.interface.grid.filter', strtolower($filterID));
+$options = CUserOptions::GetOption('main.interface.grid.filter', mb_strtolower($filterID));
 if(!$options)
 {
 	$options = array(
@@ -174,7 +178,7 @@ if(!function_exists('__InterfaceFilterRenderField'))
 					$enableWrapper = isset($field["enableWrapper"]) ? $field["enableWrapper"] : true;
 
 					if($enableWrapper):
-						$wrapperClass = strpos($fieldID, 'UF_') === 0 ? 'bx-user-field-wrap' : 'bx-input-wrap';
+						$wrapperClass = mb_strpos($fieldID, 'UF_') === 0 ? 'bx-user-field-wrap' : 'bx-input-wrap';
 						echo '<div class="', $wrapperClass, '">';
 					endif;
 
@@ -403,7 +407,7 @@ endforeach;
 					foreach($navigationBarItems as &$barItem):
 						$barItemQty++;
 						$barItemID = isset($barItem['id']) ? $barItem['id'] : $barItemQty;
-						$barItemElementID = strtolower("{$gridID}_{$barItemID}");
+						$barItemElementID = mb_strtolower("{$gridID}_{$barItemID}");
 						$barItemUrl = isset($barItem['url']) ? $barItem['url'] : '';
 
 						$barItemConfig = array('id' => $barItemID, 'buttonId' => $barItemElementID, 'url' => $barItemUrl);

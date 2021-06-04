@@ -385,7 +385,7 @@
 						this.timezoneOffsetLabel = response.data.timezoneOffsetLabel;
 					}
 
-					if (response.data.workTimeStart && response.data.workTimeEnd)
+					if (response.data.workTimeStart !== undefined && response.data.workTimeEnd !== undefined)
 					{
 						this.timeFrom = parseInt(response.data.workTimeStart);
 						this.timeTo = parseInt(response.data.workTimeEnd);
@@ -767,7 +767,8 @@
 		displayResourcesControl: function()
 		{
 			var
-				valueIndex = {}, dataValue = [],
+				valueIndex = {},
+				dataValue = [],
 				fieldParams = this.getFieldParams(),
 				settingsData = this.getSettingsData();
 
@@ -786,6 +787,7 @@
 				var resourceList = [];
 				fieldParams.SELECTED_RESOURCES.forEach(function(res)
 				{
+					res.id = parseInt(res.id);
 					if (valueIndex[res.id])
 					{
 						resourceList.push(res);
@@ -1176,10 +1178,17 @@
 						i, j, time,
 						settingsData = this.getSettingsData(),
 						slotGap = 1,
+						todayNowTime = 0,
 						timeSlots = this.getTimeSlots(),
 						dateKey = BX.date.format(this.DATE_FORMAT, params.date),
 						loadedDate = this.loadedDates[this.loadedDatesIndex[dateKey]],
 						slotsAmount = Math.ceil(this.getCurrentDuration() / this.scale);
+
+					if (this.checkIsTodayDate(dateKey))
+					{
+						var today = new Date();
+						todayNowTime = today.getHours() * 60 + today.getMinutes();
+					}
 
 					// Prefill slotIndex
 					timeSlots.forEach(function(slot){slotIndex[slot.time] = true;}, this);
@@ -1191,8 +1200,14 @@
 						for (i = timeSlots.length; i--; i >= 0)
 						{
 							time = timeSlots[i].time;
-
 							freeSlot = false;
+
+							if (todayNowTime && time < todayNowTime)
+							{
+								slotIndex[time] = false;
+								continue;
+							}
+
 							for (j = 0; j < userList.length; j++)
 							{
 								if (!loadedDate.slots[time]
@@ -1216,6 +1231,13 @@
 						{
 							time = timeSlots[i].time;
 							freeSlot = false;
+
+							if (todayNowTime && time < todayNowTime)
+							{
+								slotIndex[time] = false;
+								continue;
+							}
+
 							for (j = 0; j < resList.length; j++)
 							{
 								if (!loadedDate.slots[time]
@@ -1248,7 +1270,7 @@
 		{
 			var
 				dateKey, loadedDate, i, j, time,
-				todayNowTime = false,
+				todayNowTime = 0,
 				slotGap,
 				userKey = params.user ? 'user' + params.user : null,
 				slotsAmount = Math.ceil(params.duration / this.scale),
@@ -1275,9 +1297,9 @@
 				for (i = timeSlots.length; i--; i >= 0)
 				{
 					time = timeSlots[i].time;
-					if (todayNowTime)
+					if (todayNowTime && time < todayNowTime)
 					{
-						slotIndex[time] = time >= todayNowTime;
+						slotIndex[time] = false;
 						continue;
 					}
 
@@ -1302,6 +1324,7 @@
 							for (j = 0; j < params.resources.length; j++)
 							{
 								resourcesAreFree = resourcesAreFree && (!loadedDate.slots[time] || !loadedDate.slots[time]['resource' + params.resources[j]]);
+
 								if (!resourcesAreFree)
 								{
 									break;

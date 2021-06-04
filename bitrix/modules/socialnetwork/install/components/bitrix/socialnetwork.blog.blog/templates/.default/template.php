@@ -1,5 +1,11 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+
+use Bitrix\Main\UI;
+
 $APPLICATION->AddHeadScript("/bitrix/components/bitrix/socialnetwork.log.ex/templates/.default/script.js");
+UI\Extension::load([
+	'socialnetwork.livefeed'
+]);
 
 ?><script>
 	BX.message({
@@ -65,7 +71,10 @@ if(!empty($arResult["ERROR_MESSAGE"]))
 	<?
 }
 
-if(count($arResult["POST"])>0)
+if(
+	is_array($arResult["POST"])
+	&& !empty($arResult["POST"])
+)
 {
 	foreach($arResult["POST"] as $ind => $CurPost)
 	{
@@ -122,10 +131,14 @@ if(count($arResult["POST"])>0)
 		?>
 		<?
 	}
-	if(strlen($arResult["NAV_STRING"])>0)
+	if($arResult["NAV_STRING"] <> '')
+	{
 		echo $arResult["NAV_STRING"];
+	}
 }
 else
+{
 	echo GetMessage("BLOG_BLOG_BLOG_NO_AVAIBLE_MES");
-?>	
-</div>
+}
+
+?></div>

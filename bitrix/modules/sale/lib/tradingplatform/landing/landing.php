@@ -61,7 +61,7 @@ class Landing extends Sale\TradingPlatform\Platform
 	 */
 	protected function getSiteId()
 	{
-		return (int)substr($this->getCode(), strrpos($this->getCode(), '_') + 1);
+		return (int)mb_substr($this->getCode(), mb_strrpos($this->getCode(), '_') + 1);
 	}
 
 	/**
@@ -239,6 +239,38 @@ class Landing extends Sale\TradingPlatform\Platform
 		return $this->site;
 	}
 
+	public function getAnalyticCode()
+	{
+		$data = $this->getInfo();
+		if (!isset($data['XML_ID']) || !$data['XML_ID'])
+		{
+			return parent::getAnalyticCode();
+		}
+
+		if (mb_strpos($data['XML_ID'], 'clothes') !== false)
+		{
+			return 'clothes';
+		}
+		elseif (mb_strpos($data['XML_ID'], 'instagram') !== false)
+		{
+			return 'instagram';
+		}
+		elseif (mb_strpos($data['XML_ID'], 'chats') !== false)
+		{
+			return 'chats';
+		}
+		elseif (mb_strpos($data['XML_ID'], 'mini-one-element') !== false)
+		{
+			return 'mini-one-element';
+		}
+		elseif (mb_strpos($data['XML_ID'], 'mini-catalog') !== false)
+		{
+			return 'mini-catalog';
+		}
+
+		return $data['XML_ID'];
+	}
+
 	/**
 	 * @param $type
 	 * @param Sale\Order $order
@@ -252,25 +284,13 @@ class Landing extends Sale\TradingPlatform\Platform
 		{
 			if (Loader::includeModule('landing'))
 			{
-				$sysPages = \Bitrix\Landing\Syspage::get($this->getSiteId());
-				if (isset($sysPages['personal']))
-				{
-					$landing = \Bitrix\Landing\Landing::createInstance(
-						$sysPages['personal']['LANDING_ID'],
-						[
-							'blocks_limit' => 1
-						]
-					);
-					if ($landing->exist())
-					{
-						$url = $landing->getPublicUrl(
-							$sysPages['personal']['LANDING_ID']
-						);
-						$url .= '?SECTION=orders&ID=' . $order->getId();
+				$url = \Bitrix\Landing\Syspage::getSpecialPage(
+					$this->getSiteId(),
+					'personal',
+					['SECTION' => 'orders', 'ID' => $order->getId()]
+				);
 
-						return \Bitrix\Main\Engine\UrlManager::getInstance()->getHostUrl().$url;
-					}
-				}
+				return $url;
 			}
 
 			return '';

@@ -113,7 +113,7 @@
 					{
 						response = response.data;
 						var id = (response["attachId"] || response["id"]), iconUrl = "blank";
-						if (BX.util.in_array(fileObj.ext, ["jpg", "bmp", "jpeg", "jpe", "gif", "png"]))
+						if (BX.util.in_array(fileObj.ext, ["jpg", "bmp", "jpeg", "jpe", "gif", "png", "webp"]))
 							iconUrl = "img";
 						else if (BX.util.in_array(fileObj.ext, ["doc", "pdf", "ppt", "rar", "xls", "zip"]))
 							iconUrl = fileObj.ext;
@@ -150,12 +150,12 @@
 						{
 							id = UF["VALUE"][ii];
 							node = BX(this.prefixHTMLNode + id);
-							name = (node.getAttribute("data-bx-title") || "noname");
+							name = (node && node.getAttribute("data-bx-title") || "noname");
 							ext = (name.lastIndexOf('.') > 0 ? name.substr(name.lastIndexOf('.') + 1).toLowerCase() : "");
 							iconUrl = "blank";
 							tempId = getId();
 
-							if (BX.util.in_array(ext, ["jpg", "bmp", "jpeg", "jpe", "gif", "png"]))
+							if (BX.util.in_array(ext, ["jpg", "bmp", "jpeg", "jpe", "gif", "png", "webp"]))
 								iconUrl = "img";
 							else if (BX.util.in_array(ext, ["doc", "pdf", "ppt", "rar", "xls", "zip"]))
 								iconUrl = ext;
@@ -199,7 +199,7 @@
 									}
 									else if (
 										files.length == 1
-										&& BX.util.in_array(file.type, ['gif','jpg','jpeg','png','jpe','bmp'])
+										&& BX.util.in_array(file.type, ['gif','jpg','jpeg','png','jpe','bmp','webp'])
 									) // only one image in the attachment
 									{
 										text += "\n[DISK FILE ID=" + (file.fieldValue ? file.fieldValue : "n" + file.fileId) + "]";
@@ -388,16 +388,6 @@
 						this.clear(this.queue[ii]);
 
 					BX.onCustomEvent(this, "onUploadError", [BX.message("MPFFileWasNotUploaded")]);
-				},
-				hasSmthToUpload : function() {
-					for (var ii in this.queue)
-					{
-						if (this.queue.hasOwnProperty(ii))
-						{
-							return true;
-						}
-					}
-					return false;
 				}
 			};
 			return d;
@@ -457,12 +447,29 @@
 						}
 					}
 				},
-				init : function(text) {
+				init : function(text, params) {
 					text = (text || '');
 
 					this.params.text = text;
-					//window.BXMobileApp.UI.Page.TextPanel.show(this.params);
-					window.BX.MobileUI.TextField.show(this.params);
+					if (
+						BX.type.isNotEmptyObject(params)
+						&& params.hideForm
+						&& typeof window.BX.MobileUI.TextField["setDefaultParams"] == "function"
+					)
+					{
+						window.BX.MobileUI.TextField.setDefaultParams(this.params);
+					}
+					else
+					{
+						window.BX.MobileUI.TextField.show(this.params);
+						if (
+							!BX.type.isNotEmptyObject(params)
+							|| !params.clear
+						)
+						{
+							BX.onCustomEvent('main.post.form/mobile_simple', []);
+						}
+					}
 
 					if (BX.type.isNotEmptyString(text))
 					{
@@ -524,7 +531,20 @@
 				this.formSettings = {
 					attachButton : { items : this.initFiles(params["CID"]) },
 					attachFileSettings: {
-						resize: [40, 1, 1, 1000, 1000, 0, 0, false, true, false, null, 0],
+						resize: [
+							40,
+							1,
+							1,
+							1000,
+							1000,
+							0,
+							2, // mediatype
+							false,
+							true,
+							false,
+							null,
+							0
+						],
 						sendLocalFileMethod: "base64",
 						saveToPhotoAlbum: true
 					},
@@ -538,7 +558,7 @@
 							cancelname: BX.message("MPFButtonCancel"),
 							multiple: "NO",
 							alphabet_index: "YES",
-							url: BX.message('MobileSiteDir') + 'mobile/index.php?mobile_action=get_user_list'
+							url: BX.message('MobileSiteDir') + 'mobile/index.php?mobile_action=get_user_list&use_name_format=Y'
 						}
 					},
 					smileButton: {},
@@ -627,12 +647,18 @@
 					BX.onCustomEvent(this, "onFormSubmitted", [data.text, data.attachedFiles, data.extraData]);
 				},
 				cancelExtendedForm : function() {
+					BX.onCustomEvent(this, "onCancelComment", []); // Service event for controllers
 					this.stopCheckWriting();
 				},
 				show : function(text, attachments) {
+
+					var textArea = document.createElement('textarea');
+					textArea.innerHTML = text;
 					this.formSettings.message = {
-						text: text
+						text: textArea.value
 					};
+					textArea.remove();
+
 					this.formSettings.attachedFiles = [];
 					this.formSettings.extraData = {};
 					if (attachments)
@@ -685,6 +711,7 @@
 				throw this.errors["error01"];
 
 			this.id = this.form.id;
+			this.forumContext = params.forumContext || '';
 
 			BX.hide(this.form);
 			document.body.appendChild(this.form);
@@ -705,6 +732,7 @@
 			this.simpleForm = new simpleForm(this);
 			this.extendedForm = new extendedForm(this, params);
 			this.currentForm = null;
+			this.uniqueId = BX.util.getRandomString(8);
 
 			repo[this.id] = this;
 
@@ -726,6 +754,7 @@
 				//BX.addCustomEvent(this.simpleForm, 'onFileSubmitted', BX.delegate(this.submitBase64, this));
 				BX.addCustomEvent(this.simpleForm, 'onUserIsWriting', BX.delegate(this.writing, this));
 				BX.addCustomEvent(this.extendedForm, 'onFormSubmitted', BX.delegate(this.submitExtended, this));
+				BX.addCustomEvent(this.extendedForm, 'onCancelComment', this.cancel.bind(this));
 			},
 			initControllers : function(controllers) {
 				if (controllers || typeof controllers == "object")
@@ -764,11 +793,13 @@
 			setForm : function(extended) {
 				this.currentForm = (extended === true ? this.extendedForm : this.simpleForm);
 			},
-			init : function(comment) {
-
+			init : function(comment, params) {
 				this.comment = comment;
 				this.setForm(false);
-				this.simpleForm.init(comment.text);
+				this.simpleForm.init(comment.text, {
+					hideForm: (BX.type.isNotEmptyString(this.forumContext) && this.forumContext.toLowerCase() == 'task'),
+					clear: (BX.type.isNotEmptyObject(params) && BX.type.isBoolean(params.clear) && params.clear)
+				});
 			},
 			show : function(comment, edit) {
 				BX.onCustomEvent(this, "onShow", [this, comment]);
@@ -829,37 +860,33 @@
 					}
 				}
 
-				BX.onCustomEvent(this.comment, "onStart", [this.comment, text, attachments]);
-				var queue = new uploadQueue();
-				BX.onCustomEvent(this, 'onExtendedCheckUpload', [attachments, queue]); // Let controllers to check and prepare arrays to upload
+				var attachmentsData = {
+					attachments: attachments,
+					uploadTasks: [],
+					taskIdList: []
+				};
 
-				var callBack = BX.proxy(function(){
-					var data = {text : text};
-					BX.onCustomEvent(this, 'onExtendedCheckData', [data, attachments]);
-					if (BX.type.isNotEmptyString(data.text))
-						this.submit(data.text, attachments);
-					else
-						this.cancel();
-				}, this);
+				this.processAttachments(attachmentsData).then(function() {
 
-				if (queue.hasSmthToUpload())
-				{
 					this.setForm(false);
 					this.clear();
+					this.comment.text = text;
+					this.text.value = this.comment.getText();
+					this.comment.attachments = attachments;
+					this.comment.extraData = extraData;
+					BXMobileApp.onCustomEvent('Comments.UploadQueue::setItem', {
+						commentVirtualId: attachmentsData.commentVirtualId,
+						formId: this.form.id,
+						formUniqueId: this.uniqueId,
+						entityId: this.comment.id[0],
+						text: text,
+						attachments: BX.type.isArray(attachmentsData.attachments) ? attachmentsData.attachments : [],
+						taskIdList: BX.type.isArray(attachmentsData.taskIdList) ? attachmentsData.taskIdList : [],
+						extraData: typeof extraData != 'undefined' ? extraData : {}
+					}, true);
+				}.bind(this));
 
-					BX.addCustomEvent(queue, "onUploadOk", callBack);
-					BX.addCustomEvent(queue, "onUploadError", BX.proxy(function(){
-						this.comment.text = text;
-						this.comment.attachments = attachments;
-						this.comment.extraData = extraData;
-						this.error();
-					}, this));
-					queue.start(); // Start uploading
-				}
-				else
-				{
-					callBack();
-				}
+				BX.onCustomEvent(this.comment, "onStart", [this.comment, text, attachments]);
 			},
 			cancel : function() {
 				this.setForm(false);
@@ -870,6 +897,23 @@
 				this.setForm(false);
 				this.clear();
 				BX.onCustomEvent(this.comment, "onError", [this.comment, error]);
+			},
+			addComment : function(commentData) {
+				var
+					data = {text : commentData.text},
+					attachments = commentData.attachments;
+
+				var queue = new uploadQueue();
+				BX.onCustomEvent(this, 'onExtendedCheckUpload', [attachments, queue]); // Let controllers to check and prepare arrays to upload
+
+				BX.onCustomEvent(this, 'onExtendedCheckData', [data, attachments]);
+				if (BX.type.isNotEmptyString(data.text))
+					this.submit(data.text, attachments);
+				else
+					this.cancel();
+			},
+			addError : function(commentData, errorText) {
+				this.cancel();
 			},
 			submit : function(text, attachments, extraData) {
 				this.setForm(false);
@@ -891,20 +935,132 @@
 			closeWait : function() {
 				if (this.currentForm !== null)
 					this.currentForm.closeWait();
+			},
+			processAttachments : function(attachmentsData) {
+
+				var promise = new Promise(function(resolve, reject)
+				{
+					attachmentsData.commentVirtualId = parseInt(Math.random() * 100000);
+
+					if (
+						BX.type.isNotEmptyObject(attachmentsData)
+						&& BX.type.isArray(attachmentsData.attachments)
+						&& attachmentsData.attachments.length > 0
+					)
+					{
+						var
+							taskId = null,
+							fileData = null,
+							mimeType = null;
+
+						for (var i = 0; i < attachmentsData.attachments.length; i++)
+						{
+							fileData = attachmentsData.attachments[i];
+
+							if (
+								fileData
+								&& fileData.url
+								&& fileData.url.match(/^file:\/\//)
+							)
+							{
+								taskId = 'commentTask_' + parseInt(Math.random() * 100000);
+								mimeType = BX.MobileUtils.getFileMimeType(fileData.type);
+
+								attachmentsData.uploadTasks.push({
+									taskId: taskId,
+									type: fileData.type,
+									mimeType: mimeType,
+									folderId: parseInt(BX.message('MOBILE_EXT_UTILS_USER_FOLDER_FOR_SAVED_FILES')),
+//									chunk: parseInt(BX.message('MOBILE_EXT_UTILS_MAX_UPLOAD_CHUNK_SIZE')),
+									params: {
+										commentVirtualId: attachmentsData.commentVirtualId
+									},
+									name: (typeof BX.MobileUtils.getUploadFilename === 'function' ? BX.MobileUtils.getUploadFilename(fileData.name, fileData.type) : fileData.name),
+									url: fileData.url,
+									previewUrl: (fileData.previewUrl ? fileData.previewUrl : null),
+									resize: BX.MobileUtils.getResizeOptions(fileData.type)
+								});
+								attachmentsData.taskIdList.push(taskId);
+
+								delete attachmentsData.attachments[i];
+							}
+						}
+						attachmentsData.attachments = attachmentsData.attachments.filter(function(value) {return value});
+
+						if (attachmentsData.uploadTasks.length > 0)
+						{
+							BXMobileApp.onCustomEvent('onFileUploadTaskReceived', {
+								files: attachmentsData.uploadTasks
+							}, true);
+						}
+						resolve();
+					}
+					else
+					{
+						resolve();
+					}
+				}.bind(this));
+
+				promise.catch(function(error){console.error(error)});
+
+				return promise;
 			}
 		};
 		return d;
 	})();
 	BX.MPF.createInstance = function(params)
 	{
-		if (!repo[params["ID"]])
+		if (!repo[params["formId"]])
 			new BX.MPF(params);
-		return repo[params["ID"]];
+		return repo[params["formId"]];
 	};
 	BX.MPF.getInstance = function(id)
 	{
 		return repo[id];
 	};
+	BX.MPF.onUploadQueueReady = function(params)
+	{
+		var formInstance = null;
+
+		for (var id in repo)
+		{
+			if (id == params.formId)
+			{
+				formInstance = BX.MPF.getInstance(params.formId);
+				if (
+					formInstance
+					&& formInstance.uniqueId
+					&& params.formUniqueId
+					&& formInstance.uniqueId == params.formUniqueId
+					&& formInstance.comment.id[0] == params.entityId
+				)
+				{
+					formInstance.addComment(params.commentData);
+					break;
+				}
+			}
+		}
+	};
+	BX.MPF.onUploadQueueError = function(params)
+	{
+		var formInstance = null;
+
+		for (var id in repo)
+		{
+			if (id == params.formId)
+			{
+				formInstance = BX.MPF.getInstance(params.formId);
+				if (formInstance.comment.id[0] == params.entityId)
+				{
+					formInstance.addError(params.commentData, params.errorText);
+					break;
+				}
+			}
+		}
+	};
 
 	BX.onCustomEvent(window, "main.post.form/mobile", ["mobile"]);
+
+	BXMobileApp.addCustomEvent('Comments.UploadQueue::ready', BX.MPF.onUploadQueueReady);
+	BXMobileApp.addCustomEvent('Comments.UploadQueue::error', BX.MPF.onUploadQueueError);
 })();

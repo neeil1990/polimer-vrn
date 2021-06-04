@@ -15,9 +15,9 @@ if($arID = $lAdmin->GroupAction())
 {
 	foreach($arID as $ID)
 	{
-		if(strlen($ID)<=0)
+		if($ID == '')
 			continue;
-		$ID = IntVal($ID);
+		$ID = intval($ID);
 		switch($_REQUEST['action'])
 		{
 		case "delete":

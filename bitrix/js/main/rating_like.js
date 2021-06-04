@@ -60,6 +60,7 @@ RatingLike = function(likeId, entityTypeId, entityId, available, userId, localiz
 	this.mouseOverHandler = null;
 	this.version = (BXRL.render && this.topPanel ? 2 : 1);
 	this.mouseInShowPopupNode = {};
+	this.listXHR = null;
 
 	if (typeof lastVoteRepo[key] != 'undefined')
 	{
@@ -129,6 +130,7 @@ RatingLike.Draw = function(likeId, params)
 			&& BX.type.isPlainObject(usersData)
 		)
 		{
+			usersData.TOP = Object.values(usersData.TOP);
 			var recalcNeeded = (usersData.TOP.length < 2);
 
 			for(var k in usersData.TOP)
@@ -397,6 +399,10 @@ RatingLike.ClickVote = function(likeId, userReaction, forceAdd)
 		BXRL[likeId].countText.innerHTML = parseInt(BXRL[likeId].countText.innerHTML)-1;
 		BX.removeClass(BXRL[likeId].template == 'standart'? this: BXRL[likeId].count, 'bx-you-like');
 		BX.removeClass(BXRL[likeId].button, 'bx-you-like-button');
+		if (userReaction)
+		{
+			BX.removeClass(BXRL[likeId].button, 'bx-you-like-button-' + userReaction);
+		}
 
 		BXRL[likeId].likeTimeout = setTimeout(function() {
 			if (BXRL[likeId].lastVote != 'cancel')
@@ -418,6 +424,12 @@ RatingLike.ClickVote = function(likeId, userReaction, forceAdd)
 
 		if (userReaction != userReactionOld)
 		{
+			if (userReactionOld)
+			{
+				BX.removeClass(BXRL[likeId].button, 'bx-you-like-button-' + userReactionOld);
+			}
+			BX.addClass(BXRL[likeId].button, 'bx-you-like-button-' + userReaction);
+
 			BXRL[likeId].likeTimeout = setTimeout(function(){
 				RatingLike.Vote(likeId, 'change', userReaction, userReactionOld);
 			}, 1000);
@@ -428,7 +440,9 @@ RatingLike.ClickVote = function(likeId, userReaction, forceAdd)
 		BXRL[likeId].buttonText.innerHTML = BXRL[likeId].localize['LIKE_Y'];
 		BXRL[likeId].countText.innerHTML = parseInt(BXRL[likeId].countText.innerHTML) + 1;
 		BX.addClass(BXRL[likeId].template == 'standart'? this: BXRL[likeId].count, 'bx-you-like');
+
 		BX.addClass(BXRL[likeId].button, 'bx-you-like-button');
+		BX.addClass(BXRL[likeId].button, 'bx-you-like-button-' + userReaction);
 
 		BXRL[likeId].likeTimeout = setTimeout(function(){
 			if (BXRL[likeId].lastVote != 'plus')
@@ -480,6 +494,8 @@ RatingLike.ClickVote = function(likeId, userReaction, forceAdd)
 
 		if (dataUsers)
 		{
+			dataUsers.TOP = Object.values(dataUsers.TOP);
+
 			BXRL[likeId].topUsersText.innerHTML = BXRL.render.getTopUsersText({
 				you: !active,
 				top: dataUsers.TOP,
@@ -1203,6 +1219,8 @@ RatingLike.Vote = function(likeId, voteAction, voteReaction, voteReactionOld)
 			&& BXRL[likeId].version == 2
 		)
 		{
+			dataUsers.TOP = Object.values(dataUsers.TOP);
+
 			BXRL[likeId].topUsersText.innerHTML = BXRL.render.getTopUsersText({
 				you: (voteAction == 'cancel'), // negative
 				top: dataUsers.TOP,
@@ -1245,7 +1263,12 @@ RatingLike.List = function(likeId, page, reaction, clear)
 		});
 	}
 
-	BX.ajax({
+	if (BXRL[likeId].listXHR)
+	{
+		BXRL[likeId].listXHR.abort();
+	}
+
+	BXRL[likeId].listXHR = BX.ajax({
 		url: BXRL[likeId].pathToAjax,
 		method: 'POST',
 		dataType: 'json',
@@ -1260,6 +1283,11 @@ RatingLike.List = function(likeId, page, reaction, clear)
 		},
 		onsuccess: function(data)
 		{
+			if (!data)
+			{
+				return false;
+			}
+
 			BXRL[likeId].countText.innerHTML = data.items_all;
 
 			if (parseInt(data.items_page) == 0)

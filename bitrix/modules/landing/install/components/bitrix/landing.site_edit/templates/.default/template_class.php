@@ -1,6 +1,9 @@
 <?php
 namespace Bitrix\Landing\Components\LandingEdit;
 
+use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Landing\Restriction;
+
 class Template
 {
 	/**
@@ -25,7 +28,7 @@ class Template
 	 */
 	public function showSimple($code)
 	{
-		$code = strtoupper($code);
+		$code = mb_strtoupper($code);
 		$hooks = isset($this->result['HOOKS'])
 					? $this->result['HOOKS']
 					: array();
@@ -39,9 +42,10 @@ class Template
 				// use-checkbox
 				if (isset($pageFields[$code . '_USE']))
 				{
+					$type = $pageFields[$code . '_USE']->getType();
 					$pageFields[$code . '_USE']->viewForm(array(
-						'class' => 'ui-checkbox',
-						'id' => 'checkbox-' . strtolower($code) . '-use',
+					  	'class' => self::getCssByType($type),
+						'id' => 'checkbox-'.mb_strtolower($code) . '-use',
 						'name_format' => 'fields[ADDITIONAL_FIELDS][#field_code#]'
 					));
 				}
@@ -52,10 +56,17 @@ class Template
 				if (isset($pageFields[$code . '_USE']))
 				{
 					?>
-						<label class="ui-checkbox-label" for="<?= 'checkbox-' . strtolower($code) . '-use';?>">
+						<label class="ui-checkbox-label" for="<?= 'checkbox-'.mb_strtolower($code) . '-use';?>">
 							<?= $pageFields[$code . '_USE']->getLabel();?>
 						</label>
 					<?
+					if ($hooks[$code]->isLocked())
+					{
+						echo Restriction\Manager::getLockIcon(
+							Restriction\Hook::getRestrictionCodeByHookCode($code),
+							['checkbox-' . mb_strtolower($code) . '-use']
+						);
+					}
 					unset($pageFields[$code . '_USE']);
 				}
 
@@ -63,21 +74,21 @@ class Template
 				foreach ($pageFields as $key => $field)
 				{
 					$type = $field->getType();
-					echo '<div class="ui-checkbox-hidden-input-metrika">';
+					echo '<div class="ui-checkbox-hidden-input-hook">';
 					echo $field->viewForm(array(
-						'id' => 'field-' . strtolower($key) . '-use',
-						'class' => ($type == 'checkbox') ? 'ui-checkbox' : 'ui-input',
+						'id' => 'field-'.mb_strtolower($key) . '-use',
+						'class' => self::getCssByType($type),
 						'name_format' => 'fields[ADDITIONAL_FIELDS][#field_code#]'
 					));
-					if ($help  = $field->getHelpValue())
-					{
-						echo $help;
-					}
 					if ($type == 'checkbox')
 					{
-						echo '<label for="field-' . strtolower($key) . '-use">' .
+						echo '<label for="field-'.mb_strtolower($key) . '-use">' .
 								$field->getLabel() .
 							'</label>';
+					}
+					if ($help  = $field->getHelpValue())
+					{
+						echo '<div class="ui-checkbox-hidden-input-hook-help">' . $help . '</div>';
 					}
 					echo '</div>';
 				}
@@ -85,6 +96,83 @@ class Template
 				?></div><?
 
 			?></div><?
+		}
+	}
+
+	public function showMultiply(string $code, bool $alwaysOpen = false): void
+	{
+		$code = strtoupper($code);
+		$hooks = isset($this->result['HOOKS'])
+			? $this->result['HOOKS']
+			: array();
+
+		if (isset($hooks[$code]))
+		{
+			$pageFields = $hooks[$code]->getPageFields();
+			?>
+
+			<div class="ui-checkbox-hidden-input">
+
+				<?php
+				// use-checkbox
+				if (isset($pageFields[$code . '_USE']))
+				{
+					if($alwaysOpen)
+					{
+						echo '<input type="hidden" name="fields[ADDITIONAL_FIELDS]['. $code . '_USE]" value="Y"/>';
+					}
+					else
+					{
+						$type = $pageFields[$code . '_USE']->getType();
+						$pageFields[$code . '_USE']->viewForm([
+							'class' => self::getCssByType($type),
+							'id' => 'checkbox-' . strtolower($code) . '-use',
+							'name_format' => 'fields[ADDITIONAL_FIELDS][#field_code#]'
+						]);
+					}
+				}
+				?>
+
+				<div class="ui-checkbox-hidden-input-inner <?=($alwaysOpen ? 'opened' : '')?>">
+
+					<?php
+					if (isset($pageFields[$code . '_USE']))
+					{ ?>
+						<?php if(!$alwaysOpen): ?>
+							<label class="ui-checkbox-label" for="<?= 'checkbox-' . strtolower($code) . '-use'; ?>">
+								<?= $pageFields[$code . '_USE']->getLabel(); ?>
+							</label>
+						<?php endif; ?>
+						<?php unset($pageFields[$code . '_USE']);
+					}
+					?>
+
+					<?php foreach ($pageFields as $key => $field): ?>
+						<?php $type = $field->getType(); ?>
+						<div class="ui-checkbox-hidden-input-hook">
+							<?php if ($type !== 'checkbox'): ?>
+								<label for="field-<?=strtolower($key)?>-use"><?=$field->getLabel()?></label>
+							<?php endif; ?>
+
+							<?=$field->viewForm([
+								'id' => 'field-' . strtolower($key) . '-use',
+								'class' => self::getCssByType($type),
+								'name_format' => 'fields[ADDITIONAL_FIELDS][#field_code#]'
+							])?>
+
+							<?php if ($type === 'checkbox'): ?>
+								<label for="field-<?=strtolower($key)?>-use"><?=$field->getLabel()?></label>
+							<?php endif; ?>
+
+							<?php if ($help = $field->getHelpValue()): ?>
+								<div class="ui-checkbox-hidden-input-hook-help"><?=$help?></div>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+
+				</div>
+			</div>
+			<?php
 		}
 	}
 
@@ -103,7 +191,7 @@ class Template
 		}
 
 		$imgId = $field->getValue();
-		$code = strtolower($field->getCode());
+		$code = mb_strtolower($field->getCode());
 		$code = preg_replace('/[^a-z]+/', '', $code);
 		?>
 		<script type="text/javascript">
@@ -151,7 +239,9 @@ class Template
 							imageField.layout.addEventListener('input', function()
 							{
 								var img = imageField.getValue();
-								imageFieldInput.value = parseInt(img.id) > 0 ? img.id : '';
+								imageFieldInput.value = parseInt(img.id) > 0
+													? img.id
+													: img.src;
 							});
 						}
 						<?if (isset($params['imgEditId'])):?>

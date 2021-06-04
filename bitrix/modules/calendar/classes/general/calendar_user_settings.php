@@ -1,4 +1,7 @@
 <?
+/**
+ * Class CCalendarUserSettings
+ */
 class CCalendarUserSettings
 {
 	private static
@@ -13,7 +16,9 @@ class CCalendarUserSettings
 			'collapseOffHours' => 'Y',
 			'showWeekNumbers' => 'N',
 			'showTasks' => 'Y',
-			'showCompletedTasks' => 'N'
+			'showCompletedTasks' => 'N',
+			'syncPeriodPast' => 3,
+			'syncPeriodFuture' => 12,
 		);
 
 	public static function Set($settings = array(), $userId = false)
@@ -53,37 +58,10 @@ class CCalendarUserSettings
 			$settings = CUserOptions::GetOption("calendar", "user_settings", false, $userId);
 			if (is_array($settings))
 			{
-				if (isset($settings['view']))
-					$resSettings['view'] = $settings['view'];
-
-				$resSettings['tabId'] = $settings['view'];
-
-				if (isset($settings['showDeclined']))
-					$resSettings['showDeclined'] = !!$settings['showDeclined'];
-
-				if (isset($settings['meetSection']) && $settings['meetSection'] > 0)
-					$resSettings['meetSection'] = intVal($settings['meetSection']);
-
-				if (isset($settings['crmSection']) && $settings['crmSection'] > 0)
-					$resSettings['crmSection'] = intVal($settings['crmSection']);
-
-				if (isset($settings['denyBusyInvitation']))
-					$resSettings['denyBusyInvitation'] = !!$settings['denyBusyInvitation'];
-
-				if (isset($settings['lastUsedSection']) && $settings['lastUsedSection'] > 0)
-					$resSettings['lastUsedSection'] = intVal($settings['lastUsedSection']);
-
-				if (isset($settings['collapseOffHours']))
-					$resSettings['collapseOffHours'] = $settings['collapseOffHours'];
-
-				if (isset($settings['showWeekNumbers']))
-					$resSettings['showWeekNumbers'] = $settings['showWeekNumbers'];
-
-				if (isset($settings['showTasks']))
-					$resSettings['showTasks'] = $settings['showTasks'];
-
-				if (isset($settings['showCompletedTasks']))
-					$resSettings['showCompletedTasks'] = $settings['showCompletedTasks'];
+				foreach($settings as $key => $value)
+				{
+					$resSettings[$key] = $value;
+				}
 			}
 
 			$resSettings['timezoneName'] = CCalendar::GetUserTimezoneName($userId);
@@ -105,6 +83,10 @@ class CCalendarUserSettings
 				$resSettings['work_time_end'] = $workTime['end'].'.00';
 			}
 		}
+
+		$resSettings['showDeclined'] = intval($resSettings['showDeclined']);
+		$resSettings['denyBusyInvitation'] = intval($resSettings['denyBusyInvitation']);
+
 		return $resSettings;
 	}
 
@@ -138,14 +120,14 @@ class CCalendarUserSettings
 
 		if ($str !== false && CheckSerializedData($str))
 		{
-			$ids = unserialize($str);
+			$ids = unserialize($str, ['allowed_classes' => false]);
 			if (is_array($ids) && count($ids) > 0)
 			{
 				foreach($ids as $id)
 				{
-					if (intVal($id) > 0)
+					if (intval($id) > 0)
 					{
-						$res[] = intVal($id);
+						$res[] = intval($id);
 					}
 				}
 			}
@@ -195,14 +177,14 @@ class CCalendarUserSettings
 
 		if ($str !== false && CheckSerializedData($str))
 		{
-			$ids = unserialize($str);
+			$ids = unserialize($str, ['allowed_classes' => false]);
 			if (is_array($ids) && count($ids) > 0)
 			{
 				foreach($ids as $id)
 				{
-					if (intVal($id) > 0)
+					if (intval($id) > 0)
 					{
-						$res[] = intVal($id);
+						$res[] = intval($id);
 					}
 				}
 			}
@@ -238,33 +220,12 @@ class CCalendarUserSettings
 
 		if (class_exists('CUserOptions') && $userId > 0)
 		{
-			//CUserOptions::DeleteOption("calendar", "hidden_sections");
 			$res = CUserOptions::GetOption("calendar", "hidden_sections", false, $userId);
 			if ($res !== false && is_array($res) && isset($res['hidden_sections']))
 				$res = explode(',', $res['hidden_sections']);
 		}
 		if (!is_array($res))
 			$res = array();
-
-		return $res;
-	}
-
-	public static function getSectionCustomization($userId = false)
-	{
-		$res = array(
-//			'tasks' => array(
-//				'name' => 'awdawd',
-//				'color' => '#FF0000'
-//			)
-		);
-
-		if (class_exists('CUserOptions') && $userId > 0)
-		{
-			//CUserOptions::DeleteOption("calendar", "hidden_sections");
-//			$res = CUserOptions::GetOption("calendar", "hidden_sections", false, $userId);
-//			if ($res !== false && is_array($res) && isset($res['hidden_sections']))
-//				$res = explode(',', $res['hidden_sections']);
-		}
 
 		return $res;
 	}

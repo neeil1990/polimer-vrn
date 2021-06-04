@@ -1,6 +1,5 @@
 <?
 $MESS["SALE_ORDER_ENTITY_NOT_FOUND"] = "Заказ не найден";
-$MESS["SALE_ORDER_PAYMENT_NOT_ENOUGH_USER_BUDGET"] = "Недостаточно средств для оплаты со внутреннего счета пользователя";
 $MESS["SALE_ORDER_PAYMENT_CANCELLED_PAID"] = "Ошибка при отмене оплаты";
 $MESS["SALE_ORDER_SHIPMENT_ORDER_CANCELED"] = "Невозможно отгрузить отмененный заказ";
 $MESS["SALE_ORDER_ALLOW_DELIVERY_ORDER_CANCELED"] = "Невозможно изменить разрешение отгрузки у отмененного заказа";

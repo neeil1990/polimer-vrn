@@ -1,111 +1,134 @@
-<?
-use Bitrix\Main\Localization\Loc;
+<?php
+use Bitrix\Main\Loader,
+	Bitrix\Main\Localization\Loc,
+	Bitrix\Sale\PaySystem;
 
 Loc::loadMessages(__FILE__);
 
-$isAvailable = \Bitrix\Sale\PaySystem\Manager::HANDLER_AVAILABLE_TRUE;
+PaySystem\Manager::includeHandler('Roboxchange');
 
-$licensePrefix = \Bitrix\Main\Loader::includeModule("bitrix24") ? \CBitrix24::getLicensePrefix() : "";
-if (IsModuleInstalled("bitrix24") && !in_array($licensePrefix, ["ru"]))
+$isAvailable = PaySystem\Manager::HANDLER_AVAILABLE_TRUE;
+
+$licensePrefix = Loader::includeModule('bitrix24') ? \CBitrix24::getLicensePrefix() : '';
+$portalZone = Loader::includeModule('intranet') ? CIntranetUtils::getPortalZone() : '';
+
+if (Loader::includeModule('bitrix24'))
 {
-	$isAvailable = \Bitrix\Sale\PaySystem\Manager::HANDLER_AVAILABLE_FALSE;
+	if (!in_array($licensePrefix, ['ru', 'kz'], true))
+	{
+		$isAvailable = PaySystem\Manager::HANDLER_AVAILABLE_FALSE;
+	}
+}
+elseif (Loader::includeModule('intranet') && $portalZone !== 'ru')
+{
+	$isAvailable = PaySystem\Manager::HANDLER_AVAILABLE_FALSE;
 }
 
-$data = array(
+$data = [
 	'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TITLE'),
 	'SORT' => 500,
 	'IS_AVAILABLE' => $isAvailable,
-	'CODES' => array(
-		'ROBOXCHANGE_SHOPLOGIN' => array(
+	'CODES' => [
+		'ROBOXCHANGE_SHOPLOGIN' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_SHOPLOGIN'),
 			'SORT' => 100,
 			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
-		),
-		'ROBOXCHANGE_SHOPPASSWORD' => array(
+		],
+		'ROBOXCHANGE_SHOPPASSWORD' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_SHOPPASSWORD'),
 			'SORT' => 200,
 			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
-		),
-		'ROBOXCHANGE_SHOPPASSWORD2' => array(
+		],
+		'ROBOXCHANGE_SHOPPASSWORD2' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_SHOPPASSWORD2'),
 			'SORT' => 300,
 			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
-		),
-		'ROBOXCHANGE_ORDERDESCR' => array(
+		],
+		'ROBOXCHANGE_ORDERDESCR' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_ORDERDESCR'),
 			'SORT' => 400,
 			'GROUP' => 'PAYMENT',
-		),
-		'ROBOXCHANGE_SHOPPASSWORD_TEST' => array(
+		],
+		'ROBOXCHANGE_SHOPPASSWORD_TEST' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEST_SHOPPASSWORD'),
 			'SORT' => 500,
 			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
-		),
-		'ROBOXCHANGE_SHOPPASSWORD2_TEST' => array(
+		],
+		'ROBOXCHANGE_SHOPPASSWORD2_TEST' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEST_SHOPPASSWORD2'),
 			'SORT' => 600,
 			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
-		),
-		'PAYMENT_ID' => array(
-			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_PAYMENT_ID'),
+		],
+		'ROBOXCHANGE_TEMPLATE_TYPE' => [
+			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEMPLATE_TYPE'),
 			'SORT' => 700,
-			'GROUP' => 'PAYMENT',
-			'DEFAULT' => array(
-				'PROVIDER_VALUE' => 'ID',
-				'PROVIDER_KEY' => 'PAYMENT'
-			)
-		),
-		'PAYMENT_SHOULD_PAY' => array(
-			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_SHOULD_PAY'),
+			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
+			'INPUT' => [
+				'TYPE' => 'ENUM',
+				'OPTIONS' => [
+					Sale\Handlers\PaySystem\RoboxchangeHandler::TEMPLATE_TYPE_CHECKOUT => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEMPLATE_TYPE_CHECKOUT'),
+					Sale\Handlers\PaySystem\RoboxchangeHandler::TEMPLATE_TYPE_IFRAME => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEMPLATE_TYPE_IFRAME'),
+				]
+			],
+			'DEFAULT' => [
+				'PROVIDER_KEY' => 'INPUT',
+				'PROVIDER_VALUE' => Sale\Handlers\PaySystem\RoboxchangeHandler::TEMPLATE_TYPE_CHECKOUT
+			]
+		],
+		'ROBOXCHANGE_COUNTRY_CODE' => [
+			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_COUNTRY_CODE'),
+			'DESCRIPTION' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_COUNTRY_CODE_DESC'),
 			'SORT' => 800,
-			'GROUP' => 'PAYMENT',
-			'DEFAULT' => array(
-				'PROVIDER_VALUE' => 'SUM',
-				'PROVIDER_KEY' => 'PAYMENT'
-			)
-		),
-		'PAYMENT_CURRENCY' => array(
-			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_CURRENCY'),
+			'GROUP' => 'CONNECT_SETTINGS_ROBOXCHANGE',
+			'INPUT' => [
+				'TYPE' => 'ENUM',
+				'OPTIONS' => [
+					'RU' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_COUNTRY_CODE_OPTION_RU'),
+					'KZ' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_COUNTRY_CODE_OPTION_KZ'),
+				]
+			],
+			'DEFAULT' => [
+				'PROVIDER_KEY' => 'INPUT',
+				'PROVIDER_VALUE' => ($licensePrefix ?: $portalZone) === 'kz' ? 'KZ' : 'RU',
+			]
+		],
+		'PAYMENT_ID' => [
+			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_PAYMENT_ID'),
 			'SORT' => 900,
 			'GROUP' => 'PAYMENT',
-			'DEFAULT' => array(
-				'PROVIDER_VALUE' => 'CURRENCY',
+			'DEFAULT' => [
+				'PROVIDER_VALUE' => 'ID',
 				'PROVIDER_KEY' => 'PAYMENT'
-			)
-		),
-		'PAYMENT_DATE_INSERT' => array(
-			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_DATE_INSERT'),
-			'SORT' => 1000,
-			'GROUP' => 'PAYMENT',
-			'DEFAULT' => array(
-				'PROVIDER_VALUE' => 'DATE_BILL',
-				'PROVIDER_KEY' => 'PAYMENT'
-			)
-		),
-		'BUYER_PERSON_EMAIL' => array(
+			]
+		],
+		'BUYER_PERSON_EMAIL' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_EMAIL_USER'),
-			'SORT' => 1100,
+			'SORT' => 1000,
 			'GROUP' => 'BUYER_PERSON',
-			'DEFAULT' => array(
+			'DEFAULT' => [
 				'PROVIDER_VALUE' => 'EMAIL',
 				'PROVIDER_KEY' => 'PROPERTY'
-			)
-		),
-		'PS_CHANGE_STATUS_PAY' => array(
+			]
+		],
+		'PS_CHANGE_STATUS_PAY' => [
 			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_CHANGE_STATUS_PAY'),
+			'SORT' => 1100,
+			'GROUP' => 'GENERAL_SETTINGS',
+			'INPUT' => [
+				'TYPE' => 'Y/N'
+			],
+			'DEFAULT' => [
+				'PROVIDER_KEY' => 'INPUT',
+				'PROVIDER_VALUE' => 'Y',
+			]
+		],
+		'PS_IS_TEST' => [
+			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEST'),
 			'SORT' => 1200,
 			'GROUP' => 'GENERAL_SETTINGS',
-			"INPUT" => array(
+			'INPUT' => [
 				'TYPE' => 'Y/N'
-			)
-		),
-		'PS_IS_TEST' => array(
-			'NAME' => Loc::getMessage('SALE_HPS_ROBOXCHANGE_TEST'),
-			'SORT' => 1300,
-			'GROUP' => 'GENERAL_SETTINGS',
-			"INPUT" => array(
-				'TYPE' => 'Y/N'
-			)
-		),
-	)
-);
+			]
+		],
+	]
+];

@@ -11,6 +11,25 @@ if (!function_exists("__mpl_get_avatar"))
 			if ($USER->IsAuthorized())
 			{
 				$u = CUser::GetByID($USER->GetID())->Fetch();
+				if (
+					intval($u["PERSONAL_PHOTO"]) <= 0
+					&& \Bitrix\Main\ModuleManager::isModuleInstalled('socialnetwork')
+				)
+				{
+					switch ($u["PERSONAL_GENDER"])
+					{
+						case "M":
+							$suffix = "male";
+							break;
+						case "F":
+							$suffix = "female";
+							break;
+						default:
+							$suffix = "unknown";
+					}
+					$u["PERSONAL_PHOTO"] = COption::GetOptionInt("socialnetwork", "default_user_picture_".$suffix, false, SITE_ID);
+				}
+
 				if ($u["PERSONAL_PHOTO"])
 				{
 					$res = CFile::ResizeImageGet(
@@ -22,7 +41,9 @@ if (!function_exists("__mpl_get_avatar"))
 						true
 					);
 					if ($res["src"])
+					{
 						$avatar = $res["src"];
+					}
 				}
 			}
 		}
@@ -31,8 +52,6 @@ if (!function_exists("__mpl_get_avatar"))
 }
 ?>
 <script type="text/javascript">
-if (window.FCForm)
-	FCForm.onUCUsersAreWriting();
 <? if (IsModuleInstalled("im")): ?>
 if (window.SPC)
 {
@@ -65,7 +84,7 @@ BX.message({
 	BPC_MES_DELETE : '<?=GetMessageJS("BPC_MES_DELETE")?>',
 	BPC_MES_DELETE_POST_CONFIRM : '<?=GetMessageJS("BPC_MES_DELETE_POST_CONFIRM")?>',
 	BPC_MES_CREATE_TASK : '<?=GetMessageJS("BPC_MES_CREATE_TASK")?>',
-	MPL_RECORD_TEMPLATE : '<?=CUtil::JSEscape($template)?>',
+<?/* deprecated ?>	MPL_RECORD_TEMPLATE : '<?=CUtil::JSEscape($template)?>',<?*/?>
 	JERROR_NO_MESSAGE : '<?=GetMessageJS("JERROR_NO_MESSAGE")?>',
 	BLOG_C_HIDE : '<?=GetMessageJS("BLOG_C_HIDE")?>',
 	MPL_IS_EXTRANET_SITE: '<?=(CModule::IncludeModule("extranet") && CExtranet::IsExtranetSite() ? 'Y' : 'N')?>',

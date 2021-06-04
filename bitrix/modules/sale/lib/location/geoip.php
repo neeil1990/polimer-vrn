@@ -37,7 +37,7 @@ class GeoIp
 		if($geoData)
 			$fields = self::getLocationFields($geoData, $lang);
 
-		return strlen($fields['CODE']) > 0 ? $fields['CODE'] : '';
+		return $fields['CODE'] <> '' ? $fields['CODE'] : '';
 	}
 
 	/**
@@ -52,7 +52,7 @@ class GeoIp
 		if(!$data)
 			$result = '';
 		else
-			$result = strlen($data->getGeoData()->zipCode) > 0 ? $data->getGeoData()->zipCode : '';
+			$result = $data->getGeoData()->zipCode <> '' ? $data->getGeoData()->zipCode : '';
 
 		return $result;
 	}
@@ -264,12 +264,12 @@ class GeoIp
 	 */
 	protected static function isNormalizedNamesMatched($name, $country, $region, $subregion)
 	{
-		if(strlen($name) <= 0)
+		if($name == '')
 		{
 			return true;
 		}
 
-		if(strlen($country) <= 0 && strlen($region) <= 0 && strlen($subregion) <= 0)
+		if($country == '' && $region == '' && $subregion == '')
 		{
 			return true;
 		}
@@ -277,21 +277,21 @@ class GeoIp
 		$result = true;
 		$checked = false;
 
-		if(strlen($country) > 0)
+		if($country !== '')
 		{
 			$result = $country === $name;
 			$checked = true;
 		}
 
-		if((!$checked || !$result) && strlen($region) > 0)
+		if((!$checked || !$result) && $region !== '')
 		{
-			$result = $region === $region;
+			$result = $region === $name;
 			$checked = true;
 		}
 
-		if((!$checked || !$result) && strlen($subregion) > 0)
+		if((!$checked || !$result) && $subregion !== '')
 		{
-			$result = $subregion === $subregion;
+			$result = $subregion === $name;
 		}
 
 		return $result;

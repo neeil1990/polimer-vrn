@@ -27,9 +27,12 @@ else if (!CModule::IncludeModule("photogallery"))
 $arParams = (is_array($arParams) ? $arParams : array());
 if (empty($arParams))
 {
-	$arParams["IBLOCK_ID"] = intVal($_REQUEST["IBLOCK_ID"]);
+	$arParams["IBLOCK_ID"] = intval($_REQUEST["IBLOCK_ID"]);
 	$arParams["PERMISSION"] = CIBlock::GetPermission($arParams["IBLOCK_ID"]);
 }
+
+$arParams["IBLOCK_ID"] = intval($arParams["IBLOCK_ID"]);
+
 if ($arParams["PERMISSION"] < "W")
 {
 	ShowError(GetMessage("P_DENIED_ACCESS"));
@@ -41,7 +44,7 @@ elseif ($arParams["IBLOCK_ID"] <= 0)
 	return false;
 }
 
-$arGalleries = unserialize(COption::GetOptionString("photogallery", "UF_GALLERY_SIZE"));
+$arGalleries = unserialize(COption::GetOptionString("photogallery", "UF_GALLERY_SIZE"), ['allowed_classes' => false]);
 $arGalleries = (is_array($arGalleries) ? $arGalleries : array());
 $arGallery = $arGalleries[$arParams["IBLOCK_ID"]];
 
@@ -59,7 +62,7 @@ if ($_REQUEST["AJAX"] == "Y" && check_bitrix_sessid())
 			"elements_cnt" => CIBlock::GetElementCount($arParams["IBLOCK_ID"]),
 			"element_number" => 0,
 			"element_id" => 0,
-			"id" => $_REQUEST["ID"],
+			"id" => intval($_REQUEST["ID"]),
 			"date" => ConvertTimeStamp());
 	}
 	else
@@ -154,7 +157,7 @@ if ($_REQUEST["AJAX"] == "Y" && check_bitrix_sessid())
 			<div class="pbar-outer" style="width: 400px;">
 				<div id="pb_photos" class="pbar-inner-green" style="display:block!important; width:<?
 				if ($arGallery['elements_cnt'] > 0):
-					echo intVal(doubleval($arGallery['element_number']) * 100 / doubleval($arGallery['elements_cnt']));
+					echo intval(doubleval($arGallery['element_number']) * 100 / doubleval($arGallery['elements_cnt']));
 				else:
 					echo "1";
 				endif;

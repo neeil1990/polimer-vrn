@@ -4,7 +4,9 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 	die();
 }
 
+use \Bitrix\Landing\Hook;
 use \Bitrix\Landing\Landing;
+use \Bitrix\Landing\Manager;
 use \Bitrix\Landing\Rights;
 use \Bitrix\Landing\TemplateRef;
 use \Bitrix\Main\Localization\Loc;
@@ -75,7 +77,7 @@ class LandingEditComponent extends LandingBaseFormComponent
 			$content = ob_get_contents();
 			ob_end_clean();
 
-			$docRoot = \Bitrix\Landing\Manager::getDocRoot();
+			$docRoot = Manager::getDocRoot();
 
 			if (preg_match_all('/(<img.*?src="([^"]+)"[^>]+>)/is', $content, $matches))
 			{
@@ -85,10 +87,10 @@ class LandingEditComponent extends LandingBaseFormComponent
 					$picture = parse_url($pictureUrl);
 					if (
 						isset($picture['path']) &&
-						in_array(substr($picture['path'], -4), array('.png', '.jpg'))
+						in_array(mb_substr($picture['path'], -4), array('.png', '.jpg'))
 					)
 					{
-						if (substr($pictureUrl, 0, 1) == '/')
+						if (mb_substr($pictureUrl, 0, 1) == '/')
 						{
 							if (file_exists($docRoot . $pictureUrl))
 							{
@@ -157,7 +159,7 @@ class LandingEditComponent extends LandingBaseFormComponent
 				{
 					if (isset($fields[$code]))
 					{
-						$meta[strtolower($code)] = $fields[$code]->getValue();
+						$meta[mb_strtolower($code)] = $fields[$code]->getValue();
 					}
 				}
 			}
@@ -170,7 +172,7 @@ class LandingEditComponent extends LandingBaseFormComponent
 				{
 					if (isset($fields[$code]))
 					{
-						$meta['og:' . strtolower($code)] = $fields[$code]->getValue();
+						$meta['og:'.mb_strtolower($code)] = $fields[$code]->getValue();
 					}
 				}
 			}
@@ -202,6 +204,18 @@ class LandingEditComponent extends LandingBaseFormComponent
 	}
 
 	/**
+	 * Returns true, if this site without external domain.
+	 * @return bool
+	 */
+	protected function isIntranet()
+	{
+		return
+			isset($this->arResult['SITES'][$this->arParams['SITE_ID']]) &&
+			isset($this->arResult['SITES'][$this->arParams['SITE_ID']]['DOMAIN_ID']) &&
+			$this->arResult['SITES'][$this->arParams['SITE_ID']]['DOMAIN_ID'] == '0';
+	}
+
+	/**
 	 * Base executable method.
 	 * @return void
 	 */
@@ -213,23 +227,30 @@ class LandingEditComponent extends LandingBaseFormComponent
 		{
 			$this->checkParam('SITE_ID', 0);
 			$this->checkParam('LANDING_ID', 0);
+			$this->checkParam('TYPE', '');
 			$this->checkParam('PAGE_URL_LANDINGS', '');
 			$this->checkParam('PAGE_URL_LANDING_VIEW', '');
 			$this->checkParam('PAGE_URL_SITE_EDIT', '');
 
+			\Bitrix\Landing\Site\Type::setScope(
+				$this->arParams['TYPE']
+			);
+
 			$this->id = $this->arParams['LANDING_ID'];
 			$this->successSavePage = $this->arParams['PAGE_URL_LANDINGS'];
 
-			$this->arResult['LANDING_INST'] = null;
 			$this->arResult['TEMPLATES'] = $this->getTemplates();
 			$this->arResult['LANDING'] = $this->getRow();
+			$this->arResult['SPECIAL_TYPE'] = $this->getSpecialTypeSite(
+				$this->arParams['SITE_ID']
+			);
 			$this->arResult['LANDINGS'] = $this->arParams['SITE_ID'] > 0
-										? $this->getLandings(array(
-												'filter' => array(
-													'SITE_ID' => $this->arParams['SITE_ID']
-												)
-											))
-										: array();
+				? $this->getLandings(array(
+						'filter' => array(
+							'SITE_ID' => $this->arParams['SITE_ID']
+						)
+					))
+				: array();
 
 			// if access denied, or not found
 			if (!$this->arResult['LANDING'])
@@ -273,26 +294,46 @@ class LandingEditComponent extends LandingBaseFormComponent
 
 			if ($this->id)
 			{
+				$this->arResult['SITES'] = $sites = $this->getSites();
+
+				// types mismatch
+				$availableType = [$this->arParams['TYPE']];
+				if ($this->arParams['TYPE'] == 'STORE')
+				{
+					$availableType[] = 'SMN';
+				}
+				if (
+					!isset($sites[$this->arParams['SITE_ID']]) ||
+					!in_array($sites[$this->arParams['SITE_ID']]['TYPE'], $availableType)
+				)
+				{
+					\localRedirect($this->getRealFile());
+				}
+
+				$this->arResult['IS_INTRANET'] = $this->isIntranet();
+				\Bitrix\Landing\Hook::setEditMode();
 				$this->arResult['HOOKS'] = $this->getHooks();
 				$this->arResult['HOOKS_SITE'] = $this->getHooks('Site', $this->arParams['SITE_ID']);
 				$this->arResult['TEMPLATES_REF'] = TemplateRef::getForLanding($this->id);
 				$this->arResult['META'] = $this->getMeta();
-				$this->arResult['SITES'] = $this->getSites();
 				$this->arResult['DOMAINS'] = $this->getDomains();
-			}
-
-			if ($this->id)
-			{
-				$this->arResult['LANDING_INST'] = Landing::createInstance($this->id);
 			}
 		}
 
 		// callback for update landing
 		$tplRef = $this->request('TPL_REF');
-		\Bitrix\Landing\Landing::callback('OnAfterUpdate',
+		Landing::callback('OnAfterUpdate',
 			function(\Bitrix\Main\Event $event) use ($tplRef)
 			{
+				static $updated = false;
+
+				if ($updated)
+				{
+					return;
+				}
+
 				$primary = $event->getParameter('primary');
+				$updated = true;
 				$areaCount = 0;
 				$tplId = $this->arResult['LANDING']['TPL_ID']['CURRENT'];
 				$siteId = $this->arResult['LANDING']['SITE_ID']['CURRENT'];
@@ -307,9 +348,9 @@ class LandingEditComponent extends LandingBaseFormComponent
 				{
 					foreach (explode(',', $tplRef) as $ref)
 					{
-						if (strpos($ref, ':') !== false)
+						if (mb_strpos($ref, ':') !== false)
 						{
-							list($a, $lid) = explode(':', $ref);
+							[$a, $lid] = explode(':', $ref);
 							$data[$a] = $lid;
 						}
 					}
@@ -333,6 +374,10 @@ class LandingEditComponent extends LandingBaseFormComponent
 					$primary['ID'],
 					$data
 				);
+				if (Manager::getOption('public_hook_on_save') == 'Y')
+				{
+					Hook::publicationLanding($primary['ID']);
+				}
 			}
 		);
 

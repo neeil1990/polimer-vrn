@@ -56,6 +56,7 @@
 		this.presetForm = new FormCollection();
 		this.sync = data.sync;
 		this.forms = data.forms;
+		this.id = this.code.replace(".", "") + "-" + BX.Landing.Utils.random();
 
 		this.onItemClick = throttle(this.onItemClick, 200, this);
 		this.onRemoveItemClick = proxy(this.onRemoveItemClick, this);
@@ -403,9 +404,9 @@
 				if (field instanceof BX.Landing.UI.Field.Link)
 				{
 					labelContainer = item.querySelector(".landing-card-title-link");
-					labelContainer.innerHTML = BX.message("LANDING_CARDS_FORM_ITEM_PLACEHOLDER_TEXT");
+					labelContainer.innerHTML = BX.Landing.Loc.getMessage("LANDING_CARDS_FORM_ITEM_PLACEHOLDER_TEXT");
 
-					onCustomEvent(field, "BX.Landing.UI.Field:change", function(value) {
+					onCustomEvent(field, "change", function(value) {
 						labelContainer.innerHTML = value.text;
 					});
 
@@ -416,7 +417,7 @@
 				{
 					labelContainer = item.querySelector(".landing-card-title-icon").firstElementChild;
 					labelContainer.className = "landing-card-title-icon";
-					onCustomEvent(field, "BX.Landing.UI.Field:change", function(value) {
+					onCustomEvent(field, "change", function(value) {
 						labelContainer.className = "landing-card-title-icon " + value.classList.join(" ");
 					});
 
@@ -429,7 +430,7 @@
 					labelContainer.style.backgroundColor = "#fafafa";
 					labelContainer.innerHTML = "";
 
-					onCustomEvent(field, "BX.Landing.UI.Field:change", function(value) {
+					onCustomEvent(field, "change", function(value) {
 						labelContainer.innerHTML = "";
 						labelContainer.appendChild(create('img', {props: {src: value.src}}));
 					});
@@ -443,14 +444,14 @@
 					var labelContainers = item.querySelectorAll(".landing-card-title-text");
 					labelContainer = labelContainers[textItemIndex];
 
-					onCustomEvent(field, "BX.Landing.UI.Field:change", function(value) {
+					onCustomEvent(field, "change", function(value) {
 						labelContainer.innerHTML = create("div", {html: value}).innerText;
 					});
 
 					if (labelContainer === labelContainers[0])
 					{
-						labelContainer.innerHTML = BX.message("LANDING_CARDS_FORM_ITEM_PLACEHOLDER_TEXT");
-						field.setValue(BX.message("LANDING_CARDS_FORM_ITEM_PLACEHOLDER_TEXT"));
+						labelContainer.innerHTML = BX.Landing.Loc.getMessage("LANDING_CARDS_FORM_ITEM_PLACEHOLDER_TEXT");
+						field.setValue(BX.Landing.Loc.getMessage("LANDING_CARDS_FORM_ITEM_PLACEHOLDER_TEXT"));
 					}
 					else
 					{
@@ -516,7 +517,7 @@
 		{
 			return new BaseButton("add-card-" + random(), {
 				className: "landing-ui-card-add-button",
-				text: BX.message("LANDING_CARDS_FORM_ADD_BUTTON"),
+				text: BX.Landing.Loc.getMessage("LANDING_CARDS_FORM_ADD_BUTTON"),
 				onClick: this.onAddCardClick
 			});
 		},
@@ -755,7 +756,8 @@
 
 				bind(this.popup.popupWindow.popupContainer, "mouseover", this.onMouseOver.bind(this));
 				bind(this.popup.popupWindow.popupContainer, "mouseleave", this.onMouseLeave.bind(this));
-				bind(top.document, "click", this.onDocumentClick.bind(this));
+				var rootWindow = BX.Landing.PageObject.getRootWindow();
+				bind(rootWindow.document, "click", this.onDocumentClick.bind(this));
 				append(
 					this.popup.popupWindow.popupContainer,
 					findParent(this.addButton.layout, {className: "landing-ui-panel-content-body-content"})

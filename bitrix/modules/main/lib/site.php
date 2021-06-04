@@ -7,12 +7,11 @@
  */
 namespace Bitrix\Main;
 
-use Bitrix\Main\Entity;
 use Bitrix\Main\IO;
 
-class SiteTable extends Entity\DataManager
+class SiteTable extends ORM\Data\DataManager
 {
-	private static $documentRootCache = array();
+	private static $documentRootCache = [];
 
 	public static function getDocumentRoot($siteId = null)
 	{
@@ -24,12 +23,19 @@ class SiteTable extends Entity\DataManager
 
 		if (!isset(self::$documentRootCache[$siteId]))
 		{
-			$ar = SiteTable::getRow(array("filter" => array("LID" => $siteId)));
-			if ($ar && ($docRoot = $ar["DOC_ROOT"]) && (strlen($docRoot) > 0))
+			$ttl = (CACHED_b_lang !== false ? CACHED_b_lang : 0);
+
+			$site = SiteTable::getRow([
+				"filter" => ["=LID" => $siteId],
+				"cache" => ["ttl" => $ttl],
+			]);
+
+			if ($site && ($docRoot = $site["DOC_ROOT"]) && ($docRoot <> ''))
 			{
 				if (!IO\Path::isAbsolute($docRoot))
+				{
 					$docRoot = IO\Path::combine(Application::getDocumentRoot(), $docRoot);
-
+				}
 				self::$documentRootCache[$siteId] = $docRoot;
 			}
 			else

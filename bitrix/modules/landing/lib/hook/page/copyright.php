@@ -34,11 +34,27 @@ class Copyright extends \Bitrix\Landing\Hook\Page
 	}
 
 	/**
+	 * Locked or not current hook in free plan.
+	 * @return bool
+	 */
+	public function isLocked()
+	{
+		return !\Bitrix\Landing\Restriction\Manager::isAllowed(
+			'limit_sites_powered_by'
+		);
+	}
+
+	/**
 	 * Enable or not the hook.
 	 * @return boolean
 	 */
 	public function enabled()
 	{
+		if ($this->isLocked())
+		{
+			return false;
+		}
+
 		return $this->fields['SHOW']->getValue() != 'N';
 	}
 

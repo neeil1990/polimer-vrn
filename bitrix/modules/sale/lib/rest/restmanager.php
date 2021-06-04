@@ -25,11 +25,6 @@ class RestManager
 //		return ['MODULE_ID' => 'sale'];
 //	}
 
-	protected static function isB24()
-	{
-		return ModuleManager::isModuleInstalled('crm');
-	}
-
 	public static function onRestServiceBuildDescription()
 	{
 		Loader::includeModule('sale');
@@ -62,7 +57,7 @@ class RestManager
 
 					'OnPropertyValueEntitySaved'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderPropertyValueEntitySaved':'OnSalePropertyValueEntitySaved',
+						'OnSalePropertyValueEntitySaved',
 						[
 							RestManager::class,
 							'processEvent'
@@ -73,7 +68,7 @@ class RestManager
 					],
 					'OnPaymentEntitySaved'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderPaymentEntitySaved':'OnSalePaymentEntitySaved',
+						'OnSalePaymentEntitySaved',
 						[
 							RestManager::class,
 							'processEvent'
@@ -84,7 +79,7 @@ class RestManager
 					],
 					'OnShipmentEntitySaved'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderShipmentEntitySaved':'OnSaleShipmentEntitySaved',
+						'OnSaleShipmentEntitySaved',
 						[
 							RestManager::class,
 							'processEvent'
@@ -95,7 +90,7 @@ class RestManager
 					],
 					'OnOrderEntitySaved'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderOrderEntitySaved':'OnSaleOrderEntitySaved',
+						'OnSaleOrderEntitySaved',
 						[
 							RestManager::class,
 							'processEvent'
@@ -106,7 +101,7 @@ class RestManager
 					],
 					'OnPropertyValueDeleted'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderPropertyValueDeleted':'OnSalePropertyValueDeleted',
+						'OnSalePropertyValueDeleted',
 						[
 							RestManager::class,
 							'processEvent'
@@ -117,7 +112,7 @@ class RestManager
 					],
 					'OnPaymentDeleted'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderPaymentDeleted':'OnSalePaymentDeleted',
+						'OnSalePaymentDeleted',
 						[
 							RestManager::class,
 							'processEvent'
@@ -128,7 +123,7 @@ class RestManager
 					],
 					'OnShipmentDeleted'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderShipmentDeleted':'OnSaleShipmentDeleted',
+						'OnSaleShipmentDeleted',
 						[
 							RestManager::class,
 							'processEvent'
@@ -139,7 +134,7 @@ class RestManager
 					],
 					'OnOrderDeleted'=>[
 						'sale',
-						self::isB24()? 'OnCrmOrderOrderEntitySaved':'OnSaleOrderEntitySaved',
+						'OnSaleOrderEntitySaved',
 						[
 							RestManager::class,
 							'processEvent'
@@ -168,7 +163,7 @@ class RestManager
 			]
 		], true));
 
-		switch (strtolower($eventName))
+		switch(mb_strtolower($eventName))
 		{
 			case 'onsaleordersaved':
 
@@ -191,17 +186,17 @@ class RestManager
 				}
 
 
-				if($entity->getId()<= 0)
+				if($entity->getId() <= 0)
 				{
 					throw new RestException("Could not find entity ID in fields of event \"{$eventName}\"");
 				}
 
 				//сообщаем внешней системе, что именно мы будем выполнять при синхронизации сохранение|удаление
-				$parameters = ['FIELDS'=>['ID'=>$entity->getId(), 'XML_ID'=>$entity->getField('XML_ID'), 'ACTION'=>Synchronizer::MODE_SAVE]];
+				$parameters = ['FIELDS' => ['ID' => $entity->getId(), 'XML_ID' => $entity->getField('XML_ID'), 'ACTION' => Synchronizer::MODE_SAVE]];
 
-				LoggerDiag::addMessage(strtolower($eventName), var_export([
-					'processEvent [process-02]'=> [
-						'parameters'=>$parameters
+				LoggerDiag::addMessage(mb_strtolower($eventName), var_export([
+					'processEvent [process-02]' => [
+						'parameters' => $parameters
 					]
 				], true));
 
@@ -219,17 +214,19 @@ class RestManager
 				// если локальное удаление, то отправляем исходящие сообщение во внешнюю сиситему с указанием действия
 				// если локальное удаление и событие удаления вызывают другие сущности (onpropertyvaluedeleted)
 				if($instance->getAction() == Manager::ACTION_IMPORT || $instance->getAction() == Manager::ACTION_DELETED)
+				{
 					throw new RestException("Event stopped");
+				}
 
 				//TODO: chack - устанавливаем action в deleted тем самым блокируя следующие событие onsaleordersavedrest.
 				$instance->setAction(Manager::ACTION_DELETED);
 
 				//сообщаем внешней системе, что именно мы будем выполнять при синхронизации сохранение|удаление
-				$parameters = ['FIELDS'=>['ID'=>$entity->getId(), 'XML_ID'=>$entity->getField('XML_ID'), 'ACTION'=>Synchronizer::MODE_DELETE]];
+				$parameters = ['FIELDS' => ['ID' => $entity->getId(), 'XML_ID' => $entity->getField('XML_ID'), 'ACTION' => Synchronizer::MODE_DELETE]];
 
-				LoggerDiag::addMessage(strtolower($eventName), var_export([
-					'processEvent [process-03]'=> [
-						'parameters'=>$parameters
+				LoggerDiag::addMessage(mb_strtolower($eventName), var_export([
+					'processEvent [process-03]' => [
+						'parameters' => $parameters
 					]
 				], true));
 
@@ -257,16 +254,16 @@ class RestManager
 					$entityId = $event->getParameters()['VALUES']['ID'];
 				}
 
-				$parameters = ['FIELDS'=>['ID'=>$entityId]];
+				$parameters = ['FIELDS' => ['ID' => $entityId]];
 
-				LoggerDiag::addMessage(strtolower($eventName), var_export([
-					'processEvent [process-04]'=> [
-						'parameters'=>$parameters
+				LoggerDiag::addMessage(mb_strtolower($eventName), var_export([
+					'processEvent [process-04]' => [
+						'parameters' => $parameters
 					]
 				], true));
 
 				return $parameters;
-			break;
+				break;
 			default:
 				throw new RestException("The Event \"{$eventName}\" is not supported in current context");
 		}

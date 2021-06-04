@@ -93,8 +93,8 @@ class User extends Base
 			case FieldType::DOUBLE:
 			case FieldType::INT:
 				$value = (string)$value;
-				if (strpos($value, 'user_') === 0)
-					$value = substr($value, strlen('user_'));
+				if (mb_strpos($value, 'user_') === 0)
+					$value = mb_substr($value, mb_strlen('user_'));
 				$value = (int)$value;
 				break;
 			case FieldType::STRING:
@@ -141,9 +141,16 @@ class User extends Base
 			$value = array($value);
 		}
 
+		$isPublic = ($renderMode & FieldType::RENDER_MODE_PUBLIC);
+
 		$valueString = \CBPHelper::usersArrayToString($value, null, $fieldType->getDocumentType());
 
-		if ($renderMode & FieldType::RENDER_MODE_PUBLIC)
+		if ($allowSelection && !$isPublic)
+		{
+			return static::renderControlSelector($field, $valueString, 'combine', '', $fieldType);
+		}
+
+		if ($isPublic)
 		{
 			\CUtil::InitJSCore(['bp_user_selector']);
 			$name = static::generateControlName($field);
@@ -171,7 +178,7 @@ class User extends Base
 				$config['groups'] = [];
 				foreach ($groups as $id => $groupName)
 				{
-					if (!$groupName || strpos($id, 'group_') === 0)
+					if (!$groupName || mb_strpos($id, 'group_') === 0)
 					{
 						continue;
 					}
@@ -187,6 +194,7 @@ class User extends Base
 			$controlIdHtml = htmlspecialcharsbx($controlId);
 			$configHtml = htmlspecialcharsbx(Main\Web\Json::encode($config));
 			$className = htmlspecialcharsbx(static::generateControlClassName($fieldType, $field));
+			$propertyHtml = htmlspecialcharsbx(Main\Web\Json::encode($fieldType->getProperty()));
 
 			return <<<HTML
 				<script>
@@ -198,7 +206,7 @@ class User extends Base
 						}
 					});
 				</script>
-				<div id="{$controlIdHtml}" data-role="user-selector" data-config="{$configHtml}" class="{$className}"></div>
+				<div id="{$controlIdHtml}" data-role="user-selector" data-property="{$propertyHtml}" data-config="{$configHtml}" class="{$className}"></div>
 HTML;
 		}
 
@@ -244,7 +252,7 @@ HTML;
 		$value = parent::extractValue($fieldType, $field, $request);
 		$result = null;
 
-		if (is_string($value) && strlen($value) > 0)
+		if (is_string($value) && $value <> '')
 		{
 			$errors = array();
 			$result = \CBPHelper::usersStringToArray($value, $fieldType->getDocumentType(), $errors);
@@ -281,4 +289,29 @@ HTML;
 		static::cleanErrors();
 		return static::extractValue($fieldType, $field, $request);
 	}
+
+	public static function externalizeValue(FieldType $fieldType, $context, $value)
+	{
+		$useExtraction = $fieldType->getSettings()['ExternalExtract'] ?? false;
+		if ($useExtraction && $value)
+		{
+			$docId = $fieldType->getDocumentId() ?: $fieldType->getDocumentType();
+			return \CBPHelper::ExtractUsers($value, $docId, true);
+		}
+
+		return parent::externalizeValue($fieldType, $context, $value);
+	}
+
+	public static function externalizeValueMultiple(FieldType $fieldType, $context, $value)
+	{
+		$useExtraction = $fieldType->getSettings()['ExternalExtract'] ?? false;
+		if ($useExtraction && $value)
+		{
+			$docId = $fieldType->getDocumentId() ?: $fieldType->getDocumentType();
+			return \CBPHelper::ExtractUsers($value, $docId);
+		}
+
+		return parent::externalizeValueMultiple($fieldType, $context, $value);
+	}
+
 }

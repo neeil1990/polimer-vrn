@@ -10,6 +10,7 @@
 
 		if (typeof params === 'object')
 		{
+			this.siteType = params.siteType;
 			this.wrapper = params.wrapper;
 			this.inner = params.inner;
 			this.tiles = params.tiles;
@@ -69,7 +70,7 @@
 					this.tiles[i].style.marginTop = obj.margin + 'px';
 				}
 				this.inner.style.marginLeft = (obj.margin * -1) + 'px';
-				this.inner.style.marginTop = (obj.margin * -1) + 'px';
+				this.inner.style.marginTop = (obj.margin * -1) + 7 + 'px';
 			}.bind(this));
 		},
 
@@ -109,7 +110,7 @@
 			};
 		},
 
-		action: function(action, data, successClb)
+		action: function(action, data, successClb, componentName)
 		{
 			var loaderContainer = BX.create('div',{
 				attrs:{className:'landing-filter-loading-container'}
@@ -120,11 +121,18 @@
 			loader.show(loaderContainer);
 
 			BX.ajax({
-				url: '/bitrix/tools/landing/ajax.php?action=' + action,
+				url: BX.util.add_url_param(
+					window.location.href,
+					{action: action}
+					),
 				method: 'POST',
 				data: {
 					data: data,
-					sessid: BX.message('bitrix_sessid')
+					sessid: BX.message('bitrix_sessid'),
+					actionType: 'rest',
+					componentName: typeof componentName !== 'undefined'
+									? componentName
+									: null
 				},
 				dataType: 'json',
 				onsuccess: function(data)
@@ -139,14 +147,35 @@
 					{
 						if (data.type === 'error')
 						{
-							var errorCode = data.result[0].error;
 							var msg = BX.Landing.UI.Tool.ActionDialog.getInstance();
 							if (
+								data.error_type === 'payment' &&
 								(
-									errorCode == 'PUBLIC_SITE_REACHED' ||
-									errorCode == 'PUBLIC_PAGE_REACHED'
-								) &&
-								typeof BX.Landing.PaymentAlertShow !== 'undefined'
+									data.result[0].error === 'PUBLIC_SITE_REACHED' ||
+									data.result[0].error === 'TOTAL_SITE_REACHED' ||
+									data.result[0].error === 'PUBLIC_PAGE_REACHED'
+								)
+							)
+							{
+								if (data.result[0].error === 'PUBLIC_PAGE_REACHED')
+								{
+									top.BX.UI.InfoHelper.show('limit_sites_number_page');
+								}
+								else
+								{
+									if (this.siteType === 'STORE')
+									{
+										top.BX.UI.InfoHelper.show('limit_shop_number');
+									}
+									else
+									{
+										top.BX.UI.InfoHelper.show('limit_sites_number');
+									}
+								}
+							}
+							else if (
+								typeof BX.Landing.PaymentAlertShow !== 'undefined' &&
+								data.error_type === 'payment'
 							)
 							{
 								BX.Landing.PaymentAlertShow({
@@ -170,126 +199,21 @@
 							}
 							else
 							{
-								BX.onCustomEvent('BX.Main.Filter:apply');
+								if (top.window !== window)
+								{
+									// we are in slider
+									window.location.reload();
+								}
+								else
+								{
+									BX.onCustomEvent('BX.Landing.Filter:apply');
+								}
 							}
 						}
 					}
-				}
-			});
-		},
-
-		/**
-		 * Transfer the site to the another type.
-		 * @param id Site id.
-		 * @param params Some params.
-		 */
-		transfer: function(id, params)
-		{
-			if (!BX.type.isPlainObject(params))
-			{
-				params = {};
-			}
-
-			// base popup create
-			if (!this.transferPopup)
-			{
-				this.transferPopup = new BX.PopupWindow('landing-domain-popup', null, {
-					titleBar: BX.message('LANDING_ACTION_DIALOG_CONTENT'),
-					content : BX('landing_domain_popup'),
-					contentBackground: '#eef2f4',
-					overlay: true,
-					closeByEsc: true,
-					zIndexAbsolute: 1050,
-					buttons: [
-						new BX.PopupWindowButton({
-							id: 'landing-popup-window-button-accept',
-							text : BX.message('BLOCK_CONTINUE'),
-							className: 'popup-window-button-accept',
-							events: {
-								click : function()
-								{
-									this.action(
-										'Site::update',
-										{
-											id: id,
-											fields: {
-												DOMAIN_ID: BX('new_domain_name').value,
-												TYPE: params.type
-														? params.type.toUpperCase()
-														: null
-											}
-										},
-										function()
-										{
-											this.transferPopup.close();
-											BX.onCustomEvent('BX.Main.Filter:apply');
-										}.bind(this)
-									);
-								}.bind(this)
-							}
-						}),
-						new BX.PopupWindowButton({
-							text : BX.message('BLOCK_CANCEL'),
-							className: 'popup-window-button-link',
-							events: {
-								click : function()
-								{
-									this.transferPopup.close();
-								}.bind(this)
-							}
-						})
-					],
-				});
-			}
-
-			// set dynamic parts popup
-			BX('new_domain_name').value = params.domainName;
-			BX('new_domain_name_title').textContent = params.domainName;
-			BX('new_domain_name_id').value = params.domainId;
-			BX('landing_domain_address_allow').style.display = 'none';
-			BX('landing_domain_address_disallow').style.display = 'none';
-
-			// custom or b24 domain
-			if (params.domainB24Name)
-			{
-				BX('new_domain_name_own').value = '';
-				BX('new_domain_name_b24').value = params.domainB24Name;
-			}
-			else
-			{
-				BX('new_domain_name_b24').value = '';
-				BX('new_domain_name_own').value = params.domainName;
-			}
-
-			// show
-			this.transferPopup.show();
-
-			// check domain available
-			this.action(
-				'Domain::check',
-				{
-					domain: params.domainName,
-					filter: {
-						'!ID': params.domainId
-					}
-				},
-				function(data)
-				{
-					if (
-						data.result &&
-						data.result.available === true
-					)
-					{
-						BX('landing_domain_address_allow').style.display = 'block';
-					}
-					else
-					{
-						BX('landing_domain_address_disallow').style.display = 'block';
-					}
 				}.bind(this)
-			);
+			});
 		}
-
 	}
 
 })();

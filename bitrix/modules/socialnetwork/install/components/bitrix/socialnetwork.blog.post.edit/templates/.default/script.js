@@ -15,6 +15,7 @@
 		this.lastWait = [];
 		this.animationStartHeight = 0;
 		this.initedEditorsList = [];
+		this.options = {};
 	};
 
 	window.SBPEFullForm.instance = null;
@@ -31,6 +32,43 @@
 
 	window.SBPEFullForm.prototype = {
 
+		setOption: function(key, value)
+		{
+			if (!BX.type.isNotEmptyString(key))
+			{
+				return;
+			}
+
+			this.options[key] = value;
+		},
+
+		onShow: function()
+		{
+			if(
+				BX.type.isNotEmptyString(this.options.startVideoRecorder)
+				&& this.options.startVideoRecorder == 'Y'
+			)
+			{
+				setTimeout(function() {
+					BX.onCustomEvent(BX('divoPostFormLHE_blogPostForm' ), 'OnShowLHE', ['justShow']);
+					BX.VideoRecorder.start('blogPostForm', 'post');
+				}, 500);
+			}
+		},
+
+		onSliderClose: function() {
+
+			var sliderInstance = BX.SidePanel.Instance.getTopSlider();
+			if (!sliderInstance)
+			{
+				return;
+			}
+
+			BX.SidePanel.Instance.postMessageAll(window, "SidePanel.Wrapper:onClose", {
+				sliderData: sliderInstance.getData()
+			});
+		},
+
 		init : function(params)
 		{
 			if (this.inited !== true)
@@ -41,6 +79,16 @@
 				this.container = typeof params.container != 'undefined' ? params.container : null;
 				this.containerMicro = typeof params.containerMicro != 'undefined' ? params.containerMicro : null;
 				this.containerMicroInner = typeof params.containerMicroInner != 'undefined' ? params.containerMicroInner : null;
+			}
+
+			var sliderInstance = BX.SidePanel.Instance.getTopSlider();
+			if (
+				sliderInstance
+				&& !sliderInstance.getData().get('initialized')
+			)
+			{
+				top.BX.addCustomEvent(sliderInstance, 'SidePanel.Slider:onClose', this.onSliderClose);
+				sliderInstance.getData().set('initialized', true);
 			}
 		},
 
@@ -61,8 +109,18 @@
 				_this.clickDisabled = true;
 				_this.animationStartHeight = this.containerMicro.offsetHeight;
 
-				_this.containerMicroInner.style.display = 'none';
-				_this.showWait(_this.containerMicro);
+				if (
+					BX.type.isNotEmptyString(params.loaderType)
+					&& params.loaderType == 'tab'
+				)
+				{
+					_this.showWaitTab();
+				}
+				else
+				{
+					_this.containerMicroInner.style.display = 'none';
+					_this.showWait(_this.containerMicro);
+				}
 
 				BX.ajax({
 					method: 'POST',
@@ -187,6 +245,20 @@
 			return obMsg;
 		},
 
+		showWaitTab : function()
+		{
+			if (
+				!BX('feed-add-post-more-icon')
+				|| !BX('feed-add-post-more-icon-waiter')
+			)
+			{
+				return;
+			}
+
+			BX('feed-add-post-more-icon').style.display = 'none';
+			BX('feed-add-post-more-icon-waiter').style.display = 'block';
+		},
+
 		adjustWait : function()
 		{
 			if (!this.bxmsg) return;
@@ -230,105 +302,37 @@
 					node.bxmsg = null;
 				BX.cleanNode(obMsg, true);
 			}
+
+			if (
+				BX('feed-add-post-more-icon')
+				&& BX('feed-add-post-more-icon-waiter')
+				&& BX('feed-add-post-more-icon').style.display == 'none'
+			)
+			{
+				BX('feed-add-post-more-icon').style.display = 'block';
+				BX('feed-add-post-more-icon-waiter').style.display = 'none';
+
+			}
 		},
 
 		tasksTaskEvent : function(taskId)
 		{
-			this.showTaskPopup(taskId);
-		},
+			var taskLink = BX.message('PATH_TO_USER_TASKS_TASK').replace('#user_id#', BX.message('USER_ID')).replace('#task_id#', taskId).replace('#action#', 'view');
 
-		showTaskPopup : function(taskId)
-		{
-			this.createTaskPopup = new BX.PopupWindow("blogPostEditCreateTaskPopup", null, {
-				autoHide: false,
-				zIndex: 0,
-				offsetLeft: 0,
-				offsetTop: 0,
-				overlay: false,
-				lightShadow: true,
-				closeIcon: {
-					right : "12px",
-					top : "10px"
-				},
-				draggable: {
-					restrict:true
-				},
-				closeByEsc: false,
-				contentColor : 'white',
-				contentNoPaddings: true,
-				buttons: [],
-				content: BX.create('DIV', {
-					attrs: {
-						id: 'blogPostEditCreateTaskPopup_content'
-					},
-					props: {
-						className: 'feed-create-task-popup-content'
+			window.top.BX.UI.Notification.Center.notify({
+				content: BX.message('sonetBPECreateTaskSuccessTitle'),
+				actions: [{
+					title: BX.message('sonetBPECreateTaskButtonTitle'),
+					events: {
+						click: function(event, balloon, action) {
+							balloon.close();
+							window.top.BX.SidePanel.Instance.open(taskLink);
+						}
 					}
-				}),
-				events: {
-					onAfterPopupShow: BX.proxy(function()
-					{
-						this.setTaskPopupContent(BX.create('DIV', {
-							children: [
-								BX.create('DIV', {
-									props: {
-										className: 'feed-create-task-popup-title'
-									},
-									html: BX.message('sonetBPECreateTaskSuccessTitle')
-								}),
-								BX.create('DIV', {
-									props: {
-										className: 'feed-create-task-popup-description'
-									},
-									html: BX.message('sonetBPECreateTaskSuccessDescription')
-								})
-							]
-						}));
+				}]
 
-						this.createTaskPopup.setButtons([
-							new BX.PopupWindowButton({
-								text : BX.message('sonetBPECreateTaskButtonTitle'),
-								events : {
-									click : BX.proxy(function() {
-										this.createTaskPopup.destroy();
-
-										var taskLink = BX.message('PATH_TO_USER_TASKS_TASK').replace('#user_id#', BX.message('USER_ID')).replace('#task_id#', taskId).replace('#action#', 'view');
-										if (
-											typeof BX.Bitrix24 != 'undefined'
-											&& typeof BX.Bitrix24.PageSlider != 'undefined'
-										)
-										{
-											BX.Bitrix24.PageSlider.open(taskLink);
-										}
-										else
-										{
-											window.open(taskLink, '_blank');
-										}
-									}, this)
-								}
-							})
-						]);
-					}, this),
-					onPopupClose: BX.proxy(function() {
-						this.createTaskPopup.destroy();
-					}, this)
-				}
 			});
-
-			this.createTaskPopup.params.zIndex = (BX.WindowManager ? BX.WindowManager.GetZIndex() : 0);
-			this.createTaskPopup.show();
 		},
-
-		setTaskPopupContent : function(contentNode)
-		{
-			if (BX('blogPostEditCreateTaskPopup_content'))
-			{
-				var containerNode = BX('blogPostEditCreateTaskPopup_content');
-				BX.cleanNode(containerNode);
-				containerNode.appendChild(contentNode);
-			}
-		}
-
 	};
 
 	window.SBPETabs = function()
@@ -348,7 +352,6 @@
 		this.menuItems = [];
 		this.lastWait = [];
 		this.clickDisabled = false;
-		this.createTaskPopup = null;
 
 		if (this.inited !== true)
 			this.init();
@@ -414,23 +417,26 @@
 			this.arrow = BX('feed-add-post-form-tab-arrow');
 			this.tabs = {}; this.bodies = {};
 
-			for (var i = 0; i < arTabs.length; i++)
+			if (arTabs)
 			{
-				var id = arTabs[i].getAttribute("id").replace("feed-add-post-form-tab-", "");
-				this.tabs[id] = arTabs[i];
-				if (this.tabs[id].style.display == "none")
+				for (var i = 0; i < arTabs.length; i++)
 				{
-					this.menuItems.push({
-						tabId : id,
-						text : arTabs[i].getAttribute("data-name"),
-						className : "menu-popup-no-icon feed-add-post-form-" + id + " feed-add-post-form-" + id + "-more",
-						onclick : this._createOnclick(id, arTabs[i].getAttribute("data-name"), arTabs[i].getAttribute("data-onclick"))
-					});
+					var id = arTabs[i].getAttribute("id").replace("feed-add-post-form-tab-", "");
+					this.tabs[id] = arTabs[i];
+					if (this.tabs[id].style.display == "none")
+					{
+						this.menuItems.push({
+							tabId : id,
+							text : arTabs[i].getAttribute("data-name"),
+							className : "menu-popup-no-icon feed-add-post-form-" + id + " feed-add-post-form-" + id + "-more",
+							onclick : this._createOnclick(id, arTabs[i].getAttribute("data-name"), arTabs[i].getAttribute("data-onclick"))
+						});
 
-					this.tabs[id] = this.tabs[id].parentNode;
+						this.tabs[id] = this.tabs[id].parentNode;
+					}
+
+					this.bodies[id] = BX('feed-add-post-content-' + id);
 				}
-
-				this.bodies[id] = BX('feed-add-post-content-' + id);
 			}
 
 			if (!!this.tabs['file'])
@@ -737,17 +743,45 @@
 
 		collapse : function()
 		{
-			window.SBPETabs.changePostFormTab("message");
-			if (window.SBPEFullForm.getInstance().containerMicroInner)
+			this.active = null;
+
+			var postEditSlider = false;
+			if (window !== top.window) // slider
 			{
-				window.SBPEFullForm.getInstance().containerMicroInner.style.display = 'block';
+				var currentSlider = BX.SidePanel.Instance.getSliderByWindow(window);
+				if (
+					currentSlider
+					&& currentSlider.url.match(/\/user\/(\d+)\/blog\/edit\//)
+				)
+				{
+					postEditSlider = true;
+				}
 			}
-			this.startAnimation();
+
+			if (!postEditSlider)
+			{
+				window.SBPETabs.changePostFormTab("message");
+				if (window.SBPEFullForm.getInstance().containerMicroInner)
+				{
+					window.SBPEFullForm.getInstance().containerMicroInner.style.display = 'block';
+				}
+				this.startAnimation();
+			}
 			BX.onCustomEvent(BX("divoPostFormLHE_blogPostForm"), "OnShowLHE", [false]);
 			BX.onCustomEvent(window, 'onExtAutoSaveReset_blogPostForm', []);
-			this.endAnimation();
+			if (!postEditSlider)
+			{
+				this.endAnimation();
+			}
+			else
+			{
+				window.top.BX.onCustomEvent(
+					"SidePanel.Slider:onClose",
+					[ currentSlider.getEvent('onClose') ]
+				);
 
-			this.active = null;
+				BX.SidePanel.Instance.close();
+			}
 		},
 
 		showMoreMenu : function()
@@ -1711,15 +1745,36 @@
 					}));
 				}
 
+				var actionUrl = '';
 				var activeTab = window.SBPETabs.getInstance().active;
 				if (BX.type.isNotEmptyString(activeTab))
 				{
-					var actionUrl = BX(formID).action;
+					actionUrl = BX(formID).action;
 					actionUrl = BX.util.remove_url_param(actionUrl, [ 'b24statTab' ]);
 					actionUrl = BX.util.add_url_param(actionUrl, {
 						b24statTab: activeTab
 					});
 					BX(formID).action = actionUrl;
+				}
+
+				for (var i = 0; i < document.getElementById(formID).elements.length; i++) {
+
+					if (
+						!BX.type.isNotEmptyString(document.getElementById(formID).elements[i].name)
+						|| !document.getElementById(formID).elements[i].name.match(/^INVITED_USER_CREATE_CRM_CONTACT/i)
+						|| document.getElementById(formID).elements[i].value !== 'Y'
+					)
+					{
+						continue;
+					}
+
+					actionUrl = BX(formID).action;
+					actionUrl = BX.util.remove_url_param(actionUrl, [ 'b24statAddEmailUserCrmContact' ]);
+					actionUrl = BX.util.add_url_param(actionUrl, {
+						b24statAddEmailUserCrmContact: 'Y'
+					});
+					BX(formID).action = actionUrl;
+					break;
 				}
 
 				BX.submit(BX(formID), value);
@@ -1771,7 +1826,7 @@
 											display: "block",
 											height: "0",
 											opacity: 0,
-											padding: 0
+											// padding: 0
 										}
 									});
 								}

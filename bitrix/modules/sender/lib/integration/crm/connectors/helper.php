@@ -11,19 +11,15 @@ namespace Bitrix\Sender\Integration\Crm\Connectors;
 use Bitrix\Main\Application;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\DB\SqlExpression;
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Entity;
+use Bitrix\Main\Loader;
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Orm;
-use Bitrix\Main\UI\Filter\Type as UiFilterType;
 use Bitrix\Main\UI\Filter\AdditionalDateType;
-
-use Bitrix\Crm\CompanyTable;
-use Bitrix\Crm\LeadTable;
-use Bitrix\Crm\ContactTable;
-
-use Bitrix\Sender\Recipient;
+use Bitrix\Main\UI\Filter\Type as UiFilterType;
 use Bitrix\Sender\Connector;
 use Bitrix\Sender\Integration;
+use Bitrix\Sender\Recipient;
 
 Loc::loadMessages(__FILE__);
 
@@ -34,6 +30,7 @@ Loc::loadMessages(__FILE__);
 class Helper
 {
 	public static $runtimeByEntity = [];
+	private const PERSONALIZE_NAMESPACE = "\\Bitrix\\Sender\\Integration\\Crm\\Connectors\\Personalize\\";
 
 	/**
 	 * Create Orm expression field for selecting multi field.
@@ -77,9 +74,95 @@ class Helper
 	public static function getPersonalizeList()
 	{
 		return array(
+			array('CODE' => 'CRM_ENTITY_TYPE'),
 			array('CODE' => 'CRM_ENTITY_TYPE_ID'),
 			array('CODE' => 'CRM_ENTITY_ID'),
 		);
+	}
+
+	public static function buildPersonalizeList($entityType)
+	{
+		$result = [];
+		$documentClass = self::PERSONALIZE_NAMESPACE.ucfirst($entityType);
+
+		if(!class_exists($documentClass, 'getEntityFields'))
+		{
+			return $result;
+		}
+
+		$items = [];
+		$fields = $documentClass::getEntityFields($entityType) ;
+		$counter = 0;
+		foreach ($fields as $fieldCode  => $field)
+		{
+			$items[$counter++] = [
+				'CODE' => $entityType.'.'.$fieldCode,
+				'NAME' => $field['Name'],
+				'DESC' => $field['Name'],
+			];
+			if(isset($field['personalizeCode']) && $field['personalizeCode'])
+			{
+				$items[$counter - 1]['CODE'] = implode(
+					"##",
+					Integration\Crm\Connectors\Personalize\BasePersonalize::getMap()[$field['personalizeCode']]
+				);
+			}
+		}
+
+		$result[] = [
+			'CODE' => $entityType,
+			'NAME' => Loc::getMessage('SENDER_INTEGRATION_CRM_CONNECTOR_'.$entityType),
+			'ITEMS' => $items
+		];
+
+		return $result;
+	}
+
+	public static function getData($entityType, $entityIds, $fields = ['*'])
+	{
+		$result = [];
+		$documentClass = self::PERSONALIZE_NAMESPACE.ucfirst($entityType);
+
+		if(!class_exists($documentClass, 'getData'))
+		{
+			return $result;
+		}
+
+		return $documentClass::getData($entityType, $entityIds, $fields);
+	}
+
+	public static function getPersonalizeFieldsFromConnectors($isTrigger = false)
+	{
+		$connectors = Connector\Manager::getConnectorList();
+		$items = [];
+
+		foreach ($connectors as $connector)
+		{
+			if(!($connector instanceof Connector\BaseFilter))
+			{
+				continue;
+			}
+
+			if(method_exists($connector, 'getPersonalizeList'))
+			{
+				$list = $connector->getPersonalizeList();
+				if($isTrigger)
+				{
+					foreach ($list as $key => $data)
+					{
+						if(isset($data['ITEMS']) && in_array($data['CODE'], ['LEAD', 'CONTACT', 'COMPANY']))
+						{
+							unset($list[$key]);
+						}
+					}
+				}
+				if(!empty($list))
+				{
+					$items = array_merge($items, $list);
+				}
+			}
+		}
+		return $items;
 	}
 
 	/**
@@ -102,7 +185,7 @@ class Helper
 		$logicFilter = array();
 		$crmUserType->prepareListFilterFields($list, $logicFilter);
 		$originalList = $crmUserType->getFields();
-		$restrictedTypes = ['address', 'file', 'crm'];
+		$restrictedTypes = ['address', 'file', 'crm', 'resourcebooking'];
 
 		$list = array_filter(
 			$list,
@@ -134,6 +217,10 @@ class Helper
 					$list[$index]['allow_years_switcher'] = true;
 				}
 			}
+			if ($originalList[$field['id']]['MULTIPLE'] == 'Y')
+			{
+				$list[$index]['multiple_uf'] = true;
+			}
 		}
 
 		return $list;
@@ -146,7 +233,12 @@ class Helper
 	 * @param integer $dataTypeId Data type ID.
 	 * @return Entity\Query
 	 */
-	public static function prepareQuery(Entity\Query $query, $dataTypeId = null)
+	public static function prepareQuery(
+		Entity\Query $query,
+		$dataTypeId = null,
+		$entityDbName = null,
+		$entityName = null
+	)
 	{
 		$map = array(
 			Recipient\Type::EMAIL => [
@@ -166,17 +258,17 @@ class Helper
 			],
 			Recipient\Type::CRM_CONTACT_ID => [
 				'name' => 'CONTACT_ID',
-				'operator' => '>',
-				'value' => 0
+				'operator' => null,
+				'value' => null
 			],
 			Recipient\Type::CRM_COMPANY_ID => [
 				'name' => 'COMPANY_ID',
-				'operator' => '>',
-				'value' => 0
+				'operator' => null,
+				'value' => null
 			],
 		);
 
-		$entityName = strtoupper($query->getEntity()->getName());
+		$entityName = $entityName ?? mb_strtoupper($query->getEntity()->getName());
 
 		if ($dataTypeId)
 		{
@@ -187,6 +279,11 @@ class Helper
 
 			$field = $map[$dataTypeId];
 
+			if($field['operator'] === null)
+			{
+				return $query;
+			}
+
 			if ($dataTypeId == Recipient\Type::CRM_COMPANY_ID && in_array($entityName, ['CONTACT']))
 			{
 				$field['name'] = 'CRM_COMPANY_ID';
@@ -195,7 +292,7 @@ class Helper
 			$query->where($field['name'], $field['operator'], $field['value']);
 			if ($dataTypeId === Recipient\Type::IM)
 			{
-				$query->whereExists(self::getImSqlExpression($query));
+				$query->whereExists(self::getImSqlExpression($query, $entityDbName, $entityName));
 			}
 		}
 		else if (!in_array($entityName, ['CONTACT', 'COMPANY']))
@@ -203,12 +300,16 @@ class Helper
 			$filter = Entity\Query::filter();
 			foreach ($map as $dataTypeId => $field)
 			{
+				if($field['operator'] === null)
+				{
+					continue;
+				}
 				if ($dataTypeId === Recipient\Type::IM)
 				{
 					$filter->where(
 						Entity\Query::filter()
 							->where($field['name'], $field['operator'], $field['value'])
-							->whereExists(self::getImSqlExpression($query))
+							->whereExists(self::getImSqlExpression($query, $entityDbName, $entityName))
 					);
 				}
 				else
@@ -228,7 +329,11 @@ class Helper
 		return $query;
 	}
 
-	protected static function getImSqlExpression(Entity\Query $query)
+	protected static function getImSqlExpression(
+		Entity\Query $query,
+		$entityDbName = null,
+		$entityName = null
+	)
 	{
 		$codes = Integration\Im\Service::getExcludedChannelCodes();
 		if (empty($codes))
@@ -236,10 +341,12 @@ class Helper
 			$codes = array('livechat', 'network');
 		}
 
-		$entityTypeName = strtoupper($query->getEntity()->getName());
+		$column = $entityDbName ? 'CRM_ENTITY_ID' : 'ID';
+
+		$entityTypeName = $entityName ?? mb_strtoupper($query->getEntity()->getName());
 		$filterImolSql = "SELECT FM.VALUE " .
 			"FROM b_crm_field_multi FM " .
-			"WHERE FM.ENTITY_ID = '$entityTypeName' AND FM.ELEMENT_ID = ?#.ID " .
+			"WHERE FM.ENTITY_ID = '$entityTypeName' AND FM.ELEMENT_ID = ?#.{$column} " .
 			"AND FM.TYPE_ID = 'IM' " .
 			"AND FM.VALUE NOT REGEXP '^imol\\\\|(" . implode('|', $codes) . ")' " .
 			"ORDER BY FM.ID LIMIT 1";
@@ -336,17 +443,21 @@ class Helper
 			foreach ($map as $prefix => $entityTypes)
 			{
 				$search = $prefix . '_';
-				if (strpos($id, $search) !== 0)
+				if (mb_strpos($id, $search) !== 0)
 				{
 					continue;
 				}
 
 				foreach ($entityTypes as $entityTypeName)
 				{
-					$filterKey = "$entityTypeName." . substr($id, strlen($search));
+					$filterKey = "$entityTypeName.".mb_substr($id, mb_strlen($search));
 					if (!self::isFieldTypeFilter($field['type']))
 					{
 						$filterKey = "=$filterKey";
+					}
+					if ($field['multiple_uf'])
+					{
+						$filterKey .= "_SINGLE";
 					}
 
 					$field['sender_segment_filter'] = $filterKey;
@@ -431,12 +542,29 @@ class Helper
 
 			$id = $field['id'];
 			$value = $values[$id];
-			$value = $isMultiple && !is_array($value) ? array($value) : $value;
+			$value = $isMultiple && !is_array($value) ? array($value) :
+				($value === "" ? null:$value);
+
+			if($isMultiple)
+			{
+				foreach($value as &$val)
+				{
+					if($val === "")
+					{
+						$val = null;
+					}
+				}
+			}
+
 			$field['value'] = $value;
 
-			if (strpos($field['id'], 'COMMUNICATION_TYPE') !== false)
+			if ($field['filter_callback'])
 			{
-				self::getCommunicationTypeFilter($value, $filter);
+				$extraCallbackParams = [
+					'FIELD' => $field,
+					'ENTITY_TYPE_NAME' => $entityTypeName
+				];
+				call_user_func_array($field['filter_callback'], [$value, &$filter, $extraCallbackParams]);
 				continue;
 			}
 
@@ -489,15 +617,16 @@ class Helper
 	{
 		$types = array(
 			UiFilterType::DATE,
-			UiFilterType::NUMBER
+			UiFilterType::NUMBER,
+			UiFilterType::DEST_SELECTOR
 		);
-		return in_array(strtoupper($type), $types);
+		return in_array(mb_strtoupper($type), $types);
 	}
 
 	protected static function setFieldTypeFilter($filterKey, array $fieldData, &$filter)
 	{
 		$fieldData['filter-key'] = $filterKey;
-		switch (strtoupper($fieldData['type']))
+		switch(mb_strtoupper($fieldData['type']))
 		{
 			case UiFilterType::DATE:
 				Connector\Filter\DateField::create($fieldData)->applyFilter($filter);
@@ -505,10 +634,13 @@ class Helper
 			case UiFilterType::NUMBER:
 				Connector\Filter\NumberField::create($fieldData)->applyFilter($filter);
 				break;
+			case UiFilterType::DEST_SELECTOR:
+				Connector\Filter\DestSelectorField::create($fieldData)->applyFilter($filter);
+				break;
 		}
 	}
 
-	protected static function getCommunicationTypeFilter(array $commTypes, &$filter)
+	protected static function getCommunicationTypeFilter(array $commTypes, &$filter, $extraCallbackParams = [])
 	{
 		if (in_array(\CCrmFieldMulti::PHONE, $commTypes))
 		{
@@ -524,6 +656,51 @@ class Helper
 		}
 	}
 
+	protected static function getNoPurchasesFilter($value, &$filter, $extraCallbackParams = [])
+	{
+		$entityTypeName = $extraCallbackParams['ENTITY_TYPE_NAME'];
+		$field = $extraCallbackParams['FIELD'];
+		if (!$entityTypeName)
+			return;
+
+		if ($value[$field['id'] . '_datesel'] != 'NONE')
+		{
+			$filter['NO_PURCHASES'] = [];
+			self::setFieldTypeFilter('%PURCHASE_DATE%', $field, $filter['NO_PURCHASES']);
+			self::processRuntimeFilter($filter['NO_PURCHASES'], $entityTypeName);
+		}
+	}
+
+	protected static function productSourceFilter($value, &$filter, $extraCallbackParams = [])
+	{
+		if ($filter['NO_PURCHASES'] || $filter['=COMPANY.PRODUCT_ID'] || $filter['=CONTACT.PRODUCT_ID'])
+		{
+			if (!is_array($value) || in_array("", $value)) // if PRODUCT_SOURCE wasn't set or has "everywhere" value
+			{
+				$value = [];
+			}
+			$filter['PRODUCT_SOURCE'] = $value;
+		}
+	}
+
+	protected static function getDealCategoryFilter($values, &$filter, $extraCallbackParams = [])
+	{
+		$filter['DEAL'] = [];
+		foreach ($values as $k => $value)
+		{
+			if(is_null($value))
+			{
+				$filter['DEAL'][] = ['SGT_DEAL.ID', '=', $value];
+				$filter['DEAL']['JOIN_TYPE'] = 'LEFT';
+				unset($values[$k]);
+			}
+		}
+		if(!empty($values))
+		{
+			$filter['DEAL'][] = ['SGT_DEAL.CATEGORY_ID', 'in', $values];
+		}
+	}
+
 	/**
 	 * Callback on draw of result view.
 	 *
@@ -535,7 +712,7 @@ class Helper
 		switch ($row['CRM_ENTITY_TYPE_ID'])
 		{
 			case \CCrmOwnerType::Company:
-				$crmRow = CompanyTable::getRowById($row['CRM_ENTITY_ID']);
+				$crmRow = \Bitrix\Crm\CompanyTable::getRowById($row['CRM_ENTITY_ID']);
 				$row['~NAME'] = self::getResultViewTitle(
 					$row['CRM_ENTITY_TYPE_ID'],
 					$row['CRM_ENTITY_ID'],
@@ -545,7 +722,7 @@ class Helper
 				);
 				break;
 			case \CCrmOwnerType::Contact:
-				$crmRow = ContactTable::getRowById($row['CRM_ENTITY_ID']);
+				$crmRow = \Bitrix\Crm\ContactTable::getRowById($row['CRM_ENTITY_ID']);
 				$row['~NAME'] = self::getResultViewTitle(
 					$row['CRM_ENTITY_TYPE_ID'],
 					$row['CRM_ENTITY_ID'],
@@ -555,7 +732,7 @@ class Helper
 				);
 				break;
 			case \CCrmOwnerType::Lead:
-				$crmRow = LeadTable::getRowById($row['CRM_ENTITY_ID']);
+				$crmRow = \Bitrix\Crm\LeadTable::getRowById($row['CRM_ENTITY_ID']);
 				$row['CRM_LEAD'] = $row['~CRM_LEAD'] = self::getResultViewTitle(
 					$row['CRM_ENTITY_TYPE_ID'],
 					$row['CRM_ENTITY_ID'],
@@ -637,5 +814,10 @@ class Helper
 		}
 
 		return $url;
+	}
+
+	public static function isCrmSaleEnabled()
+	{
+		return Loader::includeModule("sale") && (Option::get("crm", "crm_shop_enabled", "N") != 'N');
 	}
 }

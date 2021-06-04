@@ -1,11 +1,16 @@
 <?
 
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ErrorCollection;
-use Bitrix\Sender\Integration\MessageService\Sms\Service;
+use Bitrix\Main\Localization\Loc;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 {
+	die();
+}
+
+if (!Bitrix\Main\Loader::includeModule('sender'))
+{
+	ShowError('Module `sender` not installed');
 	die();
 }
 
@@ -18,6 +23,17 @@ class SenderCallNumberComponent extends CBitrixComponent
 
 	protected function checkRequiredParams()
 	{
+		if (!\Bitrix\Main\Loader::includeModule('sender'))
+		{
+			$this->errors->setError(new \Bitrix\Main\Error('Module `sender` is not installed.'));
+			return false;
+		}
+		if (!\Bitrix\Main\Loader::includeModule('voximplant'))
+		{
+			$this->errors->setError(new \Bitrix\Main\Error('Module `voximplant` is not installed.'));
+			return false;
+		}
+
 		return true;
 	}
 
@@ -35,12 +51,23 @@ class SenderCallNumberComponent extends CBitrixComponent
 		$this->arResult['VALUE'] = $this->arParams['VALUE'];
 		$this->arResult['SETUP_URI'] = '/telephony/lines.php';
 		$this->arResult['LIST'] = array();
-		foreach ($list as $key => $value)
+		$this->arResult['HAS_REST'] = \Bitrix\Main\Loader::includeModule('rest') && false;
+		if ($list)
 		{
-			$this->arResult['LIST'][] = array(
-				'id' => $key,
-				'name' => $value,
-			);
+			$internal = [
+				'fromRest' => false,
+				'id' => 'internal',
+				'name' => Loc::getMessage("SENDER_CALL_NUMBER_BITRIX_PHONES"),
+				'numbers' => []
+			];
+			foreach ($list as $key => $value)
+			{
+				$internal['numbers'][] = array(
+					'id' => $key,
+					'name' => $value,
+				);
+			}
+			$this->arResult['LIST'][] = $internal;
 		}
 
 		return true;

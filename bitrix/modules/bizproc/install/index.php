@@ -17,9 +17,7 @@ Class bizproc extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		$this->MODULE_VERSION = $arModuleVersion["VERSION"];
 		$this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
@@ -34,7 +32,7 @@ Class bizproc extends CModule
 		global $DB, $DBType, $APPLICATION;
 
 		$arCurPhpVer = Explode(".", PhpVersion());
-		if (IntVal($arCurPhpVer[0]) < 5)
+		if (intval($arCurPhpVer[0]) < 5)
 			return true;
 
 		$errors = null;
@@ -56,6 +54,12 @@ Class bizproc extends CModule
 		RegisterModuleDependences('timeman', 'OnAfterTMDayStart', 'bizproc', 'CBPDocument', 'onAfterTMDayStart');
 
 		COption::SetOptionString("bizproc", "SkipNonPublicCustomTypes", "Y");
+
+		$eventManager = \Bitrix\Main\EventManager::getInstance();
+		$eventManager->registerEventHandler('rest', 'OnRestApplicationConfigurationImport', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'onEventImportController');
+		$eventManager->registerEventHandler('rest', 'OnRestApplicationConfigurationExport', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'onEventExportController');
+		$eventManager->registerEventHandler('rest', 'OnRestApplicationConfigurationClear', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'onEventClearController');
+		$eventManager->registerEventHandler('rest', 'OnRestApplicationConfigurationEntity', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'getEntityList');
 
 		return true;
 	}
@@ -84,13 +88,19 @@ Class bizproc extends CModule
 		UnRegisterModuleDependences('timeman', 'OnAfterTMDayStart', 'bizproc', 'CBPDocument', 'onAfterTMDayStart');
 		UnRegisterModule("bizproc");
 
+		$eventManager = \Bitrix\Main\EventManager::getInstance();
+		$eventManager->unRegisterEventHandler('rest', 'OnRestApplicationConfigurationImport', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'onEventImportController');
+		$eventManager->unRegisterEventHandler('rest', 'OnRestApplicationConfigurationExport', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'onEventExportController');
+		$eventManager->unRegisterEventHandler('rest', 'OnRestApplicationConfigurationClear', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'onEventClearController');
+		$eventManager->unRegisterEventHandler('rest', 'OnRestApplicationConfigurationEntity', 'bizproc', '\Bitrix\Bizproc\Integration\Rest\AppConfiguration', 'getEntityList');
+
 		return true;
 	}
 
 	function InstallEvents()
 	{
 		$arCurPhpVer = Explode(".", PhpVersion());
-		if (IntVal($arCurPhpVer[0]) < 5)
+		if (intval($arCurPhpVer[0]) < 5)
 			return true;
 
 		global $DB;
@@ -129,7 +139,7 @@ Class bizproc extends CModule
 	function InstallPublic()
 	{
 		$arCurPhpVer = Explode(".", PhpVersion());
-		if (IntVal($arCurPhpVer[0]) < 5)
+		if (intval($arCurPhpVer[0]) < 5)
 			return true;
 	}
 
@@ -155,7 +165,7 @@ Class bizproc extends CModule
 
 		$curPhpVer = PhpVersion();
 		$arCurPhpVer = Explode(".", $curPhpVer);
-		if (IntVal($arCurPhpVer[0]) < 5)
+		if (intval($arCurPhpVer[0]) < 5)
 		{
 			$this->errors = array(Loc::getMessage("BIZPROC_PHP_L439", array("#VERS#" => $curPhpVer)));
 		}
@@ -177,7 +187,7 @@ Class bizproc extends CModule
 
 		$this->errors = array();
 
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 		{
 			if (IsModuleInstalled("bizprocdesigner"))

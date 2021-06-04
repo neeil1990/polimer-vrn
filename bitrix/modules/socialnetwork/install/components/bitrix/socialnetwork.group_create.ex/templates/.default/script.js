@@ -310,6 +310,15 @@ function BXGCESubmitForm(e)
 								if (eventData)
 								{
 									window.top.BX.SidePanel.Instance.postMessageAll(window, 'sonetGroupEvent', eventData);
+									if (obResponsedata.ACTION === 'create')
+									{
+										var createdGroupsData = JSON.parse(obResponsedata.SELECTOR_GROUPS);
+										if (BX.type.isArray(createdGroupsData))
+										{
+											window.top.BX.SidePanel.Instance.postMessageAll(window, 'BX.Socialnetwork.Workgroup:onAdd', { projects: createdGroupsData });
+										}
+									}
+
 									BX.SidePanel.Instance.close();
 
 									if (
@@ -390,9 +399,25 @@ BX.BXGCE.init = function(params) {
 		}
 	}
 
+	this.isScrumProject = params.isScrumProject;
+	if (parseInt(this.groupId, 10) > 0)
+	{
+		this.makeAdditionalCustomizationForm();
+	}
+
 	var
 		i = null,
 		cnt = null;
+
+	if (
+		BX.type.isNotEmptyString(params.preset)
+		&& parseInt(this.groupId) <= 0
+	)
+	{
+		this.recalcForm({
+			type: params.preset
+		});
+	}
 
 	if (BX('sonet_group_create_form_step_1'))
 	{
@@ -515,22 +540,32 @@ BX.BXGCE.init = function(params) {
 		}
 	});
 
-	BX.bind(BX("sonet_group_create_popup_form_button_step_2_cancel"), "click", function(e) {
+	if (BX("sonet_group_create_popup_form_button_step_2_cancel"))
+	{
+		BX.bind(BX("sonet_group_create_popup_form_button_step_2_cancel"), "click", function(e) {
+			var currentSlider = BX.SidePanel.Instance.getSliderByWindow(window);
+			if (currentSlider)
+			{
+				window.top.BX.onCustomEvent(
+					"SidePanel.Slider:onClose",
+					[ currentSlider.getEvent('onClose') ]
+				);
+			}
+			else
+			{
+				var url = e.currentTarget.getAttribute('bx-url');
+				if (BX.type.isNotEmptyString(url))
+				{
+					window.location = url;
+				}
+			}
 
-		var currentSlider = BX.SidePanel.Instance.getSliderByWindow(window);
-		if (currentSlider)
-		{
-			window.top.BX.onCustomEvent(
-				"SidePanel.Slider:onClose",
-				[ currentSlider.getEvent('onClose') ]
-			);
-		}
+			window.top.BX.onCustomEvent("BX.Bitrix24.PageSlider:close", [false]);
+			window.top.BX.onCustomEvent('onSonetIframeCancelClick');
 
-		window.top.BX.onCustomEvent("BX.Bitrix24.PageSlider:close", [false]);
-		window.top.BX.onCustomEvent('onSonetIframeCancelClick');
-
-		return e.preventDefault();
-	});
+			return e.preventDefault();
+		});
+	}
 
 	if (BX.SidePanel.Instance.getTopSlider())
 	{
@@ -843,7 +878,7 @@ BX.BXGCE.recalcFormPartProjectBlock = function(blockId, isChecked)
 		}
 		else
 		{
-			BX.removeClass(blockId, 'sgcp-switch-project');
+			BX.removeClass(BX(blockId), 'sgcp-switch-project');
 		}
 	}
 };
@@ -893,6 +928,66 @@ BX.BXGCE.recalcFormPartProject = function (isChecked) {
 	}
 };
 
+BX.BXGCE.makeAdditionalCustomizationForm = function()
+{
+	if (this.isScrumProject)
+	{
+		this.updatePageTitle();
+
+		this.createHiddenInputs();
+
+		this.hideBlocksForScrumProject();
+	}
+	else
+	{
+		this.hideScrumBlocks();
+	}
+};
+
+BX.BXGCE.hideBlocksForScrumProject = function ()
+{
+
+	var typeBlock = document.getElementById('additional-block-type');
+	if (typeBlock)
+	{
+		BX.addClass(typeBlock, 'sgcp-hide-scrum-project');
+	}
+
+	var subjectBlock = document.getElementById('GROUP_SUBJECT_ID_LABEL_block');
+	if (subjectBlock)
+	{
+		BX.addClass(subjectBlock.closest('.social-group-create-options-item'), 'sgcp-hide-scrum-project');
+	}
+};
+
+BX.BXGCE.updatePageTitle = function ()
+{
+	document.title = BX.message('SONET_GCE_T_SCRUM_PAGE_TITLE');
+	BX.SidePanel.Instance.updateBrowserTitle();
+	BX.html(document.getElementById('pagetitle'), document.title);
+};
+
+BX.BXGCE.hideScrumBlocks = function ()
+{
+	document.querySelectorAll('#scrum-block').forEach(function (scrumBlock)
+	{
+		BX.addClass(scrumBlock, 'sgcp-hide-scrum-project');
+	});
+};
+
+BX.BXGCE.createHiddenInputs = function ()
+{
+	document.forms['sonet_group_create_popup_form'].appendChild(
+		BX.create('input', {
+			attrs : {
+				type : 'hidden',
+				name: 'SCRUM_PROJECT',
+				value: 'Y'
+			}
+		})
+	);
+};
+
 BX.BXGCE.recalcForm = function (params) {
 	var type = (
 		typeof params != 'undefined'
@@ -911,6 +1006,9 @@ BX.BXGCE.recalcForm = function (params) {
 
 	this.recalcFormPartProject(this.types[type].PROJECT == 'Y');
 
+	this.isScrumProject = this.types[type].hasOwnProperty('SCRUM_PROJECT');
+	this.makeAdditionalCustomizationForm();
+
 	if (BX('GROUP_OPENED'))
 	{
 		this.setCheckedValue(BX('GROUP_OPENED'), (this.types[type].OPENED == 'Y'));
@@ -924,6 +1022,11 @@ BX.BXGCE.recalcForm = function (params) {
 	if (BX('IS_EXTRANET_GROUP'))
 	{
 		this.setCheckedValue(BX('IS_EXTRANET_GROUP'), (this.types[type].EXTERNAL == 'Y'));
+	}
+
+	if (BX('GROUP_LANDING'))
+	{
+		this.setCheckedValue(BX('GROUP_LANDING'), (this.types[type].LANDING == 'Y'));
 	}
 
 	this.recalcFormDependencies();

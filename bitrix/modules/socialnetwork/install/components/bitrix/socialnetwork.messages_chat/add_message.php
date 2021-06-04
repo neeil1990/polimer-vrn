@@ -9,9 +9,6 @@ $path = str_replace(array("\\", "//"), "/", dirname(__FILE__)."/lang/en/add_mess
 $path = str_replace(array("\\", "//"), "/", dirname(__FILE__)."/lang/".LANGUAGE_ID."/add_message.php");
 @include_once($path);
 
-if(CModule::IncludeModule("compression"))
-	Ccompress::Disable2048Spaces();
-
 if (CModule::IncludeModule("socialnetwork"))
 {
 	$aUserId = array();
@@ -22,7 +19,7 @@ if (CModule::IncludeModule("socialnetwork"))
 				$aUserId[] = intval($id);
 	}
 	elseif(intval($_REQUEST["user_id"]) > 0)
-		$aUserId[] = IntVal($_REQUEST["user_id"]);
+		$aUserId[] = intval($_REQUEST["user_id"]);
 
 	$aUserId = array_unique($aUserId);
 
@@ -43,7 +40,7 @@ if (CModule::IncludeModule("socialnetwork"))
 			$message = $_REQUEST["data"];
 			CUtil::decodeURIComponent($message);
 			$message = Trim($message);
-			if (StrLen($message) <= 0)
+			if ($message == '')
 			{
 				echo GetMessage("SONET_C50_NO_TEXT").".";
 			}
@@ -69,7 +66,7 @@ if (CModule::IncludeModule("socialnetwork"))
 								if ($e = $GLOBALS["APPLICATION"]->GetException())
 									$errorMessage .= $e->GetString();
 							}
-							if (strlen($errorMessage) > 0)
+							if ($errorMessage <> '')
 								echo $errorMessage;
 						}
 					}

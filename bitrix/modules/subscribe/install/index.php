@@ -18,9 +18,7 @@ class subscribe extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -64,6 +62,7 @@ class subscribe extends CModule
 			RegisterModuleDependences("main", "OnUserLogout", "subscribe", "CSubscription", "OnUserLogout");
 			RegisterModuleDependences("main", "OnGroupDelete", "subscribe", "CPosting", "OnGroupDelete");
 			RegisterModuleDependences("sender", "OnConnectorList", "subscribe", "Bitrix\\Subscribe\\SenderEventHandler", "onConnectorListSubscriber");
+			RegisterModuleDependences("perfmon", "OnGetTableSchema", "subscribe", "subscribe", "OnGetTableSchema");
 
 			//agents
 			CAgent::RemoveAgent("CSubscription::CleanUp();", "subscribe");
@@ -102,6 +101,7 @@ class subscribe extends CModule
 		UnRegisterModuleDependences("main", "OnGroupDelete", "subscribe", "CPosting", "OnGroupDelete");
 		UnRegisterModuleDependences("main", "OnUserLogout", "subscribe", "CSubscription", "OnUserLogout");
 		UnRegisterModuleDependences("sender", "OnConnectorList", "subscribe", "Bitrix\\Subscribe\\SenderEventHandler", "onConnectorListSubscriber");
+		UnRegisterModuleDependences("perfmon", "OnGetTableSchema", "subscribe", "subscribe", "OnGetTableSchema");
 
 		UnRegisterModule("subscribe");
 
@@ -154,7 +154,7 @@ class subscribe extends CModule
 
 		if(
 			array_key_exists("install_public", $arParams) && ($arParams["install_public"] == "Y")
-			&& array_key_exists("public_dir", $arParams) && strlen($arParams["public_dir"])
+			&& array_key_exists("public_dir", $arParams) && mb_strlen($arParams["public_dir"])
 		)
 		{
 			$rsSite = CSite::GetList(($by="sort"),($order="asc"));
@@ -217,7 +217,7 @@ class subscribe extends CModule
 		$POST_RIGHT = $APPLICATION->GetGroupRight("subscribe");
 		if($POST_RIGHT == "W")
 		{
-			$step = IntVal($step);
+			$step = intval($step);
 			if($step < 2)
 			{
 				$APPLICATION->IncludeAdminFile(GetMessage("inst_inst_title"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/subscribe/install/inst1.php");
@@ -246,7 +246,7 @@ class subscribe extends CModule
 		$POST_RIGHT = $APPLICATION->GetGroupRight("subscribe");
 		if($POST_RIGHT == "W")
 		{
-			$step = IntVal($step);
+			$step = intval($step);
 			if($step < 2)
 			{
 				$APPLICATION->IncludeAdminFile(GetMessage("inst_uninst_title"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/subscribe/install/uninst1.php");
@@ -268,5 +268,59 @@ class subscribe extends CModule
 		}
 	}
 
+	public function migrateToBox()
+	{
+		COption::SetOptionString('subscribe', 'mail_additional_parameters', '');
+	}
+
+	function OnGetTableSchema()
+	{
+		return array(
+			"subscribe" => array(
+				"b_list_rubric" => array(
+					"ID" => array(
+						"b_subscription_rubric" => "LIST_RUBRIC_ID",
+						"b_posting_rubric" => "LIST_RUBRIC_ID",
+					)
+				),
+				"b_subscription" => array(
+					"ID" => array(
+						"b_subscription_rubric" => "SUBSCRIPTION_ID",
+						"b_posting_email" => "SUBSCRIPTION_ID",
+					)
+				),
+				"b_posting" => array(
+					"ID" => array(
+						"b_posting_email" => "POSTING_ID",
+						"b_posting_rubric" => "POSTING_ID",
+						"b_posting_group" => "POSTING_ID",
+						"b_posting_file" => "POSTING_ID",
+					)
+				),
+			),
+			"main" => array(
+				"b_file" => array(
+					"ID" => array(
+						"b_posting_file" => "FILE_ID",
+					)
+				),
+				"b_lang" => array(
+					"LID" => array(
+						"b_list_rubric" => "LID",
+					)
+				),
+				"b_user" => array(
+					"ID" => array(
+						"b_subscription" => "USER_ID",
+						"b_posting_email" => "USER_ID",
+					)
+				),
+				"b_group" => array(
+					"ID" => array(
+						"b_posting_group" => "GROUP_ID",
+					)
+				),
+			),
+		);
+	}
 }
-?>

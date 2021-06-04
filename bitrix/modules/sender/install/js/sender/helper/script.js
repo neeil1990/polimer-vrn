@@ -135,9 +135,21 @@
 					this.popup = new BX.PopupMenuWindow(
 						'sender-helper-hint-tag-' + (target.name || target.id),
 						node,
-						items.map(function (item) {
-							item.onclick = this.onClick.bind(this, target, node, item);
-							return item;
+						items.map(function (childItem) {
+							var _this = this;
+							if(typeof childItem.items !== 'undefined' && childItem.items.length !== 0)
+							{
+								childItem.items.map(function(item) {
+									item.onclick = _this.onClick.bind(_this, target, node, item);
+									return item;
+								})
+							}
+							else
+							{
+								childItem.onclick = this.onClick.bind(this, target, node, childItem);
+							}
+
+							return childItem;
 						}, this),
 						{
 							autoHide: true,

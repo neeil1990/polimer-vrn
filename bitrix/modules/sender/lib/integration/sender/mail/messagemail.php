@@ -8,25 +8,25 @@
 
 namespace Bitrix\Sender\Integration\Sender\Mail;
 
-use Bitrix\Main\Application;
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\Config\Option;
-use Bitrix\Main\Result;
-use Bitrix\Main\Error;
-use Bitrix\Main\Mail;
-
-use Bitrix\Main\Web\DOM\Document;
-use Bitrix\Main\Loader;
-use Bitrix\Main\Web\DOM\StyleInliner;
 use Bitrix\Fileman\Block;
-
-use Bitrix\Sender\Integration;
-use Bitrix\Sender\Transport;
-use Bitrix\Sender\Message;
+use Bitrix\Main\Application;
+use Bitrix\Main\Config\Option;
+use Bitrix\Main\Error;
+use Bitrix\Main\Loader;
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Mail;
+use Bitrix\Main\Result;
+use Bitrix\Main\SystemException;
+use Bitrix\Main\Web\DOM\Document;
+use Bitrix\Main\Web\DOM\StyleInliner;
 use Bitrix\Sender\Entity;
-use Bitrix\Sender\Templates;
-
+use Bitrix\Sender\Integration;
+use Bitrix\Sender\Integration\Crm\Connectors\Helper;
+use Bitrix\Sender\Message;
+use Bitrix\Sender\Posting;
 use Bitrix\Sender\PostingRecipientTable;
+use Bitrix\Sender\Templates;
+use Bitrix\Sender\Transport;
 
 Loc::loadMessages(__FILE__);
 
@@ -84,6 +84,10 @@ class MessageMail implements Message\iBase, Message\iMailable
 		return array(Transport\Adapter::CODE_MAIL);
 	}
 
+	/**
+	 * Set configuration options
+	 * @return void
+	 */
 	protected function setConfigurationOptions()
 	{
 		if ($this->configuration->hasOptions())
@@ -98,6 +102,7 @@ class MessageMail implements Message\iBase, Message\iMailable
 				'name' => Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_CONFIG_SUBJECT'),
 				'required' => true,
 				'value' => '',
+				'show_in_list' => true,
 				'hint' => array(
 					'menu' => array_map(
 						function ($item)
@@ -106,11 +111,37 @@ class MessageMail implements Message\iBase, Message\iMailable
 								'id' => '#' . $item['CODE'] . '#',
 								'text' => $item['NAME'],
 								'title' => $item['DESC'],
+								'items' => $item['ITEMS']?array_map(
+									function ($item)
+									{
+										return array(
+											'id' => '#' . $item['CODE'] . '#',
+											'text' => $item['NAME'],
+											'title' => $item['DESC']
+										);
+									}, $item['ITEMS']
+								) : []
 							);
 						},
-						PostingRecipientTable::getPersonalizeList()
+						array_merge(
+							Helper::getPersonalizeFieldsFromConnectors(),
+							PostingRecipientTable::getPersonalizeList()
+						)
 					),
 				),
+			),
+			array(
+				'type' => 'email',
+				'code' => 'EMAIL_FROM',
+				'name' => Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_CONFIG_EMAIL_FROM'),
+				'required' => true,
+				'value' => '',
+				'show_in_list' => true,
+				'readonly_view' => function($value)
+				{
+					return (new Mail\Address())->set($value)->get();
+				},
+				//'group' => Message\ConfigurationOption::GROUP_ADDITIONAL,
 			),
 			array(
 				'type' => 'mail-editor',
@@ -122,20 +153,13 @@ class MessageMail implements Message\iBase, Message\iMailable
 				'items' => array(),
 			),
 			array(
-				'type' => 'email',
-				'code' => 'EMAIL_FROM',
-				'name' => Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_CONFIG_EMAIL_FROM'),
-				'required' => true,
-				'value' => '',
-				'group' => Message\ConfigurationOption::GROUP_ADDITIONAL,
-			),
-			array(
 				'type' => 'list',
 				'code' => 'PRIORITY',
 				'name' => Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_CONFIG_PRIORITY'),
 				'required' => false,
 				'group' => Message\ConfigurationOption::GROUP_ADDITIONAL,
 				'value' => '',
+				'show_in_list' => true,
 				'items' => array(
 					array('code' => '', 'value' => '(' . Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_NO') . ')'),
 					array('code' => '1 (Highest)', 'value' => Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_CONFIG_PRIORITY_HIGHEST')),
@@ -151,6 +175,7 @@ class MessageMail implements Message\iBase, Message\iMailable
 				'required' => false,
 				'group' => Message\ConfigurationOption::GROUP_ADDITIONAL,
 				'value' => '',
+				'show_in_list' => true,
 				'items' => array(),
 			),
 			array(
@@ -289,16 +314,40 @@ class MessageMail implements Message\iBase, Message\iMailable
 	{
 		$this->configuration = $configuration;
 
-		if (Integration\Bitrix24\Service::isCloud())
+		try
 		{
 			$mailBody = $this->getMailBody();
-			if ($mailBody && strpos($mailBody, '#UNSUBSCRIBE_LINK#') === false)
+		}
+		catch (SystemException $exception)
+		{
+			$result = new Result();
+			$result->addError(new Error($exception->getMessage()));
+
+			return $result;
+		}
+
+		if (Integration\Bitrix24\Service::isCloud())
+		{
+			if ($mailBody && mb_strpos($mailBody, '#UNSUBSCRIBE_LINK#') === false)
 			{
 				$result = new Result();
 				$result->addError(new Error(Loc::getMessage('SENDER_INTEGRATION_MAIL_MESSAGE_ERR_NO_UNSUB_LINK')));
 
 				return $result;
 			}
+		}
+		parse_str(
+			$this->configuration->getOption('LINK_PARAMS')->getValue(),
+			$utmTags
+		);
+
+		$utm = [];
+		foreach ($utmTags as $utmTag => $value)
+		{
+			$utm[] = [
+				'CODE' => $utmTag,
+				'VALUE' => $value
+			];
 		}
 
 		//TODO: compare with allowed email list
@@ -308,6 +357,7 @@ class MessageMail implements Message\iBase, Message\iMailable
 
 		return Entity\Message::create()
 			->setCode($this->getCode())
+			->setUtm($utm)
 			->saveConfiguration($this->configuration);
 	}
 
@@ -324,6 +374,11 @@ class MessageMail implements Message\iBase, Message\iMailable
 			->copyConfiguration($id);
 	}
 
+	/**
+	 * Remove php code from html
+	 * @param string $html Input html.
+	 * @return string
+	 */
 	protected function removePhp($html)
 	{
 		static $isCloud = null;
@@ -377,9 +432,17 @@ class MessageMail implements Message\iBase, Message\iMailable
 
 		$document = new Document;
 		$document->loadHTML($templateHtml);
-		if(!Block\Content\Engine::create($document)->setContent($msg)->fill())
+
+		try
 		{
-			return '';
+			if(!Block\Content\Engine::create($document)->setContent($msg)->fill())
+			{
+				return '';
+			}
+		}
+		catch (SystemException $exception)
+		{
+			throw new Posting\StopException($exception->getMessage());
 		}
 
 		StyleInliner::inlineDocument($document);
@@ -401,6 +464,10 @@ class MessageMail implements Message\iBase, Message\iMailable
 		return $msg;
 	}
 
+	/**
+	 * Get template
+	 * @return array|null
+	 */
 	protected function getTemplate()
 	{
 		if (!$this->configuration->get('TEMPLATE_TYPE') || !$this->configuration->get('TEMPLATE_ID'))
@@ -415,6 +482,11 @@ class MessageMail implements Message\iBase, Message\iMailable
 			->get();
 	}
 
+	/**
+	 * Add option headers to headers
+	 * @param array $headers Headers.
+	 * @return array
+	 */
 	protected static function fillHeadersByOptionHeaders(array $headers = array())
 	{
 		static $headerList = null;
@@ -423,7 +495,7 @@ class MessageMail implements Message\iBase, Message\iMailable
 			$headerList = array();
 			// add headers from module options
 			$optionHeaders = Option::get('sender', 'mail_headers', '');
-			$optionHeaders = !empty($optionHeaders) ? unserialize($optionHeaders) : array();
+			$optionHeaders = !empty($optionHeaders) ? unserialize($optionHeaders, ['allowed_classes' => false]) : array();
 			foreach ($optionHeaders as $optionHeader)
 			{
 				$optionHeader = trim($optionHeader);

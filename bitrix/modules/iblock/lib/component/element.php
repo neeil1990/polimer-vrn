@@ -365,6 +365,11 @@ abstract class Element extends Base
 		$this->loadOfferTreePropertyCodes($this->arParams['IBLOCK_ID']);
 	}
 
+	protected function checkProductIblock(array $product): bool
+	{
+		return ($product['PRODUCT_IBLOCK_ID'] == $this->arParams['IBLOCK_ID']);
+	}
+
 	/**
 	 * @param int $iblockId
 	 * @return void
@@ -631,8 +636,8 @@ abstract class Element extends Base
 			$element['LINKED_ELEMENTS'] = array();
 
 			if (
-				strlen($this->arParams['LINK_PROPERTY_SID']) > 0
-				&& strlen($this->arParams['LINK_IBLOCK_TYPE']) > 0
+				$this->arParams['LINK_PROPERTY_SID'] <> ''
+				&& $this->arParams['LINK_IBLOCK_TYPE'] <> ''
 				&& $this->arParams['LINK_IBLOCK_ID'] > 0
 			)
 			{
@@ -1381,6 +1386,10 @@ abstract class Element extends Base
 				'NAME' => $offer['~NAME'],
 				'TREE' => $offer['TREE'],
 				'DISPLAY_PROPERTIES' => $skuProps,
+				'PREVIEW_TEXT' => $offer['PREVIEW_TEXT'],
+				'PREVIEW_TEXT_TYPE' => $offer['PREVIEW_TEXT_TYPE'],
+				'DETAIL_TEXT' => $offer['DETAIL_TEXT'],
+				'DETAIL_TEXT_TYPE' => $offer['DETAIL_TEXT_TYPE'],
 				'ITEM_PRICE_MODE' => $offer['ITEM_PRICE_MODE'],
 				'ITEM_PRICES' => $offer['ITEM_PRICES'],
 				'ITEM_PRICE_SELECTED' => $offer['ITEM_PRICE_SELECTED'],

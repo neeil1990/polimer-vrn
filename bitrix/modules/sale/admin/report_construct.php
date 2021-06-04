@@ -1,7 +1,8 @@
 <?
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/prolog.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions <= "D")
@@ -95,7 +96,7 @@ if ($rep_owner = $_REQUEST['rep_owner'])
 	{
 		// filter rep_owner value
 		$matches = array();
-		$rep_owner = substr($rep_owner, 0, 50);
+		$rep_owner = mb_substr($rep_owner, 0, 50);
 		if (preg_match('/^[A-Z_][A-Z0-9_-]*[A-Z0-9_]$/i', $rep_owner, $matches)) $rep_owner = $matches[0];
 		else $rep_owner = '';
 
@@ -162,7 +163,7 @@ $siteList = CBaseSaleReportHelper::getSiteList();
 
 if (isset($_REQUEST['F_SALE_SITE']))
 {
-	$siteId = substr($_REQUEST['F_SALE_SITE'],0,2);
+	$siteId = mb_substr($_REQUEST['F_SALE_SITE'], 0, 2);
 	if (array_key_exists($siteId, $siteList))
 	{
 		$siteCookieId = CBaseSaleReportHelper::getSiteCookieId();
@@ -177,7 +178,7 @@ else
 	$siteCookieId = CBaseSaleReportHelper::getSiteCookieId();
 	if (isset($_COOKIE[$siteCookieId]))
 	{
-		$siteId = substr($_COOKIE[$siteCookieId],0,2);
+		$siteId = mb_substr($_COOKIE[$siteCookieId], 0, 2);
 		if (array_key_exists($siteId, $siteList))
 		{
 			$arParams['F_SALE_SITE'] = $siteId;

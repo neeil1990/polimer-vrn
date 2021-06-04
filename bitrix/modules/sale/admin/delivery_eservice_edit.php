@@ -3,6 +3,7 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admi
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Delivery\ExtraServices;
+use Bitrix\Sale\Delivery\ExtraServices\Base;
 
 Loc::loadMessages(__FILE__);
 Bitrix\Main\Loader::includeModule('sale');
@@ -25,7 +26,7 @@ $fields = array(
 	"RIGHTS" => "YYY"
 );
 $tabControlName = "tabControl";
-$isItSavingProcess = ($_SERVER['REQUEST_METHOD'] == "POST" && (strlen($_POST["save"]) > 0 || strlen($_POST["apply"]) > 0)) ? true : false;
+$isItSavingProcess = ($_SERVER['REQUEST_METHOD'] == "POST" && ($_POST["save"] <> '' || $_POST["apply"] <> '')) ? true : false;
 $isFormReloading = $_SERVER['REQUEST_METHOD'] == "POST" && !$isItSavingProcess;
 
 if($saleModulePermissions == "W" && check_bitrix_sessid())
@@ -41,10 +42,22 @@ if($saleModulePermissions == "W" && check_bitrix_sessid())
 		if(isset($_POST["RIGHTS"])) 		$fields["RIGHTS"] = $_POST["RIGHTS"];
 		if(isset($_POST["ACTIVE"]))			$fields["ACTIVE"] = trim($_POST["ACTIVE"]);
 		if(isset($_POST["INIT_VALUE"]))		$fields["INIT_VALUE"] = trim($_POST["INIT_VALUE"]);
-		if(isset($_POST["CLASS_NAME"]))		$fields["CLASS_NAME"] = trim($_POST["CLASS_NAME"]);
 		if(isset($_POST["DESCRIPTION"]))	$fields["DESCRIPTION"] = trim($_POST["DESCRIPTION"]);
 		if(isset($_POST["DELIVERY_ID"]))	$fields["DELIVERY_ID"] = intval($_POST["DELIVERY_ID"]);
 		if(isset($_POST["PARAMS"], $_POST["PARAMS"]["PARAMS"]))	$fields["PARAMS"] = $_POST["PARAMS"]["PARAMS"];
+
+		if(isset($_POST["CLASS_NAME"]))
+		{
+			ExtraServices\Manager::initClassesList();
+			if(!is_subclass_of($_POST["CLASS_NAME"], Base::class))
+			{
+				throw new \Bitrix\Main\SystemException(
+					'Class "' . htmlspecialcharsbx( $_POST["CLASS_NAME"] ) . '" is not a subclass of the \Bitrix\Sale\Delivery\ExtraServices\Base'
+				);
+			}
+
+			$fields["CLASS_NAME"] = trim($_POST["CLASS_NAME"]);
+		}
 
 		if($isItSavingProcess)
 		{
@@ -53,7 +66,7 @@ if($saleModulePermissions == "W" && check_bitrix_sessid())
 				$fields = ExtraServices\Manager::prepareParamsToSave($fields);
 				$codeExist = false;
 
-				if(strlen($fields["CODE"]) > 0)
+				if($fields["CODE"] <> '')
 				{
 					$glres = ExtraServices\Table::getList(array(
 						'filter' => array(
@@ -97,16 +110,16 @@ if($saleModulePermissions == "W" && check_bitrix_sessid())
 				$strError .= Loc::getMessage("SALE_ESDE_ERROR_ID").'.<br>\n';
 			}
 
-			if(strlen($strError) <= 0)
+			if($strError == '')
 			{
 				$adminSidePanelHelper->sendSuccessResponse("base", array("ID" => $ID));
-				if (strlen($_POST["apply"]) > 0)
+				if ($_POST["apply"] <> '')
 				{
 					$applyUrl = $APPLICATION->GetCurPageParam("ID=".$ID, array('ID'));
 					$applyUrl = $adminSidePanelHelper->setDefaultQueryParams($applyUrl);
 					LocalRedirect($applyUrl);
 				}
-				elseif(strlen($_POST["save"]) > 0)
+				elseif($_POST["save"] <> '')
 				{
 					$adminSidePanelHelper->localRedirect($backUrl);
 					LocalRedirect($backUrl);
@@ -160,7 +173,7 @@ if($DELIVERY_ID > 0)
 
 if($deliveryService && $ID <= 0)
 {
-	if(isset($_GET["ES_CODE"]) && strlen($_GET["ES_CODE"]) > 0)
+	if(isset($_GET["ES_CODE"]) && $_GET["ES_CODE"] <> '')
 	{
 		$embeddedList = $deliveryService->getEmbeddedExtraServicesList();
 
@@ -174,8 +187,15 @@ if($deliveryService && $ID <= 0)
 				$fields["RIGHTS"] = "NYY";
 		}
 	}
-	elseif(isset($_REQUEST["CLASS_NAME"]) && strlen($_REQUEST["CLASS_NAME"]) > 0)
+	elseif(isset($_REQUEST["CLASS_NAME"]) && $_REQUEST["CLASS_NAME"] <> '')
 	{
+		if(!is_subclass_of($_REQUEST["CLASS_NAME"], Base::class))
+		{
+			throw new \Bitrix\Main\SystemException(
+				'Class "' . htmlspecialcharsbx($_REQUEST["CLASS_NAME"]) . '" is not a subclass of the \Bitrix\Sale\Delivery\ExtraServices\Base'
+			);
+		}
+
 		$fields["CLASS_NAME"] = $_REQUEST["CLASS_NAME"];
 		$fields["ID"] = strval(mktime());
 		$fields["RIGHTS"] = "YYY";
@@ -241,7 +261,7 @@ if ($ID > 0 && $saleModulePermissions >= "W")
 $context = new CAdminContextMenu($aMenu);
 $context->Show();
 
-if(strlen($strError) > 0)
+if($strError <> '')
 {
 	$adminMessage = new CAdminMessage(Array("DETAILS"=>$strError, "TYPE"=>"ERROR", "MESSAGE"=>Loc::getMessage("SALE_DSE_ERROR"), "HTML"=>true));
 	echo $adminMessage->Show();
@@ -304,7 +324,7 @@ $manager = new ExtraServices\Manager(array($fields), $deliveryService->getCurren
 		</td>
 	</tr>
 
-	<?if(isset($fields["CLASS_NAME"]) && strlen($fields["CLASS_NAME"]) > 0):?>
+	<?if(isset($fields["CLASS_NAME"]) && $fields["CLASS_NAME"] <> ''):?>
 		<tr>
 			<td class="adm-detail-valign-top"><?=(is_callable($fields["CLASS_NAME"].'::getAdminParamsName') ? htmlspecialcharsbx($fields["CLASS_NAME"]::getAdminParamsName()) : Loc::getMessage("SALE_ESDE_FIELD_PARAMS"))?>:</td>
 			<td>

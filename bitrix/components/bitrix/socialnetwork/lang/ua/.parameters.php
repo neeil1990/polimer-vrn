@@ -329,7 +329,7 @@ $MESS["SONET_GROUP_USE_KEYWORDS"] = "Використовувати ключов
 $MESS["BPC_USE_CUT"] = "Використовувати [CUT] для повідомлень";
 $MESS["SONET_SEF_PATH_MAIL"] = "Сторінка підключення поштової скриньки";
 $MESS["SONET_SEF_USER_TASKS_DEPARTMENTS_OVERVIEW"] = "Сторінка огляду завдань по підрозділах";
-$MESS["SONET_SEF_USER_TASKS_PROJECTS_OVERVIEW"] = "Сторінка огляду завдань за групами (проектам)";
+$MESS["SONET_SEF_USER_TASKS_PROJECTS_OVERVIEW"] = "Сторінка огляду завдань за групами (проєктам)";
 $MESS["SONET_USER_FIELDS_FORUM"] = "Персональні властивості форуму";
 $MESS["SONET_LOG_AUTH"] = "Не вимагати авторизацію для перегляду Живий стрічки";
 ?>

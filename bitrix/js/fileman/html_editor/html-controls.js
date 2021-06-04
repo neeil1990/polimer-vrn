@@ -4,6 +4,7 @@
  * Time: 4:23
  *
  */
+
 ;(function() {
 function __run()
 {
@@ -201,6 +202,7 @@ function __run()
 			if (!this.bCreated)
 			{
 				this.pValuesCont = document.body.appendChild(BX.create("DIV", {props: {className: "bxhtmled-popup  bxhtmled-color-cont"}, style: {zIndex: this.zIndex}, html: '<div class="bxhtmled-popup-corner"></div>'}));
+				BX.ZIndexManager.register(this.pValuesCont);
 
 				if (this.showBgMode)
 				{
@@ -348,8 +350,11 @@ function __run()
 			this.pDefValueRow.style.display = _this.editor.synchro.IsFocusedOnTextarea() ? 'none' : '';
 
 			this.pValuesCont.style.display = 'block';
+			var component = BX.ZIndexManager.bringToFront(this.pValuesCont);
+			var zIndex = component.getZIndex();
+
 			var
-				pOverlay = this.editor.overlay.Show(),
+				pOverlay = this.editor.overlay.Show({ zIndex: zIndex - 1 }),
 				pos = BX.pos(this.pCont),
 				left = pos.left - this.pValuesCont.offsetWidth / 2 + this.pCont.offsetWidth / 2 + this.posOffset.left,
 				top = pos.bottom + this.posOffset.top;
@@ -1262,19 +1267,17 @@ function __run()
 		{
 			this.pSubmenuCont = BX.create("DIV", {props: {className: "bxhtmled-popup bxhtmled-popup-left bxhtmled-dropdown-list-cont bxhtmled-dropdown-list-cont-submenu"}, html: '<div class="bxhtmled-popup-corner"></div>'});
 			this.pSubmenuContWrap = this.pSubmenuCont.appendChild(BX.create("DIV", {props: {className: "bxhtmled-dd-list-wrap"}}));
+
+			BX.ZIndexManager.getStack(document.body).register(this.pSubmenuCont);
 		}
 		else
 		{
 			BX.cleanNode(this.pSubmenuContWrap);
 		}
 
-		if(this.zIndex)
-		{
-			this.pSubmenuCont.style.zIndex = this.zIndex;
-		}
-
 		document.body.appendChild(this.pSubmenuCont);
 		this.pSubmenuCont.style.display = 'block';
+		BX.ZIndexManager.bringToFront(this.pSubmenuCont);
 
 		if (this.curSubmenuItem)
 		{
@@ -3084,7 +3087,10 @@ function __run()
 		if (pEl.nodeType == 3)
 			pEl = pEl.parentNode;
 
-		if (pEl.style.zIndex > this.zIndex)
+		var component = BX.ZIndexManager.getComponent(this.pValuesCont);
+		var zIndex = component ? component.getZIndex() : this.pValuesCont.style.zIndex;
+
+		if (pEl.style.zIndex > zIndex)
 		{
 			this.CheckOverlay();
 		}
@@ -3097,7 +3103,7 @@ function __run()
 	MoreButton.prototype.CheckOverlay = function()
 	{
 		var _this = this;
-		this.editor.overlay.Show({zIndex: this.zIndex - 1}).onclick = function(){_this.Close()};
+		this.editor.overlay.Show({zIndex: this.pValuesCont.style.zIndex - 1}).onclick = function(){_this.Close()};
 	};
 
 	// Todo: Keyboard switcher
@@ -4851,8 +4857,6 @@ function __run()
 				{
 					if (anchorPopup && anchorPopup.oPopup &&  anchorPopup.oPopup.popupContainer)
 					{
-						anchorPopup.oPopup.popupContainer.style.zIndex = 3010;
-
 						if (anchors.length > 20)
 						{
 							anchorPopup.oPopup.popupContainer.style.overflow = 'auto';
@@ -5018,29 +5022,35 @@ function __run()
 		else
 		{
 			this.StartWaiting();
-			this.editor.Request({
-				getData: this.editor.GetReqData('video_oembed',
-					{
-						video_source: value
-					}
-				),
-				handler: function(res)
+
+			BX.ajax.runAction('fileman.api.htmleditorajax.getVideoOembed', {
+				data: {
+					video_source: value
+				}
+			}).then(
+				// Success
+				function(response)
 				{
-					if (res.result)
+					this.StopWaiting();
+					if (response.data.result)
 					{
-						_this.StopWaiting();
-						_this.ShowVideoParams(res.data);
+						this.ShowVideoParams(response.data.data);
 					}
 					else
 					{
-						_this.StopWaiting();
-						if (res.error !== '')
+						if (response.data.error !== '')
 						{
-							_this.ShowVideoParams(false, res.error);
+							this.ShowVideoParams(false, response.data.error);
 						}
 					}
-				}
-			});
+				}.bind(this),
+				// Failure
+				function (response)
+				{
+					this.StopWaiting();
+					this.ShowVideoParams(false);
+				}.bind(this)
+			);
 		}
 	};
 

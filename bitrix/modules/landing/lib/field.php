@@ -4,6 +4,12 @@ namespace Bitrix\Landing;
 abstract class Field
 {
 	/**
+	 * Field id.
+	 * @var string
+	 */
+	protected $id;
+
+	/**
 	 * Field code.
 	 * @var string
 	 */
@@ -22,10 +28,28 @@ abstract class Field
 	protected $title;
 
 	/**
+	 * Default value.
+	 * @var string
+	 */
+	protected $default;
+
+	/**
 	 * Field help.
 	 * @var string
 	 */
 	protected $help;
+
+	/**
+	 * Searchable flag of field.
+	 * @var bool
+	 */
+	protected $searchable = false;
+
+	/**
+	 * Modificator, which called within getting value.
+	 * @var callable
+	 */
+	protected $fetchModificator = null;
 
 	/**
 	 * Class constructor.
@@ -34,11 +58,23 @@ abstract class Field
 	 */
 	public function __construct($code, array $params = array())
 	{
-		$this->code = strtoupper($code);
+		$this->code = mb_strtoupper($code);
 		$this->value = null;
 		$this->id = isset($params['id']) ? $params['id'] : '';
 		$this->title = isset($params['title']) ? $params['title'] : '';
+		$this->default = isset($params['default']) ? $params['default'] : null;
 		$this->help = isset($params['help']) ? $params['help'] : '';
+		$this->searchable = isset($params['searchable']) && $params['searchable'] === true;
+		$this->fetchModificator = isset($params['fetch_data_modification']) ? $params['fetch_data_modification'] : null;
+	}
+
+	/**
+	 * Gets true, if current value is empty.
+	 * @return bool
+	 */
+	public function isEmptyValue()
+	{
+		return $this->value === null;
 	}
 
 	/**
@@ -57,6 +93,13 @@ abstract class Field
 	 */
 	public function getValue()
 	{
+		if (is_callable($this->fetchModificator))
+		{
+			return call_user_func_array(
+				$this->fetchModificator,
+				[$this->value]
+			);
+		}
 		return $this->value;
 	}
 
@@ -70,13 +113,22 @@ abstract class Field
 	}
 
 	/**
+	 * Returns searchable flag of field.
+	 * @return bool
+	 */
+	public function isSearchable()
+	{
+		return $this->searchable;
+	}
+
+	/**
 	 * Set new code of the field..
 	 * @param string $code Code.
 	 * @return void
 	 */
 	public function setCode($code)
 	{
-		$this->code = strtoupper($code);
+		$this->code = mb_strtoupper($code);
 	}
 
 	/**
@@ -104,7 +156,7 @@ abstract class Field
 	public function getType()
 	{
 		$class = explode('\\', get_called_class());
-		return strtolower(array_pop($class));
+		return mb_strtolower(array_pop($class));
 	}
 
 	/**
@@ -113,7 +165,7 @@ abstract class Field
 	 */
 	public function __toString()
 	{
-		return (string)$this->value;
+		return $this->value ? (string)$this->value : (string)$this->default;
 	}
 
 	/**

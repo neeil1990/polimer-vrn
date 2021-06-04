@@ -93,7 +93,11 @@ $server = $context->getServer();
 $request = $context->getRequest();
 
 // process
-if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
+if (
+	$request->get('start') == 'Y' &&
+	$server->getRequestMethod() == 'POST' &&
+	check_bitrix_sessid()
+)
 {
 	require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_js.php');
 
@@ -119,7 +123,7 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 	);
 
 	// check filename
-	if (substr($NS['url_data_file'], -4) != '.xml')
+	if (mb_substr($NS['url_data_file'], -4) != '.xml')
 	{
 		$error = Loc::getMessage('XML_FILENAME_IS_NOT_XML');
 	}
@@ -278,7 +282,7 @@ if ($request->get('start') == 'Y' && $server->getRequestMethod() == 'POST')
 			if ($hlblock = HL\HighloadBlockTable::getById($NS['object'])->fetch())
 			{
 				$startTime = time();
-				$filesPath = $server->getDocumentRoot() . substr($NS['url_data_file'], 0, -4) . '_files';
+				$filesPath = $server->getDocumentRoot().mb_substr($NS['url_data_file'], 0, -4) . '_files';
 				$entity = HL\HighloadBlockTable::compileEntity($hlblock)->getDataClass();
 				$res = $entity::getList(array(
 					'filter' => array(

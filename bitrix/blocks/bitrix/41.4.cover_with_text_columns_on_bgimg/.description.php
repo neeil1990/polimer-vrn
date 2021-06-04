@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_41.3.COVER_WITH_TEXT_COLUMNS_ON_BGIMG_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(

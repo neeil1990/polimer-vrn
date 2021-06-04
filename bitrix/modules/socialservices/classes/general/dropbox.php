@@ -72,7 +72,17 @@ class CSocServDropboxAuth extends CSocServAuth
 			$redirect_uri = static::CONTROLLER_URL."/redirect.php";
 			$state = CDropboxOAuthInterface::GetRedirectURI()."?check_key=".$_SESSION["UNIQUE_KEY"]."&state=";
 			$backurl = $APPLICATION->GetCurPageParam('', array("logout", "auth_service_error", "auth_service_id", "backurl"));
-			$state .= urlencode("state=".urlencode("backurl=".urlencode($backurl).'&mode='.$location.(isset($arParams['BACKURL']) ? '&redirect_url='.urlencode($arParams['BACKURL']) : '')));
+
+			$stateIntoState = 'mode=' . $location;
+			if (isset($arParams['BACKURL']))
+			{
+				$stateIntoState .= '&redirect_url=' . urlencode($arParams['BACKURL']);
+			}
+			else
+			{
+				$stateIntoState .= "&backurl=" . urlencode($backurl);
+			}
+			$state .= urlencode("state=" . urlencode($stateIntoState));
 		}
 		else
 		{
@@ -89,8 +99,11 @@ class CSocServDropboxAuth extends CSocServAuth
 		$userId = intval($this->userId);
 		if($userId > 0)
 		{
-			$dbSocservUser = CSocServAuthDB::GetList(array(), array('USER_ID' => $userId, "EXTERNAL_AUTH_ID" => static::ID), false, false, array("OATOKEN", "REFRESH_TOKEN", "OATOKEN_EXPIRES"));
-			if($arOauth = $dbSocservUser->Fetch())
+			$dbSocservUser = \Bitrix\Socialservices\UserTable::getList([
+				'filter' => ['=USER_ID' => $userId, "=EXTERNAL_AUTH_ID" => static::ID],
+				'select' => ["OATOKEN", "REFRESH_TOKEN", "OATOKEN_EXPIRES"]
+			]);
+			if($arOauth = $dbSocservUser->fetch())
 			{
 				$accessToken = $arOauth["OATOKEN"];
 			}
@@ -122,7 +135,7 @@ class CSocServDropboxAuth extends CSocServAuth
 			'OATOKEN_EXPIRES' => $this->entityOAuth->getAccessTokenExpires(),
 		);
 
-		if(strlen(SITE_ID) > 0)
+		if(SITE_ID <> '')
 		{
 			$arFields["SITE_ID"] = SITE_ID;
 		}
@@ -186,7 +199,7 @@ class CSocServDropboxAuth extends CSocServAuth
 			if(isset($arState['backurl']) || isset($arState['redirect_url']))
 			{
 				$url = !empty($arState['redirect_url']) ? $arState['redirect_url'] : $arState['backurl'];
-				if(substr($url, 0, 1) !== "#")
+				if(mb_substr($url, 0, 1) !== "#")
 				{
 					$parseUrl = parse_url($url);
 
@@ -197,7 +210,7 @@ class CSocServDropboxAuth extends CSocServAuth
 					{
 						foreach($aRemove as $param)
 						{
-							if(strpos($value, $param."=") === 0)
+							if(mb_strpos($value, $param."=") === 0)
 							{
 								unset($arUrlQuery[$key]);
 								break;
@@ -229,7 +242,7 @@ class CSocServDropboxAuth extends CSocServAuth
 			$url = (isset($urlPath)) ? $urlPath.'?auth_service_id='.static::ID.'&auth_service_error='.$authError : $APPLICATION->GetCurPageParam(('auth_service_id='.static::ID.'&auth_service_error='.$authError), $aRemove);
 		}
 
-		if($addParams && CModule::IncludeModule("socialnetwork") && strpos($url, "current_fieldset=") === false)
+		if($addParams && CModule::IncludeModule("socialnetwork") && mb_strpos($url, "current_fieldset=") === false)
 		{
 			$url = (preg_match("/\?/", $url)) ? $url."&current_fieldset=SOCSERV" : $url."?current_fieldset=SOCSERV";
 		}

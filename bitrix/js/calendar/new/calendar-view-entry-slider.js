@@ -15,6 +15,8 @@
 			this.entry = params.entry;
 			this.formType = params.formType || 'slider_main';
 
+			this.calendar.util.doBxContextFix();
+
 			BX.SidePanel.Instance.open(this.sliderId, {
 				contentCallback: BX.delegate(this.createContent, this),
 				events: {
@@ -23,12 +25,12 @@
 					}.bind(this),
 					onClose: BX.proxy(this.hide, this),
 					onCloseComplete: BX.proxy(this.destroy, this)
-				}
+				},
+				printable: true
 			});
 
 			this.calendar.disableKeyHandler();
 
-			BX.bind(document, "click", BX.proxy(this.calendar.util.applyHacksForPopupzIndex, this.calendar.util));
 			this.opened = true;
 		},
 
@@ -51,7 +53,6 @@
 		{
 			if (event && event.getSliderPage && event.getSliderPage().getUrl() === this.sliderId)
 			{
-				BX.unbind(document, "click", BX.proxy(this.calendar.util.applyHacksForPopupzIndex, this.calendar.util));
 				BX.removeCustomEvent("SidePanel.Slider:onCloseComplete", BX.proxy(this.destroy, this));
 				BX.onCustomEvent('OnCalendarPlannerDoUninstall', [{plannerId: this.plannerId}]);
 				BX.SidePanel.Instance.destroy(this.sliderId);
@@ -66,6 +67,8 @@
 				}, this), 300);
 
 				this.opened = false;
+
+				this.calendar.util.restoreBxContextFix();
 			}
 		},
 
@@ -81,6 +84,7 @@
 
 		createContent: function(slider)
 		{
+			top.BX.onCustomEvent(top, 'onCalendarBeforeCustomSliderCreate');
 			var promise = new BX.Promise();
 
 			this.xhr = BX.ajax.get(this.calendar.util.getActionUrl(), {
@@ -195,6 +199,7 @@
 		{
 			this.plannerId = this.id + '_view_slider_planner';
 			this.DOM.plannerWrap = BX(this.id + '_view_planner_wrap');
+
 			setTimeout(BX.delegate(function()
 			{
 				if (this.DOM.plannerWrap)

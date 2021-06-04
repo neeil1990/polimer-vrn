@@ -80,38 +80,41 @@ class CList
 
 	public static function UpdatePropertyList($prop_id, $list)
 	{
-		foreach($list as $id => $arEnum)
+		foreach ($list as $id => $arEnum)
 		{
-			$value = trim($arEnum["VALUE"], " \t\n\r");
-			if(strlen($value))
+			if (is_array($arEnum))
 			{
-				$dbEnum = CIBlockPropertyEnum::GetByID($id);
-				if(is_array($dbEnum))
+				$value = trim($arEnum["VALUE"], " \t\n\r");
+				if ((string) $value <> '')
 				{
-					$def = isset($arEnum["DEF"])? $arEnum["DEF"]: $dbEnum["DEF"];
-					$sort = intval($arEnum["SORT"]);
-					if(
-						$dbEnum["VALUE"] != $value
-						|| $dbEnum["SORT"] != $sort
-						|| $dbEnum["DEF"] != $def
-					)
+					$dbEnum = CIBlockPropertyEnum::GetByID($id);
+					if(is_array($dbEnum))
 					{
-						$dbEnum["VALUE"] = $value;
-						$dbEnum["SORT"] = $sort;
-						$dbEnum["DEF"] = $def;
-						unset($dbEnum["ID"]);
-						CIBlockPropertyEnum::Update($id, $dbEnum);
+						$def = isset($arEnum["DEF"])? $arEnum["DEF"] : $dbEnum["DEF"];
+						$sort = intval($arEnum["SORT"]);
+						if(
+							$dbEnum["VALUE"] != $value
+							|| $dbEnum["SORT"] != $sort
+							|| $dbEnum["DEF"] != $def
+						)
+						{
+							$dbEnum["VALUE"] = $value;
+							$dbEnum["SORT"] = $sort;
+							$dbEnum["DEF"] = $def;
+							unset($dbEnum["ID"]);
+							CIBlockPropertyEnum::Update($id, $dbEnum);
+						}
+					}
+					else
+					{
+						$arEnum["PROPERTY_ID"] = $prop_id;
+						CIBlockPropertyEnum::Add($arEnum);
 					}
 				}
 				else
 				{
-					$arEnum["PROPERTY_ID"] = $prop_id;
-					CIBlockPropertyEnum::Add($arEnum);
+					CIBlockPropertyEnum::Delete($id);
 				}
-			}
-			else
-			{
-				CIBlockPropertyEnum::Delete($id);
 			}
 		}
 	}
@@ -160,14 +163,14 @@ class CList
 		if (
 			$arFields["MODULE_ID"] === "iblock"
 			&& $arFields["ITEM_ID"] > 0
-			&& substr($arFields["URL"], 0, 1) === "="
+			&& mb_substr($arFields["URL"], 0, 1) === "="
 		)
 		{
 			$url = self::getUrlByIblockId($arFields["PARAM2"]);
 			if ($url != "")
 			{
 				$arElement = array();
-				parse_str(substr($arFields["URL"], 1), $arElement);
+				parse_str(mb_substr($arFields["URL"], 1), $arElement);
 
 				return str_replace(
 					array("#section_id#", "#element_id#"),

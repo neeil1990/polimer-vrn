@@ -2,7 +2,7 @@
 $MESS["SONET_C36_T_GROUPS"] = "Групи";
 $MESS["SONET_C36_T_INVITE"] = "Запросити";
 $MESS["SONET_C36_T_NO_GROUPS"] = "Немає груп";
-$MESS["SONET_C36_T_NO_GROUPS_PROJECT"] = "Немає проектів";
+$MESS["SONET_C36_T_NO_GROUPS_PROJECT"] = "Немає проєктів";
 $MESS["SONET_C36_T_GR_UNAVAIL"] = "Список груп недоступний";
 $MESS["SONET_C33_T_UPDATES"] = "Переглянути останні зміни";
 $MESS["SONET_C33_T_IS_EXTRANET"] = "екстранет";

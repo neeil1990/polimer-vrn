@@ -1,5 +1,5 @@
 <?
-$MESS["EVENT_CALENDAR2"] = "Календар подій 2.0";
-$MESS["EVENT_CALENDAR_DESCRIPTION"] = "Компонент для відображення календаря подій";
 $MESS["EVENT_CALENDAR"] = "Календар подій";
+$MESS["EVENT_CALENDAR_GRID"] = "Інтерфейс календарної сітки";
+$MESS["EVENT_CALENDAR_GRID_DESCRIPTION"] = "Компонент дозволяє показувати зовнішні сутності на календарній сітці. Потребує використання API модуля calendar.";
 ?>

@@ -26,10 +26,10 @@ if (
 }
 
 // insert custom main page
-$arResult = array(array(
+$arResult = array_merge(array(array(
 	'LINK' => '#system_mainpage',
 	'TITLE' => Loc::getMessage('LANDING_TPL_CHAIN_TPL_MAIN')
-)) + $arResult;
+)), (array) $arResult);
 
 $arResult = array_values($arResult);
 
@@ -40,6 +40,11 @@ $itemSize = count($arResult);
 
 for($index = 0; $index < $itemSize; $index++)
 {
+	if (!$arResult[$index]["TITLE"])
+	{
+		continue;
+	}
+
 	$title = htmlspecialcharsex($arResult[$index]["TITLE"]);
 	// $nextRef = ($index < $itemSize-2 && $arResult[$index+1]["LINK"] <> ""? ' itemref="bx_breadcrumb_'.($index+1).'"' : '');
 	// $child = ($index > 0? ' itemprop="child"' : '');

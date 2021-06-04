@@ -10,6 +10,303 @@ function deleteAccessRow(link)
 
 	BX.namespace('BX.Landing');
 
+	var slice = BX.Landing.Utils.slice;
+	var proxy = BX.Landing.Utils.proxy;
+	var bind = BX.Landing.Utils.bind;
+	var unbind = BX.Landing.Utils.unbind;
+	var addClass = BX.Landing.Utils.addClass;
+	var removeClass = BX.Landing.Utils.removeClass;
+	var isNumber = BX.Landing.Utils.isNumber;
+	var style = BX.Landing.Utils.style;
+	var data = BX.Landing.Utils.data;
+
+	/**
+	 * For setting color palette
+	 */
+	BX.Landing.ColorPalette = function(params)
+	{
+		this.themesPalete = document.querySelector(".landing-template-preview-themes");
+		this.themesSiteCustomColorNode = document.querySelector(".landing-template-preview-site-custom-color");
+
+		this.init();
+
+		return this;
+	};
+
+	BX.Landing.ColorPalette.getInstance = function(params)
+	{
+		return (
+			BX.Landing.ColorPalette.instance ||
+			(BX.Landing.ColorPalette.instance = new BX.Landing.ColorPalette(params))
+		);
+	};
+
+
+	BX.Landing.ColorPalette.prototype = {
+		/**
+		 * Initializes template preview elements
+		 */
+		init: function()
+		{
+			// themes
+			var colorItems = slice(this.themesPalete.children);
+			if(this.themesSiteColorNode)
+			{
+				colorItems = colorItems.concat(slice(this.themesSiteColorNode.children));
+			}
+			if(this.themesSiteCustomColorNode)
+			{
+				colorItems = colorItems.concat(slice(this.themesSiteCustomColorNode.children));
+			}
+			colorItems.forEach(this.initSelectableItem, this);
+
+			// site group
+			if(this.siteGroupPalette )
+			{
+				var siteGroupItems = slice(this.siteGroupPalette.children);
+				siteGroupItems.forEach(this.initSelectableItem, this);
+			}
+
+			bind(this.previewFrame, "load", this.onFrameLoad);
+			bind(this.closeButton, "click", this.onCancelButtonClick);
+
+			if (!this.disableClickHandler)
+			{
+				bind(this.createButton, "click", this.onCreateButtonClick);
+			}
+
+			this.setColor();
+		},
+
+		setColor: function(theme) {
+			if(theme === undefined)
+			{
+				this.color = data(this.getActiveColorNode(), "data-value");
+			}
+			else
+			{
+				this.color = theme;
+			}
+
+			var colorpicker = document.getElementById('colorpicker');
+			if(colorpicker)
+			{
+				colorpicker.setAttribute('value', this.color);
+			}
+		},
+
+		getActiveColorNode: function()
+		{
+			var active = this.themesPalete.querySelector(".active");
+			if(!active && this.themesSiteColorNode)
+			{
+				active = this.themesSiteColorNode.querySelector(".active");
+			}
+			if(!active && this.themesSiteCustomColorNode)
+			{
+				active = this.themesSiteCustomColorNode.querySelector(".active");
+			}
+			// by default - first
+			if(!active)
+			{
+				active = this.themesPalete.firstElementChild;
+			}
+
+			return active;
+		},
+
+		getActiveSiteGroupItem: function()
+		{
+			return this.siteGroupPalette.querySelector(".active");
+		},
+
+		/**
+		 * Loads template preview
+		 * @param {string} src
+		 * @return {Function}
+		 */
+		loadPreview: function(src)
+		{
+			return function()
+			{
+				return new Promise(function(resolve) {
+					if (this.previewFrame.src !== src)
+					{
+						this.previewFrame.src = src;
+						this.previewFrame.onload = function() {
+							resolve(this.previewFrame);
+						}.bind(this);
+						return;
+					}
+
+					resolve(this.previewFrame);
+				}.bind(this));
+			}.bind(this)
+		},
+
+		/**
+		 * Shows preview loader
+		 * @return {Promise}
+		 */
+		showLoader: function()
+		{
+			return new Promise(function(resolve) {
+				void this.loader.show(this.loaderContainer);
+				addClass(this.imageContainer, "landing-template-preview-overlay");
+				resolve();
+			}.bind(this));
+		},
+
+		/**
+		 * Hides loader
+		 * @return {Function}
+		 */
+		hideLoader: function()
+		{
+			return function(iframe)
+			{
+				return new Promise(function(resolve) {
+					void this.loader.hide();
+					removeClass(this.imageContainer, "landing-template-preview-overlay");
+					resolve(iframe);
+				}.bind(this));
+			}.bind(this);
+		},
+
+		/**
+		 * Creates delay
+		 * @param delay
+		 * @return {Function}
+		 */
+		delay: function(delay)
+		{
+			delay = isNumber(delay) ? delay : 0;
+
+			return function(image)
+			{
+				return new Promise(function(resolve) {
+					setTimeout(resolve.bind(null, image), delay);
+				});
+			}
+		},
+
+		/**
+		 * Gets value
+		 * @return {Object}
+		 */
+		getValue: function()
+		{
+			var result = {};
+
+			if(this.themesSiteColorNode && this.getActiveColorNode().parentElement === this.themesSiteColorNode)
+			{
+				// add theme_use_site flag
+				result[data(this.themesSiteColorNode, "data-name")] = 'Y';
+			}
+			if(this.siteGroupPalette)
+			{
+				result[data(this.siteGroupPalette, "data-name")] = data(this.getActiveSiteGroupItem(), "data-value");
+			}
+			result[data(this.themesPalete, "data-name")] = data(this.getActiveColorNode(), "data-value");
+			result[data(this.themesSiteCustomColorNode, "data-name")] = data(this.getActiveColorNode(), "data-value");
+			result[data(this.title, "data-name")] = this.title.value;
+			result[data(this.description, "data-name")] = this.description.value;
+
+			return result;
+		},
+
+		/**
+		 * Handles click event on close button
+		 * @param {MouseEvent} event
+		 */
+		onCancelButtonClick: function(event)
+		{
+			event.preventDefault();
+			top.BX.SidePanel.Instance.close();
+		},
+
+		/**
+		 * Handles click event on create button
+		 * @param {MouseEvent} event
+		 */
+		onCreateButtonClick: function(event)
+		{
+			event.preventDefault();
+
+			if(this.isStore() && this.IsLoadedFrame) {
+				this.loaderText = BX.create("div", { props: { className: "landing-template-preview-loader-text"},
+					text: this.messages.LANDING_LOADER_WAIT});
+
+				this.progressBar = new BX.UI.ProgressBar({
+					column: true
+				});
+
+				this.progressBar.getContainer().classList.add("ui-progressbar-landing-preview");
+
+				this.loaderContainer.appendChild(this.loaderText);
+				this.loaderContainer.appendChild(this.progressBar.getContainer());
+			}
+
+			if (this.isStore())
+			{
+				if (this.IsLoadedFrame)
+				{
+					this.showLoader();
+					this.initCatalogParams();
+					this.createCatalog();
+				}
+			}
+			else
+			{
+				this.showLoader()
+					.then(this.delay(200))
+					.then(function() {
+						this.finalRedirectAjax(
+							this.getCreateUrl()
+						);
+					}.bind(this));
+			}
+		},
+
+		/**
+		 * Initializes selectable items
+		 * @param {HTMLElement} item
+		 */
+		initSelectableItem: function(item)
+		{
+			bind(item, "click", proxy(this.onSelectableItemClick, this));
+		},
+
+		/**
+		 * Handles click on selectable item
+		 * @param event
+		 */
+		onSelectableItemClick: function(event)
+		{
+			event.preventDefault();
+
+			// themes
+			if (
+				event.currentTarget.parentElement === this.themesPalete ||
+				(this.themesSiteColorNode && event.currentTarget.parentElement === this.themesSiteColorNode) ||
+				(this.themesSiteCustomColorNode && event.currentTarget.parentElement === this.themesSiteCustomColorNode)
+			)
+			{
+				if (event.currentTarget.hasAttribute('data-value'))
+				{
+				removeClass(this.getActiveColorNode(), "active");
+				addClass(event.currentTarget, "active");
+				this.setColor(data(event.currentTarget, 'data-value'));
+				}
+			}
+		},
+
+		isStore: function()
+		{
+			return this.createStore;
+		}
+	};
+
 	/**
 	 * For edit title.
 	 */
@@ -40,7 +337,8 @@ function deleteAccessRow(link)
 		{
 			event.stopPropagation();
 
-			if(!this.input.IsWidthSet) {
+			if(!this.input.IsWidthSet)
+			{
 				this.input.style.width = this.label.offsetWidth + this.additionalWidth + 17 + 'px';
 			}
 
@@ -56,7 +354,7 @@ function deleteAccessRow(link)
 
 			this.input.IsWidthSet = true;
 
-			BX.bind(document, 'click', this.hideInput);
+			BX.bind(document, 'mousedown', this.hideInput);
 		},
 		hideInput : function (event)
 		{
@@ -77,7 +375,7 @@ function deleteAccessRow(link)
 			this.input.IsWidthSet = false;
 			this.input.setAttribute("data-height", this.label.offsetHeight);
 
-			BX.unbind(document, 'click', this.hideInput);
+			BX.unbind(document, 'mousedown', this.hideInput);
 		}
 	};
 
@@ -90,6 +388,7 @@ function deleteAccessRow(link)
 		this.toggleBtn = node.querySelector('.landing-form-collapse-block-js');
 		this.formInner = node.querySelector('.landing-form-inner-js');
 		this.tableWparp = node.querySelector('.landing-form-table-wrap-js');
+		this.sectionWrap = node.querySelector('.landing-additional-alt-promo-wrap');
 		this.startHeight = 0;
 		this.endHeight = 0;
 		this.isHidden = true;
@@ -98,7 +397,36 @@ function deleteAccessRow(link)
 		this.setHeightAuto = this.setHeightAuto.bind(this);
 		this.removeClassName = this.removeClassName.bind(this);
 
+
+		this.attributeMainOption = 'data-landing-main-option';
+		this.attributeOption = 'data-landing-additional-option';
+		this.attributeDetail = 'data-landing-additional-detail';
+
+		var sectionList = this.sectionWrap.children;
+		sectionList = BX.convert.nodeListToArray(sectionList);
+		sectionList.forEach(this.initSection, this);
+
 		BX.bind(this.toggleBtn, 'click', this.clickHandler);
+
+		if(window.location.hash)
+		{
+			var anchor = window.location.hash.substr(1);
+
+			sectionList.forEach(function (section) {
+				var id = section.getAttribute(this.attributeOption);
+
+				if (id === anchor)
+				{
+					BX.fireEvent(section, 'click');
+				}
+			}, this);
+
+			var neededMainOption = this.formInner.querySelector('[' + this.attributeMainOption + '="' + anchor + '"]');
+			if(neededMainOption)
+			{
+				this.highlightSection(neededMainOption);
+			}
+		}
 	};
 	BX.Landing.ToggleFormFields.prototype =
 	{
@@ -114,7 +442,8 @@ function deleteAccessRow(link)
 
 			this.isHidden = false;
 		},
-		closeRows  : function ()
+
+		closeRows : function ()
 		{
 			this.formInner.style.height = this.endHeight + 'px';
 
@@ -126,6 +455,7 @@ function deleteAccessRow(link)
 
 			this.isHidden = true;
 		},
+
 		clickHandler : function ()
 		{
 			if(this.isHidden)
@@ -133,15 +463,51 @@ function deleteAccessRow(link)
 			else
 				this.closeRows();
 		},
+
 		setHeightAuto : function ()
 		{
 			this.formInner.style.height = 'auto';
 			BX.unbind(this.formInner, 'transitionend', this.setHeightAuto);
 		},
+
 		removeClassName : function ()
 		{
 			this.form.classList.remove('landing-form-collapsed-open');
 			BX.unbind(this.formInner, 'transitionend', this.removeClassName);
+		},
+
+		initSection : function (section)
+		{
+			BX.bind(section, "click", BX.delegate(function(e){
+				e.stopPropagation();
+				this.showSection(section);
+			}, this))
+		},
+
+		showSection : function(section)
+		{
+			this.showRows();
+			var id = section.getAttribute(this.attributeOption);
+			var detailNode = this.formInner.querySelector('[' + this.attributeDetail + '="' + id + '"]');
+			this.highlightSection(detailNode);
+		},
+
+		highlightSection: function(node)
+		{
+			BX.addClass(node, "landing-form-hidden-row-highlight");
+
+			setTimeout(function(){
+				var position = BX.pos(node);
+
+				window.scrollTo({
+					top: position.top,
+					behavior: "smooth"
+				});
+			}, 300);
+
+			setTimeout(function(){
+				BX.removeClass(node, "landing-form-hidden-row-highlight");
+			}, 1500);
 		}
 	};
 
@@ -216,6 +582,97 @@ function deleteAccessRow(link)
 			})
 		}
 	};
+
+	/**
+	 * Colorpicker for Theme site.
+	 */
+	BX.Landing.ColorPickerTheme = function(node)
+	{
+		var elementColorpicker = document.getElementById("landing-form-colorpicker-theme");
+		var defaultColor = elementColorpicker.getAttribute("data-value");
+		if (defaultColor[0] !== '#')
+		{
+			defaultColor = '#' + defaultColor;
+		}
+		this.picker = new BX.ColorPicker({
+			bindElement: node,
+			popupOptions: {angle: false, offsetTop: 5},
+			onColorSelected: this.onColorSelected.bind(this),
+			colors: this.setColors(),
+			selectedColor: defaultColor,
+		});
+
+		this.colorPickerNode = node;
+
+		this.colorIcon = node.querySelector('.ui-colorpicker-color-js');
+		this.clearBtn = node.querySelector('.ui-colorpicker-clear');
+		this.input = node.querySelector('.landing-colorpicker-inp-js');
+
+		BX.bind(this.colorPickerNode, 'click', this.show.bind(this));
+		BX.bind(this.clearBtn, 'click', this.clear.bind(this));
+
+	};
+	BX.Landing.ColorPickerTheme.prototype =
+		{
+			onColorSelected : function (color)
+			{
+				this.colorPickerNode.classList.add('ui-colorpicker-selected');
+				this.colorIcon.style.backgroundColor = color;
+				this.input.value = color;
+
+				var customColor = document.getElementById('landing-form-colorpicker-theme');
+				if(customColor)
+				{
+					customColor.setAttribute('data-value', this.input.value.substr(1));
+					customColor.setAttribute('style', 'background-color:' + this.input.value);
+				}
+
+				BX.onCustomEvent('BX.Landing:onSelectColor');
+				BX.Landing.Utils.AnalyticLabel('Color::CustomSet', this.input.value.substr(1));
+			},
+			show : function (event)
+			{
+				if(event.target == this.clearBtn)
+					return;
+
+				this.picker.open();
+			},
+			clear : function ()
+			{
+				this.colorPickerNode.classList.remove('ui-colorpicker-selected');
+				this.input.value = '';
+				this.picker.setSelectedColor(null);
+			},
+			setColors :function () {
+				return [
+					["#f4f5fb", "#d2d6ef", "#b0b8e3", "#8f99d6", "#6d7bca", "#4b5cbe", "#3e4fac"],
+					["#eaecfb", "#d5daf6", "#c0c7f2", "#abb5ed", "#96a2e9", "#8190e4", "#7888e2"],
+					["#e8f4fc", "#d1e9fa", "#badef7", "#a3d3f5", "#8cc8f2", "#75bdf0", "#6cb8ef"],
+					["#e7fbfd", "#cff7fc", "#b7f4fa", "#9ff0f9", "#87ecf7", "#74e9f6", "#66e7f5"],
+					["#ebfaf8", "#caf1ed", "#aeeae3", "#9ae5dc", "#85e0d5", "#71dace", "#5dd5c7"],
+					["#eafbf9", "#c8f4f0", "#aaeee8", "#90e9e2", "#5ddfd4", "#2ad5c7", "#26c0b3"],
+					["#ebfaf0", "#d6f5e2", "#c2f0d3", "#adebc5", "#99e6b6", "#85e0a8", "#70db99"],
+					["#f6f9eb", "#e8efcc", "#dbe7b1", "#d1e09a", "#c4d77e", "#b8cf63", "#a9c544"],
+					["#fafee6", "#f3febe", "#edfd9b", "#e8fc82", "#d0e859", "#b5d31d", "#a7c804"],
+					["#fefee6", "#fdfcce", "#fcfbb6", "#fbf993", "#f9f771", "#f7f445", "#f6f223"],
+					["#fef8e6", "#fdf1ce", "#fdeab5", "#fce092", "#fbd570", "#f9c943", "#f8bc16"],
+					["#fde9e8", "#fbd3d0", "#f9bdb9", "#f7a7a1", "#f5918a", "#f27269", "#ee463a"],
+					["#f9ebeb", "#f4d7d7", "#eec4c4", "#e8b0b0", "#e29c9c", "#d77575", "#ca4949"],
+					["#fceae8", "#f9d6d2", "#f7c1bb", "#f4aca4", "#f1978e", "#ee8377", "#e75140"],
+					["#ffe6e6", "#ffd1d2", "#ffc2c3", "#ffa9aa", "#fe9496", "#fe8082", "#fe6769"],
+					["#fee8e7", "#fdd2ce", "#fcbbb6", "#fba59d", "#fa8e85", "#f9786c", "#f75445"],
+					["#ffe5e5", "#ffcccc", "#ffb3b3", "#ff9999", "#ff8080", "#ff6666", "#ff0a0a"],
+					["#fee7ea", "#fdced6", "#fcb6c1", "#fb9dad", "#fa8598", "#f96c84", "#f73b5a"],
+					["#fde7ef", "#fbd0df", "#f9b8cf", "#f7a1bf", "#f580a9", "#f25a8f", "#ec135f"],
+					["#faeaef", "#f5d6de", "#f0c1ce", "#ebadbd", "#e698ad", "#e1849d", "#d75b7c"],
+					["#f2f2f2", "#dedede", "#cccccc", "#b3b3b3", "#999999", "#666666", "#404040"],
+				].map(function(item, index, arr) {
+					return arr.map(function(row) {
+						return row[index];
+					});
+				})
+			}
+		};
 
 	/**
 	 * Some additional JS.
@@ -322,6 +779,10 @@ function deleteAccessRow(link)
 	BX.Landing.Custom503 = function()
 	{
 		var select = BX('landing-form-503-select');
+		if (!select)
+		{
+			return;
+		}
 		BX.bind(select, 'change', function ()
 		{
 			if(this.value === '')
@@ -392,7 +853,7 @@ function deleteAccessRow(link)
 									row.insertCell(-1);
 									row.insertCell(-1);
 										row.cells[0].innerHTML = BX.Access.GetProviderName(provider) + ' ' +
-										obSelected[provider][id].name + ':' +
+										BX.util.htmlspecialchars(obSelected[provider][id].name) + ':' +
 										'<input type="hidden" name="fields[' + name + '][ACCESS_CODE][]" value="' + id + '">';
 									row.cells[0].classList.add("landing-form-rights-right");
 									row.cells[1].classList.add("landing-form-rights-left");
@@ -417,6 +878,8 @@ function deleteAccessRow(link)
 		var layouts = document.querySelectorAll('.landing-form-layout-item');
 		var detailLayoutContainer = document.querySelector('.landing-form-layout-detail');
 		var layoutForm = document.querySelector('.landing-form-page-layout');
+		var gaSendClickCheckbox = document.getElementById('field-gacounter_send_click-use');
+		var gaSendClickSelect = document.getElementById('field-gacounter_click_type-use');
 		layouts = Array.prototype.slice.call(layouts, 0);
 		params.messages = params.messages || {};
 
@@ -480,6 +943,17 @@ function deleteAccessRow(link)
 			var saveRefs = BX('layout-tplrefs').value.split(',');
 			area = [];
 			layoutBlockContainer.innerHTML = '';
+			var rebuildHiddenField = function()
+			{
+				var refs = '';
+				for (var i= 0, c = area.length; i < c; i++)
+				{
+					refs += (i+1) + ':' +
+						(area[i].getValue() ? area[i].getValue().substr(8) : 0) +
+						',';
+				}
+				BX('layout-tplrefs').value = refs;
+			};
 			for (var i = 0; i < blocks; i++)
 			{
 				var block = BX.create('div', {
@@ -525,17 +999,8 @@ function deleteAccessRow(link)
 							'=TYPE': params.type
 						}
 					},
-					onInput: function()
-					{
-						var refs = '';
-						for (var i= 0, c = area.length; i < c; i++)
-						{
-							refs += (i+1) + ':' +
-									(area[i].getValue() ? area[i].getValue().substr(8) : 0) +
-									',';
-						}
-						BX('layout-tplrefs').value = refs;
-					}
+					onInit: BX.delegate(rebuildHiddenField),
+					onInput: BX.delegate(rebuildHiddenField)
 				});
 
 				area[i] = layoutField;
@@ -566,19 +1031,43 @@ function deleteAccessRow(link)
 
 		var arrowContainer = document.querySelector('.landing-form-select-buttons');
 		var layoutContainer = document.querySelector('.landing-form-list-inner');
-		var layoutWithoutRight = BX('layout-radio-6');
-		arrowContainer.addEventListener('click', handleArrowClick.bind(this));
+		arrowContainer.addEventListener('click', handlerOnArrowClick.bind(this));
 
-		function handleArrowClick(event) {
-			if(event.target.classList.contains('landing-form-select-next')) {
+		function handlerOnArrowClick(event) {
+			if (event.target.classList.contains('landing-form-select-next'))
+			{
 				layoutContainer.classList.add('landing-form-list-inner-prev');
-			} else {
+			}
+			else
+			{
 				layoutContainer.classList.remove('landing-form-list-inner-prev');
 			}
 		}
 
-		if(layoutWithoutRight.checked) {
-			layoutContainer.classList.add('landing-form-list-inner-prev');
+		function checkGaSendClickCheckbox() {
+
+			var parentNode = gaSendClickCheckbox.closest('.ui-checkbox-hidden-input-inner');
+
+			if (gaSendClickCheckbox.checked)
+			{
+				gaSendClickSelect.classList.add('ui-select-gacounter-show');
+				parentNode.classList.add('ui-checkbox-hidden-input-inner-gacounter');
+			}
+			else
+			{
+				gaSendClickSelect.classList.remove('ui-select-gacounter-show');
+				parentNode.classList.remove('ui-checkbox-hidden-input-inner-gacounter');
+			}
+		}
+
+		if (gaSendClickCheckbox)
+		{
+			gaSendClickCheckbox.addEventListener('click', function()
+			{
+				checkGaSendClickCheckbox();
+			}.bind(this));
+
+			checkGaSendClickCheckbox();
 		}
 	};
 
@@ -588,11 +1077,17 @@ function deleteAccessRow(link)
 
 	BX.Landing.Metrika = function()
 	{
+		if (!BX('field-gacounter_counter-use'))
+		{
+			return;
+		}
+
 		var inputGa = BX('field-gacounter_counter-use');
 		var inputGaClick = BX('field-gacounter_send_click-use');
 		var inputGaShow = BX('field-gacounter_send_show-use');
 
-		if(inputGa.value === '') {
+		if (inputGa.value === '')
+		{
 			inputGaClick.disabled = true;
 			inputGaShow.disabled = true;
 		}
@@ -600,13 +1095,16 @@ function deleteAccessRow(link)
 		inputGa.addEventListener('input', onInput.bind(this));
 
 		function onInput() {
-			if(inputGa.value === '') {
+			if (inputGa.value === '')
+			{
 				inputGaClick.disabled = true;
 				inputGaClick.checked = false;
 
 				inputGaShow.disabled = true;
 				inputGaShow.checked = false;
-			} else {
+			}
+			else
+			{
 				inputGaClick.disabled = false;
 				inputGaShow.disabled = false;
 			}
@@ -641,12 +1139,142 @@ function deleteAccessRow(link)
 	BX.Landing.IblockSelect.prototype = {
 
 		init: function(section) {
-			if(!BX("settings_iblock_id").value) {
+			if (!BX("settings_iblock_id").value)
+			{
 				section.classList.add("landing-form-field-section-hidden");
-			} else {
+			}
+			else
+			{
 				section.classList.remove("landing-form-field-section-hidden");
 			}
 		}
+	};
+
+	/**
+	 * Cookies.
+	 */
+	BX.Landing.Cookies = function(params)
+	{
+		this.bgPickerBtn = document.querySelector('.landing-form-cookies-color-bg');
+		this.textPickerBtn = document.querySelector('.landing-form-cookies-color-text');
+		this.simplePreview = document.querySelector('.landing-form-cookies-settings-type-simple');
+		this.advancedPreview = document.querySelector('.landing-form-cookies-settings-type-advanced');
+		this.positions = document.querySelectorAll('.landing-form-cookies-position-item');
+		this.inputApp = document.querySelector('#radio-cookies-mode-A');
+		this.inputInfo = document.querySelector('#radio-cookies-mode-I');
+		this.settings = document.querySelector('.landing-form-cookies-settings-wrapper');
+
+		this.bgPicker = new BX.ColorPicker({
+			bindElement: this.bgPickerBtn,
+			popupOptions: {angle: false, offsetTop: 5},
+			onColorSelected: this.onBgColorSelected.bind(this),
+			colors: BX.Landing.ColorPicker.prototype.setColors()
+		});
+
+		this.textPicker = new BX.ColorPicker({
+			bindElement: this.textPickerBtn,
+			popupOptions: {angle: false, offsetTop: 5},
+			onColorSelected: this.onTextColorSelected.bind(this),
+			colors: BX.Landing.ColorPicker.prototype.setColors()
+		});
+
+		this.setSelectedBgColor(this.bgPickerBtn.value);
+		this.setSelectedTextColor(this.textPickerBtn.value);
+		this.hideCookiesSettings(this.inputInfo);
+
+		this.bindEvents();
+	};
+
+	BX.Landing.Cookies.prototype = {
+
+		bindEvents: function () {
+			this.positions.forEach(function (position) {
+				position.addEventListener('click', this.onSelectCookiesPosition.bind(this));
+			}.bind(this));
+
+			this.bgPickerBtn.addEventListener('click', this.showBgPicker.bind(this));
+			this.textPickerBtn.addEventListener('click', this.showTextPicker.bind(this));
+			this.inputInfo.addEventListener('change', this.hideCookiesSettings.bind(this));
+			this.inputApp.addEventListener('change', this.showCookiesSettings.bind(this));
+
+		},
+
+		onBgColorSelected: function() {
+			var color = this.bgPicker.getSelectedColor();
+			this.setSelectedBgColor(color);
+		},
+
+		onTextColorSelected: function() {
+			var color = this.textPicker.getSelectedColor();
+			this.setSelectedTextColor(color);
+		},
+
+		onSelectCookiesPosition: function(event) {
+			this.positions.forEach(function (position) {
+				if (position.classList.contains('landing-form-cookies-position-item-selected'))
+				{
+					position.classList.remove('landing-form-cookies-position-item-selected');
+				}
+			}.bind(this));
+			event.currentTarget.classList.add('landing-form-cookies-position-item-selected');
+		},
+
+		showBgPicker: function() {
+			this.bgPicker.open();
+		},
+
+		showTextPicker: function() {
+			this.textPicker.open();
+		},
+
+		setSelectedBgColor: function(color) {
+			this.bgPickerBtn.style.background = color;
+			this.bgPickerBtn.value = color;
+			this.simplePreview.style.background = color;
+			this.advancedPreview.style.background = color;
+		},
+
+		setSelectedTextColor: function(color) {
+			this.textPickerBtn.style.background = color;
+			this.textPickerBtn.value = color;
+			this.advancedPreview.style.color = color;
+
+			var svgList = document.querySelectorAll('.landing-form-cookies-settings-preview-svg');
+			svgList.forEach(function(svg)
+			{
+				svg.style.fill = color;
+			});
+		},
+
+		hideCookiesSettings: function(event) {
+			var hiddenBlock;
+
+			if (event.target)
+			{
+				hiddenBlock = event.target.closest('.ui-checkbox-hidden-input-inner');
+			}
+			else
+			{
+				hiddenBlock = event.closest('.ui-checkbox-hidden-input-inner');
+			}
+
+			if (this.inputInfo.checked)
+			{
+				hiddenBlock.style.height = '330px';
+				this.settings.style.opacity = '0';
+			}
+		},
+
+		showCookiesSettings: function(event) {
+			var hiddenBlock = event.target.closest('.ui-checkbox-hidden-input-inner');
+
+			if (this.inputApp.checked)
+			{
+				hiddenBlock.style.height = '617px';
+				this.settings.style.opacity = '1';
+			}
+		}
+
 	}
 
 })();

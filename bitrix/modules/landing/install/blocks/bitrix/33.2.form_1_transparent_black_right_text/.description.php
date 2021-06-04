@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_FORM_33.2'),
 		'section' => array('forms'),
+		'dynamic' => false,
 		'subtype' => 'form',
 	),
 	'cards' => array(
@@ -90,13 +91,9 @@ return array(
 				'name' => Loc::getMessage('LANDING_BLOCK_FORM_33.2_NODE_CONTACT_LINK'),
 				'type' => 'typo',
 			),
-			'.landing-block-node-form' => array(
-				'name' => Loc::getMessage('LANDING_BLOCK_FORM_33.2_NODE_FORM'),
-				'type' => 'animation',
-			),
 			'.landing-block-card-linkcontact-link' => array(
 				'name' => Loc::getMessage('LANDING_BLOCK_FORM_33.2_NODE_CONTACT_LINK'),
-				'type' => 'typo',
+				'type' => 'typo-link',
 			),
 			'.landing-block-node-bgimg' => array(
 				'name' => Loc::getMessage('LANDING_BLOCK_FORM_33.2_NODE_BGIMG'),

@@ -97,7 +97,6 @@
 			this.editTotal();
 			this.editWarnings();
 
-			this.adjustBasketWrapperHeight();
 			this.getCacheNode(this.ids.basketRoot).style.opacity = 1;
 
 			this.bindInitialEvents();
@@ -152,7 +151,6 @@
 			BX.bind(window, 'scroll', BX.proxy(this.lazyLoad, this));
 
 			BX.bind(window, 'resize', BX.throttle(this.checkStickyHeaders, 20, this));
-			BX.bind(window, 'resize', BX.throttle(this.adjustBasketWrapperHeight, 20, this));
 		},
 
 		bindWarningEvents: function()
@@ -354,14 +352,7 @@
 				}
 			}
 
-			var offsetChanged = this.stickyHeaderOffset === offset;
-
 			this.stickyHeaderOffset = offset;
-
-			if (offsetChanged && !basketScrolledToEnd)
-			{
-				this.adjustBasketWrapperHeight();
-			}
 		},
 
 		getDocumentScrollTop: function()
@@ -400,26 +391,6 @@
 				}
 
 				this.coupons = this.result.COUPON_LIST;
-			}
-		},
-
-		adjustBasketWrapperHeight: function()
-		{
-			var itemListContainer = this.getCacheNode(this.ids.itemListContainer),
-				itemList = this.getCacheNode(this.ids.itemList);
-
-			if (BX.type.isDomNode(itemListContainer) && BX.type.isDomNode(itemList))
-			{
-				if (itemListContainer.clientHeight + this.stickyHeaderOffset > window.innerHeight)
-				{
-					itemListContainer.style.minHeight = 'calc(100vh - 15px - ' + this.stickyHeaderOffset + 'px)';
-					itemList.style.minHeight = 'calc(100vh - 15px - ' + this.stickyHeaderOffset + 'px)';
-				}
-				else
-				{
-					itemListContainer.style.minHeight = itemListContainer.clientHeight + 'px';
-					itemList.style.minHeight = itemListContainer.clientHeight + 'px';
-				}
 			}
 		},
 
@@ -694,7 +665,6 @@
 					this.editBasketItems(this.getItemsToEdit());
 					this.editTotal();
 
-					this.adjustBasketWrapperHeight();
 					this.applyPriceAnimation();
 					this.editWarnings();
 

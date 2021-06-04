@@ -4,64 +4,225 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 	die();
 }
 
+/** @var \LandingPubComponent $component */
+/** @var array $arResult */
+/** @var array $arParams */
+
+use \Bitrix\Landing\Config;
+use \Bitrix\Landing\Hook;
 use \Bitrix\Landing\Manager;
 use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Landing\Assets;
 use \Bitrix\Main\UI\Extension;
+
 Loc::loadMessages(__FILE__);
 
 $this->setFrameMode(true);
+$landing = $arResult['LANDING'];/** @var \Bitrix\Landing\Landing $landing */
+$b24Installed = \Bitrix\Main\ModuleManager::isModuleInstalled('bitrix24');
+$formEditor = $arResult['SPECIAL_TYPE'] == \Bitrix\Landing\Site\Type::PSEUDO_SCOPE_CODE_FORMS;
 
-\Bitrix\Landing\Manager::setPageTitle(
+Manager::setPageTitle(
 	Loc::getMessage('LANDING_TPL_TITLE')
 );
 
 if ($arResult['ERRORS'])
 {
-	\showError(implode("\n", $arResult['ERRORS']));
+	include 'error.php';
 	return;
 }
 
-$arResult['LANDING']->view([
+// load extensions
+$extensions = [];
+if (
+	$arParams['SHOW_EDIT_PANEL'] == 'Y' ||
+	!$landing->getDomainId()// wiki mode
+)
+{
+	$extensions[] = 'landing.wiki.public';
+}
+if ($b24Installed)
+{
+	$extensions[] = 'landing.metrika';
+}
+$extensions[] = 'sidepanel';
+
+Extension::load($extensions);
+
+// check frame parameter outside the frame
+if ($component->request('IFRAME'))
+{
+	?>
+	<script>
+		(function()
+		{
+			if (top.window.location.href === window.location.href)
+			{
+				top.window.location.href = BX.Uri.removeParam(
+					top.window.location.href,
+					'IFRAME'
+				);
+			}
+			else if (window.location.hash.indexOf('#landingId') === 0)
+			{
+				window.location.hash = '';
+			}
+		})();
+	</script>
+	<?
+}
+
+// edit menu
+if ($arParams['SHOW_EDIT_PANEL'] === 'Y')
+{
+	Extension::load([
+		'ui.buttons',
+		'ui.buttons.icons'
+	]);
+	ob_start(function($content)
+	{
+		Manager::setPageView('AfterBodyOpen',$content);
+	});
+	?>
+	<div class="landing-pub-top-panel-wrapper">
+		<div class="landing-pub-top-panel">
+			<div class="landing-pub-top-panel-left">
+				<div class="landing-pub-top-panel-nav-buttons">
+					<button class="landing-pub-top-panel-back ui-btn ui-btn-xs ui-btn-icon-back ui-btn-link ui-btn-light"></button>
+					<button class="landing-pub-top-panel-forward ui-btn ui-btn-xs ui-btn-icon-back ui-btn-link ui-btn-light"></button>
+				</div>
+				<div class="landing-pub-top-panel-separator"></div>
+				<div class="landing-pub-top-panel-chain">
+					<?$title = $component->getMessageType('LANDING_TPL_SITES');?>
+					<span class="ui-btn ui-btn-xs ui-btn-light ui-btn-round landing-pub-top-panel-chain-link" style="pointer-events: none" title="<?= $title;?>">
+						<?= $title;?>
+					</span>
+					<strong class="landing-pub-top-panel-chain-separator"><span></span></strong>
+					<?$title = \htmlspecialcharsbx($landing->getTitle());?>
+					<span class="ui-btn ui-btn-xs ui-btn-light ui-btn-round landing-pub-top-panel-chain-link" style="pointer-events: none" title="<?= $title;?>">
+						<?= $title;?>
+					</span>
+				</div>
+			</div>
+			<?php if($arResult['CAN_EDIT'] === 'Y'): ?>
+				<div class="landing-pub-top-panel-right">
+					<div class="landing-pub-top-panel-actions">
+						<a href="<?= $arParams['PAGE_URL_LANDING_VIEW'];?>" data-landingId="<?= $landing->getId();?>" class="ui-btn ui-btn-primary ui-btn-icon-edit landing-pub-top-panel-edit-button">
+							<?= $component->getMessageType('LANDING_TPL_EDIT_PAGE');?>
+						</a>
+					</div>
+				</div>
+			<?php endif; ?>
+		</div>
+		<script>
+			BX.ready(function() {
+				void new BX.Landing.Pub.TopPanel();
+			});
+		</script>
+	</div>
+	<?
+	ob_end_flush();
+}
+
+if ($arResult['SEARCH_RESULT_QUERY'])
+{
+	if (!$component->isAjax())
+	{
+		?>
+		<script>
+			BX.ready(function() {
+				void new BX.Landing.Pub.SearchResult();
+			});
+		</script>
+		<?
+	}
+}
+
+// landing view
+$landing->view([
 	'check_permissions' => false
 ]);
 
-$enableHook = Manager::checkFeature(Manager::FEATURE_ENABLE_ALL_HOOKS);
+// available view
+$check = \Bitrix\Landing\Restriction\Manager::isAllowed(
+	'limit_knowledge_base_number_page_view',
+	['ID' => $landing->getSiteId()]
+);
+if (!$check)
+{
+	?>
+	<script>
+		BX.ready(function()
+		{
+			document.body.style.opacity = 0.1;
+			top.BX.UI.InfoHelper.show('limit_knowledge_base_number_page_view');
+		});
+	</script>
+	<?
+}
+
+// hook for copyrights
+$enableHook = \Bitrix\Landing\Restriction\Manager::isAllowed(
+	'limit_sites_powered_by'
+);
 if ($enableHook)
 {
-	$hooksSite = \Bitrix\Landing\Hook::getForSite($arResult['LANDING']->getSiteId());
+	$hooksSite = Hook::getForSite($landing->getSiteId());
 }
 
-// set meta og:image
-$metaOG = Manager::getPageView('MetaOG');
-if (strpos($metaOG, '"og:image"') === false)
-{
-	Manager::setPageView('MetaOG',
-		'<meta property="og:image" content="' . $arResult['LANDING']->getPreview() . '" />'
-	);
-}
-
-Extension::load(['landing_public']);
-Extension::load(
-	\Bitrix\Landing\Config::get('js_core_public')
+// assets
+$assets = Assets\Manager::getInstance();
+$assets->addAsset(
+		'landing_public',
+		Assets\Location::LOCATION_AFTER_TEMPLATE
 );
+$assets->addAsset(
+	Config::get('js_core_public'),
+	Assets\Location::LOCATION_KERNEL
+);
+$assets->addAsset('landing_critical_grid', Assets\Location::LOCATION_BEFORE_ALL);
 ?>
 
+<?if ($b24Installed):?>
+<script>
+	(function()
+	{
+		new BX.Landing.Metrika();
+	})();
+</script>
+<?endif;?>
+
 <?ob_start(); ?>
-<?if (!$enableHook || isset($hooksSite['COPYRIGHT']) && $hooksSite['COPYRIGHT']->enabled()):?>
+<?if (!$formEditor && (!$enableHook || isset($hooksSite['COPYRIGHT']) && $hooksSite['COPYRIGHT']->enabled())):?>
 <div class="bitrix-footer">
 	<?if (Manager::isB24()):?>
 		<span class="bitrix-footer-text">
 			<?
-			$fullCopy = Loc::getMessage('LANDING_TPL_COPY_FULL');
+			$zone = Manager::getZone();
+			$fullCopy = in_array($zone, array('ru', 'by'))
+						? Loc::getMessage('LANDING_TPL_COPY_FULL')
+						: Loc::getMessage('LANDING_TPL_COPY_FULL2');
 			$logo = '<img src="' .
 						$this->getFolder() . '/images/' .
-						(in_array($zone = Manager::getZone(), array('ru', 'ua', 'en')) ? $zone : 'en') .
-						'.svg" alt="' . Loc::getMessage('LANDING_TPL_COPY_NAME') . '">';
+						(in_array($zone, array('ru', 'ua', 'en')) ? $zone : 'en') .
+						'.svg?1" alt="' . Loc::getMessage('LANDING_TPL_COPY_NAME') . '">';
 			if ($fullCopy)
 			{
 				echo str_replace(
-					'#LOGO#',
-					$logo,
+					[
+						'#LOGO#',
+						'<linklogo>', '</linklogo>',
+						'<linksite>', '</linksite>',
+						'<linkcrm>', '</linkcrm>',
+						'<linkcreate>', '</linkcreate>'
+					],
+					[
+						$logo,
+						'<a target="_blank" href="' . $this->getComponent()->getRefLink('bitrix24_logo') . '">', '</a>',
+						'<a class="bitrix-footer-link" target="_blank" href="' . $this->getComponent()->getRefLink('websites') . '">', '</a>',
+						'<a class="bitrix-footer-link" target="_blank" href="' . $this->getComponent()->getRefLink('crm') . '">', '</a>',
+						'<a class="bitrix-footer-link" target="_blank" href="' . $this->getComponent()->getRefLink('create', false) . '">', '</a>'
+					],
 					$fullCopy
 				);
 			}
@@ -74,8 +235,12 @@ Extension::load(
 			}
 			?>
 		</span>
-		<a class="bitrix-footer-link" target="_blank" href="https://<?= $arResult['DOMAIN'];?><?= $arResult['COPY_LINK'];?>?<?= $arResult['ADV_CODE'];?>"><?= Loc::getMessage('LANDING_TPL_COPY_LINK');?></a>
-		<?else:?>
+		<?if (!$fullCopy):?>
+		<a class="bitrix-footer-link" target="_blank" href="<?= $this->getComponent()->getRefLink('create', false);?>">
+			<?= Loc::getMessage('LANDING_TPL_COPY_LINK');?>
+		</a>
+		<?endif;?>
+	<?else:?>
 		<span class="bitrix-footer-text"><?= Loc::getMessage('LANDING_TPL_COPY_NAME_SMN_0');?></span>
 		<a href="https://www.1c-bitrix.ru/?<?= $arResult['ADV_CODE'];?>" target="_blank" class="bitrix-footer-link"><?= Loc::getMessage('LANDING_TPL_COPY_NAME_SMN_1');?></a>
 	<?endif;?>

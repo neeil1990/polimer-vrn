@@ -51,13 +51,13 @@ function GetVoteDataByID($VOTE_ID, &$arChannel, &$arVote, &$arQuestions, &$arAns
 
 		foreach ($arVote as $key => $res)
 		{
-			if (strpos($key, "CHANNEL_") === 0)
+			if (mb_strpos($key, "CHANNEL_") === 0)
 			{
-				$arChannel[substr($key, 8)] = $res;
+				$arChannel[mb_substr($key, 8)] = $res;
 			}
-			elseif (strpos($key, "~CHANNEL_") === 0)
+			elseif (mb_strpos($key, "~CHANNEL_") === 0)
 			{
-				$arChannel["~".substr($key, 9)] = $res;
+				$arChannel["~".mb_substr($key, 9)] = $res;
 			}
 		}
 		$by = "s_c_sort"; $order = "asc";
@@ -97,39 +97,42 @@ function GetVoteDataByID($VOTE_ID, &$arChannel, &$arVote, &$arQuestions, &$arAns
 			}
 			$event_id = intval($arAddParams["bRestoreVotedData"] == "Y" && !!$_SESSION["VOTE"]["VOTES"][$VOTE_ID] ?
 				$_SESSION["VOTE"]["VOTES"][$VOTE_ID] : 0);
-			$db_res = CVoteEvent::GetUserAnswerStat($VOTE_ID,
-				array("bGetMemoStat" => "N", "bGetEventResults" => $event_id));
-			if ($db_res && ($res = $db_res->Fetch()))
+			if ($event_id > 0)
 			{
-				do
+				$db_res = CVoteEvent::GetUserAnswerStat($VOTE_ID,
+					array("bGetMemoStat" => "N", "bGetEventResults" => $event_id));
+				if ($db_res && ($res = $db_res->Fetch()))
 				{
-					if (isset($arQuestions[$res["QUESTION_ID"]]) && is_array($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]) && is_array($res))
+					do
 					{
-						$arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]] += $res;
-						if ($event_id > 0 && !empty($res["RESTORED_ANSWER_ID"]))
+						if (isset($arQuestions[$res["QUESTION_ID"]]) && is_array($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]) && is_array($res))
 						{
-							switch ($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]["FIELD_TYPE"]):
-								case 0: // radio
-								case 2: // dropdown list
-									$fieldName = ($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]["FIELD_TYPE"] == 0 ?
-										"vote_radio_" : "vote_dropdown_").$res["QUESTION_ID"];
-									$_REQUEST[$fieldName] = $res["RESTORED_ANSWER_ID"];
-									break;
-								case 1: // checkbox
-								case 3: // multiselect list
-									$fieldName = ($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]["FIELD_TYPE"] == 1 ?
-										"vote_checkbox_" : "vote_multiselect_").$res["QUESTION_ID"];
-									$_REQUEST[$fieldName] = (is_array($_REQUEST[$fieldName]) ? $_REQUEST[$fieldName] : array());
-									$_REQUEST[$fieldName][] = $res["ANSWER_ID"];
-									break;
-								case 4: // field
-								case 5: // text
-									// do not restored
-									break;
-							endswitch;
+							$arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]] += $res;
+							if ($event_id > 0 && !empty($res["RESTORED_ANSWER_ID"]))
+							{
+								switch ($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]["FIELD_TYPE"]):
+									case 0: // radio
+									case 2: // dropdown list
+										$fieldName = ($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]["FIELD_TYPE"] == 0 ?
+												"vote_radio_" : "vote_dropdown_").$res["QUESTION_ID"];
+										$_REQUEST[$fieldName] = $res["RESTORED_ANSWER_ID"];
+										break;
+									case 1: // checkbox
+									case 3: // multiselect list
+										$fieldName = ($arQuestions[$res["QUESTION_ID"]]["ANSWERS"][$res["ANSWER_ID"]]["FIELD_TYPE"] == 1 ?
+												"vote_checkbox_" : "vote_multiselect_").$res["QUESTION_ID"];
+										$_REQUEST[$fieldName] = (is_array($_REQUEST[$fieldName]) ? $_REQUEST[$fieldName] : array());
+										$_REQUEST[$fieldName][] = $res["ANSWER_ID"];
+										break;
+									case 4: // field
+									case 5: // text
+										// do not restored
+										break;
+								endswitch;
+							}
 						}
-					}
-				} while ($res = $db_res->Fetch());
+					} while ($res = $db_res->Fetch());
+				}
 			}
 		}
 
@@ -394,11 +397,11 @@ function ShowVote($VOTE_ID, $template1="")
 		/***** /old *************************************/
 		if (intval($perm)>=2)
 		{
-			$template = (strlen($arVote["TEMPLATE"])<=0) ? "default.php" : $arVote["TEMPLATE"];
+			$template = ($arVote["TEMPLATE"] == '') ? "default.php" : $arVote["TEMPLATE"];
 			require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/vote/include.php");
 			IncludeModuleLangFile(__FILE__);
 			$path = COption::GetOptionString("vote", "VOTE_TEMPLATE_PATH");
-			if (strlen($template1)>0) $template = $template1;
+			if ($template1 <> '') $template = $template1;
 
 			if ($APPLICATION->GetShowIncludeAreas())
 			{
@@ -448,11 +451,11 @@ function ShowVoteResults($VOTE_ID, $template1="")
 		$perm = CVoteChannel::GetGroupPermission($arChannel["ID"]);
 		if (intval($perm)>=1)
 		{
-			$template = (strlen($arVote["RESULT_TEMPLATE"])<=0) ? "default.php" : $arVote["RESULT_TEMPLATE"];
+			$template = ($arVote["RESULT_TEMPLATE"] == '') ? "default.php" : $arVote["RESULT_TEMPLATE"];
 			require_once ($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/vote/include.php");
 			IncludeModuleLangFile(__FILE__);
 			$path = COption::GetOptionString("vote", "VOTE_TEMPLATE_PATH_VOTE");
-			if (strlen($template1)>0) $template = $template1;
+			if ($template1 <> '') $template = $template1;
 			if ($APPLICATION->GetShowIncludeAreas())
 			{
 				$arIcons = Array();
@@ -504,16 +507,16 @@ function fill_arc($start, $end, $color)
 
 function DecRGBColor($hex, &$dec1, &$dec2, &$dec3)
 {
-	if (substr($hex,0,1)!="#") $hex = "#".$hex;
-	$dec1 = hexdec(substr($hex,1,2));
-	$dec2 = hexdec(substr($hex,3,2));
-	$dec3 = hexdec(substr($hex,5,2));
+	if (mb_substr($hex, 0, 1) != "#") $hex = "#".$hex;
+	$dec1 = hexdec(mb_substr($hex, 1, 2));
+	$dec2 = hexdec(mb_substr($hex, 3, 2));
+	$dec3 = hexdec(mb_substr($hex, 5, 2));
 }
 
 function DecColor($hex)
 {
-	if (substr($hex,0,1)!="#") $hex = "#".$hex;
-	$dec = hexdec(substr($hex,1,6));
+	if (mb_substr($hex, 0, 1) != "#") $hex = "#".$hex;
+	$dec = hexdec(mb_substr($hex, 1, 6));
 	return intval($dec);
 }
 
@@ -525,10 +528,10 @@ function HexColor($dec)
 
 function GetNextColor(&$color, &$current_color, $total, $start_color="0000CC", $end_color="FFFFCC")
 {
-	if (substr($start_color,0,1)=="#") $start_color = substr($start_color,1,6);
-	if (substr($end_color,0,1)=="#") $end_color = substr($end_color,1,6);
-	if (substr($current_color,0,1)=="#") $current_color = substr($current_color,1,6);
-	if (strlen($current_color)<=0) $color = "#".$start_color;
+	if (mb_substr($start_color, 0, 1) == "#") $start_color = mb_substr($start_color, 1, 6);
+	if (mb_substr($end_color, 0, 1) == "#") $end_color = mb_substr($end_color, 1, 6);
+	if (mb_substr($current_color, 0, 1) == "#") $current_color = mb_substr($current_color, 1, 6);
+	if ($current_color == '') $color = "#".$start_color;
 	else
 	{
 		$step = round((hexdec($end_color)-hexdec($start_color))/$total);

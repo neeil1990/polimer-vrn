@@ -2,6 +2,9 @@
 
 namespace Bitrix\Main\Search;
 
+use Bitrix\Main\ORM\Query\Filter;
+use Bitrix\Main\PhoneNumber;
+
 class MapBuilder
 {
 	/** @var array [search_token => true] */
@@ -71,10 +74,18 @@ class MapBuilder
 		$altPhone = str_replace(' ', '', $phone);
 		$this->tokens[$altPhone] = true;
 
-		$length = strlen($value);
-		if($length >= 10 && substr($value, 0, 1) === '7')
+		$convertedPhone = PhoneNumber\Parser::getInstance()
+			->parse($altPhone)
+			->format(PhoneNumber\Format::E164);
+		if ($convertedPhone != $altPhone)
 		{
-			$altPhone = '8'.substr($value, 1);
+			$this->tokens[$convertedPhone] = true;
+		}
+
+		$length = mb_strlen($value);
+		if($length >= 10 && mb_substr($value, 0, 1) === '7')
+		{
+			$altPhone = '8'.mb_substr($value, 1);
 			$this->tokens[$altPhone] = true;
 		}
 
@@ -84,7 +95,7 @@ class MapBuilder
 		{
 			for($i = 0; $i < $bound; $i++)
 			{
-				$key = substr($value, $i);
+				$key = mb_substr($value, $i);
 				$this->tokens[$key] = true;
 			}
 		}
@@ -165,11 +176,13 @@ class MapBuilder
 	 */
 	public function build()
 	{
-		$tokens = Array();
+		$tokens = array();
+
+		$minTokenSize = Filter\Helper::getMinTokenSize();
 
 		foreach ($this->tokens as $token => $result)
 		{
-			if (strlen($token) >= \CSQLWhere::GetMinTokenSize())
+			if (mb_strlen($token) >= $minTokenSize)
 			{
 				$tokens[$token] = $result;
 			}

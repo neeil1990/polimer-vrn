@@ -17,8 +17,8 @@ $message = null;
 $MOD_RIGHT = $APPLICATION->GetGroupRight("mail");
 if($MOD_RIGHT<"R") $APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
 IncludeModuleLangFile(__FILE__);
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/mail/include.php");
 
+\Bitrix\Main\Loader::includeModule('mail');
 
 $aTabs = array();
 $aTabs[] = array("DIV" => "edit1", "TAB" => GetMessage("MAIL_FLT_EDT_PARAMS"), "ICON"=>"mail_filter_edit", "TITLE"=>GetMessage("MAIL_FLT_EDT_PARAMS"));
@@ -42,7 +42,7 @@ if($filter_type!="")
 }
 
 $ID=intval($ID);
-if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0) && $MOD_RIGHT>="W" && check_bitrix_sessid())
+if($REQUEST_METHOD=="POST" && ($save <> '' || $apply <> '') && $MOD_RIGHT>="W" && check_bitrix_sessid())
 {
 	$arFields = Array(
 		"ACTIVE"			=> $ACTIVE,
@@ -98,7 +98,7 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0) && $MOD_RIGH
 		//$strError .= CMailError::GetErrorsText();
 		//if(strlen($strError)<=0)
 		//{
-			if(strlen($save)>0)
+			if($save <> '')
 				LocalRedirect("mail_filter_admin.php?lang=".LANG);
 			else
 				LocalRedirect($APPLICATION->GetCurPage()."?lang=".LANG."&ID=".$ID."&tabControl_active_tab=".urlencode($tabControl_active_tab));
@@ -106,16 +106,21 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($apply)>0) && $MOD_RIGH
 	}
 }
 
-$mf = CMailFilter::GetByID($ID);
-if(!$ar_res = $mf->ExtractFields("str_"))
-	$ID=0;
-else
+if($ID !== 0)
 {
-	$filter_type = $ar_res["ACTION_TYPE"];
-	if(strlen($filter_type)>0)
+	$mf = CMailFilter::GetByID($ID);
+	if (!$ar_res = $mf->ExtractFields("str_"))
 	{
-		$res = CMailFilter::GetFilterList($filter_type);
-		$arModFilter = $res->Fetch();
+		$ID = 0;
+	}
+	else
+	{
+		$filter_type = $ar_res["ACTION_TYPE"];
+		if ($filter_type <> '')
+		{
+			$res = CMailFilter::GetFilterList($filter_type);
+			$arModFilter = $res->Fetch();
+		}
 	}
 }
 
@@ -214,7 +219,7 @@ $tabControl->Begin();
 		<td><?echo $str_ID?></td>
 	</tr>
 	<?endif?>
-	<?if(strlen($str_TIMESTAMP_X)>0):?>
+	<?if($str_TIMESTAMP_X <> ''):?>
 	<tr>
 		<td><?echo GetMessage("MAIL_FLT_EDT_DATECH")?></td>
 		<td><?echo $str_TIMESTAMP_X?></td>
@@ -334,14 +339,14 @@ $tabControl->Begin();
 	</tr>
 <?endif?>
 	<?
-	if($arModFilter && strlen($arModFilter["ACTION_INTERFACE"])>0):
+	if($arModFilter && $arModFilter["ACTION_INTERFACE"] <> ''):
 
 		$arACTION_VARS = explode("&", $ACTION_VARS);
 		for($i = 0, $n = count($arACTION_VARS); $i < $n; $i++)
 		{
 			$v = $arACTION_VARS[$i];
-			if($pos = strpos($v, "="))
-				${substr($v, 0, $pos)} = urldecode(substr($v, $pos+1));
+			if($pos = mb_strpos($v, "="))
+				${mb_substr($v, 0, $pos)} = urldecode(mb_substr($v, $pos + 1));
 		}
 
 		$MAILBOX_LID = "";

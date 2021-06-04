@@ -8,6 +8,11 @@ use Bitrix\Main\Loader,
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/catalog/prolog.php");
 
+/** @global CAdminPage $adminPage */
+global $adminPage;
+/** @global CAdminSidePanelHelper $adminSidePanelHelper */
+global $adminSidePanelHelper;
+
 $publicMode = $adminPage->publicMode;
 $selfFolderUrl = $adminPage->getSelfFolderUrl();
 
@@ -31,7 +36,7 @@ IncludeModuleLangFile(__FILE__);
 
 $sTableID = "tbl_catalog_group";
 
-$oSort = new CAdminSorting($sTableID, "ID", "asc");
+$oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
@@ -79,7 +84,7 @@ if (($arID = $lAdmin->GroupAction()) && !$bReadOnly)
 
 	foreach ($arID as $ID)
 	{
-		if (strlen($ID) <= 0)
+		if ($ID == '')
 			continue;
 
 		switch ($_REQUEST['action'])
@@ -395,32 +400,48 @@ $lAdmin->AddFooter(
 
 if (!$bReadOnly)
 {
-	$actions = ['edit' => true];
-	if (Catalog\Config\Feature::isMultiPriceTypesEnabled())
-		$actions['delete'] = true;
-
+	$actions = [];
+	if (!Catalog\Config\State::isExceededPriceTypeLimit())
+	{
+		$actions['edit'] = true;
+	}
+	$actions['delete'] = true;
 	$lAdmin->AddGroupActionTable($actions);
+	unset($actions);
 }
 
+$aContext = array();
 if (!$bReadOnly)
 {
-	$aContext = array();
 	if (Catalog\Config\State::isAllowedNewPriceType())
 	{
 		$addUrl = $selfFolderUrl."cat_group_edit.php?lang=".LANGUAGE_ID;
 		$addUrl = $adminSidePanelHelper->editUrlToPublicPage($addUrl);
-		$aContext = array(
-			array(
-				"TEXT" => GetMessage("CGAN_ADD_NEW"),
-				"ICON" => "btn_new",
-				"LINK" => $addUrl,
-				"TITLE" => GetMessage("CGAN_ADD_NEW_ALT")
-			),
-		);
+		$aContext[] = [
+			"TEXT" => GetMessage("CGAN_ADD_NEW"),
+			"ICON" => "btn_new",
+			"LINK" => $addUrl,
+			"TITLE" => GetMessage("CGAN_ADD_NEW_ALT")
+		];
 	}
-	$lAdmin->setContextSettings(array("pagePath" => $selfFolderUrl."cat_group_admin.php"));
-	$lAdmin->AddAdminContextMenu($aContext);
+	else
+	{
+		$helpLink = Catalog\Config\Feature::getMultiPriceTypesHelpLink();
+		if (!empty($helpLink))
+		{
+			$aContext[] = [
+				'TEXT' => GetMessage('CGAN_ADD_NEW'),
+				'ICON' => 'btn_lock',
+				$helpLink['TYPE'] => $helpLink['LINK'],
+				'TITLE' => GetMessage('CGAN_ADD_NEW_ALT')
+			];
+		}
+		unset($helpLink);
+	}
 }
+$lAdmin->setContextSettings(array("pagePath" => $selfFolderUrl."cat_group_admin.php"));
+$lAdmin->AddAdminContextMenu($aContext);
+unset($aContext);
 
 $lAdmin->CheckListMode();
 

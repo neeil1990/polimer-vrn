@@ -69,7 +69,13 @@ class Basket
 		$context = array(
 			'SITE_ID' => $siteId,
 		);
-		$basket = Sale\Basket::loadItemsForFUser(Sale\Fuser::getId(), $siteId);
+
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+
+		/** @var Sale\Basket $basketClass */
+		$basketClass = $registry->getBasketClassName();
+
+		$basket = $basketClass::loadItemsForFUser(Sale\Fuser::getId(), $siteId);
 
 		$options['CHECK_PERMISSIONS'] = 'Y';
 		$options['USE_MERGE'] = (isset($options['USE_MERGE']) && $options['USE_MERGE'] == 'N' ? 'N' : 'Y');
@@ -252,7 +258,6 @@ class Basket
 		if (array_key_exists('PROPS', $fields))
 			unset($fields['PROPS']);
 
-		$productFields = [];
 		if ($module == 'catalog')
 		{
 			$elementFilter = array(
@@ -347,7 +352,7 @@ class Basket
 						$result->addError(new Main\Error(Loc::getMessage('BX_CATALOG_PRODUCT_BASKET_ERR_NO_PRODUCT')));
 						return $result;
 					}
-					elseif (strpos($elementFields["~XML_ID"], '#') === false)
+					elseif (mb_strpos($elementFields["~XML_ID"], '#') === false)
 					{
 						$elementFields["~XML_ID"] = $parent['XML_ID'].'#'.$elementFields["~XML_ID"];
 					}
@@ -502,6 +507,8 @@ class Basket
 					'MEASURE_NAME' => $productFields['MEASURE_NAME'],
 					'MEASURE_CODE' => $productFields['MEASURE_CODE']
 				];
+
+			unset($productFields);
 		}
 
 		if (static::isCompatibilityEventAvailable())
@@ -545,7 +552,7 @@ class Basket
 
 		if ($basketItem)
 		{
-			$fields['QUANTITY'] = $basketItem->getQuantity() + $quantity;
+			$fields['QUANTITY'] = $basketItem->isDelay() ? $quantity : $basketItem->getQuantity() + $quantity;
 		}
 		else
 		{
@@ -563,7 +570,7 @@ class Basket
 		$propertyCollection = $basketItem->getPropertyCollection();
 		if ($propertyCollection)
 		{
-			$propertyCollection->setProperty($propertyList);
+			$propertyCollection->redefine($propertyList);
 		}
 
 		$r = $basketItem->setFields($presets);

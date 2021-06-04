@@ -5,6 +5,7 @@ namespace Bitrix\Rest\APAuth;
 use Bitrix\Main;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Security\Random;
+use Bitrix\Rest\Preset\EventController;
 
 Loc::loadMessages(__FILE__);
 
@@ -100,11 +101,10 @@ class PasswordTable extends Main\Entity\DataManager
 	 * @return bool|string password or false
 	 * @throws \Exception
 	 */
-	public static function createPassword($userId, array $scopeList, $siteTitle)
+	public static function createPassword($userId, array $scopeList, $siteTitle, $returnArray = false)
 	{
 		$password = static::generatePassword();
-
-		$res = static::add(array(
+		$passwordData = [
 			'USER_ID' => $userId,
 			'PASSWORD' => $password,
 			'DATE_CREATE' => new Main\Type\DateTime(),
@@ -112,7 +112,8 @@ class PasswordTable extends Main\Entity\DataManager
 				'#TITLE#' => $siteTitle,
 			)),
 			'COMMENT' => Loc::getMessage('REST_APP_COMMENT'),
-		));
+		];
+		$res = static::add($passwordData);
 
 		if($res->isSuccess())
 		{
@@ -125,9 +126,24 @@ class PasswordTable extends Main\Entity\DataManager
 				));
 			}
 
-			return $password;
+			$passwordData['ID'] = $res->getId();
+			if(!$returnArray)
+			{
+				$return = $password;
+			}
+			else
+			{
+				$return = $passwordData;
+			}
+
+			return $return;
 		}
 
 		return false;
+	}
+
+	public static function onAfterAdd(Main\Entity\Event $event)
+	{
+		EventController::onAfterAddAp($event);
 	}
 }

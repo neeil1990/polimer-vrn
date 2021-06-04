@@ -34,13 +34,13 @@ class UrlPreviewUserType
 	public static function getDBColumnType($userField)
 	{
 		global $DB;
-		switch(strtolower($DB->type))
+		switch($DB->type)
 		{
-			case "mysql":
+			case "MYSQL":
 				return "int(11)";
-			case "oracle":
+			case "ORACLE":
 				return "number(18)";
-			case "mssql":
+			case "MSSQL":
 				return "int";
 		}
 	}
@@ -136,8 +136,20 @@ class UrlPreviewUserType
 	 */
 	public static function checkfields($userField, $value)
 	{
-		$value = (int)$value;
 		$result = array();
+
+		$signer = new Signer();
+		try
+		{
+			$value = $signer->unsign($value, UrlPreview::SIGN_SALT);
+		}
+		catch (SystemException $e)
+		{
+			return $result;
+		}
+
+		$value = (int)$value;
+
 		if($value === 0)
 			return $result;
 
@@ -174,7 +186,7 @@ class UrlPreviewUserType
 	public static function onBeforeSave($userField, $value)
 	{
 		$imageUrl = null;
-		if(strpos($value, ';') !== false)
+		if(mb_strpos($value, ';') !== false)
 		{
 			list($value, $imageUrl) = explode(';', $value);
 		}
@@ -207,22 +219,5 @@ class UrlPreviewUserType
 		}
 
 		return null;
-	}
-
-	/**
-	 * Hook executed after fetching value of the user type. Signs returned value.
-	 * @param array $userField Array containing parameters of the user field.
-	 * @param array $value Unsigned value of the user field.
-	 * @return string Signed value of the user field.
-	 */
-	public static function onAfterFetch($userField, $value)
-	{
-		$result = null;
-		if(isset($value['VALUE']))
-		{
-			$result = UrlPreview::sign($value['VALUE']);
-		}
-
-		return $result;
 	}
 }

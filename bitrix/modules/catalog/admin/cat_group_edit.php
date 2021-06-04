@@ -1,5 +1,9 @@
 <?
-use Bitrix\Catalog;
+use Bitrix\Main,
+	Bitrix\Main\Localization,
+	Bitrix\Main\Loader,
+	Bitrix\Catalog,
+	Bitrix\Crm\Order;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/catalog/prolog.php");
@@ -10,7 +14,7 @@ $listUrl = $adminSidePanelHelper->editUrlToPublicPage($listUrl);
 
 if (!($USER->CanDoOperation('catalog_read') || $USER->CanDoOperation('catalog_group')))
 	$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
-CModule::IncludeModule("catalog");
+Loader::includeModule('catalog');
 $bReadOnly = !$USER->CanDoOperation('catalog_group');
 
 if ($ex = $APPLICATION->GetException())
@@ -43,103 +47,110 @@ if (Catalog\Config\State::isExceededPriceTypeLimit())
 }
 
 $arLangList = array();
-$rsPriceLangs = CLangAdmin::GetList(($by1="sort"), ($order1="asc"));
-while ($arPriceLang = $rsPriceLangs->Fetch())
+$iterator = Localization\LanguageTable::getList([
+	'select' => ['LID', 'NAME', 'SORT'],
+	'order' => ['SORT' => 'ASC']
+]);
+while ($row = $iterator->fetch())
 {
-	$arLangList[] = array(
-		'LID' => $arPriceLang['LID'],
-		'NAME' => $arPriceLang['NAME'],
-	);
+	$arLangList[] = [
+		'LID' => $row['LID'],
+		'NAME' => $row['NAME']
+	];
 }
+unset($row, $iterator);
 
 $arUserGroupList = array();
 
 if ($adminSidePanelHelper->isPublicSidePanel())
 {
-	if (\Bitrix\Main\Loader::includeModule('crm'))
+	if (Loader::includeModule('crm'))
 	{
-		$arUserGroupList = \Bitrix\Crm\Order\BuyerGroup::getPublicList();
+		$arUserGroupList = Order\BuyerGroup::getPublicList();
 	}
 }
 else
 {
-	$rsUserGroups = CGroup::GetList(($by="sort"), ($order="asc"));
-	while ($arGroup = $rsUserGroups->Fetch())
+	$iterator = Main\GroupTable::getList([
+		'select' => ['ID', 'NAME', 'C_SORT'],
+		'order' => ['C_SORT' => 'ASC']
+	]);
+	while ($row = $iterator->fetch())
 	{
 		$arUserGroupList[] = array(
-			'ID' => intval($arGroup['ID']),
-			'NAME' => $arGroup['NAME'],
+			'ID' => (int)$row['ID'],
+			'NAME' => $row['NAME']
 		);
 	}
+	unset($row, $iterator);
 }
 
-if (!$bReadOnly && 'POST' == $_SERVER['REQUEST_METHOD'] && (strlen($save)>0 || strlen($apply)>0) && check_bitrix_sessid())
+if (!$bReadOnly && 'POST' == $_SERVER['REQUEST_METHOD'] && ($save <> '' || $apply <> '') && check_bitrix_sessid())
 {
 	$adminSidePanelHelper->decodeUriComponent();
 
 	$arGroupID = array();
-	if (isset($_POST['USER_GROUP']) && is_array($_POST['USER_GROUP']))
+	if (!empty($_POST['USER_GROUP']) && is_array($_POST['USER_GROUP']))
 	{
-		foreach ($_POST['USER_GROUP'] as &$intValue)
+		foreach ($_POST['USER_GROUP'] as $intValue)
 		{
-			$intValue = intval($intValue);
+			$intValue = (int)$intValue;
 			if ($intValue > 0)
 			{
 				$arGroupID[] = $intValue;
 			}
 		}
-		if (isset($intValue))
-			unset($intValue);
+		unset($intValue);
 	}
 
 	$arGroupBuyID = array();
-	if (isset($_POST['USER_GROUP_BUY']) && is_array($_POST['USER_GROUP_BUY']))
+	if (!empty($_POST['USER_GROUP_BUY']) && is_array($_POST['USER_GROUP_BUY']))
 	{
-		foreach ($_POST['USER_GROUP_BUY'] as &$intValue)
+		foreach ($_POST['USER_GROUP_BUY'] as $intValue)
 		{
-			$intValue = intval($intValue);
+			$intValue = (int)$intValue;
 			if ($intValue > 0)
 			{
 				$arGroupBuyID[] = $intValue;
 			}
 		}
-		if (isset($intValue))
-			unset($intValue);
+		unset($intValue);
 	}
 
-	if ($adminSidePanelHelper->isPublicSidePanel() && \Bitrix\Main\Loader::includeModule('crm'))
+	if ($adminSidePanelHelper->isPublicSidePanel() && Loader::includeModule('crm'))
 	{
 		$groupUserBuyList = [];
 		$groupUserList = [];
 
-		$rsGroups = CCatalogGroup::GetGroupsList(array("CATALOG_GROUP_ID" => $ID));
-		while ($arGroup = $rsGroups->Fetch())
+		$iterator = Catalog\GroupAccessTable::getList([
+			'select' => ['GROUP_ID', 'ACCESS']
+		]);
+		while ($row = $iterator->fetch())
 		{
-			$arGroup['GROUP_ID'] = intval($arGroup['GROUP_ID']);
-
-			if ($arGroup['BUY'] === 'Y')
+			$row['GROUP_ID'] = (int)$row['GROUP_ID'];
+			if ($row['ACCESS'] === Catalog\GroupAccessTable::ACCESS_BUY)
 			{
-				$groupUserBuyList[] = $arGroup['GROUP_ID'];
+				$groupUserBuyList[] = $row['GROUP_ID'];
 			}
 			else
 			{
-				$groupUserList[] = $arGroup['GROUP_ID'];
+				$groupUserList[] = $row['GROUP_ID'];
 			}
 		}
+		unset($row, $iterator);
 
-		$arGroupID = \Bitrix\Crm\Order\BuyerGroup::prepareGroupIds($groupUserList, $arGroupID);
-		$arGroupBuyID = \Bitrix\Crm\Order\BuyerGroup::prepareGroupIds($groupUserBuyList, $arGroupBuyID);
+		$arGroupID = Order\BuyerGroup::prepareGroupIds($groupUserList, $arGroupID);
+		$arGroupBuyID = Order\BuyerGroup::prepareGroupIds($groupUserBuyList, $arGroupBuyID);
 
 		unset($groupUserBuyList, $groupUserList);
 	}
 
 	$arUserLang = array();
-	foreach ($arLangList as &$arOneLang)
+	foreach ($arLangList as $arOneLang)
 	{
 		$arUserLang[$arOneLang['LID']] = trim(isset($_POST['NAME_LANG'][$arOneLang['LID']]) ? $_POST['NAME_LANG'][$arOneLang['LID']] : '');
 	}
-	if (isset($arOneLang))
-		unset($arOneLang);
+	unset($arOneLang);
 
 	$arFields = array(
 		'NAME' => (isset($_POST['NAME']) ? $_POST['NAME'] : ''),
@@ -171,12 +182,12 @@ if (!$bReadOnly && 'POST' == $_SERVER['REQUEST_METHOD'] && (strlen($save)>0 || s
 		}
 		else
 		{
-			if (strlen($save) > 0)
+			if ($save <> '')
 			{
 				$adminSidePanelHelper->localRedirect($listUrl);
 				LocalRedirect($listUrl);
 			}
-			elseif (strlen($apply) > 0)
+			elseif ($apply <> '')
 			{
 				$applyUrl = $selfFolderUrl."cat_group_edit.php?lang=".$lang."&ID=".$ID;
 				$applyUrl = $adminSidePanelHelper->setDefaultQueryParams($applyUrl);
@@ -261,16 +272,29 @@ $aMenu = array(
 
 if ($ID > 0 && !$bReadOnly)
 {
-	if (Catalog\Config\Feature::isMultiPriceTypesEnabled())
+	$aMenu[] = ["SEPARATOR" => "Y"];
+	if (Catalog\Config\State::isAllowedNewPriceType())
 	{
-		$aMenu[] = array("SEPARATOR" => "Y");
 		$addUrl = $selfFolderUrl."cat_group_edit.php?lang=".LANGUAGE_ID;
 		$addUrl = $adminSidePanelHelper->editUrlToPublicPage($addUrl);
-		$aMenu[] = array(
+		$aMenu[] = [
 			"TEXT" => GetMessage("CGEN_NEW_GROUP"),
 			"ICON" => "btn_new",
 			"LINK" => $addUrl
-		);
+		];
+	}
+	else
+	{
+		$helpLink = Catalog\Config\Feature::getMultiPriceTypesHelpLink();
+		if (!empty($helpLink))
+		{
+			$aMenu[] = [
+				"TEXT" => GetMessage("CGEN_NEW_GROUP"),
+				"ICON" => "btn_lock",
+				$helpLink['TYPE'] => $helpLink['LINK'],
+			];
+		}
+		unset($helpLink);
 	}
 
 	if (Catalog\Config\Feature::isMultiPriceTypesEnabled() || !$boolRealBase)
@@ -415,4 +439,7 @@ $tabControl->Buttons(array("disabled" => $bReadOnly, "back_url" => $listUrl));
 $tabControl->End();
 ?>
 </form>
+<?
+Catalog\Config\Feature::initUiHelpScope();
+?>
 <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");?>

@@ -1,6 +1,9 @@
 <?
 IncludeModuleLangFile(__FILE__);
 
+use Bitrix\Tasks\Item\Task;
+use Bitrix\Tasks\Util;
+
 class CIMShare
 {
 	const TYPE_POST = 'POST';
@@ -11,7 +14,7 @@ class CIMShare
 		if (is_null($user_id))
 		{
 			global $USER;
-			$this->user_id = IntVal($USER->GetID());
+			$this->user_id = intval($USER->GetID());
 		}
 		else
 		{
@@ -109,9 +112,9 @@ class CIMShare
 		if (!$message)
 			return false;
 
-		$task = new \Bitrix\Tasks\Item\Task(0, $this->user_id);
+		$task = new Task(0, $this->user_id);
 
-		$taskTitle = substr(trim(preg_replace(
+		$taskTitle = mb_substr(trim(preg_replace(
 			array("/\n+/is".BX_UTF_PCRE_MODIFIER, '/\s+/is'.BX_UTF_PCRE_MODIFIER),
 			" ",
 			CTextParser::clearAllTags($message['MESSAGE'])
@@ -170,7 +173,7 @@ class CIMShare
 		}
 		else
 		{
-			$results = \Bitrix\Main\Text\DateConverter::decode(CTextParser::clearAllTags($message['MESSAGE']), 1000);
+			$results = \Bitrix\Main\Text\DateConverter::decode(\Bitrix\Im\Text::removeBbCodes($message['MESSAGE']), 1000);
 			if (!empty($results))
 			{
 				$task['DEADLINE'] = $results[0]->getDate();
@@ -182,9 +185,10 @@ class CIMShare
 			}
 		}
 
-		$result = $task->save();
+		$task = $this->prepareTaskFlags($task);
 
-		if(!$result->isSuccess())
+		$result = $task->save();
+		if (!$result->isSuccess())
 		{
 			return false;
 		}
@@ -217,7 +221,7 @@ class CIMShare
 		}
 		else
 		{
-			$results = \Bitrix\Main\Text\DateConverter::decode(CTextParser::clearAllTags($message['MESSAGE']), 1000);
+			$results = \Bitrix\Main\Text\DateConverter::decode(\Bitrix\Im\Text::removeBbCodes($message['MESSAGE']), 1000);
 			if (!empty($results))
 			{
 				$dateFrom = $results[0]->getDate();
@@ -286,20 +290,33 @@ class CIMShare
 			" ",
 			CTextParser::clearAllTags($message['MESSAGE'])
 		));
-		$title = $title? $title: CTextParser::clearAllTags(GetMessage('IM_SHARE_CHAT_POST', Array('#LINK#' => '')));
+		$title = $title? $title: CTextParser::clearAllTags(GetMessage('IM_SHARE_CHAT_POST_2', Array('#LINK#' => '')));
 
 		$messagePost = $this->PrepareText($message)."\n".GetMessage('IM_SHARE_POST_WELCOME');
 
 		$sonetRights = Array();
-		if ($message['MESSAGE_TYPE'] != IM_MESSAGE_PRIVATE)
+		$messageParams = Array();
+		if ($message['CHAT_ID'] == CIMChat::GetGeneralChatId())
 		{
-			$chat = \Bitrix\Im\Model\ChatTable::getById($message['CHAT_ID'])->fetch();
-			if ($chat['ENTITY_TYPE'] == 'SONET_GROUP')
+			if (!\Bitrix\Socialnetwork\ComponentHelper::getAllowToAllDestination($this->user_id))
 			{
-				$sonetRights = Array('SG'.$chat['ENTITY_ID']);
+				$sonetRights[] = "U".$this->user_id;
+				$messageParams = Array('LINK_ACTIVE' => Array((string)$this->user_id));
 			}
 		}
-		if (empty($sonetRights) && $message['CHAT_ID'] != CIMChat::GetGeneralChatId())
+		else
+		{
+			if ($message['MESSAGE_TYPE'] != IM_MESSAGE_PRIVATE)
+			{
+				$chat = \Bitrix\Im\Model\ChatTable::getById($message['CHAT_ID'])->fetch();
+				if ($chat['ENTITY_TYPE'] == 'SONET_GROUP')
+				{
+					$sonetRights = Array('SG'.$chat['ENTITY_ID']);
+				}
+			}
+		}
+
+		if (empty($sonetRights))
 		{
 			$relations = CIMChat::GetRelationById($message['CHAT_ID']);
 			$sonetRights = [];
@@ -359,7 +376,7 @@ class CIMShare
 		$link = str_replace(array("#post_id#", "#user_id#"), Array($postFields["ID"], $this->user_id), $pathToPost);
 		$processed = CSocNetLogTools::ProcessPath(array("BLOG" => $link), $this->user_id, SITE_ID);
 
-		$this->SendMessage('', GetMessage('IM_SHARE_CHAT_POST', Array('#LINK#' => $processed["URLS"]["BLOG"])), $message);
+		$this->SendMessage('', GetMessage('IM_SHARE_CHAT_POST_2', Array('#LINK#' => $processed["URLS"]["BLOG"])), $message, $messageParams);
 
 		return true;
 	}
@@ -391,7 +408,7 @@ class CIMShare
 		$bRights = false;
 		$rsUser = CUser::GetByID($userId);
 		$arUser = $rsUser->Fetch();
-		if(strlen($arUser["NAME"]."".$arUser["LAST_NAME"]) <= 0)
+		if($arUser["NAME"]."".$arUser["LAST_NAME"] == '')
 		{
 			$arFields["NAME"] = GetMessage("SNBPA_BLOG_NAME")." ".$arUser["LOGIN"];
 		}
@@ -434,6 +451,34 @@ class CIMShare
 		}
 
 		return CBlog::GetByID($blogID);
+	}
+
+	/**
+	 * @param Task $task
+	 * @return Task
+	 */
+	private function prepareTaskFlags(Task $task): Task
+	{
+		$popupOptions = CTasksTools::getPopupOptions();
+		$flags = [
+			'ALLOW_CHANGE_DEADLINE' => true,
+			'MATCH_WORK_TIME' => false,
+			'TASK_CONTROL' => ($popupOptions['task_control'] === 'Y'),
+			'ALLOW_TIME_TRACKING' => ($popupOptions['time_tracking'] === 'Y'),
+		];
+		$formStateOptions = Util\Type::unSerializeArray(Util\User::getOption('task_edit_form_state'));
+
+		if (is_array($formStateOptions) && array_key_exists('FLAGS', $formStateOptions))
+		{
+			$flags = array_merge($flags, $formStateOptions['FLAGS']);
+		}
+
+		foreach ($flags as $name => $value)
+		{
+			$task[$name] = ($value ? 'Y' : 'N');
+		}
+
+		return $task;
 	}
 
 	private function PrepareText($quoteMessage)
@@ -517,7 +562,6 @@ class CIMShare
 				'TO_USER_ID' => $quoteMessage['AUTHOR_ID'],
 				'MESSAGE' => $sendMessage,
 				'PARAMS' => $messageParams,
-				'SYSTEM' => 'Y',
 				'URL_PREVIEW' => 'N',
 				'SKIP_CONNECTOR' => 'Y',
 				'SKIP_COMMAND' => 'Y',
@@ -526,16 +570,33 @@ class CIMShare
 		}
 		else
 		{
-			$messageId = CIMChat::AddMessage(Array(
-				'TO_CHAT_ID' => $quoteMessage['CHAT_ID'],
-				'MESSAGE' => $sendMessage,
-				'PARAMS' => $messageParams,
-				'SYSTEM' => 'Y',
-				'URL_PREVIEW' => 'N',
-				'SKIP_CONNECTOR' => 'Y',
-				'SKIP_COMMAND' => 'Y',
-				'SILENT_CONNECTOR' => 'Y',
-			));
+			$chat = \Bitrix\Im\Model\ChatTable::getById($quoteMessage['CHAT_ID'])->fetch();
+			if ($chat['ENTITY_TYPE'] === 'ANNOUNCEMENT')
+			{
+				$messageId = CIMMessage::Add(Array(
+					'FROM_USER_ID' => $this->user_id,
+					'TO_USER_ID' => $this->user_id,
+					'MESSAGE' => $sendMessage,
+					'PARAMS' => $messageParams,
+					'URL_PREVIEW' => 'N',
+					'SKIP_CONNECTOR' => 'Y',
+					'SKIP_COMMAND' => 'Y',
+					'SILENT_CONNECTOR' => 'Y',
+				));
+			}
+			else
+			{
+				$messageId = CIMChat::AddMessage(Array(
+					'TO_CHAT_ID' => $quoteMessage['CHAT_ID'],
+					'MESSAGE' => $sendMessage,
+					'PARAMS' => $messageParams,
+					'SYSTEM' => 'Y',
+					'URL_PREVIEW' => 'N',
+					'SKIP_CONNECTOR' => 'Y',
+					'SKIP_COMMAND' => 'Y',
+					'SILENT_CONNECTOR' => 'Y',
+				));
+			}
 		}
 
 		return $messageId;

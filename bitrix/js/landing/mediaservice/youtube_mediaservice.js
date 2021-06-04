@@ -14,9 +14,10 @@
 
 		this.matcher = BX.Landing.Utils.Matchers.youtube;
 		this.embedURL = "//www.youtube.com/embed/$4";
+		this.previewURL = "//img.youtube.com/vi/$4/sddefault.jpg";
 		this.idPlace = 4;
 		this.params = {
-			autoplay: 1,
+			autoplay: 0,
 			controls: 1,
 			loop: 0,
 			mute: 0,
@@ -57,56 +58,56 @@
 
 				this.form.addField(
 					new BX.Landing.UI.Field.Dropdown({
-						title: BX.message("LANDING_CONTENT_URL_MEDIA_AUTOPLAY"),
+						title: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_AUTOPLAY"),
 						selector: "autoplay",
 						content: parseInt(settings.autoplay),
 						items: [
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_YES"), value: 1},
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_NO"), value: 0}
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_YES"), value: 1},
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_NO"), value: 0}
 						]
 					})
 				);
 
 				this.form.addField(
 					new BX.Landing.UI.Field.Dropdown({
-						title: BX.message("LANDING_CONTENT_URL_MEDIA_CONTROLS"),
+						title: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_CONTROLS"),
 						selector: "controls",
 						content: parseInt(settings.controls),
 						items: [
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_YES"), value: 1},
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_NO"), value: 0}
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_YES"), value: 1},
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_NO"), value: 0}
 						]
 					})
 				);
 
 				this.form.addField(
 					new BX.Landing.UI.Field.Dropdown({
-						title: BX.message("LANDING_CONTENT_URL_MEDIA_LOOP"),
+						title: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_LOOP"),
 						selector: "loop",
 						content: parseInt(settings.loop),
 						items: [
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_YES"), value: 1},
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_NO"), value: 0}
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_YES"), value: 1},
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_NO"), value: 0}
 						]
 					})
 				);
 
 				this.form.addField(
 					new BX.Landing.UI.Field.Dropdown({
-						title: BX.message("LANDING_CONTENT_URL_MEDIA_SOUND"),
+						title: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_SOUND"),
 						selector: "mute",
 						content: parseInt(settings.mute),
 						items: [
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_YES"), value: 0},
-							{name: BX.message("LANDING_CONTENT_URL_MEDIA_NO"), value: 1}
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_YES"), value: 0},
+							{name: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_NO"), value: 1}
 						]
 					})
 				);
 
 				var start = new BX.Landing.UI.Field.Unit({
-					title: BX.message("LANDING_CONTENT_URL_MEDIA_START"),
+					title: BX.Landing.Loc.getMessage("LANDING_CONTENT_URL_MEDIA_START"),
 					selector: "start",
-					unit: BX.message("LANDING_CONTENT_MEDIA_SECONDS_SHORT"),
+					unit: BX.Landing.Loc.getMessage("LANDING_CONTENT_MEDIA_SECONDS_SHORT"),
 					content: parseInt(settings.start),
 					placeholder: "40"
 				});

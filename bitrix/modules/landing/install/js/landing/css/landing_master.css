@@ -47,6 +47,12 @@ body {
 	border-top: 1px rgba(0,0,0,.2) dashed;
 	border-bottom: 1px rgba(0,0,0,.2) dashed;
 	z-index: 301;
+	opacity: 0;
+	transition: 200ms opacity ease;
+}
+
+.block-wrapper:hover::after {
+	opacity: 1;
 }
 
 .block-wrapper [contenteditable="true"],
@@ -81,11 +87,6 @@ body {
 .block-wrapper.landing-ui-hide {
 	visibility: visible;
 	animation: hideBlock 350ms ease both;
-}
-
-
-main .block-wrapper:after {
-	border-top: 0;
 }
 
 
@@ -150,6 +151,10 @@ main > .landing-footer [class~='block-wrapper']:last-of-type {
 	margin-bottom: 40px;
 }
 
+.block-wrapper:hover .landing-ui-panel-create-action {
+	opacity: 1;
+}
+
 main.landing-edit-mode.landing-empty {
 	display: flex;
 	flex-direction: column;
@@ -185,13 +190,6 @@ main .landing-sidebar:not(.landing-empty) + .landing-main.landing-empty {
 	max-height: none;
 }
 
-main .landing-main:not(.landing-empty):not(:hover) [class~='block-wrapper']:not(:last-of-type) .landing-ui-panel-create-action,
-main .landing-sidebar:not(.landing-empty):not(:hover) .landing-ui-panel-create-action,
-main .landing-header:not(.landing-empty):not(:hover) .landing-ui-panel-create-action,
-main .landing-footer:not(.landing-empty):not(:hover) .landing-ui-panel-create-action {
-	opacity: 0;
-}
-
 @keyframes showBlock {
 	0% {
 		transform: translateZ(0) translateY(5%);
@@ -225,7 +223,8 @@ main .landing-footer:not(.landing-empty):not(:hover) .landing-ui-panel-create-ac
 
 
 .landing-ui-panel-content-action,
-.landing-ui-panel-block-action {
+.landing-ui-panel-block-action,
+.landing-ui-panel-sidebar-actions {
 	background-color: #ffffff;
     top: 40px;
     left: 16px;
@@ -245,6 +244,13 @@ main .landing-footer:not(.landing-empty):not(:hover) .landing-ui-panel-create-ac
 .block-wrapper:hover .landing-ui-panel-block-action,
 .block-wrapper.landing-ui-hover .landing-ui-panel-block-action {
 	opacity: 1;
+}
+
+.landing-sidebar .block-wrapper:hover .landing-ui-panel-content-action,
+.landing-sidebar .block-wrapper.landing-ui-hover .landing-ui-panel-content-action,
+.landing-sidebar .block-wrapper:hover .landing-ui-panel-block-action,
+.landing-sidebar .block-wrapper.landing-ui-hover .landing-ui-panel-block-action {
+	display: none!important;
 }
 
 body[style*="cursor: move;"] .landing-ui-panel-content-action,
@@ -531,7 +537,7 @@ body[style*="cursor: move;"] .landing-ui-panel-block-card-action {
 
 .landing-ui-disabled {
 	pointer-events: none;
-	opacity: .7;
+	opacity: .5;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
@@ -684,19 +690,41 @@ body[style*="cursor: move;"] .landing-ui-panel-block-card-action {
 }
 
 
+/*for preview*/
 .l-d-lg-none,
 .l-d-md-none,
 .l-d-xs-none {
 	position: relative;
 }
 
+/* xl
+   Large devices more than 992px. In editor - show always
+ */
 @media (min-width: 992px) {
 	.l-d-lg-none {
 		display: block!important;
 	}
-
+	
 	.l-d-lg-none.g-flex-centered {
 		display: flex!important;
+	}
+}
+
+/* md
+   Medium devices less than 1200px and more than 576px
+*/
+@media (max-width: 991px) and (min-width: 576px) {
+	.block-wrapper .l-d-md-none {
+		display: none !important;
+	}
+}
+
+/* xs
+   Extra small devices less than 576px
+ */
+@media (max-width: 575px) {
+	.block-wrapper .l-d-xs-none {
+		display: none !important;
 	}
 }
 
@@ -750,6 +778,10 @@ body[style*="cursor: move;"] .landing-ui-panel-block-card-action {
 	padding-right: 20px;
 }
 
+.landing-ui-popup-filterable .menu-popup {
+	overflow-y: auto;
+	max-height: 206px!important;
+}
 
 .landing-google-settings-button {
 	position: relative;
@@ -813,9 +845,11 @@ main.landing-edit-mode.landing-ui-overlay::after {
 
 .landing-layout-flex {
 	overflow: visible!important;
+	min-height: 100vh;
 }
 
 .landing-ui-panel-create-action {
+	opacity: 0;
 	transition: width 200ms ease, opacity 200ms ease!important;
 }
 
@@ -872,6 +906,11 @@ only screen and (min-resolution: 2dppx) {
 	overflow: hidden;
 }
 
+.bx-ie.bx-ie11 .g-upper-show,
+.bx-ie.bx-ie11 .template-bitrix24 {
+	overflow-y: auto;
+}
+
 .landing-ui-block-selectable-overlay {
 	overflow: visible;
 }
@@ -919,4 +958,23 @@ only screen and (min-resolution: 2dppx) {
 
 .landing-ui-block-selectable-overlay:hover::after {
 	opacity: 1;
+}
+
+.landing-ui-button-plus.landing-ui-disable {
+	pointer-events: none;
+	opacity: .5;
+}
+
+.landing-edit-mode .b24-form {
+	pointer-events: none!important;
+}
+
+.landing-edit-mode .landing-sidebar {
+	padding-bottom: 40px;
+}
+
+div[id^="popup-window-content-calendar-resourcebooking-settings-popup"] {
+	max-height: 400px;
+	overflow: auto;
+	overflow-x: hidden;
 }

@@ -1,66 +1,89 @@
 <?
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
+{
+	die();
+}
 
-/**
- * @var $arParams
- * @var $arResult
- * @var $component
- * @global $APPLICATION
- */
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\UI\Extension;
+use Bitrix\Main\UI\Filter\Type;
+use Bitrix\Main\UI\Filter\DateType;
+use Bitrix\Main\UI\Filter\AdditionalDateType;
+use Bitrix\Main\UI\Filter\NumberType;
 
-	use Bitrix\Main\Localization\Loc;
-	use Bitrix\Main\UI\Filter\Type;
-	use Bitrix\Main\UI\Filter\DateType;
-	use Bitrix\Main\UI\Filter\AdditionalDateType;
-	use Bitrix\Main\UI\Filter\NumberType;
-	\Bitrix\Main\UI\Extension::load("ui.buttons", "ui.fonts.opensans");
+Extension::load([
+	"ui.buttons",
+	"ui.fonts.opensans",
+	"ui",
+	"dnd",
+	"loader",
+	"date"
+]);
 
-	if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
-	{
-		die();
-	}
+global $USER;
 
-	global $USER;
+$arParams["CONFIG"] = $component->prepareConfig();
+$currentPreset = $arResult["CURRENT_PRESET"];
+$isCurrentPreset = (
+		(($currentPreset["ID"] !== "default_filter" && $currentPreset["ID"] !== "tmp_filter") ||
+		 ($currentPreset["ID"] === "default_filter" && $currentPreset["FIELDS_COUNT"] > 0) ||
+		 ($currentPreset["ID"] === "tmp_filter" && $currentPreset["FIELDS_COUNT"] > 0))
+);
 
-	$arParams["CONFIG"] = $component->prepareConfig();
-	$this->addExternalCss($this->GetFolder()."/system-styles.css");
+if (!empty($arResult["TARGET_VIEW_ID"]))
+{
+	$this->SetViewTarget($arResult["TARGET_VIEW_ID"], $arResult["TARGET_VIEW_SORT"]);
+	$bodyClass = $APPLICATION->GetPageProperty("BodyClass");
+	$APPLICATION->SetPageProperty("BodyClass", ($bodyClass ? $bodyClass." " : "")."headerless-mode");
+}
 
-	CJSCore::Init(array('ui', 'dnd', 'loader'));
+$placeholder = "MAIN_UI_FILTER__PLACEHOLDER_DEFAULT";
 
-	$currentPreset = $arResult["CURRENT_PRESET"];
-	$isCurrentPreset = (
-			(($currentPreset["ID"] !== "default_filter" && $currentPreset["ID"] !== "tmp_filter") ||
-			 ($currentPreset["ID"] === "default_filter" && $currentPreset["FIELDS_COUNT"] > 0) ||
-			 ($currentPreset["ID"] === "tmp_filter" && $currentPreset["FIELDS_COUNT"] > 0))
-	);
+if ($arResult["LIMITS_ENABLED"])
+{
+	$placeholder = "MAIN_UI_FILTER__PLACEHOLDER_LIMITS_EXCEEDED";
+}
+elseif ($arResult["DISABLE_SEARCH"] || !$arParams["CONFIG"]["SEARCH"])
+{
+	$placeholder = "MAIN_UI_FILTER__PLACEHOLDER";
+}
 
-	if (!empty($arResult["TARGET_VIEW_ID"]))
-	{
-		$this->SetViewTarget($arResult["TARGET_VIEW_ID"], $arResult["TARGET_VIEW_SORT"]);
-		$bodyClass = $APPLICATION->GetPageProperty("BodyClass");
-		$APPLICATION->SetPageProperty("BodyClass", ($bodyClass ? $bodyClass." " : "")."headerless-mode");
-	}
+$arResult = array_merge($arResult, array(
+		"CONFIRM_MESSAGE" => Loc::getMessage("MAIN_UI_FILTER__CONFIRM_RESET_MESSAGE"),
+		"CONFIRM_APPLY" => Loc::getMessage("MAIN_UI_FILTER__CONFIRM_RESET_APPLY"),
+		"CONFIRM_CANCEL" => Loc::getMessage("MAIN_UI_FILTER__BUTTON_CANCEL")
+));
 
-	$placeholder = "MAIN_UI_FILTER__PLACEHOLDER_DEFAULT";
+$filterSearchClass = "main-ui-filter-theme-".mb_strtolower($arResult["THEME"]);
+if ($arResult["DISABLE_SEARCH"] || !$arParams["CONFIG"]["SEARCH"])
+{
+	$filterSearchClass .= " main-ui-filter-no-search";
+}
 
-	if ($arResult["DISABLE_SEARCH"] || !$arParams["CONFIG"]["SEARCH"])
-	{
-		$placeholder = "MAIN_UI_FILTER__PLACEHOLDER";
-	}
+if ($arResult["COMPACT_STATE"])
+{
+	$filterSearchClass .= " main-ui-filter-compact-state";
+}
 
-	$arResult = array_merge($arResult, array(
-			"CONFIRM_MESSAGE" => Loc::getMessage("MAIN_UI_FILTER__CONFIRM_RESET_MESSAGE"),
-			"CONFIRM_APPLY" => Loc::getMessage("MAIN_UI_FILTER__CONFIRM_RESET_APPLY"),
-			"CONFIRM_CANCEL" => Loc::getMessage("MAIN_UI_FILTER__BUTTON_CANCEL")
-	));
+if ($arResult["LIMITS_ENABLED"])
+{
+	$filterSearchClass .= " main-ui-filter-field-limits-active";
+}
+
+$filterValue = \Bitrix\Main\Text\HtmlFilter::encode(htmlspecialcharsback($arResult["CURRENT_PRESET"]["FIND"]));
+if ($arResult["LIMITS_ENABLED"])
+{
+	$filterValue = "";
+}
 ?>
 
 <!-- Final :: Search -->
-<div class="main-ui-filter-search<?=$arResult["DISABLE_SEARCH"] || !$arParams["CONFIG"]["SEARCH"] ? " main-ui-filter-no-search" : ""?> main-ui-filter-theme-<?=strtolower($arResult["THEME"])?><?=$arResult["COMPACT_STATE"] ? " main-ui-filter-compact-state" : ""?>" id="<?=$arParams["FILTER_ID"]?>_search_container">
+<div class="main-ui-filter-search <?=$filterSearchClass?>" id="<?=$arParams["FILTER_ID"]?>_search_container">
 	<input
 			type="text"
-			tabindex="1"<?
+			tabindex="1" <?
 			if($arParams["CONFIG"]["AUTOFOCUS"]):?>autofocus=""<?endif;
-			?>value="<?=\Bitrix\Main\Text\HtmlFilter::encode(htmlspecialcharsback($arResult["CURRENT_PRESET"]["FIND"]))?>"
+			?>value="<?=$filterValue?>"
 			name="FIND"
 			placeholder="<?=Loc::getMessage($placeholder)?>"
 			class="main-ui-filter-search-filter"
@@ -73,11 +96,22 @@
 </div>
 
 <?
-	$frame = $this->createFrame()->begin(false);
+$frame = $this->createFrame()->begin(false);
+
+$filterWrapperClass = "main-ui-filter-theme-".mb_strtolower($arResult["THEME"]);
+if ($arParams["VALUE_REQUIRED_MODE"] === true)
+{
+	$filterWrapperClass .= " main-ui-filter-value-required-mode";
+}
+
+if ($arResult["LIMITS_ENABLED"])
+{
+	$filterWrapperClass .= " main-ui-filter-field-limits-active main-ui-filter-field-limits-animate";
+}
 ?>
 
 <script type="text/html" id="<?=$arParams["FILTER_ID"]?>_GENERAL_template">
-	<div class="main-ui-filter-wrapper<?=$arParams["VALUE_REQUIRED_MODE"] == true ? " main-ui-filter-value-required-mode" : ""?> main-ui-filter-theme-<?=strtolower($arResult["THEME"])?>">
+	<div class="main-ui-filter-wrapper <?=$filterWrapperClass?>">
 		<div class="main-ui-filter-inner-container">
 			<div class="main-ui-filter-sidebar">
 				<div class="main-ui-filter-sidebar-title">
@@ -88,7 +122,7 @@
 						<? foreach ($arResult["PRESETS"] as $key => $preset) : ?>
 							<div class="main-ui-filter-sidebar-item<?=$preset["ID"] === $arResult["CURRENT_PRESET"]["ID"] ? " main-ui-filter-current-item" : ""?><?
 							?><?=$preset["ID"] === "default_filter" || $preset["ID"] === "tmp_filter" ? " main-ui-hide" : ""?><?
-							?><?=$preset["IS_PINNED"] && $arParams["CONFIG"]["DEFAULT_PRESET"] ? " main-ui-item-pin" : ""?>" data-id="<?=$preset["ID"]?>"<?
+							?><?=$preset["IS_PINNED"] && $arParams["CONFIG"]["DEFAULT_PRESET"] ? " main-ui-item-pin" : ""?>" data-id="<?=htmlspecialcharsbx($preset["ID"])?>"<?
 							?><?=$preset["IS_PINNED"] && $arParams["CONFIG"]["DEFAULT_PRESET"] ? " title=\"".Loc::getMessage("MAIN_UI_FILTER__IS_SET_AS_DEFAULT_PRESET")."\"" : " "?>>
 								<span class="main-ui-item-icon main-ui-filter-icon-grab" title="<?=Loc::getMessage("MAIN_UI_FILTER__DRAG_TITLE")?>"></span>
 								<span class="main-ui-filter-sidebar-item-text-container">
@@ -112,6 +146,19 @@
 				</div><!--main-ui-filter-sidebar-item-container-->
 			</div><!--main-ui-filter-sidebar-->
 			<div class="main-ui-filter-field-container">
+				<? if ($arResult["LIMITS_ENABLED"]): ?>
+				<div class="main-ui-filter-field-limits">
+					<div class="main-ui-filter-field-limits-title"><?=$arResult["LIMITS"]["TITLE"]?></div>
+					<div class="main-ui-filter-field-limits-description">
+						<?=$arResult["LIMITS"]["DESCRIPTION"]?>
+					</div>
+					<div class="ui-btn-container ui-btn-container-center main-ui-filter-field-limits-button-box">
+					<? foreach ($arResult["LIMITS"]["BUTTONS"] as $button): ?>
+						<?=$button?>
+					<? endforeach ?>
+					</div>
+				</div>
+				<? endif ?>
 				<div class="main-ui-filter-field-container-list">
 
 				</div>
@@ -164,17 +211,19 @@
 ?>
 
 <script>
-	BX.Main.filterManager.push(
-		'<?=\CUtil::jSEscape($arParams["FILTER_ID"])?>',
-		new BX.Main.Filter(
-			<?=CUtil::PhpToJSObject($arResult)?>,
-			<?=CUtil::PhpToJSObject($arParams["CONFIG"])?>,
-			<?=CUtil::PhpToJSObject(Type::getList())?>,
-			<?=CUtil::PhpToJSObject(DateType::getList())?>,
-			<?=CUtil::PhpToJSObject(NumberType::getList())?>,
-			<?=CUtil::PhpToJSObject(AdditionalDateType::getList())?>
-		)
-	);
+	BX.ready(function() {
+		BX.Main.filterManager.push(
+			'<?=\CUtil::jSEscape($arParams["FILTER_ID"])?>',
+			new BX.Main.Filter(
+				<?=CUtil::PhpToJSObject($arResult)?>,
+				<?=CUtil::PhpToJSObject($arParams["CONFIG"])?>,
+				<?=CUtil::PhpToJSObject(Type::getList())?>,
+				<?=CUtil::PhpToJSObject(DateType::getList())?>,
+				<?=CUtil::PhpToJSObject(NumberType::getList())?>,
+				<?=CUtil::PhpToJSObject(AdditionalDateType::getList())?>
+			)
+		);
+	});
 </script>
 <?
 	if (!empty($arResult["TARGET_VIEW_ID"]))

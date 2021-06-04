@@ -62,7 +62,7 @@ class CAllSaleUserAccount
 			$GLOBALS["APPLICATION"]->ThrowException(GetMessage("SKGU_EMPTY_USER_ID"), "EMPTY_USER_ID");
 			return false;
 		}
-		if ((is_set($arFields, "CURRENCY") || $ACTION=="ADD") && strlen($arFields["CURRENCY"]) <= 0)
+		if ((is_set($arFields, "CURRENCY") || $ACTION=="ADD") && $arFields["CURRENCY"] == '')
 		{
 			$GLOBALS["APPLICATION"]->ThrowException(GetMessage("SKGU_EMPTY_CURRENCY"), "EMPTY_CURRENCY");
 			return false;
@@ -525,8 +525,13 @@ class CAllSaleUserAccount
 
 			if ($orderID > 0)
 			{
+				$registry = \Bitrix\Sale\Registry::getInstance(\Bitrix\Sale\Registry::REGISTRY_TYPE_ORDER);
+
+				/** @var \Bitrix\Sale\Order $orderClass */
+				$orderClass = $registry->getOrderClassName();
+
 				/** @var \Bitrix\Sale\Order $order */
-				if ($order = \Bitrix\Sale\Order::load($orderID))
+				if ($order = $orderClass::load($orderID))
 				{
 					/** @var \Bitrix\Sale\PaymentCollection $paymentCollection */
 					if (($paymentCollection = $order->getPaymentCollection()) && $paymentCollection->isExistsInnerPayment())
@@ -670,8 +675,8 @@ class CAllSaleUserAccount
 					"DEBIT" => ($sum > 0 ? "Y" : "N"),
 					"ORDER_ID" => ($orderID > 0 ? $orderID : false),
 					"PAYMENT_ID" => ($paymentId > 0 ? $paymentId : false),
-					"DESCRIPTION" => ((strlen($description) > 0) ? $description : null),
-					"NOTES" => ((strlen($notes) > 0) ? $notes : False),
+					"DESCRIPTION" => (($description <> '') ? $description : null),
+					"NOTES" => (($notes <> '') ? $notes : False),
 					"EMPLOYEE_ID" => ($USER->IsAuthorized() ? $USER->GetID() : false)
 				);
 			CTimeZone::Disable();
@@ -686,8 +691,9 @@ class CAllSaleUserAccount
 	//********** EVENTS **************//
 	public static function OnBeforeCurrencyDelete($Currency)
 	{
-		if (strlen($Currency)<=0)
-			return false;
+		$Currency = (string)$Currency;
+		if ($Currency === '')
+			return true;
 
 		$cnt = CSaleUserAccount::GetList(array(), array("CURRENCY" => $Currency), array());
 		if ($cnt > 0)

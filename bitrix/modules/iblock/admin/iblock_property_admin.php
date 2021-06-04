@@ -10,6 +10,11 @@ Loader::includeModule('iblock');
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/prolog.php");
 IncludeModuleLangFile(__FILE__);
 
+/** @global CAdminPage $adminPage */
+global $adminPage;
+/** @global CAdminSidePanelHelper $adminSidePanelHelper */
+global $adminSidePanelHelper;
+
 $publicMode = $adminPage->publicMode;
 $selfFolderUrl = $adminPage->getSelfFolderUrl();
 
@@ -23,7 +28,7 @@ if(!CIBlockRights::UserHasRightTo($arIBlock["ID"], $arIBlock["ID"], "iblock_edit
 $simpleTypeList = array_fill_keys(Iblock\Helpers\Admin\Property::getBaseTypeList(false), true);
 
 $sTableID = "tbl_iblock_property_admin_".$arIBlock["ID"];
-$oSort = new CAdminSorting($sTableID, 'SORT', 'ASC');
+$oSort = new CAdminUiSorting($sTableID, 'SORT', 'ASC');
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
 $arPropType = Iblock\Helpers\Admin\Property::getBaseTypeList(true);
@@ -36,8 +41,8 @@ $filterFields = array(
 	array(
 		"id" => "NAME",
 		"name" => GetMessage("IBP_ADM_NAME"),
-		"filterable" => "?",
-		"quickSearch" => "",
+		"filterable" => "",
+		"quickSearch" => "?",
 		"default" => true
 	),
 	array(
@@ -114,7 +119,7 @@ $arFilter = array("=IBLOCK_ID" => $arIBlock["ID"]);
 $lAdmin->AddFilter($filterFields, $arFilter);
 
 foreach($arFilter as $key => $value)
-	if(!strlen(trim($value)))
+	if(trim($value) == '')
 		unset($arFilter[$key]);
 if (isset($arFilter['=PROPERTY_TYPE']))
 {
@@ -153,7 +158,7 @@ if($lAdmin->EditAction())
 
 if($arID = $lAdmin->GroupAction())
 {
-	if (!empty($_REQUEST["action_all_rows_".$sTableID]) && $_REQUEST["action_all_rows_".$sTableID] === "Y")
+	if ($lAdmin->IsGroupActionToAll())
 	{
 		$propertyIterator = Iblock\PropertyTable::getList(array(
 			'select' => array('ID'),
@@ -166,7 +171,7 @@ if($arID = $lAdmin->GroupAction())
 
 	foreach($arID as $ID)
 	{
-		if(strlen($ID)<=0)
+		if($ID == '')
 			continue;
 
 		switch($_REQUEST['action'])
@@ -298,7 +303,7 @@ $propertyOrder = array();
 if ($by == 'PROPERTY_TYPE')
 	$propertyOrder = array('PROPERTY_TYPE' => $order, 'USER_TYPE' => $order);
 else
-	$propertyOrder = array(strtoupper($by) => strtoupper($order));
+	$propertyOrder = array(mb_strtoupper($by) => mb_strtoupper($order));
 if (!isset($propertyOrder['ID']))
 	$propertyOrder['ID'] = 'ASC';
 

@@ -13,6 +13,7 @@ class MessageFolder
 	const SPAM = 'spam';
 	const INCOME = 'income';
 	const OUTCOME = 'outcome';
+	const DRAFTS = 'drafts';
 
 	/**
 	 * @param array $message
@@ -91,7 +92,7 @@ class MessageFolder
 	{
 		$root = array_shift($path);
 
-		if (strtolower($root) == 'inbox' && !static::isDisabledFolder($root, $mailboxOptions))
+		if (mb_strtolower($root) == 'inbox' && !static::isDisabledFolder($root, $mailboxOptions))
 		{
 			$root = Loc::getMessage('MAIL_CLIENT_INBOX_ALIAS');
 		}

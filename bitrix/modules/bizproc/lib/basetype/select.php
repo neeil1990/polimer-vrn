@@ -1,10 +1,9 @@
 <?php
+
 namespace Bitrix\Bizproc\BaseType;
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Bizproc\FieldType;
-
-Loc::loadMessages(__FILE__);
 
 /**
  * Class Select
@@ -12,7 +11,6 @@ Loc::loadMessages(__FILE__);
  */
 class Select extends Base
 {
-
 	/**
 	 * @return string
 	 */
@@ -63,7 +61,7 @@ class Select extends Base
 		switch ($type)
 		{
 			case FieldType::BOOL:
-				$value = strtolower((string)$key);
+				$value = mb_strtolower((string)$key);
 				$value = in_array($value, array('y', 'yes', 'true', '1')) ? 'Y' : 'N';
 				break;
 			case FieldType::DOUBLE:
@@ -83,8 +81,8 @@ class Select extends Base
 				break;
 			case FieldType::USER:
 				$value = trim($key);
-				if (strpos($value, 'user_') === false
-					&& strpos($value, 'group_') === false
+				if (mb_strpos($value, 'user_') === false
+					&& mb_strpos($value, 'group_') === false
 					&& !preg_match('#^[0-9]+$#', $value)
 				)
 				{
@@ -164,7 +162,7 @@ class Select extends Base
 			.'" name="'.htmlspecialcharsbx(static::generateControlName($field))
 			.($fieldType->isMultiple() ? '[]' : '').'"'.($fieldType->isMultiple() ? ' size="5" multiple' : '').'>';
 
-		if (!$fieldType->isMultiple()) //TODO: watch this
+		if (!$fieldType->isMultiple())
 		{
 			$renderResult .= '<option value="">['.Loc::getMessage('BPCGHLP_NOT_SET').']</option>';
 		}
@@ -480,5 +478,30 @@ class Select extends Base
 		else
 			$normalized[$options] = $options;
 		return $normalized;
+	}
+
+	public static function externalizeValue(FieldType $fieldType, $context, $value)
+	{
+		$map = $fieldType->getSettings()['ExternalValues'] ?? null;
+		if ($map && isset($map[$value]))
+		{
+			return $map[$value];
+		}
+
+		return parent::externalizeValue($fieldType, $context, $value);
+	}
+
+	public static function mergeValue(FieldType $fieldType, array $baseValue, $appendValue): array
+	{
+		if (\CBPHelper::isAssociativeArray($baseValue))
+		{
+			$baseValue = array_keys($baseValue);
+		}
+		if (\CBPHelper::isAssociativeArray($appendValue))
+		{
+			$appendValue = array_keys($appendValue);
+		}
+
+		return parent::mergeValue($fieldType, $baseValue, $appendValue);
 	}
 }

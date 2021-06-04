@@ -1,6 +1,7 @@
 <?
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions < "W")
@@ -18,7 +19,7 @@ $instance = \Bitrix\Main\Application::getInstance();
 $context = $instance->getContext();
 $request = $context->getRequest();
 
-$oSort = new CAdminSorting($sTableID, "ID", "asc");
+$oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
 $result = \Bitrix\Sale\PaySystem\Manager::getDataRefundablePage();

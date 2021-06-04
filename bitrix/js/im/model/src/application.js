@@ -4,13 +4,13 @@
  *
  * @package bitrix
  * @subpackage im
- * @copyright 2001-2019 Bitrix
+ * @copyright 2001-2020 Bitrix
  */
 
 import {DeviceType, DeviceOrientation} from 'im.const';
 import {VuexBuilderModel} from 'ui.vue.vuex';
 
-class ApplicationModel extends VuexBuilderModel
+export class ApplicationModel extends VuexBuilderModel
 {
 	getName()
 	{
@@ -33,16 +33,35 @@ class ApplicationModel extends VuexBuilderModel
 				chatId: this.getVariable('dialog.chatId', 0),
 				diskFolderId: this.getVariable('dialog.diskFolderId', 0),
 				messageLimit: this.getVariable('dialog.messageLimit', 20),
+				enableReadMessages: this.getVariable('dialog.enableReadMessages', true),
+				messageExtraCount: 0,
 			},
 			disk:
 			{
 				enabled: false,
 				maxFileSize: 5242880,
 			},
+			call:
+			{
+				serverEnabled: false,
+				maxParticipants: 24,
+			},
+			mobile:
+			{
+				keyboardShow: false,
+			},
 			device:
 			{
 				type: this.getVariable('device.type', DeviceType.desktop),
 				orientation: this.getVariable('device.orientation', DeviceOrientation.portrait),
+			},
+			options:
+			{
+				quoteEnable: this.getVariable('options.quoteEnable', true),
+				quoteFromRight: this.getVariable('options.quoteFromRight', true),
+				autoplayVideo: this.getVariable('options.autoplayVideo', true),
+				darkBackground: this.getVariable('options.darkBackground', false),
+				showSmiles: false
 			},
 			error:
 			{
@@ -55,12 +74,13 @@ class ApplicationModel extends VuexBuilderModel
 
 	getStateSaveException()
 	{
-		return {
-			common: null,
-			dialog: null,
-			device: null,
-			error: null
-		}
+		return Object.assign({
+			common: this.getVariable('saveException.common', null),
+			dialog: this.getVariable('saveException.dialog', null),
+			mobile: this.getVariable('saveException.mobile', null),
+			device: this.getVariable('saveException.device', null),
+			error: this.getVariable('saveException.error', null)
+		});
 	}
 
 	getActions()
@@ -70,6 +90,14 @@ class ApplicationModel extends VuexBuilderModel
 			{
 				store.commit('set', this.validate(payload));
 			},
+			showSmiles: (store, payload) =>
+			{
+				store.commit('showSmiles')
+			},
+			hideSmiles: (store, payload) =>
+			{
+				store.commit('hideSmiles');
+			}
 		}
 	}
 
@@ -103,6 +131,36 @@ class ApplicationModel extends VuexBuilderModel
 					this.saveState(state);
 				}
 			},
+			increaseDialogExtraCount(state, payload = {})
+			{
+				let {count = 1} = payload;
+
+				state.dialog.messageExtraCount += count;
+			},
+			decreaseDialogExtraCount(state, payload = {})
+			{
+				let {count = 1} = payload;
+
+				let newCounter = state.dialog.messageExtraCount - count;
+				if (newCounter <= 0)
+				{
+					newCounter = 0;
+				}
+
+				state.dialog.messageExtraCount = newCounter;
+			},
+			clearDialogExtraCount(state)
+			{
+				state.dialog.messageExtraCount = 0;
+			},
+			showSmiles(state)
+			{
+				state.options.showSmiles = true;
+			},
+			hideSmiles(state)
+			{
+				state.options.showSmiles = false;
+			}
 		}
 	}
 
@@ -148,7 +206,7 @@ class ApplicationModel extends VuexBuilderModel
 
 					chatId = parseInt(chatId);
 
-					result.dialog.chatId = !isNaN(chatId)? chatId: 0
+					result.dialog.chatId = !isNaN(chatId)? chatId: 0;
 					fields.dialog.chatId = result.dialog.chatId;
 				}
 			}
@@ -167,6 +225,16 @@ class ApplicationModel extends VuexBuilderModel
 			{
 				result.dialog.messageLimit = fields.dialog.messageLimit;
 			}
+
+			if (typeof fields.dialog.messageExtraCount === 'number')
+			{
+				result.dialog.messageExtraCount = fields.dialog.messageExtraCount;
+			}
+
+			if (typeof fields.dialog.enableReadMessages === 'boolean')
+			{
+				result.dialog.enableReadMessages = fields.dialog.enableReadMessages;
+			}
 		}
 
 		if (typeof fields.disk === 'object' && fields.disk)
@@ -181,6 +249,31 @@ class ApplicationModel extends VuexBuilderModel
 			if (typeof fields.disk.maxFileSize === 'number')
 			{
 				result.disk.maxFileSize = fields.disk.maxFileSize;
+			}
+		}
+
+		if (typeof fields.call === 'object' && fields.call)
+		{
+			result.call = {};
+
+			if (typeof fields.call.serverEnabled === 'boolean')
+			{
+				result.call.serverEnabled = fields.call.serverEnabled;
+			}
+
+			if (typeof fields.call.maxParticipants === 'number')
+			{
+				result.call.maxParticipants = fields.call.maxParticipants;
+			}
+		}
+
+		if (typeof fields.mobile === 'object' && fields.mobile)
+		{
+			result.mobile = {};
+
+			if (typeof fields.mobile.keyboardShow === 'boolean')
+			{
+				result.mobile.keyboardShow = fields.mobile.keyboardShow;
 			}
 		}
 
@@ -214,5 +307,3 @@ class ApplicationModel extends VuexBuilderModel
 		return result;
 	}
 }
-
-export {ApplicationModel};

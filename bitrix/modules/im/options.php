@@ -55,9 +55,9 @@ $aTabs = array(
 );
 $tabControl = new CAdminTabControl("tabControl", $aTabs);
 
-if(strlen($_POST['Update'].$_GET['RestoreDefaults'])>0 && check_bitrix_sessid() && $MOD_RIGHT >= 'W')
+if($_POST['Update'].$_GET['RestoreDefaults'] <> '' && check_bitrix_sessid() && $MOD_RIGHT >= 'W')
 {
-	if(strlen($_GET['RestoreDefaults'])>0)
+	if($_GET['RestoreDefaults'] <> '')
 	{
 		COption::RemoveOption("im", "turn_server_self");
 		COption::RemoveOption("im", "turn_server");
@@ -85,6 +85,7 @@ if(strlen($_POST['Update'].$_GET['RestoreDefaults'])>0 && check_bitrix_sessid() 
 		COption::RemoveOption("im", "general_chat_message_join");
 		COption::RemoveOption("im", "general_chat_message_leave");
 		COption::RemoveOption("im", "chat_message_start");
+		COption::RemoveOption("im", "contact_list_birthday");
 
 		foreach($arSites as $site)
 		{
@@ -98,7 +99,7 @@ if(strlen($_POST['Update'].$_GET['RestoreDefaults'])>0 && check_bitrix_sessid() 
 			}
 		}
 	}
-	elseif(strlen($_POST['Update'])>0)
+	elseif($_POST['Update'] <> '')
 	{
 		foreach($arSites as $site)
 		{
@@ -172,7 +173,6 @@ if(strlen($_POST['Update'].$_GET['RestoreDefaults'])>0 && check_bitrix_sessid() 
 			'correctText' => $_POST['CORRECT_TEXT'] == 'Y',
 			'panelPositionHorizontal' => $_POST['PANEL_POSITION_HORIZONTAL'],
 			'panelPositionVertical' => $_POST['PANEL_POSITION_VERTICAL'],
-			'loadLastMessage' => isset($_POST['LOAD_LAST_MESSAGE']),
 			'loadLastNotify' => isset($_POST['LOAD_LAST_NOTIFY']),
 			'privacyMessage' => $_POST['PRIVACY_MESSAGE'],
 			'privacyChat' => $_POST['PRIVACY_CHAT'],
@@ -180,13 +180,18 @@ if(strlen($_POST['Update'].$_GET['RestoreDefaults'])>0 && check_bitrix_sessid() 
 			'privacySearch' => $_POST['PRIVACY_SEARCH'],
 			'privacyProfile' => $_POST['PRIVACY_PROFILE'],
 		));
+
+		if (in_array($_POST['CONTACT_LIST_BIRTHDAY'], ['all', 'department', 'none'], true))
+		{
+			COption::SetOptionString("im", "contact_list_birthday", $_POST['CONTACT_LIST_BIRTHDAY']);
+		}
+
 		COption::SetOptionString("im", "view_offline", $arSettings['viewOffline']);
 		COption::SetOptionString("im", "view_group", $arSettings['viewGroup']);
 		COption::SetOptionString("im", "send_by_enter", $arSettings['sendByEnter']);
 		COption::SetOptionString("im", "correct_text", $arSettings['correctText']);
 		COption::SetOptionString("im", "panel_position_horizontal", $arSettings['panelPositionHorizontal']);
 		COption::SetOptionString("im", "panel_position_vertical", $arSettings['panelPositionVertical']);
-		COption::SetOptionString("im", "load_last_message", $arSettings['loadLastMessage']);
 		COption::SetOptionString("im", "load_last_notify", $arSettings['loadLastNotify']);
 		COption::SetOptionString("im", "privacy_message", $arSettings['privacyMessage']);
 		COption::SetOptionString("im", "privacy_chat", $arSettings['privacyChat']);
@@ -205,7 +210,7 @@ if(strlen($_POST['Update'].$_GET['RestoreDefaults'])>0 && check_bitrix_sessid() 
 			COption::SetOptionString("im", "general_chat_message_leave", isset($_POST['GENERAL_CHAT_MESSAGE_LEAVE']));
 		}
 
-		if(strlen($Update)>0 && strlen($_REQUEST["back_url_settings"])>0)
+		if($Update <> '' && $_REQUEST["back_url_settings"] <> '')
 		{
 			LocalRedirect($_REQUEST["back_url_settings"]);
 		}
@@ -241,14 +246,16 @@ $arReferenceId = Array(
 	'select' => Array('all', 'contact'),
 	'select3' => Array('all', 'contact', 'nobody'),
 	'sendByEnter' => Array('Y', 'N'),
-	'location' => Array('TL', 'TR', 'TC', 'BL', 'BR', 'BC')
+	'location' => Array('TL', 'TR', 'TC', 'BL', 'BR', 'BC'),
+	'birthday' => Array('all', 'department', 'none'),
 );
 $arReference = Array(
 	'select1' => Array(Loc::getMessage('IM_SELECT_1'), Loc::getMessage('IM_SELECT_2')),
 	'select2' => Array(Loc::getMessage('IM_SELECT_1_2'), Loc::getMessage('IM_SELECT_2_2')),
 	'select3' => Array(Loc::getMessage('IM_SELECT_1_2'), Loc::getMessage('IM_SELECT_2_2'), Loc::getMessage('IM_SELECT_2_3')),
 	'sendByEnter' => Array("Enter", "Ctrl+Enter"),
-	'location' => Array(Loc::getMessage('IM_PANEL_LOCATION_TL'), Loc::getMessage('IM_PANEL_LOCATION_TR'), Loc::getMessage('IM_PANEL_LOCATION_TC'), Loc::getMessage('IM_PANEL_LOCATION_BL'), Loc::getMessage('IM_PANEL_LOCATION_BR'), Loc::getMessage('IM_PANEL_LOCATION_BC'))
+	'location' => Array(Loc::getMessage('IM_PANEL_LOCATION_TL'), Loc::getMessage('IM_PANEL_LOCATION_TR'), Loc::getMessage('IM_PANEL_LOCATION_TC'), Loc::getMessage('IM_PANEL_LOCATION_BL'), Loc::getMessage('IM_PANEL_LOCATION_BR'), Loc::getMessage('IM_PANEL_LOCATION_BC')),
+	'birthday' => Array(Loc::getMessage('IM_CONTACT_LIST_BIRTHDAY_ALL'), Loc::getMessage('IM_CONTACT_LIST_BIRTHDAY_DEPARTMENT'), Loc::getMessage('IM_CONTACT_LIST_BIRTHDAY_NONE')),
 );
 ?>
 	<?if(IsModuleInstalled('voximplant')):?>
@@ -288,10 +295,6 @@ $arReference = Array(
 	<tr>
 		<td class="adm-detail-content-cell-l" width="40%"><?=Loc::getMessage("IM_VIEW_GROUP")?>:</td>
 		<td class="adm-detail-content-cell-r" width="60%"><input type="checkbox" name="VIEW_GROUP" <?=(!$arSettingsDefault['viewGroup']?'checked="checked"' :'')?>></td>
-	</tr>
-	<tr>
-		<td class="adm-detail-content-cell-l" width="40%"><?=Loc::getMessage("IM_LOAD_LAST_MESSAGE")?>:</td>
-		<td class="adm-detail-content-cell-r" width="60%"><input type="checkbox" name="LOAD_LAST_MESSAGE" <?=($arSettingsDefault['loadLastMessage']?'checked="checked"' :'')?>></td>
 	</tr>
 	<tr>
 		<td class="adm-detail-content-cell-l" width="40%"><?=Loc::getMessage("IM_LOAD_LAST_NOTIFY")?>:</td>
@@ -337,6 +340,12 @@ $arReference = Array(
 		<td class="adm-detail-content-cell-l" width="40%"><?=Loc::getMessage("IM_START_CHAT_MESSAGE")?></td>
 		<td class="adm-detail-content-cell-r" width="60%"><?=SelectBoxFromArray("START_CHAT_MESSAGE", array('reference_id' => Array('first', 'last'), 'reference' => Array(Loc::getMessage('IM_START_CHAT_MESSAGE_FIRST'), Loc::getMessage('IM_START_CHAT_MESSAGE_LAST'))), COption::GetOptionString("im", 'start_chat_message'));?></td>
 	</tr>
+	<?if(IsModuleInstalled('intranet')):?>
+	<tr>
+		<td class="adm-detail-content-cell-l" width="40%"><?=Loc::getMessage("IM_CONTACT_LIST_BIRTHDAY")?></td>
+		<td class="adm-detail-content-cell-r" width="60%"><?=SelectBoxFromArray("CONTACT_LIST_BIRTHDAY", array('reference_id' => $arReferenceId['birthday'], 'reference' => $arReference['birthday']), COption::GetOptionString("im", 'contact_list_birthday'));?></td>
+	</tr>
+	<?endif;?>
 	<tr>
 		<td class="adm-detail-content-cell-l" width="40%"><?=Loc::getMessage("IM_COLOR_ENABLE")?>:</td>
 		<td class="adm-detail-content-cell-r" width="60%"><input type="checkbox" name="COLOR_ENABLE" <?=(COption::GetOptionString("im", 'color_enable')?'checked="checked"' :'')?>></td>
@@ -404,7 +413,7 @@ foreach ($arSites as $site)
 		{
 ?>
 		<tr>
-			<td align="right"><?php echo Loc::getMessage("IM_OPTIONS_".strtoupper($key))?>:</td>
+			<td align="right"><?php echo Loc::getMessage("IM_OPTIONS_".mb_strtoupper($key))?>:</td>
 			<td><input type="text" size="40" value="<?=htmlspecialcharsbx(COption::GetOptionString("im", $key, $value, $site["LID"]))?>" name="<?php echo $key?>_<?php echo $site["LID"]?>"></td>
 		</tr>
 

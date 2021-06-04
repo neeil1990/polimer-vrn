@@ -5,7 +5,7 @@ use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Sale\Internals\BasketTable;
-use Bitrix\Sale\Internals\ProductTable;
+use Bitrix\Catalog\ProductTable;
 use Bitrix\Seo\Adv\LinkTable;
 use Bitrix\Seo\Adv\OrderTable;
 use Bitrix\Seo\Adv\YandexBannerTable;
@@ -261,14 +261,14 @@ class AdvSession
 	// TODO: remove all this math when /sale_refactoring_mince releases
 	protected static function getProductProfit($productInfo)
 	{
-		if(strlen($productInfo['GROSS_PROFIT']) > 0)
+		if($productInfo['GROSS_PROFIT'] <> '')
 		{
 			$profit = doubleval($productInfo['GROSS_PROFIT']);
 		}
 		else
 		{
 			$purchasingCost = 0;
-			if(strlen($productInfo['SUMMARY_PURCHASING_PRICE']) > 0)
+			if($productInfo['SUMMARY_PURCHASING_PRICE'] <> '')
 			{
 				$purchasingCost = doubleval($productInfo['SUMMARY_PURCHASING_PRICE']);
 			}

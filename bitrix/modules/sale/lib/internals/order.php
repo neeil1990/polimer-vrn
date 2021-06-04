@@ -40,20 +40,6 @@ class OrderTable extends Main\Entity\DataManager
 		$connection = Main\Application::getConnection();
 		$helper = $connection->getSqlHelper();
 
-		$lockStatusExpression = '';
-		if ($DB->type == 'MYSQL')
-		{
-			$lockStatusExpression = "if(DATE_LOCK is null, 'green', if(DATE_ADD(DATE_LOCK, interval ".$maxLock." MINUTE)<now(), 'green', if(LOCKED_BY=".$userID.", 'yellow', 'red')))";
-		}
-		elseif ($DB->type == 'MSSQL')
-		{
-			$lockStatusExpression = "case when DATE_LOCK is null then 'green' else case when dateadd(minute, ".$maxLock.", DATE_LOCK)<getdate() then 'green' else case when LOCKED_BY=".$userID." then 'yellow' else 'red' end end end";
-		}
-		elseif ($DB->type == 'ORACLE')
-		{
-			$lockStatusExpression = "DECODE(DATE_LOCK, NULL, 'green', DECODE(SIGN(1440*(SYSDATE-DATE_LOCK)-".$maxLock."), 1, 'green', decode(LOCKED_BY,".$userID.",'yellow','red')))";
-		}
-
 		return array(
 			new Main\Entity\IntegerField('ID',
 				array(
@@ -127,6 +113,14 @@ class OrderTable extends Main\Entity\DataManager
 
 			new Main\Entity\BooleanField(
 				'PAYED',
+				array(
+					'values' => array('N', 'Y'),
+					'default_value' => 'N'
+				)
+			),
+
+			new Main\Entity\BooleanField(
+				'IS_SYNC_B24',
 				array(
 					'values' => array('N', 'Y'),
 					'default_value' => 'N'
@@ -345,7 +339,7 @@ class OrderTable extends Main\Entity\DataManager
 
 			new Main\Entity\ExpressionField(
 				'LOCK_STATUS',
-				$lockStatusExpression
+				"if(DATE_LOCK is null, 'green', if(DATE_ADD(DATE_LOCK, interval ".$maxLock." MINUTE)<now(), 'green', if(LOCKED_BY=".$userID.", 'yellow', 'red')))"
 			),
 
 			new Main\Entity\ReferenceField(
@@ -481,6 +475,8 @@ class OrderTable extends Main\Entity\DataManager
 
 			new Main\Entity\StringField('BX_USER_ID'),
 
+			new Main\Entity\TextField('SEARCH_CONTENT'),
+
 			new Main\Entity\BooleanField(
 				'RUNNING',
 				array(
@@ -508,11 +504,29 @@ class OrderTable extends Main\Entity\DataManager
 				array('join_type' => 'LEFT')
 			),
 
+			new Main\Entity\ReferenceField(
+				'ORDER_DISCOUNT_RULES',
+				'Bitrix\Sale\Internals\OrderRules',
+				array(
+					'=ref.ORDER_ID' => 'this.ID',
+				),
+				array('join_type' => 'LEFT')
+			),
+
 			new Main\Entity\ExpressionField(
 				'BY_RECOMMENDATION',
 				"(SELECT (CASE WHEN MAX(BR.RECOMMENDATION) IS NULL OR MAX(BR.RECOMMENDATION) = '' THEN 'N' ELSE 'Y' END) FROM b_sale_basket BR WHERE BR.ORDER_ID=%s GROUP BY BR.ORDER_ID)",
 				array('ID')
-			)
+			),
+
+			new Main\Entity\ReferenceField(
+				'TRADING_PLATFORM',
+				\Bitrix\Sale\TradingPlatform\OrderTable::getEntity(),
+				array(
+					'=ref.ORDER_ID' => 'this.ID',
+				),
+				array('join_type' => 'LEFT')
+			),
 		);
 	}
 

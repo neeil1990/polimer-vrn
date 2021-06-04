@@ -19,7 +19,7 @@ return array(
 			'VIEW_USE' => 'N',
 			'VIEW_TYPE' => 'no',
 			'THEME_CODE' => 'travel',
-			'THEME_CODE_TYPO' => 'travel',
+
 		),
 	),
 	'layout' => array(),
@@ -48,7 +48,7 @@ return array(
 				),
 				'.landing-block-node-card-contact-text' => array(
 					0 => Loc::getMessage("NOTETRANSLATE--LANDING_DEMO_STORE_CLOTHES-FOOTER--TEXT_1"),
-					1 => 'Email: ',
+					1 => 'Phone: ',
 				),
 				'.landing-block-node-card-contact-link' => array(
 					0 => [
@@ -106,17 +106,16 @@ return array(
 			),
 			'style' => array(
 				'.landing-block-node-title' => array(
-					0 => 'landing-block-node-title g-font-weight-700 g-mb-20 g-color-primary g-font-montserrat g-text-transform-none g-font-size-20',
+					0 => 'landing-block-node-title g-font-weight-700 g-mb-20 g-color-primary g-text-transform-none g-font-size-20',
 				),
 				'.landing-block-node-text' => array(
-					0 => 'landing-block-node-text g-font-size-default g-color-gray-light-v1 g-mb-20 g-font-open-sans',
+					0 => 'landing-block-node-text g-color-gray-light-v1 g-mb-20 g-font-size-14',
+				),
+				'.landing-block-node-card-contact-text' => array(
+					0 => 'landing-block-node-card-contact-text g-color-gray-light-v1 g-font-size-14',
 				),
 				'.landing-block-node-list-item' => array(
-					0 => 'landing-block-node-list-item g-color-gray-dark-v5 g-font-open-sans',
-				),
-				'.landing-block-node-card-contact-icon-container' => array(
-					0 => 'landing-block-node-card-contact-icon-container g-color-gray-light-v1 g-absolute-centered--y g-left-0',
-					1 => 'landing-block-node-card-contact-icon-container g-color-gray-light-v1 g-absolute-centered--y g-left-0',
+					0 => 'landing-block-node-list-item g-color-gray-dark-v5 g-font-size-14',
 				),
 				'.landing-block-node-card-contact-icon' => array(
 					0 => 'landing-block-node-card-contact-icon fa fa-home',
@@ -138,7 +137,7 @@ return array(
 			),
 			'style' => array(
 				'.landing-block-node-text' => array(
-					0 => 'landing-block-node-text g-font-size-12 g-color-white js-animation animation-none g-font-open-sans',
+					0 => 'landing-block-node-text g-font-size-12 g-color-white js-animation animation-none',
 				),
 				'#wrapper' => array(
 					0 => 'landing-block g-bg-black js-animation animation-none',

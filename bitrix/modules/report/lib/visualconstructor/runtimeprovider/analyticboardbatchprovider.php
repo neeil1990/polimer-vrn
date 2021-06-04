@@ -12,7 +12,7 @@ class AnalyticBoardBatchProvider extends Base
 	 */
 	protected function availableFilterKeys()
 	{
-		return ['primary', 'batchKey'];
+		return ['primary', 'batchKey', 'group'];
 	}
 
 	/**
@@ -38,5 +38,41 @@ class AnalyticBoardBatchProvider extends Base
 	protected function getIndices()
 	{
 		return $this->getManagerInstance()->getIndices();
+	}
+
+	/**
+	 * @param AnalyticBoardBatch[] $result
+	 */
+	protected function sortResults(&$result)
+	{
+		usort($result, function($a, $b)
+		{
+			/** @var \Bitrix\Report\VisualConstructor\AnalyticBoardBatch $a */
+			/** @var \Bitrix\Report\VisualConstructor\AnalyticBoardBatch $b */
+			return $a->getOrder() <=> $b->getOrder();
+		});
+	}
+
+	/**
+	 * @param array $entities
+	 * @param array $filteredEntityIds
+	 *
+	 * @return array
+	 */
+	protected function applyFilters($entities, $filteredEntityIds)
+	{
+		$result = [];
+
+		foreach ($entities as $key => $entity)
+		{
+			/** @var \Bitrix\Report\VisualConstructor\AnalyticBoardBatch $entity */
+			if (in_array($key, $filteredEntityIds) || in_array($entity->getGroup(), $filteredEntityIds))
+			{
+				$this->processAvailableRelations($entity);
+				$result[] = $entity;
+			}
+		}
+
+		return $result;
 	}
 }

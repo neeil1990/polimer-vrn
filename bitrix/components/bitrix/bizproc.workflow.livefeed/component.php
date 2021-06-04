@@ -14,6 +14,11 @@ $arResult['TASKS'] = CBPViewHelper::getWorkflowTasks($arParams['WORKFLOW_ID'], t
 $arResult['WORKFLOW_STATE_INFO'] = CBPStateService::getWorkflowStateInfo($arParams['WORKFLOW_ID']);
 $arResult['USER_ID'] = (int)$GLOBALS['USER']->GetId();
 
+if (empty($arResult['WORKFLOW_STATE_INFO']))
+{
+	return false;
+}
+
 if (!empty($arResult['TASKS']['RUNNING']))
 {
 	foreach ($arResult['TASKS']['RUNNING'] as &$t)
@@ -30,6 +35,14 @@ if (!empty($arResult['TASKS']['RUNNING']))
 	}
 }
 $arResult['noWrap'] = isset($arParams['NOWRAP']) && $arParams['NOWRAP'] == 'Y';
+
+if (
+	isset($arParams['SITE_TEMPLATE_ID'])
+	&& $arParams['SITE_TEMPLATE_ID'] <> ''
+)
+{
+	$this->setSiteTemplateId($arParams['SITE_TEMPLATE_ID']);
+}
 
 ob_start();
 $this->IncludeComponentTemplate();

@@ -16,7 +16,7 @@ $compositeStub = (isset($arResult['COMPOSITE_STUB']) && $arResult['COMPOSITE_STU
 				$name = trim($USER->GetLogin());
 			?>
 			<a class="basket-line-block-icon-profile" href="<?=$arParams['PATH_TO_PROFILE']?>"><?=htmlspecialcharsbx($name)?></a>
-			<a style='margin-right: 0;' href="?logout=yes"><?=GetMessage('TSB1_LOGOUT')?></a>
+			<a style='margin-right: 0;' href="?logout=yes&<?=bitrix_sessid_get()?>"><?=GetMessage('TSB1_LOGOUT')?></a>
 		<?else:
 			$arParamsToDelete = array(
 				"login",
@@ -45,7 +45,7 @@ $compositeStub = (isset($arResult['COMPOSITE_STUB']) && $arResult['COMPOSITE_STU
 			}
 
 			$pathToAuthorize = $arParams['PATH_TO_AUTHORIZE'];
-			$pathToAuthorize .= (stripos($pathToAuthorize, '?') === false ? '?' : '&');
+			$pathToAuthorize .= (mb_stripos($pathToAuthorize, '?') === false ? '?' : '&');
 			$pathToAuthorize .= 'login=yes&backurl='.$currentUrl;
 			?>
 			<a class="basket-line-block-icon-profile" href="<?=$pathToAuthorize?>"><?=GetMessage('TSB1_LOGIN')?></a>
@@ -53,7 +53,7 @@ $compositeStub = (isset($arResult['COMPOSITE_STUB']) && $arResult['COMPOSITE_STU
 			if ($arParams['SHOW_REGISTRATION'] === 'Y')
 			{
 				$pathToRegister = $arParams['PATH_TO_REGISTER'];
-				$pathToRegister .= (stripos($pathToRegister, '?') === false ? '?' : '&');
+				$pathToRegister .= (mb_stripos($pathToRegister, '?') === false ? '?' : '&');
 				$pathToRegister .= 'register=yes&backurl='.$currentUrl;
 				?>
 				<a style="margin-right: 0;" href="<?=$pathToRegister?>"><?=GetMessage('TSB1_REGISTER')?></a>
@@ -77,7 +77,7 @@ $compositeStub = (isset($arResult['COMPOSITE_STUB']) && $arResult['COMPOSITE_STU
 		{
 			if ($arParams['SHOW_NUM_PRODUCTS'] == 'Y' && ($arResult['NUM_PRODUCTS'] > 0 || $arParams['SHOW_EMPTY_VALUES'] == 'Y'))
 			{
-				echo $arResult['NUM_PRODUCTS'].' '.$arResult['PRODUCT(S)'];
+				echo $arResult['BASKET_COUNT_DESCRIPTION'];
 
 				if ($arParams['SHOW_TOTAL_PRICE'] == 'Y')
 				{

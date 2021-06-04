@@ -180,9 +180,11 @@ $arResult["~LIST_SECTION_URL"] = str_replace(
 	array($arResult["IBLOCK_ID"], intval($arParams["~SECTION_ID"]), $arParams["SOCNET_GROUP_ID"]),
 	$arParams["~LIST_URL"]
 );
-if((isset($_GET["list_section_id"]) && strlen($_GET["list_section_id"]) == 0) || !isset($_GET["list_section_id"]))
-	$arResult["~LIST_SECTION_URL"] = CHTTP::urlAddParams($arResult["~LIST_SECTION_URL"], array("list_section_id" => ""));
-
+if ($SECTION_ID)
+{
+	$arResult["~LIST_SECTION_URL"] = CHTTP::urlAddParams(
+		$arResult["~LIST_SECTION_URL"], ["list_section_id" => $SECTION_ID]);
+}
 $arResult["LIST_SECTION_URL"] = htmlspecialcharsbx($arResult["~LIST_SECTION_URL"]);
 
 if ($ELEMENT_ID > 0)
@@ -196,7 +198,7 @@ if ($ELEMENT_ID > 0)
 		array("copy_id" => $ELEMENT_ID),
 		array("skip_empty" => true, "encode" => true)
 	);
-	if(isset($_GET["list_section_id"]) && strlen($_GET["list_section_id"]) == 0)
+	if(isset($_GET["list_section_id"]) && $_GET["list_section_id"] == '')
 		$arResult["LIST_COPY_ELEMENT_URL"] = CHTTP::urlAddParams($arResult["LIST_COPY_ELEMENT_URL"], array("list_section_id" => ""));
 }
 else
@@ -334,6 +336,29 @@ $tab_name = $arResult["FORM_ID"]."_active_tab";
 $bVarsFromForm = false;
 $arResult["BACK_URL"] = $arResult["~LIST_SECTION_URL"];
 
+//todo after crm realized
+if (!function_exists("isUsePrefix"))
+{
+	function isUsePrefix(array $property)
+	{
+		if (is_array($property['USER_TYPE_SETTINGS']))
+		{
+			if (array_key_exists('VISIBLE', $property['USER_TYPE_SETTINGS']))
+				unset($property['USER_TYPE_SETTINGS']['VISIBLE']);
+			$tmpArray = array_filter($property['USER_TYPE_SETTINGS'], function($mark)
+			{
+				return $mark == "Y";
+			});
+			if (count($tmpArray) == 1)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+}
+
 $arResult["EXTERNAL_CONTEXT"] = isset($_REQUEST["external_context"]) ? $_REQUEST["external_context"] : "";
 if(!empty($arResult["EXTERNAL_CONTEXT"]))
 {
@@ -358,9 +383,26 @@ if(!empty($arResult["EXTERNAL_CONTEXT"]))
 	{
 		foreach($arResult["FIELDS"] as $fieldId => $field)
 		{
-			if($fieldId == $externalFieldId)
+			if ($fieldId == $externalFieldId)
+			{
+				//todo after crm realized
+				//Bitrix\Crm\Integration\IBlockElementProperty::isUsePrefix($field);
+				if (!isUsePrefix($field))
+				{
+					$explode = explode("_", $externalDefaultValue);
+					$externalDefaultValue = intval($explode[1]);
+				}
 				$arResult["FIELDS"][$fieldId]['DEFAULT_VALUE'] = $externalDefaultValue;
+			}
 		}
+	}
+}
+
+if (CLists::isEnabledLockFeature($arResult["IBLOCK_ID"]) && $arParams["CAN_EDIT"] && $ELEMENT_ID > 0)
+{
+	if (!CIBlockElement::WF_IsLocked($ELEMENT_ID, $lockedBy, $dateLock))
+	{
+		CIBlockElement::WF_Lock($ELEMENT_ID);
 	}
 }
 
@@ -501,12 +543,12 @@ if(
 					{
 						if(is_array($value))
 						{
-							if(strlen($value["VALUE"]))
+							if($value["VALUE"] <> '')
 							{
 								$value = str_replace(" ", "", str_replace(",", ".", $value["VALUE"]));
-								if (!is_numeric($value))
+								if(!is_numeric($value))
 								{
-									$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#'=>$arField['NAME']))."<br />";
+									$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#' => $arField['NAME']))."<br />";
 								}
 								$arProps[$arField["ID"]][$key] = doubleval($value);
 							}
@@ -514,12 +556,12 @@ if(
 						}
 						else
 						{
-							if(strlen($value))
+							if($value <> '')
 							{
 								$value = str_replace(" ", "", str_replace(",", ".", $value));
-								if (!is_numeric($value))
+								if(!is_numeric($value))
 								{
-									$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#'=>$arField['NAME']))."<br />";
+									$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#' => $arField['NAME']))."<br />";
 								}
 								$arProps[$arField["ID"]][$key] = doubleval($value);
 							}
@@ -530,24 +572,24 @@ if(
 				{
 					if(is_array($_POST[$FIELD_ID]))
 					{
-						if(strlen($_POST[$FIELD_ID]["VALUE"]))
+						if($_POST[$FIELD_ID]["VALUE"] <> '')
 						{
 							$value = str_replace(" ", "", str_replace(",", ".", $_POST[$FIELD_ID]["VALUE"]));
-							if (!is_numeric($value))
+							if(!is_numeric($value))
 							{
-								$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#'=>$arField['NAME']))."<br />";
+								$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#' => $arField['NAME']))."<br />";
 							}
 							$arProps[$arField["ID"]] = doubleval($_POST[$FIELD_ID]["VALUE"]);
 						}
 					}
 					else
 					{
-						if(strlen($_POST[$FIELD_ID]))
+						if($_POST[$FIELD_ID] <> '')
 						{
 							$value = str_replace(" ", "", str_replace(",", ".", $_POST[$FIELD_ID]));
-							if (!is_numeric($value))
+							if(!is_numeric($value))
 							{
-								$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#'=>$arField['NAME']))."<br />";
+								$strError .= GetMessage('CC_BLEE_VALIDATE_FIELD_ERROR', array('#NAME#' => $arField['NAME']))."<br />";
 							}
 							$arProps[$arField["ID"]] = doubleval($_POST[$FIELD_ID]);
 						}
@@ -604,7 +646,7 @@ if(
 					if(!in_array($arPropV["PROPERTY_TYPE"], $ignoreProperty))
 					{
 						if(is_array($arProps[$arPropV["ID"]]) && empty($arProps[$arPropV["ID"]])
-							|| is_string($arProps[$arPropV["ID"]]) && strlen($arProps[$arPropV["ID"]]) <= 0)
+							|| is_string($arProps[$arPropV["ID"]]) && $arProps[$arPropV["ID"]] == '')
 						{
 							if(!array_key_exists($arPropV["ID"], $arElement["PROPERTY_VALUES"]))
 								$arElement["PROPERTY_VALUES"][$arPropV["ID"]] = array();
@@ -691,7 +733,7 @@ if(
 				$arBizProcParametersValues = array();
 				foreach ($arDocumentStates as $arDocumentState)
 				{
-					if(strlen($arDocumentState["ID"]) <= 0)
+					if($arDocumentState["ID"] == '')
 					{
 						$templatesOnStartup = true;
 						$arErrorsTmp = array();
@@ -729,9 +771,17 @@ if(
 
 			if($arResult["ELEMENT_ID"])
 			{
-				$res = $obElement->Update($arResult["ELEMENT_ID"], $arElement, false, true, true);
-				if(!$res)
-					$strError = $obElement->LAST_ERROR;
+				if (CLists::isEnabledLockFeature($arResult["IBLOCK_ID"]) &&
+					CIBlockElement::WF_IsLocked($ELEMENT_ID, $lockedBy, $dateLock))
+				{
+					$strError = GetMessage("CC_BLEE_ELEMENT_LOCKED");
+				}
+				else
+				{
+					$res = $obElement->Update($arResult["ELEMENT_ID"], $arElement, false, true, true);
+					if(!$res)
+						$strError = $obElement->LAST_ERROR;
+				}
 			}
 			else
 			{
@@ -761,7 +811,7 @@ if(
 			$arBizProcWorkflowId = array();
 			foreach($arDocumentStates as $arDocumentState)
 			{
-				if(strlen($arDocumentState["ID"]) <= 0)
+				if($arDocumentState["ID"] == '')
 				{
 					$arErrorsTmp = array();
 
@@ -789,9 +839,9 @@ if(
 					$bpTemplateId = intval($_REQUEST["bizproc_template_id_".$i]);
 					$bpEvent = trim($_REQUEST["bizproc_event_".$i]);
 
-					if(strlen($bpEvent) > 0)
+					if($bpEvent <> '')
 					{
-						if(strlen($bpId) > 0)
+						if($bpId <> '')
 						{
 							if(!array_key_exists($bpId, $arDocumentStates))
 								continue;
@@ -840,7 +890,7 @@ if(
 				array($tab_name => $_POST[$tab_name]),
 				array("skip_empty" => true, "encode" => true)
 			);
-			if(isset($_GET["list_section_id"]) && strlen($_GET["list_section_id"]) == 0)
+			if(isset($_GET["list_section_id"]) && $_GET["list_section_id"] == '')
 				$url = CHTTP::urlAddParams($url, array("list_section_id" => ""));
 
 			if(isset($arResult['EXTERNAL_CONTEXT']) && $arResult['EXTERNAL_CONTEXT'] !== '')
@@ -864,6 +914,8 @@ if(
 				$this->includeComponentTemplate('event');
 				return;
 			}
+
+			CIBlockElement::WF_UnLock($arResult["ELEMENT_ID"]);
 
 			//And go to proper page
 			if(isset($_POST["save"]))
@@ -1069,7 +1121,7 @@ foreach($arResult["FIELDS"] as $FIELD_ID => $arField)
 			);
 			if($arField["MULTIPLE"] == "Y")
 			{
-				if(is_array($arField["DEFAULT_VALUE"]) || strlen($arField["DEFAULT_VALUE"]))
+				if(is_array($arField["DEFAULT_VALUE"]) || mb_strlen($arField["DEFAULT_VALUE"]))
 					$data[$FIELD_ID]["n1"] = array("VALUE" => "", "DESCRIPTION" => "");
 			}
 		}

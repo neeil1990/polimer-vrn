@@ -1,16 +1,14 @@
 <?
 
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\ErrorCollection;
-use Bitrix\Main\UI\Filter\Options as FilterOptions;
-use Bitrix\Main\Grid\Options as GridOptions;
-use Bitrix\Main\Loader;
 use Bitrix\Main\Error;
-
-use Bitrix\Sender\Security;
+use Bitrix\Main\ErrorCollection;
+use Bitrix\Main\Grid\Options as GridOptions;
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\UI\Filter\Options as FilterOptions;
 use Bitrix\Sender\Connector;
+use Bitrix\Sender\Posting\SegmentDataBuilder;
 use Bitrix\Sender\Recipient;
-
+use Bitrix\Sender\Security;
 use Bitrix\Sender\UI\PageNavigation;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
@@ -18,6 +16,11 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 	die();
 }
 
+if (!Bitrix\Main\Loader::includeModule('sender'))
+{
+	ShowError('Module `sender` not installed');
+	die();
+}
 Loc::loadMessages(__FILE__);
 
 class SenderConnectorResultListComponent extends CBitrixComponent
@@ -40,11 +43,12 @@ class SenderConnectorResultListComponent extends CBitrixComponent
 		$this->arParams['GRID_ID'] = isset($this->arParams['GRID_ID']) ? $this->arParams['GRID_ID'] : 'SENDER_CONTACT_LIST_GRID';
 		$this->arParams['FILTER_ID'] = isset($this->arParams['FILTER_ID']) ? $this->arParams['FILTER_ID'] : $this->arParams['GRID_ID'] . '_FILTER';
 		$this->arParams['SET_TITLE'] = isset($this->arParams['SET_TITLE']) ? $this->arParams['SET_TITLE'] === 'Y' : true;
+
 		$this->arParams['CAN_VIEW'] = isset($this->arParams['CAN_VIEW'])
 			?
 			$this->arParams['CAN_VIEW']
 			:
-			Security\Access::current()->canViewSegments();
+			Security\Access::getInstance()->canViewSegments();
 
 		if (!isset($this->arParams['ENDPOINT']))
 		{
@@ -129,23 +133,52 @@ class SenderConnectorResultListComponent extends CBitrixComponent
 
 
 		// get rows
-		$connector->setFieldValues($endpoint['FIELDS'] + $this->getDataFilter());
-		$connector->setDataTypeId($this->getDataTypeId());
-		$result = $connector->getResult();
-		$fetchedCount = 0;
-		while ($item = $result->fetchPlain())
+		if (is_array($endpoint['FIELDS']))
 		{
-			$connector->getResultView()->onDraw($item);
-			$this->arResult['ROWS'][] = $item;
-			$fetchedCount++;
-			if ($fetchedCount >= $nav->getLimit())
-			{
-				break;
-			}
-		}
+			$connector->setFieldValues($endpoint['FIELDS'] + $this->getDataFilter());
+			$connector->setDataTypeId($this->getDataTypeId());
 
-		$connector->getResultView()->setNav(null);
-		$this->arResult['TOTAL_ROWS_COUNT'] = $connector->getDataCount();
+			$segmentBuilder = null;
+			$groupId = $this->request->get('groupId');
+			$filterId = $this->request->get('filterId');
+			$isIncrementally = $connector instanceof Connector\IncrementallyConnector && $groupId && $filterId;
+
+			if ($isIncrementally)
+			{
+				$segmentBuilder = new SegmentDataBuilder(
+					$this->request->get('groupId'),
+					$this->request->get('filterId'),
+					$endpoint
+				);
+				$this->arResult['BUILDING_COMPLETED'] = $segmentBuilder->isBuildingCompleted();
+			}
+
+			$result = !$segmentBuilder
+				? $connector->getResult()
+				: new Connector\Result($segmentBuilder->getData($nav))
+			;
+
+			$result->setDataTypeId($connector->getDataTypeId());
+			$fetchedCount = 0;
+			while ($item = $result->fetchPlain())
+			{
+				$connector->getResultView()->onDraw($item);
+				$this->arResult['ROWS'][] = $item;
+				$fetchedCount++;
+				if ($fetchedCount >= $nav->getLimit())
+				{
+					break;
+				}
+			}
+			$connector->getResultView()->setNav(null);
+			$this->arResult['TOTAL_ROWS_COUNT'] = !$segmentBuilder
+				? $connector->getDataCount()
+				: $segmentBuilder->getDataCount();
+		}
+		else
+		{
+			$this->arResult['TOTAL_ROWS_COUNT'] = 0;
+		}
 
 		// set rec count to nav
 		$nav->setRecordCount($this->arResult['TOTAL_ROWS_COUNT']);
@@ -199,7 +232,7 @@ class SenderConnectorResultListComponent extends CBitrixComponent
 		$sorting = $gridOptions->getSorting(array('sort' => $defaultSort));
 
 		$by = key($sorting['sort']);
-		$order = strtoupper(current($sorting['sort'])) === 'ASC' ? 'ASC' : 'DESC';
+		$order = mb_strtoupper(current($sorting['sort'])) === 'ASC' ? 'ASC' : 'DESC';
 
 		$list = array();
 		foreach ($this->getUiGridColumns() as $column)
@@ -285,7 +318,7 @@ class SenderConnectorResultListComponent extends CBitrixComponent
 	public function executeComponent()
 	{
 		$this->errors = new \Bitrix\Main\ErrorCollection();
-		if (!Loader::includeModule('sender'))
+		if (!Bitrix\Main\Loader::includeModule('sender'))
 		{
 			$this->errors->setError(new Error('Module `sender` is not installed.'));
 			$this->printErrors();

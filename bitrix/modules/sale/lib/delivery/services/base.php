@@ -16,7 +16,7 @@ use Bitrix\Sale\Delivery\Requests;
 Loc::loadMessages(__FILE__);
 
 /* Inputs for deliveries */
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/lib/delivery/inputs.php");
+require_once __DIR__.'/../inputs.php';
 
 /**
  * Class Base (abstract)
@@ -40,6 +40,7 @@ abstract class Base
 	protected $trackingClass = "";
 	/** @var Requests\HandlerBase  */
 	protected $deliveryRequestHandler = null;
+
 	protected $extraServices = array();
 	protected $trackingParams = array();
 	protected $allowEditShipment = array();
@@ -239,13 +240,25 @@ abstract class Base
 	}
 
 	/**
+	 * @return float|null
+	 */
+	public static function getDefaultVatRate(): ?float
+	{
+		return null;
+	}
+
+	/**
 	 * @param \Bitrix\Sale\Shipment $shipment.
-	 * @return \Bitrix\Sale\Delivery\CalculationResult
-	 * @throws SystemException
+	 * @return Delivery\CalculationResult
 	 */
 	protected function calculateConcrete(\Bitrix\Sale\Shipment $shipment)
 	{
-		throw new SystemException('Not implemented');
+		return (new Delivery\CalculationResult())
+			->addError(
+				new Error(
+					Loc::getMessage('SALE_DLVR_BASE_DELIVERY_PRICE_CALC_ERROR'),
+					'DELIVERY_CALCULATION'
+			));
 	}
 
 	/**
@@ -282,7 +295,7 @@ abstract class Base
 		if($strError != "")
 			throw new SystemException($strError);
 
-		if(strpos($fields['CLASS_NAME'], '\\') !== 0)
+		if(mb_strpos($fields['CLASS_NAME'], '\\') !== 0)
 		{
 			$fields['CLASS_NAME'] = '\\'.$fields['CLASS_NAME'];
 		}
@@ -530,6 +543,15 @@ abstract class Base
 	public static function whetherAdminExtraServicesShow()
 	{
 		return self::$whetherAdminExtraServicesShow;
+	}
+
+	/**
+	 * @param array $fields
+	 * @return \Bitrix\Main\Result
+	 */
+	public static function onBeforeAdd(array &$fields = array()): \Bitrix\Main\Result
+	{
+		return new \Bitrix\Main\Result();
 	}
 
 	/**
@@ -825,6 +847,10 @@ abstract class Base
 		return Manager::createObject($fields);
 	}
 
+	/**
+	 * @return bool
+	 * @throws \Bitrix\Main\LoaderException
+	 */
 	public static function isHandlerCompatible()
 	{
 		$result = true;

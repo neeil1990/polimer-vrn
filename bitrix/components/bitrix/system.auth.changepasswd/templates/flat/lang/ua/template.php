@@ -1,4 +1,4 @@
-<?
+<?php
 $MESS["AUTH_AUTH"] = "Авторизація";
 $MESS["AUTH_CHANGE"] = "Змінити пароль";
 $MESS["AUTH_CHANGE_PASSWORD"] = "Зміна паролю";
@@ -10,4 +10,4 @@ $MESS["AUTH_SECURE_NOTE"] = "Перед відправкою форми паро
 $MESS["change_pass_code"] = "Перевірочний код";
 $MESS["change_pass_phone_number"] = "Номер телефону";
 $MESS["system_auth_captcha"] = "Введіть символи з картинки";
-?>
+$MESS["system_change_pass_current_pass"] = "Поточний пароль";

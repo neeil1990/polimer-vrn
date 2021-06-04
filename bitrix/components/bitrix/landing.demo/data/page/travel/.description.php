@@ -14,7 +14,6 @@ return array(
 	'fields' => array(
 		'ADDITIONAL_FIELDS' => array(
 			'THEME_CODE' => 'travel',
-			'THEME_CODE_TYPO' => 'travel',
 			'METAOG_IMAGE' => 'https://cdn.bitrix24.site/bitrix/images/demo/page/travel/preview.jpg',
 			'METAOG_TITLE' => Loc::getMessage('LANDING_DEMO_TITLE'),
 			'METAOG_DESCRIPTION' => Loc::getMessage('LANDING_DEMO_DESCRIPTION'),
@@ -27,7 +26,7 @@ return array(
 			array (
 				'CODE' => '0.menu_19_travel',
 				'SORT' => '-100',
-				'CONTENT' => '<header class="landing-block landing-ui-pattern-transparent landing-block-menu u-header u-header--floating">
+				'CONTENT' => '<header class="landing-block landing-block-menu u-header u-header--sticky u-header--float">
 	<div class="u-header__section g-bg-black-opacity-0_5 g-bg-transparent--lg g-transition-0_3 g-py-12"
 		 data-header-fix-moment-exclude="g-bg-black-opacity-0_5 g-bg-transparent--lg g-py-12"
 		 data-header-fix-moment-classes="g-theme-travel-bg-black-v1-opacity-0_8 g-py-7">
@@ -96,12 +95,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img19.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$150.00</span></div>
 						
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Karlovy Vary, Czech
 						</h3>
 	
@@ -114,7 +113,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-								<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+								<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -125,12 +124,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img11.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$550.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							London, Great Britain
 						</h3>
 	
@@ -143,7 +142,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-								<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+								<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -154,12 +153,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img20.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$360.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Crete, Greece
 						</h3>
 	
@@ -171,7 +170,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-								<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+								<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -182,12 +181,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img17.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$1300.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Langkwai, Malaysia
 						</h3>
 	
@@ -199,7 +198,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-								<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+								<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -210,12 +209,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img14.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$1300.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Bavaria, Germany
 						</h3>
 	
@@ -227,7 +226,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-								<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+								<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -238,12 +237,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img13.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$610.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Paris, France
 						</h3>
 	
@@ -256,7 +255,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-							<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+							<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -267,12 +266,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img18.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$340.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Hong Kong
 						</h3>
 	
@@ -285,7 +284,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-							<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+							<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -296,12 +295,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img15.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$2400.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Venice, Italy
 						</h3>
 	
@@ -313,7 +312,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-							<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+							<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -324,12 +323,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img16.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$540.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							Madrid, Spain
 						</h3>
 	
@@ -341,7 +340,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-							<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+							<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -352,12 +351,12 @@ return array(
 		<div class="landing-block-node-card js-slide">
 			<div class="landing-block-node-card-bgimg g-bg-img-hero u-bg-overlay d-flex align-items-center justify-content-center w-100 h-100 g-min-height-100vh g-bg-black-opacity-0_4--after" style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1280/img12.jpg)">
 				<div class="u-bg-overlay__inner">
-					<div class="container landing-block-node-card-container js-animation fadeIn g-mx-0 g-pa-0">
+					<div class="landing-block-node-card-container js-animation fadeIn container g-mx-0 g-pa-0 g-max-width-800">
 						<div class="landing-block-node-card-price u-ribbon-v1 text-uppercase g-pos-rel g-line-height-1_2 g-font-weight-700 g-font-size-16 g-font-size-18 g-color-white g-theme-travel-bg-black-v1 g-pa-10 g-mb-10">
 							Only From
 							<span style="color: #ee4136;">$5240.00</span></div>
 	
-						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-font-roboto-slab g-color-white g-mb-10">
+						<h3 class="landing-block-node-card-title text-uppercase g-pos-rel g-line-height-1 g-font-weight-700 g-font-size-75 g-color-white g-mb-10">
 							New York, USA
 						</h3>
 	
@@ -369,7 +368,7 @@ return array(
 								</p>
 							</div>
 							<div class="landing-block-node-card-button-container">
-							<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Take a tour</a>
+							<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-px-l g-btn-size-sm text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Take a tour</a>
 							</div>
 						</div>
 					</div>
@@ -396,9 +395,15 @@ return array(
 			array (
 				'CODE' => '44.4.slider_5_cols_with_prices',
 				'SORT' => '1500',
-				'CONTENT' => '<section class="landing-block g-bg-gray-light-v4 g-pt-20 g-pb-60">
+				'CONTENT' => '<section class="landing-block g-bg-gray-light-v4 g-pt-90 g-pb-90">
 	<!-- Product Blocks -->
-	<div class="js-carousel carouselTravel2 g-px-25" data-infinite="true" data-slides-show="5" data-arrows-classes="u-arrow-v1 g-absolute-centered--y g-width-45 g-height-45 g-font-size-default g-color-white g-bg-primary g-color-primary--hover g-bg-white--hover" data-arrow-left-classes="fa fa-chevron-left g-left-0" data-arrow-right-classes="fa fa-chevron-right g-right-0" data-responsive=\'[{
+	<div class="js-carousel g-px-25 row"
+		 data-infinite="true"
+		 data-slides-show="5"
+		 data-arrows-classes="u-arrow-v1 g-absolute-centered--y g-width-45 g-height-45 g-color-white g-bg-primary g-color-primary--hover g-bg-white--hover"
+		 data-arrow-left-classes="fa fa-chevron-left g-left-0"
+		 data-arrow-right-classes="fa fa-chevron-right g-right-0"
+		 data-responsive=\'[{
                "breakpoint": 1200,
                "settings": {
                  "slidesToShow": 5
@@ -418,237 +423,293 @@ return array(
                "settings": {
                  "slidesToShow": 1
                }
-             }]\'>
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg" alt="" />
+             }]\'
+		 data-init-classes-exclude=\'[{
+				 "selector": ".landing-block-node-card",
+				 "class": "col-12 col-sm-4 col-lg-3"
+			   }, {
+				 "selector": ".js-carousel",
+				 "class": "row"
+			   }]\'>
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Crete</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img2.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img2.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Langkawi</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img3.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img3.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Paris</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img4.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img4.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Venice</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img	5.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img	5.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							London</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Rome</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Crete</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img2.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img2.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Langkawi</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img3.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img3.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Paris</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img4.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img4.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Venice</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							London</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="landing-block-node-card js-slide g-px-7">
-			<div class="landing-block-node-card-container g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3" href="#">
-				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg" alt="" />
+		<div class="landing-block-node-card js-slide g-px-7 col-12 col-sm-4 col-lg-3">
+			<div class="landing-block-node-card-container h-100 g-pos-rel g-text-underline--none--hover g-parent g-theme-travel-bg-black-v1 g-bg-primary--hover g-color-white g-transition-0_3"
+				 href="#">
+				<img class="landing-block-node-card-img img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/600x600/img1.jpg"
+					 alt="">
 
 				<div class="g-pa-20">
 					<div class="g-mb-20">
-						<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-5 js-animation fadeInRight animated">
+						<h3 class="landing-block-node-card-title js-animation fadeInRight text-uppercase g-font-weight-700 g-color-white g-mb-5">
 							Rome</h3>
-						<div class="landing-block-node-card-text g-color-white-opacity-0_8 js-animation fadeInLeft animated">
+
+						<div class="landing-block-node-card-text js-animation fadeInLeft g-color-white-opacity-0_8">
 							<p>dapibus quis sapien id phar etra iaculis est</p>
 						</div>
 					</div>
 
-					<div class="landing-block-node-card-price d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10 js-animation fadeInRight" href="#">$350.00
+					<div class="landing-block-node-card-price js-animation fadeInRight d-inline-block g-line-height-1 g-font-weight-700 g-font-size-11 g-bg-primary g-color-primary--parent-hover g-bg-white--parent-hover g-pa-10"
+						 href="#">$350.00
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Product Blocks -->
-</section>',
+</section>
+',
 			),
 		'04.7.one_col_fix_with_title_and_text_2' =>
 			array (
@@ -672,27 +733,30 @@ return array(
 			array (
 				'CODE' => '44.5.three_cols_images_with_price',
 				'SORT' => '2500',
-				'CONTENT' => '<section class="landing-block g-pt-20 g-pb-60">
+				'CONTENT' => '<section class="landing-block g-pt-90 g-pb-90">
 	<div class="container">
 		<!-- Product Blocks -->
 		<div class="row">
-			<div class="landing-block-node-card col-lg-4 col-md-6 g-mb-30 js-animation fadeInUp animated ">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-4 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img1.jpg" alt="" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img1.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-theme-travel-bg-black-v1-opacity-0_8--hover g-pa-10 g-transition-0_2 g-transition--ease-in">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5" href="#">From
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
 									<span style="color: #ee4136;">$780.00</span>
 								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
 								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Hong Kong</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10">
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
 									King Way
 								</h3>
 								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
@@ -706,23 +770,26 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			<div class="landing-block-node-card col-lg-4 col-md-6 g-mb-30 js-animation fadeInUp animated ">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-4 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img2.jpg" alt="" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img2.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-theme-travel-bg-black-v1-opacity-0_8--hover g-pa-10 g-transition-0_2 g-transition--ease-in">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5" href="#">From
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
 									<span style="color: #ee4136;">$2350.00</span>
 								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
 								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Venice</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10">
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
 									Relax tour
 								</h3>
 								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
@@ -736,23 +803,26 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			<div class="landing-block-node-card col-lg-4 col-md-6 g-mb-30 js-animation fadeInUp animated ">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-4 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img3.jpg" alt="" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img3.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-theme-travel-bg-black-v1-opacity-0_8--hover g-pa-10 g-transition-0_2 g-transition--ease-in">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5" href="#">From
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
 									<span style="color: #ee4136;">$4320.00</span>
 								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
 								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Karlovy Vary</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10">
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
 									Heaven on Earth
 								</h3>
 								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
@@ -766,23 +836,26 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			<div class="landing-block-node-card col-lg-4 col-md-6 g-mb-30 js-animation fadeInUp animated ">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-4 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img4.jpg" alt="" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img4.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-theme-travel-bg-black-v1-opacity-0_8--hover g-pa-10 g-transition-0_2 g-transition--ease-in">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5" href="#">From
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
 									<span style="color: #ee4136;">$760.00</span>
 								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
 								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Madrid</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10">
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
 									Lovers tour
 								</h3>
 								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
@@ -796,23 +869,26 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			<div class="landing-block-node-card col-lg-4 col-md-6 g-mb-30 js-animation fadeInUp animated ">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-4 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img5.jpg" alt="" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img5.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-theme-travel-bg-black-v1-opacity-0_8--hover g-pa-10 g-transition-0_2 g-transition--ease-in">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5" href="#">From
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
 									<span style="color: #ee4136;">$2440.00</span>
 								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
 								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Bavaria</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10">
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
 									Road of gladiators
 								</h3>
 								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
@@ -826,23 +902,26 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			<div class="landing-block-node-card col-lg-4 col-md-6 g-mb-30 js-animation fadeInUp animated ">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-4 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img6.jpg" alt="" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img6.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-theme-travel-bg-black-v1-opacity-0_8--hover g-pa-10 g-transition-0_2 g-transition--ease-in">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5" href="#">From
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
 									<span style="color: #ee4136;">$2530.00</span>
 								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
 								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">New York</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10">
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
 									Road of gods
 								</h3>
 								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
@@ -858,7 +937,8 @@ return array(
 		</div>
 		<!-- End Product Blocks -->
 	</div>
-</section>',
+</section>
+',
 			),
 		'01.big_with_text_3' =>
 			array (
@@ -870,7 +950,7 @@ return array(
 
 		<div class="landing-block-node-text g-color-white-opacity-0_7 g-mb-35">Donec eleifend mauris eu leo varius consectetur. Aliquam luctus a lorem ac rutrum. Cras in nulla id mi ornare vestibulum. Donec et magna nulla. Pellentesque ut ipsum id nibh pretium blandit quis ac erat.</div>
 		<div class="landing-block-node-button-container">
-			<a href="#" class="landing-block-node-button btn btn-xl u-btn-primary text-uppercase g-font-weight-700 g-font-size-12 g-py-15 g-px-40 g-mb-15 rounded-0" target="_self">CONTACT US</a>
+			<a href="#" class="landing-block-node-button btn g-btn-primary g-btn-type-solid g-btn-px-l g-btn-size-md text-uppercase g-py-15 g-mb-15 rounded-0" target="_self">CONTACT US</a>
 		</div>
 	</div>
 </section>',
@@ -897,26 +977,35 @@ return array(
 			array (
 				'CODE' => '44.5.three_cols_images_with_price',
 				'SORT' => '4000',
-				'CONTENT' => '<section class="landing-block g-pt-20 g-pb-60">
+				'CONTENT' => '<section class="landing-block g-pt-90 g-pb-90">
 	<div class="container">
 		<!-- Product Blocks -->
 		<div class="row">
-			<div class="landing-block-node-card col-md-6 g-mb-30  col-lg-6 js-animation fadeInUp animated">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-6 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img5.jpg" alt="" data-fileid="-1" data-filehash="9eef207add73028ae50f74a9033c20cb" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img1.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-pa-10 g-transition-0_2 g-transition--ease-in g-bg-primary-opacity-0_8--hover">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-theme-travel-bg-black-v1 g-pa-5 g-color-white text-center" href="#"><span style="">$350.00</span></div>
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
+									<span style="color: #ee4136;">$780.00</span>
+								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
-								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10 text-center">GREECE</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10 text-center">HEAVEN ON EARTH<br /></h3>
-								<div class="landing-block-node-card-text small g-color-white-opacity-0_8"><br /></div>
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
+								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Hong Kong</div>
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
+									King Way
+								</h3>
+								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
+									1 person, 4 days, 3 nights, 3 stars hotel
+								</div>
 							</div>
 						</div>
 					</div>
@@ -925,22 +1014,31 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			<div class="landing-block-node-card col-md-6 g-mb-30  col-lg-6 js-animation fadeInUp animated">
+			<div class="landing-block-node-card js-animation fadeInUp col-lg-6 col-md-6 g-mb-30">
 				<!-- Article -->
-				<div class="u-bg-overlay h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover" href="#">
-					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img6.jpg" alt="" data-fileid="-1" data-filehash="9eef207add73028ae50f74a9033c20cb" />
+				<div class="landing-block-node-card-container u-bg-overlay g-pointer-events-before-after-none h-100 g-bg-black-opacity-0_3--after g-parent g-text-underline--none--hover"
+				   href="#">
+					<img class="landing-block-node-card-bgimg h-100 w-100 g-object-fit-cover img-fluid" src="https://cdn.bitrix24.site/bitrix/images/landing/business/740x480/img2.jpg" alt="">
 
 					<!-- Article Content -->
-					<div class="u-bg-overlay__inner g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
-						<div class="landing-block-node-card-bg-hover g-flex-middle h-100 g-pa-10 g-transition-0_2 g-transition--ease-in g-bg-primary-opacity-0_8--hover">
-							<div class="g-flex-middle-item--top">
-								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-theme-travel-bg-black-v1 g-pa-5 g-color-white text-center" href="#"><span style="">$800.00</span></div>
+					<div class="u-bg-overlay__inner g-pointer-events-none--public-mode g-pos-abs g-top-0 g-left-0 w-100 h-100 g-pa-10">
+						<div class="landing-block-node-card-bg-hover opacity-0 g-opacity-1--parent-hover g-transition-0_2 g-transition--ease-in h-100 g-theme-travel-bg-black-v1-opacity-0_8"></div>
+						<div class="landing-block-node-card-inner-container g-pa-20 g-pos-abs g-top-0 g-left-0 h-100 g-flex-middle">
+							<div class="g-flex-middle-item--top g-pointer-events-all">
+								<div class="landing-block-node-card-price g-font-weight-700 u-ribbon-v1 text-uppercase g-top-20 g-left-20 g-color-white g-theme-travel-bg-black-v1 g-pa-5"
+										href="#">From
+									<span style="color: #ee4136;">$2350.00</span>
+								</div>
 							</div>
 
-							<div class="text-uppercase g-flex-middle-item--bottom">
-								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10 text-center">ITALY</div>
-								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-font-roboto-slab g-color-white g-mb-10 text-center">AMAZING VENICE</h3>
-								<div class="landing-block-node-card-text small g-color-white-opacity-0_8"> </div>
+							<div class="text-uppercase g-flex-middle-item--bottom g-pointer-events-all">
+								<div class="landing-block-node-card-subtitle g-line-height-1_2 g-font-weight-700 g-font-size-11 g-font-roboto-slab g-color-white g-mb-10">Venice</div>
+								<h3 class="landing-block-node-card-title h5 g-line-height-1_2 g-font-weight-700 g-font-size-18 g-color-white g-mb-10">
+									Relax tour
+								</h3>
+								<div class="landing-block-node-card-text small g-color-white-opacity-0_8">
+									2 persons, 7 days, 7 nights, 5 stars hotel
+								</div>
 							</div>
 						</div>
 					</div>
@@ -949,17 +1047,11 @@ return array(
 				<!-- End Article -->
 			</div>
 
-			
-
-			
-
-			
-
-			
 		</div>
 		<!-- End Product Blocks -->
 	</div>
-</section>',
+</section>
+',
 			),
 		'04.7.one_col_fix_with_title_and_text_2@3' =>
 			array (
@@ -984,14 +1076,14 @@ return array(
 				'CODE' => '44.3.four_columns_text_with_img',
 				'SORT' => '5000',
 				'CONTENT' => '<section class="landing-block w-100 no-gutters">
-	<div class="js-carousel carouselTravel1 u-carousel-v5" data-infinite="true" data-slides-scroll="true" data-slides-show="4" data-arrows-classes="u-arrow-v1 g-pos-abs g-top-100 g-width-45 g-height-45 g-font-size-default g-color-white g-bg-primary g-color-primary--hover g-bg-white--hover" data-arrow-left-classes="fa fa-chevron-left g-left-0" data-arrow-right-classes="fa fa-chevron-right g-right-0">
+	<div class="js-carousel carouselTravel1 u-carousel-v5" data-infinite="true" data-slides-scroll="true" data-slides-show="4" data-arrows-classes="u-arrow-v1 g-pos-abs g-top-100 g-width-45 g-height-45 g-color-white g-bg-primary g-color-primary--hover g-bg-white--hover" data-arrow-left-classes="fa fa-chevron-left g-left-0" data-arrow-right-classes="fa fa-chevron-right g-right-0">
 
 		<div class="landing-block-node-card js-slide g-theme-travel-bg-black-v1 g-bg-primary--hover ">
 			<article class="u-shadow-v26 g-parent g-transition-0_2 g-transition--ease-in">
 				<img class="landing-block-node-card-img img-fluid w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img5.jpg" alt="" />
 
 				<div class="text-center g-pa-45 landing-block-node-card-text-container js-animation fadeInUp">
-					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-15">
+					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-color-white g-mb-15">
 						Nullam lobortis bibendum eros nec ultricies</h3>
 					<div class="landing-block-node-card-text g-color-white-opacity-0_8 g-mb-35">
 						<p>Cras sit amet varius velit. Maecenas porta
@@ -999,7 +1091,7 @@ return array(
 						</p>
 					</div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-sm g-btn-px-l text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Learn more</a>
 					</div>
 				</div>
 			</article>
@@ -1010,7 +1102,7 @@ return array(
 				<img class="landing-block-node-card-img img-fluid w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img6.jpg" alt="" />
 
 				<div class="text-center g-pa-45 landing-block-node-card-text-container js-animation fadeInUp">
-					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-15">
+					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-color-white g-mb-15">
 						Aliquam dapibus quis sapien id pharetra</h3>
 					<div class="landing-block-node-card-text g-color-white-opacity-0_8 g-mb-35">
 						<p>In finibus vehicula lorem, in tempor diam convallis
@@ -1018,7 +1110,7 @@ return array(
 						</p>
 					</div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-sm g-btn-px-l text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Learn more</a>
 					</div>
 				</div>
 			</article>
@@ -1029,7 +1121,7 @@ return array(
 				<img class="landing-block-node-card-img img-fluid w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img7.jpg" alt="" />
 
 				<div class="text-center g-pa-45 landing-block-node-card-text-container js-animation fadeInUp">
-					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-15">
+					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-color-white g-mb-15">
 						Duis sagittis purus a pretium tincidunt</h3>
 					<div class="landing-block-node-card-text g-color-white-opacity-0_8 g-mb-35">
 						<p>Cras sit amet varius velit. Maecenas porta
@@ -1037,7 +1129,7 @@ return array(
 						</p>
 					</div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-sm g-btn-px-l text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Learn more</a>
 					</div>
 				</div>
 			</article>
@@ -1048,7 +1140,7 @@ return array(
 				<img class="landing-block-node-card-img img-fluid w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img8.jpg" alt="" />
 
 				<div class="text-center g-pa-45 landing-block-node-card-text-container js-animation fadeInUp">
-					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-15">
+					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-color-white g-mb-15">
 						Nullam lobortis bibendum eros nec ultricies</h3>
 					<div class="landing-block-node-card-text g-color-white-opacity-0_8 g-mb-35">
 						<p>Maecenas tempor arcu eget gravida sagittis. In
@@ -1056,7 +1148,7 @@ return array(
 						</p>
 					</div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-sm g-btn-px-l text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Learn more</a>
 					</div>
 				</div>
 			</article>
@@ -1067,7 +1159,7 @@ return array(
 				<img class="landing-block-node-card-img img-fluid w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img5.jpg" alt="" />
 
 				<div class="text-center g-pa-45 landing-block-node-card-text-container js-animation fadeInUp">
-					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-15">
+					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-color-white g-mb-15">
 						Aliquam dapibus quis sapien id pharetra</h3>
 					<div class="landing-block-node-card-text g-color-white-opacity-0_8 g-mb-35">
 						<p>In finibus vehicula lorem, in tempor diam convallis
@@ -1075,7 +1167,7 @@ return array(
 						</p>
 					</div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-sm g-btn-px-l text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Learn more</a>
 					</div>
 				</div>
 			</article>
@@ -1086,7 +1178,7 @@ return array(
 				<img class="landing-block-node-card-img img-fluid w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/570x436/img6.jpg" alt="" />
 
 				<div class="text-center g-pa-45 landing-block-node-card-text-container js-animation fadeInUp">
-					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-default g-font-roboto-slab g-color-white g-mb-15">
+					<h3 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-color-white g-mb-15">
 						Aliquam dapibus quis sapien id pharetra</h3>
 					<div class="landing-block-node-card-text g-color-white-opacity-0_8 g-mb-35">
 						<p>In finibus vehicula lorem, in tempor diam convallis
@@ -1094,7 +1186,7 @@ return array(
 						</p>
 					</div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 rounded-0 g-py-10 g-px-25" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-sm g-btn-px-l text-uppercase g-btn-primary rounded-0 g-py-10" href="#">Learn more</a>
 					</div>
 				</div>
 			</article>
@@ -1240,7 +1332,7 @@ return array(
                 <div class="text-center u-shadow-v10 g-bg-white g-pa-0-35-35--sm g-pa-0-20-20">
                     <img class="landing-block-node-img rounded-circle mx-auto g-width-100 g-brd-10 g-brd-around g-brd-gray-light-v5 g-pull-50x-up" src="https://cdn.bitrix24.site/bitrix/images/landing/business/500x500/img1.jpg" alt="" />
 
-                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default mb-0">Simone Gomez</h4>
+                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 mb-0">Simone Gomez</h4>
                     <div class="landing-block-node-subtitle text-uppercase g-font-style-normal g-font-weight-700 g-font-size-10 g-color-gray-dark-v5">
 						Anderson industry</div>
                     <blockquote class="landing-block-node-text u-blockquote-v7 g-line-height-1_5 g-color-gray-dark-v5 g-bg-primary--before mb-0">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</blockquote>
@@ -1251,7 +1343,7 @@ return array(
                 <div class="text-center u-shadow-v10 g-bg-white g-pa-0-35-35--sm g-pa-0-20-20">
                     <img class="landing-block-node-img rounded-circle mx-auto g-width-100 g-brd-10 g-brd-around g-brd-gray-light-v5 g-pull-50x-up" src="https://cdn.bitrix24.site/bitrix/images/landing/business/500x500/img9.jpg" alt="" />
 
-                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default mb-0">Carla Harris</h4>
+                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 mb-0">Carla Harris</h4>
                     <div class="landing-block-node-subtitle text-uppercase g-font-style-normal g-font-weight-700 g-font-size-10 g-color-gray-dark-v5">
 						HNN consultation corp</div>
                     <blockquote class="landing-block-node-text u-blockquote-v7 g-line-height-1_5 g-color-gray-dark-v5 g-bg-primary--before mb-0">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</blockquote>
@@ -1262,7 +1354,7 @@ return array(
                 <div class="text-center u-shadow-v10 g-bg-white g-pa-0-35-35--sm g-pa-0-20-20">
                     <img class="landing-block-node-img rounded-circle mx-auto g-width-100 g-brd-10 g-brd-around g-brd-gray-light-v5 g-pull-50x-up" src="https://cdn.bitrix24.site/bitrix/images/landing/business/500x500/img3.jpg" alt="" />
 
-                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default mb-0">Dianna Kimwealth</h4>
+                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 mb-0">Dianna Kimwealth</h4>
                     <div class="landing-block-node-subtitle text-uppercase g-font-style-normal g-font-weight-700 g-font-size-10 g-color-gray-dark-v5">
 						Robo construction</div>
                     <blockquote class="landing-block-node-text u-blockquote-v7 g-line-height-1_5 g-color-gray-dark-v5 g-bg-primary--before mb-0">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</blockquote>
@@ -1273,7 +1365,7 @@ return array(
                 <div class="text-center u-shadow-v10 g-bg-white g-pa-0-35-35--sm g-pa-0-20-20">
                     <img class="landing-block-node-img rounded-circle mx-auto g-width-100 g-brd-10 g-brd-around g-brd-gray-light-v5 g-pull-50x-up" src="https://cdn.bitrix24.site/bitrix/images/landing/business/500x500/img4.jpg" alt="" />
 
-                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default mb-0">John Wellberg</h4>
+                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 mb-0">John Wellberg</h4>
                     <div class="landing-block-node-subtitle text-uppercase g-font-style-normal g-font-weight-700 g-font-size-10 g-color-gray-dark-v5">
 						Solid iron corp</div>
                     <blockquote class="landing-block-node-text u-blockquote-v7 g-line-height-1_5 g-color-gray-dark-v5 g-bg-primary--before mb-0">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</blockquote>
@@ -1286,7 +1378,7 @@ return array(
                 <div class="text-center u-shadow-v10 g-bg-white g-pa-0-35-35--sm g-pa-0-20-20">
                     <img class="landing-block-node-img rounded-circle mx-auto g-width-100 g-brd-10 g-brd-around g-brd-gray-light-v5 g-pull-50x-up" src="https://cdn.bitrix24.site/bitrix/images/landing/business/500x500/img6.jpg" alt="" />
 
-                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default mb-0">Derek Fineman</h4>
+                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 mb-0">Derek Fineman</h4>
                     <div class="landing-block-node-subtitle text-uppercase g-font-style-normal g-font-weight-700 g-font-size-10 g-color-gray-dark-v5">
 						Fineman construction company
 					</div>
@@ -1298,7 +1390,7 @@ return array(
                 <div class="text-center u-shadow-v10 g-bg-white g-pa-0-35-35--sm g-pa-0-20-20">
                     <img class="landing-block-node-img rounded-circle mx-auto g-width-100 g-brd-10 g-brd-around g-brd-gray-light-v5 g-pull-50x-up" src="https://cdn.bitrix24.site/bitrix/images/landing/business/500x500/img7.jpg" alt="" />
 
-                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default mb-0">William Mountcon</h4>
+                    <h4 class="landing-block-node-title text-uppercase g-font-weight-700 mb-0">William Mountcon</h4>
                     <div class="landing-block-node-subtitle text-uppercase g-font-style-normal g-font-weight-700 g-font-size-10 g-color-gray-dark-v5">
 						Mountcon brothers</div>
                     <blockquote class="landing-block-node-text u-blockquote-v7 g-line-height-1_5 g-color-gray-dark-v5 g-bg-primary--before mb-0">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</blockquote>
@@ -1328,31 +1420,18 @@ return array(
 			array (
 				'CODE' => '33.23.form_2_themecolor_no_text',
 				'SORT' => '8500',
-				'CONTENT' => '<section class="g-pos-rel landing-block text-center g-bg-primary g-pt-20 g-pb-60">
+				'CONTENT' => '<section class="g-pos-rel landing-block g-pt-20 g-pb-60 g-bg-primary">
 
 	<div class="container">
 
-		<div class="landing-block-form-styles" hidden="">
-			<div class="g-bg-transparent h1 g-color-white g-brd-none g-pa-0" data-form-style-wrapper-padding="1" data-form-style-bg="1" data-form-style-bg-content="1" data-form-style-bg-block="1" data-form-style-header-font-size="1" data-form-style-main-font-weight="1" data-form-style-border-block="1">
-			</div>
-
-			<div class="g-bg-white g-color-primary g-brd-primary" data-form-style-main-bg="1" data-form-style-main-border-color="1" data-form-style-main-font-color-hover="1">
-			</div>
-			<div class="g-bg-primary-dark-v2 u-theme-restaurant-shadow-v1 g-brd-around g-color-gray-dark-v2 rounded-0" data-form-style-input-bg="1" data-form-style-input-box-shadow="1" data-form-style-input-select-bg="1" data-form-style-input-border="1" data-form-style-input-border-radius="1" data-form-style-button-font-color="1">
-			</div>
-			<div class="g-brd-around g-brd-gray-light-v2 g-brd-bottom g-bg-black-opacity-0_7" data-form-style-input-border-color="1" data-form-style-input-border-hover="1">
-			</div>
-
-			<p class="g-color-white-opacity-0_7" data-form-style-second-font-color="1" data-form-style-main-font-family="1" data-form-style-main-font-weight="1" data-form-style-header-text-font-size="1">
-			</p>
-
-			<h3 class="g-font-size-11 g-color-white" data-form-style-label-font-weight="1" data-form-style-label-font-size="1" data-form-style-main-font-color="1">
-			</h3>
-		</div>
-
 		<div class="row">
 			<div class="col-md-6 mx-auto">
-				<div class="bitrix24forms g-brd-white-opacity-0_6 u-form-alert-v3" data-b24form="" data-b24form-use-style="Y" data-b24form-show-header="N" data-b24form-original-domain=""></div>
+				<div class="bitrix24forms g-brd-white-opacity-0_6 u-form-alert-v3"
+					data-b24form-use-style="Y"
+					data-b24form-embed
+					data-b24form-design=\'{"dark":true,"style":"classic","shadow":false,"compact":false,"color":{"primary":"#fff","primaryText":"#333","text":"#fff","background":"--primary00","fieldBorder":"#ffffff00","fieldBackground":"#00000011","fieldFocusBackground":"#00000011"},"border":{"top":false,"bottom":false,"left":false,"right":false}}\'
+				>
+				</div>
 			</div>
 		</div>
 	</div>

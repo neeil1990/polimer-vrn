@@ -1,6 +1,8 @@
 <?php
 $MESS['LANDING_TABLE_FIELD_LID'] = 'Идентификатор лендинга';
 $MESS['LANDING_TABLE_FIELD_CODE'] = 'Код';
+$MESS['LANDING_TABLE_FIELD_XML_ID'] = 'Внешний код';
+$MESS['LANDING_TABLE_FIELD_INITIATOR_APP_CODE'] = 'Код приложения-инициатора';
 $MESS['LANDING_TABLE_FIELD_ANCHOR'] = 'Якорь';
 $MESS['LANDING_TABLE_FIELD_SORT'] = 'Сортировка';
 $MESS['LANDING_TABLE_FIELD_ACTIVE'] = 'Активность';
@@ -12,4 +14,7 @@ $MESS['LANDING_TABLE_FIELD_MODIFIED_BY_ID'] = 'Идентификатор изм
 $MESS['LANDING_TABLE_FIELD_DATE_CREATE'] = 'Дата создания';
 $MESS['LANDING_TABLE_FIELD_DATE_MODIFY'] = 'Дата изменения';
 $MESS['LANDING_TABLE_FIELD_CONTENT'] = 'Содержимое блока';
+$MESS['LANDING_TABLE_FIELD_SEARCH_CONTENT'] = 'Содержимое блока для поиска';
 $MESS['LANDING_TABLE_FIELD_PARENT_ID'] = 'Родительский блок';
+$MESS['LANDING_TABLE_FIELD_SOURCE_PARAMS'] = 'Параметры динамического источника';
+$MESS['LANDING_TABLE_FIELD_ASSETS'] = 'Дополнительные ресурсы блока';

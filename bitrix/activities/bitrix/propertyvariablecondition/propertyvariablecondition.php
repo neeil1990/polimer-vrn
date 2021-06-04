@@ -1,6 +1,8 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 
+use Bitrix\Bizproc;
+
 class CBPPropertyVariableCondition
 	extends CBPActivityCondition
 {
@@ -60,6 +62,24 @@ class CBPPropertyVariableCondition
 		return sizeof($result) > 0 ? true : false;
 	}
 
+	public function collectUsages(CBPActivity $ownerActivity)
+	{
+		$usages = [];
+		$rootActivity = $ownerActivity->GetRootActivity();
+		foreach ($this->condition as $cond)
+		{
+			if ($rootActivity->IsPropertyExists($cond[0]))
+			{
+				$usages[] = [\Bitrix\Bizproc\Workflow\Template\SourceType::Parameter, $cond[0]];
+			}
+			elseif ($rootActivity->IsVariableExists($cond[0]))
+			{
+				$usages[] = [\Bitrix\Bizproc\Workflow\Template\SourceType::Variable, $cond[0]];
+			}
+		}
+		return $usages;
+	}
+
 	/**
 	 * @param $field
 	 * @param $operation
@@ -71,178 +91,24 @@ class CBPPropertyVariableCondition
 	 */
 	private function CheckCondition($field, $operation, $value, $baseType, $rootActivity, $property = null)
 	{
-		if ($operation === 'empty')
-		{
-			return CBPHelper::isEmptyValue($field);
-		}
-		elseif ($operation === '!empty')
-		{
-			return !CBPHelper::isEmptyValue($field);
-		}
-
-		$result = false;
 		$type = is_array($property) ? $property['Type'] : $baseType;
+		$condition = new Bizproc\Activity\Condition([
+			'operator' => $operation,
+			'value' => $rootActivity->ParseValue($value, $type),
+		]);
 
-		$value = $rootActivity->ParseValue($value, $type);
-		if ($baseType == "user")
+		$fieldType = $rootActivity->workflow
+			->GetService('DocumentService')
+			->getFieldTypeObject($rootActivity->GetDocumentType(), ['Type' => $type]);
+
+		if (!$fieldType)
 		{
-			$field = CBPHelper::ExtractUsersFromUserGroups($field, $rootActivity);
-			$value = CBPHelper::ExtractUsersFromUserGroups($value, $rootActivity);
+			$fieldType = $rootActivity->workflow
+				->GetService('DocumentService')
+				->getFieldTypeObject($rootActivity->GetDocumentType(), ['Type' => 'string']);
 		}
 
-		if (!is_array($field))
-		{
-			$field = array($field);
-		}
-
-		if ($operation == "in")
-		{
-			foreach ($field as $f)
-			{
-				if (is_array($value))
-					$result = in_array($f, $value);
-				else
-					$result = (strpos($value, $f) !== false);
-
-				if (!$result)
-					break;
-			}
-
-			return $result;
-		}
-
-		if ($operation == "contain")
-		{
-			if (!is_array($value))
-				$value = array($value);
-			foreach ($value as $v)
-			{
-				foreach ($field as $f)
-				{
-					if (is_array($f))
-						$result = in_array($v, $f);
-					else
-						$result = (strpos($f, $v) !== false);
-
-					if ($result)
-						break;
-				}
-				if (!$result)
-					break;
-			}
-
-			return $result;
-		}
-
-		if (!is_array($value))
-		{
-			$value = array($value);
-		}
-
-		if (CBPHelper::IsAssociativeArray($field))
-		{
-			$field = array_keys($field);
-		}
-
-		if (CBPHelper::IsAssociativeArray($value))
-		{
-			$value = array_keys($value);
-		}
-
-		$i = 0;
-		$fieldCount = count($field);
-		$valueCount = count($value);
-
-		if (($fieldCount == 0) && ($valueCount == 0))
-		{
-			return in_array($operation, array("=", ">=", "<="));
-		}
-
-		$iMax = max($fieldCount, $valueCount);
-		while ($i < $iMax)
-		{
-			$f1 = ($fieldCount > $i) ? $field[$i] : $field[$fieldCount - 1];
-			$v1 = ($valueCount > $i) ? $value[$i] : $value[$valueCount - 1];
-
-			if ($baseType == "datetime" || $baseType == "date")
-			{
-				if (($f1Tmp = MakeTimeStamp($f1, FORMAT_DATETIME)) === false)
-				{
-					if (($f1Tmp = MakeTimeStamp($f1, FORMAT_DATE)) === false)
-					{
-						if (($f1Tmp = MakeTimeStamp($f1, "YYYY-MM-DD HH:MI:SS")) === false)
-						{
-							if (($f1Tmp = MakeTimeStamp($f1, "YYYY-MM-DD")) === false)
-								$f1Tmp = 0;
-						}
-					}
-				}
-				$f1 = $f1Tmp;
-
-				if (($v1Tmp = MakeTimeStamp($v1, FORMAT_DATETIME)) === false)
-				{
-					if (($v1Tmp = MakeTimeStamp($v1, FORMAT_DATE)) === false)
-					{
-						if (($v1Tmp = MakeTimeStamp($v1, "YYYY-MM-DD HH:MI:SS")) === false)
-						{
-							if (($v1Tmp = MakeTimeStamp($v1, "YYYY-MM-DD")) === false)
-								$v1Tmp = 0;
-						}
-					}
-				}
-				$v1 = $v1Tmp;
-			}
-
-			if ($baseType === 'bool')
-			{
-				$f1 = CBPHelper::getBool($f1);
-				$v1 = CBPHelper::getBool($v1);
-			}
-
-			/** @var \Bitrix\Bizproc\BaseType\Base $classType */
-			$classType = \Bitrix\Bizproc\BaseType\Base::class;
-			if ($type)
-			{
-				$fieldType = $rootActivity->workflow
-					->GetService('DocumentService')
-					->getFieldTypeObject($rootActivity->GetDocumentType(), ['Type' => $type]);
-				if ($fieldType)
-				{
-					$classType = $fieldType->getTypeClass();
-				}
-			}
-			$compareResult = $classType::compareValues($f1, $v1);
-
-			switch ($operation)
-			{
-				case ">":
-					$result = ($compareResult === 1);
-					break;
-				case ">=":
-					$result = ($compareResult >= 0);
-					break;
-				case "<":
-					$result = ($compareResult === -1);
-					break;
-				case "<=":
-					$result = ($compareResult <= 0);
-					break;
-				case "!=":
-					$result = ($compareResult !== 0);
-					break;
-				default:
-					$result = ($compareResult === 0);
-			}
-
-			if (!$result)
-			{
-				break;
-			}
-
-			$i++;
-		}
-
-		return $result;
+		return $condition->checkValue($field, $fieldType, $rootActivity->GetDocumentId());
 	}
 
 	public static function GetPropertiesDialog($documentType, $arWorkflowTemplate, $arWorkflowParameters, $arWorkflowVariables, $defaultValue, $arCurrentValues = null, $formName = "")
@@ -264,7 +130,7 @@ class CBPPropertyVariableCondition
 				$i = 0;
 				foreach ($defaultValue as $value)
 				{
-					if (strlen($arCurrentValues["variable_condition_count"]) > 0)
+					if ($arCurrentValues["variable_condition_count"] <> '')
 						$arCurrentValues["variable_condition_count"] .= ",";
 					$arCurrentValues["variable_condition_count"] .= $i;
 
@@ -289,7 +155,7 @@ class CBPPropertyVariableCondition
 
 				$i = intval($i);
 
-				if (!array_key_exists("variable_condition_field_".$i, $arCurrentValues) || strlen($arCurrentValues["variable_condition_field_".$i]) <= 0)
+				if (!array_key_exists("variable_condition_field_".$i, $arCurrentValues) || $arCurrentValues["variable_condition_field_".$i] == '')
 				{
 					continue;
 				}
@@ -327,7 +193,7 @@ class CBPPropertyVariableCondition
 	{
 		$errors = [];
 
-		if (!array_key_exists("variable_condition_count", $arCurrentValues) || strlen($arCurrentValues["variable_condition_count"]) <= 0)
+		if (!array_key_exists("variable_condition_count", $arCurrentValues) || $arCurrentValues["variable_condition_count"] == '')
 		{
 			$errors[] = array(
 				"code" => "",
@@ -351,7 +217,7 @@ class CBPPropertyVariableCondition
 
 			$i = intval($i);
 
-			if (!array_key_exists("variable_condition_field_".$i, $arCurrentValues) || strlen($arCurrentValues["variable_condition_field_".$i]) <= 0)
+			if (!array_key_exists("variable_condition_field_".$i, $arCurrentValues) || $arCurrentValues["variable_condition_field_".$i] == '')
 			{
 				continue;
 			}

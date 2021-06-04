@@ -101,6 +101,9 @@ class WorkgroupTable extends Entity\DataManager
 			'NUMBER_OF_MEMBERS' => array(
 				'data_type' => 'integer',
 			),
+			'NUMBER_OF_MODERATORS' => array(
+				'data_type' => 'integer',
+			),
 			'PROJECT' => array(
 				'data_type' => 'boolean',
 				'values' => array('N','Y')
@@ -114,6 +117,23 @@ class WorkgroupTable extends Entity\DataManager
 			'SEARCH_INDEX' => array(
 				'data_type' => 'text',
 			),
+			'LANDING' => array(
+				'data_type' => 'boolean',
+				'values' => array('N','Y')
+			),
+			'SCRUM_OWNER_ID' => array(
+				'data_type' => 'integer',
+			),
+			'SCRUM_MASTER_ID' => array(
+				'data_type' => 'integer',
+			),
+			'SCRUM_SPRINT_DURATION' => array(
+				'data_type' => 'integer',
+			),
+			'SCRUM_TASK_RESPONSIBLE' => [
+				'data_type' => 'string',
+				'values' => ['A', 'M']
+			],
 		);
 
 		return $fieldsMap;

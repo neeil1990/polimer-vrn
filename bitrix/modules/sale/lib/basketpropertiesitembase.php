@@ -2,7 +2,7 @@
 
 namespace Bitrix\Sale;
 
-use Bitrix\Main\Entity;
+use Bitrix\Main;
 use Bitrix\Main\NotImplementedException;
 use Bitrix\Sale\Internals;
 use Bitrix\Main\Localization\Loc;
@@ -38,37 +38,33 @@ abstract class BasketPropertyItemBase extends Internals\CollectableEntity
 	}
 
 	/**
-	 * @return int
+	 * @return string|void
 	 */
-	public function getId()
+	public static function getRegistryEntity()
 	{
-		return $this->getField('ID');
+		return Registry::ENTITY_BASKET_PROPERTY_ITEM;
 	}
 
 	/**
-	 * @throws NotImplementedException
-	 */
-	public static function getRegistryType()
-	{
-		throw new NotImplementedException();
-	}
-
-	/**
+	 * @param array $fields
 	 * @return BasketPropertyItem
+	 * @throws NotImplementedException
+	 * @throws Main\ArgumentException
 	 */
-	private static function createBasketPropertyItemObject()
+	private static function createBasketPropertyItemObject(array $fields = [])
 	{
 		$registry = Registry::getInstance(static::getRegistryType());
 		$basketPropertyItemClassName = $registry->getBasketPropertyItemClassName();
 
-		return new $basketPropertyItemClassName();
+		return new $basketPropertyItemClassName($fields);
 	}
 
 	/**
 	 * @param BasketPropertiesCollectionBase $basketPropertiesCollection
 	 * @return BasketPropertyItem
 	 * @throws NotImplementedException
-	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentOutOfRangeException
 	 */
 	public static function create(BasketPropertiesCollectionBase $basketPropertiesCollection)
 	{
@@ -93,8 +89,8 @@ abstract class BasketPropertyItemBase extends Internals\CollectableEntity
 	 *
 	 * @return Result
 	 * @throws NotImplementedException
-	 * @throws \Bitrix\Main\ArgumentNullException
-	 * @throws \Bitrix\Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
 	 */
 	public function save()
 	{
@@ -111,14 +107,14 @@ abstract class BasketPropertyItemBase extends Internals\CollectableEntity
 			$map = static::getFieldsMap();
 			foreach ($map as $key => $value)
 			{
-				if ($value instanceof Entity\StringField)
+				if ($value instanceof Main\Entity\StringField)
 				{
 					$fieldName = $value->getName();
 					if (array_key_exists($fieldName, $fields))
 					{
-						if (!empty($fields[$fieldName]) && strlen($fields[$fieldName]) > $value->getSize())
+						if (!empty($fields[$fieldName]) && mb_strlen($fields[$fieldName]) > $value->getSize())
 						{
-							$fields[$fieldName] = substr($fields[$fieldName], 0, $value->getSize());
+							$fields[$fieldName] = mb_substr($fields[$fieldName], 0, $value->getSize());
 						}
 					}
 				}
@@ -175,8 +171,7 @@ abstract class BasketPropertyItemBase extends Internals\CollectableEntity
 	}
 
 	/*
-	 * @throws \Bitrix\Main\ObjectNotFoundException
-	 * @throws \Bitrix\Main\
+	 * @return void
 	 */
 	private function checkCallingContext()
 	{
@@ -225,18 +220,18 @@ abstract class BasketPropertyItemBase extends Internals\CollectableEntity
 
 		foreach ($map as $key => $value)
 		{
-			if ($value instanceof Entity\StringField)
+			if ($value instanceof Main\Entity\StringField)
 			{
 				$fieldName = $value->getName();
 				if (array_key_exists($fieldName, $fields))
 				{
 					if (array_key_exists($fieldName, $fields))
 					{
-						if (!empty($fields[$fieldName]) && strlen($fields[$fieldName]) > $value->getSize())
+						if (!empty($fields[$fieldName]) && mb_strlen($fields[$fieldName]) > $value->getSize())
 						{
 							if ($fieldName === 'NAME')
 							{
-								$propertyName = substr($propertyName, 0, 50)."...";
+								$propertyName = mb_substr($propertyName, 0, 50)."...";
 							}
 
 							$result->addError(
@@ -262,16 +257,90 @@ abstract class BasketPropertyItemBase extends Internals\CollectableEntity
 	}
 
 	/**
+	 * @param $id
+	 * @return array
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
+	 * @throws NotImplementedException
+	 */
+	public static function loadForBasketItem($id)
+	{
+		if (intval($id) <= 0)
+		{
+			throw new Main\ArgumentNullException("id");
+		}
+
+		$result = [];
+
+		$dbRes = static::getList([
+			'filter' => ["=BASKET_ID" => $id],
+			'order' => ["SORT" => "ASC", "ID" => "ASC"],
+		]);
+
+		while ($property = $dbRes->fetch())
+		{
+			$result[] = static::createBasketPropertyItemObject($property);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param $idList
+	 * @return array
+	 * @throws Main\ArgumentException
+	 * @throws NotImplementedException
+	 */
+	public static function loadForBasket($idList)
+	{
+		$result = [];
+
+		$dbRes = static::getList(
+			array(
+				'filter' => array("@BASKET_ID" => $idList),
+				'order' => array("SORT" => "ASC", "ID" => "ASC"),
+			)
+		);
+
+		while ($property = $dbRes->fetch())
+		{
+			$result[$property['BASKET_ID']][] = static::createBasketPropertyItemObject($property);
+		}
+
+		return $result;
+	}
+
+
+
+	/**
 	 * @param array $data
-	 * @return Entity\AddResult
+	 * @return Main\Entity\AddResult
 	 */
 	abstract protected function addInternal(array $data);
 
 	/**
 	 * @param $primary
 	 * @param array $data
-	 * @return Entity\UpdateResult
+	 * @return Main\Entity\UpdateResult
 	 */
 	abstract protected function updateInternal($primary, array $data);
 
+	/**
+	 * @param array $parameters
+	 * @throws NotImplementedException
+	 */
+	public static function getList(array $parameters = [])
+	{
+		throw new NotImplementedException();
+	}
+
+	/**
+	 * @return null|string
+	 * @internal
+	 *
+	 */
+	public static function getEntityEventName()
+	{
+		return 'SaleBasketPropertyItem';
+	}
 }

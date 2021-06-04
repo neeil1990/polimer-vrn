@@ -6,6 +6,7 @@ namespace Bitrix\Sale;
 
 use Bitrix\Main;
 use Bitrix\Sale\Internals;
+use Bitrix\Sale;
 
 Main\Localization\Loc::loadMessages(__FILE__);
 
@@ -81,6 +82,13 @@ class EntityMarker
 		$lastWarning = end($result->getWarnings());
 		$order->setField('REASON_MARKED', $lastWarning->getMessage());
 
+		if (
+			$entity instanceof Payment
+			|| $entity instanceof Shipment
+		)
+		{
+			$entity->setField('MARKED', 'Y');
+		}
 	}
 
 	/**
@@ -363,7 +371,7 @@ class EntityMarker
 							'COMMENT' => $values['COMMENT'],
 						);
 
-						if ($USER && $USER->IsAuthorized())
+						if (is_object($USER) && $USER->IsAuthorized())
 						{
 							$fields['USER_ID'] = $USER->GetID();
 						}
@@ -731,6 +739,10 @@ class EntityMarker
 		$orderSaveList = array();
 		$lastOrderId = null;
 
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
 		$result = new Result();
 		$res = static::getList(array(
 			'filter' => array(
@@ -748,7 +760,7 @@ class EntityMarker
 			}
 			else
 			{
-				$order = Order::load($data['ORDER_ID']);
+				$order = $orderClass::load($data['ORDER_ID']);
 				$orderList[$data['ORDER_ID']] = $order;
 			}
 
@@ -995,39 +1007,6 @@ class EntityMarker
 		return false;
 	}
 
-	/**
-	 * @param null|OrderBase $order
-	 *
-	 * @return Result
-	 */
-	public static function getPoolAsResult(OrderBase $order = null)
-	{
-		$result = new Result();
-
-
-		foreach (static::$pool as $entityList)
-		{
-			foreach ($entityList as $entityType => $fieldsList)
-			{
-				foreach ($fieldsList as $fieldIndex => $values)
-				{
-					if ($values['ORDER'] instanceof Order)
-					{
-						if ($order instanceof Order && $values['ORDER']->getInternalId() != $order->getInternalId())
-						{
-							continue 2;
-						}
-					}
-
-					$result->addError(new ResultError($values['MESSAGE'], $values['CODE']));
-				}
-			}
-		}
-
-		return $result;
-	}
-
-
 	private static function getFieldsDuplicateCheck()
 	{
 		return array(
@@ -1114,24 +1093,6 @@ class EntityMarker
 			return;
 		}
 
-		$shipmentCollection = $order->getShipmentCollection();
-		if (!$shipmentCollection)
-		{
-			throw new Main\ObjectNotFoundException('Entity "ShipmentCollection" not found');
-		}
-
-		$paymentCollection = $order->getPaymentCollection();
-		if (!$paymentCollection)
-		{
-			throw new Main\ObjectNotFoundException('Entity "PaymentCollection" not found');
-		}
-
-		$basket = $order->getBasket();
-		if (!$basket)
-		{
-			throw new Main\ObjectNotFoundException('Entity "Basket" not found');
-		}
-
 		$markList = [];
 
 		$filter = [
@@ -1212,6 +1173,7 @@ class EntityMarker
 
 		if (empty($markList) && !static::hasErrors($order))
 		{
+			$shipmentCollection = $order->getShipmentCollection();
 			if ($shipmentCollection->isMarked())
 			{
 				/** @var Shipment $shipment */
@@ -1223,6 +1185,8 @@ class EntityMarker
 					}
 				}
 			}
+
+			$paymentCollection = $order->getPaymentCollection();
 			if ($paymentCollection->isMarked())
 			{
 				/** @var Payment $payment */

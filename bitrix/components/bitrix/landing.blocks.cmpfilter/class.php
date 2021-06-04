@@ -81,9 +81,16 @@ class LandingUtilsCmpFilterComponent extends \CBitrixComponent
 				);
 			}
 			$obSearch->navStart(500);
+			$found = false;
 			while ($row = $obSearch->fetch())
 			{
+				$found = true;
 				$filter['ID'][] = $row['ITEM_ID'];
+			}
+			if (!$found)
+			{
+				unset($filter['ID']);
+				$filter['*SEARCHABLE_CONTENT'] = $q;
 			}
 		}
 		else
@@ -100,6 +107,11 @@ class LandingUtilsCmpFilterComponent extends \CBitrixComponent
 	 */
 	public function executeComponent()
 	{
+		if (!Loader::includeModule('landing'))
+		{
+			return;
+		}
+
 		if (
 			isset($this->arParams['FILTER']) &&
 			isset($this->arParams['FILTER_NAME']) &&
@@ -107,6 +119,7 @@ class LandingUtilsCmpFilterComponent extends \CBitrixComponent
 			trim($this->arParams['FILTER_NAME']) != ''
 		)
 		{
+			$this->arParams['FILTER_NAME'] = trim($this->arParams['FILTER_NAME']);
 			$filter = array();
 			$request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
 			foreach ($this->getFilterFields() as $itemFilter)
@@ -155,7 +168,14 @@ class LandingUtilsCmpFilterComponent extends \CBitrixComponent
 
 			if (!empty($filter))
 			{
-				$GLOBALS[trim($this->arParams['FILTER_NAME'])] = $filter;
+				if (
+					isset($GLOBALS[$this->arParams['FILTER_NAME']]) &&
+					is_array($GLOBALS[$this->arParams['FILTER_NAME']])
+				)
+				{
+					$filter = array_merge($filter, $GLOBALS[$this->arParams['FILTER_NAME']]);
+				}
+				$GLOBALS[$this->arParams['FILTER_NAME']] = $filter;
 			}
 		}
 	}

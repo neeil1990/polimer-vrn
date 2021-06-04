@@ -4,8 +4,12 @@
  * @global CMain $APPLICATION
  * @global CAdminMenu $adminMenu */
 
+use Bitrix\Main\Application;
 use Bitrix\Sale\Location;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
+use Bitrix\Main\ModuleManager;
+use Bitrix\Main\EventManager;
 
 IncludeModuleLangFile(__FILE__);
 $aMenu = array();
@@ -21,7 +25,7 @@ $boolImportEdit = false;
 $boolImportExec = false;
 $discountView = false;
 
-$catalogInstalled = \Bitrix\Main\ModuleManager::isModuleInstalled('catalog');
+$catalogInstalled = ModuleManager::isModuleInstalled('catalog');
 if ($catalogInstalled)
 {
 	$bViewAll = $USER->CanDoOperation('catalog_read');
@@ -78,7 +82,7 @@ if ($APPLICATION->GetGroupRight("sale")!="D")
 	else
 	{
 		/* Orders Begin*/
-		$aMenu[] = array(
+		$arMenu = array(
 			"parent_menu" => "global_menu_store",
 			"sort" => 100,
 			"text" => GetMessage("SALE_ORDERS"),
@@ -95,7 +99,12 @@ if ($APPLICATION->GetGroupRight("sale")!="D")
 				"sale_order_create.php",
 				"sale_order_view.php"
 			),
-			"items" => array(
+			"items" => array()
+		);
+
+		if (Loader::includeModule('sale') && !\Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
+		{
+			$arMenu["items"] = array(
 				array(
 					"text" => GetMessage("SALE_ORDER_PAYMENT"),
 					"title" => GetMessage("SALE_ORDER_PAYMENT_DESCR"),
@@ -132,8 +141,10 @@ if ($APPLICATION->GetGroupRight("sale")!="D")
 					),
 					"items_id" => "sale_order_archive",
 				)
-			)
-		);
+			);
+		}
+
+		$aMenu[] = $arMenu;
 	}
 
 	/* Orders End*/
@@ -165,47 +176,77 @@ if ($APPLICATION->GetGroupRight("sale")!="D")
 	/* CASHBOX Begin*/
 	if ($APPLICATION->GetGroupRight("sale") == "W")
 	{
-		$licensePrefix = CModule::IncludeModule("bitrix24") ? \CBitrix24::getLicensePrefix() : "";
-		if (!IsModuleInstalled("bitrix24") || in_array($licensePrefix, array("ru")))
+		$currentZone = '';
+		if (Loader::includeModule("bitrix24"))
 		{
-			$arMenu = array(
+			$currentZone = \CBitrix24::getLicensePrefix();
+		}
+		elseif (Loader::includeModule('intranet'))
+		{
+			$currentZone = \CIntranetUtils::getPortalZone();
+		}
+
+		$isAvailable = true;
+		if (
+			$currentZone !== ''
+			&& !in_array($currentZone, ['ru', 'ua'])
+		)
+		{
+			$isAvailable = false;
+		}
+
+		if ($isAvailable)
+		{
+			$arMenu = [
 				"parent_menu" => "global_menu_store",
 				"sort" => 300,
 				"text" => GetMessage("SALE_CASHBOX_TITLE"),
 				"title" => GetMessage("SALE_CASHBOX"),
 				"icon" => "crm-cashbox-icon",
-				"url" => "sale_cashbox.php?lang=".LANGUAGE_ID,
+				"url" => $currentZone !== 'ua' ? "sale_cashbox.php?lang=".LANGUAGE_ID : '',
 				"page_icon" => "sale_page_icon_crm",
 				"items_id" => "menu_sale_cashbox",
-				"items" => Array(),
-			);
+				"items" => [],
+			];
 
-			$arMenu["items"][] = array(
+			$arMenu["items"][] = [
 				"text" => GetMessage("SALE_CASHBOX_LIST"),
 				"title" => GetMessage("SALE_CASHBOX_LIST"),
 				"url" => "sale_cashbox_list.php?lang=".LANGUAGE_ID,
-				"more_url" => array("sale_cashbox_edit.php"),
+				"more_url" => ["sale_cashbox_edit.php"],
 				"items_id" => "sale_cashbox_list",
 				"sort" => 301,
-			);
+			];
 
-			$arMenu["items"][] = array(
+			$arMenu["items"][] = [
 				"text" => GetMessage("SALE_CASHBOX_CHECK"),
 				"title" => GetMessage("SALE_CASHBOX_CHECK"),
 				"url" => "sale_cashbox_check.php?lang=".LANGUAGE_ID,
-				"more_url" => array("sale_cashbox_check_edit.php"),
+				"more_url" => ["sale_cashbox_check_edit.php"],
 				"items_id" => "sale_cashbox_check",
 				"sort" => 302,
-			);
+			];
 
-			$arMenu["items"][] = array(
+			if (\Bitrix\Sale\Cashbox\CheckManager::isAvailableCorrection())
+			{
+				$arMenu["items"][] = [
+					"text" => GetMessage("SALE_CASHBOX_CHECK_CORRECTION"),
+					"title" => GetMessage("SALE_CASHBOX_CHECK_CORRECTION"),
+					"url" => "sale_cashbox_correction.php?lang=".LANGUAGE_ID,
+					"more_url" => [],
+					"items_id" => "sale_cashbox_correction",
+					"sort" => 303,
+				];
+			}
+
+			$arMenu["items"][] = [
 				"text" => GetMessage("SALE_CASHBOX_ZREPORT"),
 				"title" => GetMessage("SALE_CASHBOX_ZREPORT"),
 				"url" => "sale_cashbox_zreport.php?lang=".LANGUAGE_ID,
-				"more_url" => array(),
+				"more_url" => [],
 				"items_id" => "sale_cashbox_zreport",
-				"sort" => 303,
-			);
+				"sort" => 304,
+			];
 
 			$aMenu[] = $arMenu;
 		}
@@ -235,8 +276,9 @@ if ($APPLICATION->GetGroupRight("sale")!="D")
 			"url" => "sale_synchronizer_settings.php?lang=".LANGUAGE_ID,
 			"more_url" => array("sale_synchronizer_settings.php"),
 			"items_id" => "sale_synchronizer_settings",
-			"sort" => 301,
+			"sort" => 302,
 		);
+
 		$aMenu[] = $arMenu;
 	}
 	/* CRM End*/
@@ -368,6 +410,16 @@ if ($APPLICATION->GetGroupRight("sale") == "W" || $discountView || $bViewAll)
 	{
 		if ($APPLICATION->GetGroupRight('sale') > 'D')
 		{
+			if ($APPLICATION->GetGroupRight('sale') >= 'W')
+			{
+				$arMenu["items"][] = array(
+					"text" => GetMessage("SALE_MENU_DISCOUNT_PRESETS_NEW"),
+					"title" => GetMessage("SALE_MENU_DISCOUNT_PRESETS_NEW"),
+					"url" => "sale_discount_preset_list.php?lang=".LANGUAGE_ID,
+					"more_url" => array("sale_discount_preset_detail.php"),
+					"items_id" => "sale_discount_preset_list",
+				);
+			}
 			$arMenu["items"][] = array(
 				"text" => GetMessage("SALE_MENU_DISCOUNT"),
 				"title" => GetMessage("SALE_MENU_DISCOUNT_TITLE"),
@@ -1030,5 +1082,35 @@ if ($APPLICATION->GetGroupRight("sale") != "D" && $USER->CanDoOperation('install
 		"items_id" => "update_system_market",
 	);
 }
+
+EventManager::getInstance()->addEventHandler("main", "OnBuildGlobalMenu", function (&$arGlobalMenu, &$arModuleMenu) {
+	if (in_array(Application::getInstance()->getContext()->getLanguage(), ["ru", "ua"])
+		&&
+		(
+			!ModuleManager::isModuleInstalled("intranet")
+			|| Option::get("sale", "~IS_CRM_SITE_MASTER_OPENED", "N") === "Y"
+		)
+	)
+	{
+		$arGlobalMenu["global_menu_crm_site_master"] = [
+			"menu_id" => "crm-site-master",
+			"text" => GetMessage("SALE_MENU_CRM_SITE_MASTER"),
+			"title" => GetMessage("SALE_MENU_CRM_SITE_MASTER"),
+			"sort" => 475,
+			"items_id" => "global_menu_crm_site_master",
+			"help_section" => "crm-site-master",
+			"items" => [
+				[
+					"parent_menu" => "global_menu_crm_site_master",
+					"text" => GetMessage("SALE_MENU_CRM_SITE_MASTER_ITEM"),
+					"title" => GetMessage("SALE_MENU_CRM_SITE_MASTER_ITEM"),
+					"url" => "sale_crm_site_master.php?lang=".LANGUAGE_ID,
+					"icon" => "sale_crm_site_master_icon",
+					"sort" => 100,
+				]
+			],
+		];
+	}
+});
 
 return (!empty($aMenu) ? $aMenu : false);

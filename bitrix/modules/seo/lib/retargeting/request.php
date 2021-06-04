@@ -2,9 +2,9 @@
 
 namespace Bitrix\Seo\Retargeting;
 
-use \Bitrix\Main\Error;
+use Bitrix\Main\Error;
 use Bitrix\Main\SystemException;
-use \Bitrix\Seo\Retargeting\Internals\ServiceLogTable;
+use Bitrix\Seo\Retargeting\Internals\ServiceLogTable;
 
 /**
  * Class Request
@@ -29,6 +29,9 @@ abstract class Request
 	/** @var  mixed $endpoint Endpoint. */
 	protected $endpoint;
 
+	/** @var  bool $useDirectQuery Use direct query. */
+	protected $useDirectQuery = false;
+
 	/**
 	 * Request constructor.
 	 */
@@ -40,6 +43,15 @@ abstract class Request
 			'socketTimeout' => 5
 		);
 		$this->client = new AdsHttpClient($options);
+	}
+
+	/**
+	 * Set use direct query.
+	 * @param bool $mode Mode.
+	 */
+	public function setUseDirectQuery($mode)
+	{
+		$this->useDirectQuery = $mode;
 	}
 
 	/**
@@ -130,21 +142,15 @@ abstract class Request
 		{
 			throw new SystemException('AuthAdapter not applied.');
 		}
+		$this->client =  $this->client ?? new AdsHttpClient(['socketTimeout' => 5]);
+		$this->client->clearHeaders();
 
-		//if (!$this->client)
-		{
-			$options = array(
-				'socketTimeout' => 5
-			);
-			$this->client = new AdsHttpClient($options);
-		}
-
-		$data = $this->query($params);
 		$response = Response::create($this->type);
 		$response->setRequest($this);
-		$response->setResponseText($data);
 		try
 		{
+			$data = $this->query($params);
+			$response->setResponseText($data);
 			$response->parse($data);
 		}
 		catch (\Exception $exception)
@@ -182,4 +188,9 @@ abstract class Request
 	 * @return mixed
 	 */
 	abstract public function query(array $params = array());
+
+	protected function directQuery(array $params = array())
+	{
+		return [];
+	}
 }

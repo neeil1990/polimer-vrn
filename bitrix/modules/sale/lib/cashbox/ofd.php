@@ -5,6 +5,7 @@ namespace Bitrix\Sale\Cashbox;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\NotImplementedException;
 use Bitrix\Sale\Result;
+use Bitrix\Main;
 
 /**
  * Class Ofd
@@ -12,12 +13,46 @@ use Bitrix\Sale\Result;
  */
 abstract class Ofd
 {
+	protected const EVENT_ON_GET_CUSTOM_OFD_HANDLERS = 'OnGetCustomOfdHandlers';
+	private const BX_OFD_PREFIX = 'bx_';
+
 	/**
 	 * @return array
+	 * @throws NotImplementedException
 	 */
 	public static function getHandlerList()
 	{
-		return array(
+		$handlerList = self::getSystemHandlerList();
+
+		$event = new Main\Event('sale', static::EVENT_ON_GET_CUSTOM_OFD_HANDLERS);
+		$event->send();
+		$resultList = $event->getResults();
+
+		if (is_array($resultList) && !empty($resultList))
+		{
+			foreach ($resultList as $eventResult)
+			{
+				/** @var  Main\EventResult $eventResult */
+				if ($eventResult->getType() === Main\EventResult::SUCCESS)
+				{
+					$params = $eventResult->getParameters();
+					if (!empty($params) && is_array($params))
+					{
+						$handlerList = array_merge($handlerList, $params);
+					}
+				}
+			}
+		}
+
+		return $handlerList;
+	}
+	
+	/**
+	 * @return array
+	 */
+	private static function getSystemHandlerList()
+	{
+		return [
 			'\Bitrix\Sale\Cashbox\FirstOfd' => FirstOfd::getName(),
 			'\Bitrix\Sale\Cashbox\PlatformaOfd' => PlatformaOfd::getName(),
 			'\Bitrix\Sale\Cashbox\YarusOfd' => YarusOfd::getName(),
@@ -25,7 +60,22 @@ abstract class Ofd
 			'\Bitrix\Sale\Cashbox\OfdruOfd' => OfdruOfd::getName(),
 			'\Bitrix\Sale\Cashbox\TenzorOfd' => TenzorOfd::getName(),
 			'\Bitrix\Sale\Cashbox\ConturOfd' => ConturOfd::getName(),
-		);
+		];
+	}
+
+	/**
+	 * @return string
+	 */
+	final public static function getCode(): string
+	{
+		$reflectionOfdClass = new \ReflectionClass(static::class);
+		$code = $reflectionOfdClass->getShortName();
+		$systemHandlers = array_keys(self::getSystemHandlerList());
+		if (in_array('\\' . static::class, $systemHandlers))
+		{
+			$code = self::BX_OFD_PREFIX . $code;
+		}
+		return mb_strtolower($code);
 	}
 
 	/**
@@ -36,7 +86,9 @@ abstract class Ofd
 	{
 		$handler = $cashbox->getField('OFD');
 		if (class_exists($handler))
+		{
 			return new $handler($cashbox);
+		}
 
 		return null;
 	}
@@ -120,7 +172,7 @@ abstract class Ofd
 	 * @param $settings
 	 * @return Result
 	 */
-	public static function validateSettings($settings)
+	public function validate()
 	{
 		return new Result();
 	}

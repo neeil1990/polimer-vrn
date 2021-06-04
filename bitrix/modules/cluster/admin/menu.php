@@ -19,6 +19,8 @@ $arMenu = array(
 	"items" => array(),
 );
 
+$cacheType = COption::GetOptionString('cluster', 'cache_type', 'memcache');
+
 if($DB->type == "MYSQL")
 {
 	$arMenu["items"][] = array(
@@ -39,18 +41,31 @@ if($DB->type == "MYSQL")
 
 		);
 
-		$arGroupItems[] = array(
-			"text" => GetMessage("CLU_MENU_MEMCACHE_ITEM"),
-			"url" => "cluster_memcache_list.php?lang=".LANGUAGE_ID."&group_id=".$arGroup["ID"],
-			"more_url" => Array("cluster_memcache_list.php?group_id=".$arGroup["ID"], "cluster_memcache_edit.php?group_id=".$arGroup["ID"]),
-			"title" => GetMessage("CLU_MENU_MEMCACHE_ITEM_TITLE"),
-			"page_icon" => "cluster_page_icon",
-		);
+		if ($cacheType == 'memcache')
+		{
+			$arGroupItems[] = array(
+				"text" => GetMessage("CLU_MENU_MEMCACHE_ITEM"),
+				"url" => "cluster_memcache_list.php?lang=" . LANGUAGE_ID . "&group_id=" . $arGroup["ID"],
+				"more_url" => Array("cluster_memcache_list.php?group_id=" . $arGroup["ID"], "cluster_memcache_edit.php?group_id=" . $arGroup["ID"]),
+				"title" => GetMessage("CLU_MENU_MEMCACHE_ITEM_TITLE"),
+				"page_icon" => "cluster_page_icon",
+			);
+		}
+		else
+		{
+			$arGroupItems[] = array(
+				"text" => GetMessage("CLU_MENU_REDIS_ITEM"),
+				"url" => "cluster_redis_list.php?lang=" . LANGUAGE_ID . "&group_id=" . $arGroup["ID"],
+				"more_url" => Array("cluster_redis_list.php?group_id=" . $arGroup["ID"], "cluster_redis_edit.php?group_id=" . $arGroup["ID"]),
+				"title" => GetMessage("CLU_MENU_REDIS_ITEM_TITLE"),
+				"page_icon" => "cluster_page_icon",
+			);
+		}
 
 		$arGroupItems[] = array(
 			"text" => GetMessage("CLU_MENU_WEBNODE_ITEM"),
-			"url" => "cluster_webnode_list.php?lang=".LANGUAGE_ID."&group_id=".$arGroup["ID"],
-			"more_url" => Array("cluster_webnode_list.php?group_id=".$arGroup["ID"], "cluster_webnode_edit.php?group_id=".$arGroup["ID"]),
+			"url" => "cluster_webnode_list.php?lang=" . LANGUAGE_ID . "&group_id=" . $arGroup["ID"],
+			"more_url" => Array("cluster_webnode_list.php?group_id=" . $arGroup["ID"], "cluster_webnode_edit.php?group_id=" . $arGroup["ID"]),
 			"title" => GetMessage("CLU_MENU_WEBNODE_ITEM_TITLE"),
 			"page_icon" => "cluster_page_icon",
 		);
@@ -67,12 +82,25 @@ if($DB->type == "MYSQL")
 }
 else
 {
-	$arMenu["items"][] = array(
-		"text" => GetMessage("CLU_MENU_MEMCACHE_ITEM"),
-		"url" => "cluster_memcache_list.php?lang=".LANGUAGE_ID."&group_id=1",
-		"more_url" => Array("cluster_memcache_list.php?group_id=1", "cluster_memcache_edit.php?group_id=1"),
-		"title" => GetMessage("CLU_MENU_MEMCACHE_ITEM_TITLE"),
-	);
+	if ($cacheType == 'memcache')
+	{
+		$arMenu["items"][] = array(
+			"text" => GetMessage("CLU_MENU_MEMCACHE_ITEM"),
+			"url" => "cluster_memcache_list.php?lang=" . LANGUAGE_ID . "&group_id=1",
+			"more_url" => Array("cluster_memcache_list.php?group_id=1", "cluster_memcache_edit.php?group_id=1"),
+			"title" => GetMessage("CLU_MENU_MEMCACHE_ITEM_TITLE"),
+		);
+	}
+	else
+	{
+		$arGroupItems[] = array(
+			"text" => GetMessage("CLU_MENU_REDIS_ITEM"),
+			"url" => "cluster_redis_list.php?lang=" . LANGUAGE_ID . "&group_id=" . $arGroup["ID"],
+			"more_url" => Array("cluster_redis_list.php?group_id=" . $arGroup["ID"], "cluster_redis_edit.php?group_id=" . $arGroup["ID"]),
+			"title" => GetMessage("CLU_MENU_REDIS_ITEM_TITLE"),
+			"page_icon" => "cluster_page_icon",
+		);
+	}
 
 	$arMenu["items"][] = array(
 		"text" => GetMessage("CLU_MENU_WEBNODE_ITEM"),

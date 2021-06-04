@@ -34,17 +34,23 @@ $APPLICATION->IncludeComponent(
 	$this->getComponent()
 );
 
-$arResult["PATH_TO_BLOG_CATEGORY"] = $arResult["PATH_TO_USER_BLOG"].(strpos($arResult["PATH_TO_USER_BLOG"], "?") === false ? "?" : "&")."category=#category_id#";
+$arResult["PATH_TO_BLOG_CATEGORY"] = $arResult["PATH_TO_USER_BLOG"].(mb_strpos($arResult["PATH_TO_USER_BLOG"], "?") === false ? "?" : "&")."category=#category_id#";
+
+$arComponentParams = [
+	"SOCNET" => "Y",
+	"USER_ID" => $arResult["VARIABLES"]["user_id"],
+	"GROUP_ID" => $arParams["BLOG_GROUP_ID"],
+	"SET_TITLE" => "N"
+];
 
 $APPLICATION->IncludeComponent(
-	"bitrix:blog.category",
-	"socialnetwork",
-	Array(
-		"SOCNET" => "Y",
-		"USER_ID" => $arResult["VARIABLES"]["user_id"],
-		"GROUP_ID" => $arParams["BLOG_GROUP_ID"],
-		"SET_TITLE" => "N"
-	),
-	$this->getComponent()
+	"bitrix:ui.sidepanel.wrapper",
+	"",
+	array(
+		'POPUP_COMPONENT_NAME' => "bitrix:blog.category",
+		"POPUP_COMPONENT_TEMPLATE_NAME" => "socialnetwork",
+		"POPUP_COMPONENT_PARAMS" => $arComponentParams,
+		"POPUP_COMPONENT_PARENT" => $this->getComponent(),
+	)
 );
 ?>

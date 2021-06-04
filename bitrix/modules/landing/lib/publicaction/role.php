@@ -34,7 +34,9 @@ class Role
 		{
 			$error->addError(
 				'FEATURE_NOT_AVAIL',
-				Loc::getMessage('LANDING_FEATURE_NOT_AVAIL_ERROR')
+				\Bitrix\Landing\Restriction\Manager::getSystemErrorMessage(
+					'limit_sites_access_permissions'
+				)
 			);
 			$result->setError($error);
 		}
@@ -72,6 +74,7 @@ class Role
 	 */
 	public static function getRights($id)
 	{
+		$id = (int)$id;
 		$result = new PublicActionResult();
 		$result->setResult(
 			RoleCore::getRights($id)
@@ -90,6 +93,7 @@ class Role
 	{
 		static $mixedParams = ['additional'];
 
+		$id = (int)$id;
 		$result = new PublicActionResult();
 		$result->setResult(true);
 		RoleCore::setRights(
@@ -111,7 +115,7 @@ class Role
 	{
 		$result = new PublicActionResult();
 		$result->setResult(true);
-		RoleCore::setAccessCodes($id, $codes);
+		RoleCore::setAccessCodes((int)$id, $codes);
 		return $result;
 	}
 

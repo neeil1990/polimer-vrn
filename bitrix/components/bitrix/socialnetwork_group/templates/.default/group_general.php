@@ -5,10 +5,33 @@
 /** @global CDatabase $DB */
 /** @global CUser $USER */
 /** @global CMain $APPLICATION */
+
+use Bitrix\Main\Loader;
+use Bitrix\Blog\Copy\Integration\Group;
+
 $component = $this->getComponent();
 
 $pageId = "group_general";
 include("util_group_menu.php");
+
+if (Loader::includeModule("blog"))
+{
+	$APPLICATION->includeComponent(
+		"bitrix:socialnetwork.copy.checker",
+		"",
+		[
+			"moduleId" => Group::MODULE_ID,
+			"queueId" => $arResult["VARIABLES"]["group_id"],
+			"stepperClassName" => Group::STEPPER_CLASS,
+			"checkerOption" => Group::CHECKER_OPTION,
+			"errorOption" => Group::ERROR_OPTION,
+			"titleMessage" => GetMessage("BLG_STEPPER_PROGRESS_TITLE"),
+			"errorMessage" => GetMessage("BLG_STEPPER_PROGRESS_ERROR"),
+		],
+		$component,
+		["HIDE_ICONS" => "Y"]
+	);
+}
 
 $APPLICATION->IncludeComponent(
 	"bitrix:socialnetwork.group",

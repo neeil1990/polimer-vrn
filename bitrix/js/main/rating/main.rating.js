@@ -16,7 +16,7 @@ BX.namespace("BXRL.manager");
 
 BXRL.render = {
 
-	reactionsList: ['like', 'kiss', 'laugh', 'wonder', 'cry', 'angry'],
+	reactionsList: ['like', 'kiss', 'laugh', 'wonder', 'cry', 'angry', 'facepalm'],
 	popupCurrentReaction: false,
 	popupPagesList: [],
 	popupSizeInitialized: false,
@@ -39,33 +39,101 @@ BXRL.render = {
 		var you = (typeof params.you != 'undefined' ? !!params.you : false);
 		var topList = (typeof params.top != 'undefined' && BX.type.isArray(params.top) ? params.top : []);
 		var more = (typeof params.more != 'undefined' ? parseInt(params.more) : 0);
+		var result = '';
 
 		if (
-			!you
-			&& topList.length <= 0
-			&& more <= 0
+			topList.length <= 0
+			&& !you
+			&& (
+				BXRL.manager.mobile
+				|| more <= 0
+			)
 		)
 		{
-			return '';
+			return result;
 		}
 
-		var result = BX.message('RATING_LIKE_TOP_TEXT2_' + (you ? 'YOU_' : '') + (topList.length) + (more > 0 ? '_MORE' : '')).
-			replace("#OVERFLOW_START#", BXRL.manager.mobile ? '<span class="feed-post-emoji-text-item-overflow">' : '').
-			replace("#OVERFLOW_END#", BXRL.manager.mobile ? '</span>' : '').
-			replace("#MORE_START#", BXRL.manager.mobile ? '<span class="feed-post-emoji-text-item-more">' : '&nbsp;').
-			replace("#MORE_END#", BXRL.manager.mobile ? '</span>' : '');
-
-		for(var i in topList)
+		if (BXRL.manager.mobile)
 		{
-			if (!topList.hasOwnProperty(i))
+			if (you)
 			{
-				continue;
+				topList.push({
+					ID: parseInt(BX.message('USER_ID')),
+					NAME_FORMATTED: BX.message('RATING_LIKE_TOP_TEXT3_YOU'),
+					WEIGHT: 1
+				});
 			}
 
-			result = result.replace('#USER_' + (parseInt(i) + 1) + '#', '<span class="feed-post-emoji-text-item">' + topList[i].NAME_FORMATTED + '</span>');
+			result = BX.message('RATING_LIKE_TOP_TEXT3_' + (topList.length > 1 ? '2' : '1')).
+				replace("#OVERFLOW_START#", BXRL.manager.mobile ? '<span class="feed-post-emoji-text-item-overflow">' : '').
+				replace("#OVERFLOW_END#", BXRL.manager.mobile ? '</span>' : '');
+		}
+		else
+		{
+			result = BX.message('RATING_LIKE_TOP_TEXT2_' + (you ? 'YOU_' : '') + (topList.length) + (more > 0 ? '_MORE' : '')).
+				replace("#OVERFLOW_START#", BXRL.manager.mobile ? '<span class="feed-post-emoji-text-item-overflow">' : '').
+				replace("#OVERFLOW_END#", BXRL.manager.mobile ? '</span>' : '').
+				replace("#MORE_START#", BXRL.manager.mobile ? '<span class="feed-post-emoji-text-item-more">' : '&nbsp;').
+				replace("#MORE_END#", BXRL.manager.mobile ? '</span>' : '');
 		}
 
-		return result.replace('#USERS_MORE#', '<span class="feed-post-emoji-text-item">' + more + '</span>');
+		if (BXRL.manager.mobile)
+		{
+			topList.sort(function(a, b) {
+				if(parseFloat(a.ID) === parseInt(BX.message('USER_ID')))
+				{
+					return -1;
+				}
+
+				if(parseInt(b.ID) === parseInt(BX.message('USER_ID')))
+				{
+					return 1;
+				}
+
+				if (parseFloat(a.WEIGHT) === parseFloat(b.WEIGHT))
+				{
+					return 0;
+				}
+
+				return (parseFloat(a.WEIGHT) > parseFloat(b.WEIGHT) ? -1 : 1);
+			});
+
+			var userNameList = topList.map(function(item) {
+				return item.NAME_FORMATTED;
+			});
+
+			var
+				userNameBegin = '',
+				userNameEnd = '';
+
+			if (userNameList.length === 1)
+			{
+				userNameBegin = userNameList.pop();
+				userNameEnd = '';
+			}
+			else
+			{
+				userNameBegin = userNameList.slice(0, userNameList.length-1).join(BX.message('RATING_LIKE_TOP_TEXT3_USERLIST_SEPARATOR').replace(/#USERNAME#/g, ''));
+				userNameEnd = userNameList[userNameList.length-1];
+			}
+
+			result = result.replace('#USER_LIST_BEGIN#', userNameBegin).replace('#USER_LIST_END#', userNameEnd);
+		}
+		else
+		{
+			for(var i in topList)
+			{
+				if (!topList.hasOwnProperty(i))
+				{
+					continue;
+				}
+
+				result = result.replace('#USER_' + (parseInt(i) + 1) + '#', '<span class="feed-post-emoji-text-item">' + topList[i].NAME_FORMATTED + '</span>');
+			}
+			result = result.replace('#USERS_MORE#', '<span class="feed-post-emoji-text-item">' + more + '</span>');
+		}
+
+		return result;
 	},
 
 	getUserReaction: function(params)
@@ -190,20 +258,12 @@ BXRL.render = {
 
 		if (reactionsNode)
 		{
-			var reactionsContainer = BX.findChild(reactionsNode, { className: 'feed-post-emoji-icon-container'});
-
-			elements = BX.findChildren(
-				reactionsNode,
-				{ className: 'feed-post-emoji-icon-item' },
-				true
-			);
+			var reactionsContainer = reactionsNode.querySelector('.feed-post-emoji-icon-container');
+			elements = reactionsNode.querySelectorAll('.feed-post-emoji-icon-item');
 
 			elementsNew = [];
 
-			if(
-				BX.type.isArray(elements)
-				&& reactionsContainer
-			)
+			if(reactionsContainer)
 			{
 				var found = false,
 					newValue = false;
@@ -358,10 +418,18 @@ BXRL.render = {
 			if (BX.util.in_array(action, ['add', 'change']))
 			{
 				BX(buttonText).innerHTML = BX.message('RATING_LIKE_EMOTION_' + userReaction.toUpperCase() + '_CALC');
+				if (BXRL.manager.mobile)
+				{
+					buttonText.parentElement.className = 'bx-ilike-left-wrap bx-you-like-button bx-you-like-button-' + userReaction.toLowerCase();
+				}
 			}
 			else
 			{
 				BX(buttonText).innerHTML = BX.message('RATING_LIKE_EMOTION_LIKE_CALC');
+				if (BXRL.manager.mobile)
+				{
+					buttonText.parentElement.className = 'bx-ilike-left-wrap';
+				}
 			}
 		}
 	},
@@ -398,6 +466,11 @@ BXRL.render = {
 
 			for(var i in BXRL.render.reactionsList)
 			{
+				if (!BXRL.render.reactionsList.hasOwnProperty(i))
+				{
+					continue;
+				}
+
 				var currentEmotion = BXRL.render.reactionsList[i];
 
 				reactionsNodesList.push(BX.create('div', {
@@ -515,16 +588,16 @@ BXRL.render = {
 			BXRL.render.reactionsPopup.classList.remove('feed-post-emoji-popup-inverted');
 		}
 
-		var deltaY = (inverted ? 15 : -50);
+		var deltaY = (inverted ? 15 : -45);
 
 		if (BXRL.manager.mobile)
 		{
-			BXRL.render.touchMoveDeltaY = (inverted ? 60 : -50);
+			BXRL.render.touchMoveDeltaY = (inverted ? 60 : -45);
 			BX.adjust(BXRL.render.reactionsPopup, { style: {
 				left: '12px',
 				top: ((inverted ? (bindElementPosition.top - 23) : (bindElementPosition.top - 28)) + deltaY) + 'px',
-				width: '320px',
-				borderRadius: '68px'
+				width: '330px',
+				borderRadius: '61px'
 			} });
 
 			BXRL.render.reactionsPopup.classList.remove('feed-post-emoji-popup-invisible-final');
@@ -545,7 +618,7 @@ BXRL.render = {
 					opacity: 0
 				},
 				finish: {
-					width: 271,
+					width: 305,
 					left: (bindElementPosition.left + (bindElementPosition.width / 2) - 133),
 					top: (bindElementPosition.top + deltaY),
 					borderRadius: 50,
@@ -569,11 +642,9 @@ BXRL.render = {
 			BXRL.render.reactionsPopupAnimation.animate();
 
 			setTimeout(function() {
-					var reactions = BX.findChildren(
-						BXRL.render.reactionsPopup,
-						{ className: 'feed-post-emoji-icon-item' },
-						true
-					);
+
+					var reactions = BXRL.render.reactionsPopup.querySelectorAll('.feed-post-emoji-icon-item');
+
 					BXRL.render.reactionsPopupAnimation2 = new BX.easing({
 						duration: 140,
 						start: {
@@ -590,6 +661,7 @@ BXRL.render = {
 							reactions[3].style.opacity = state.opacity/100;
 							reactions[4].style.opacity = state.opacity/100;
 							reactions[5].style.opacity = state.opacity/100;
+							reactions[6].style.opacity = state.opacity/100;
 						},
 						complete: function() {
 							BXRL.render.reactionsPopup.classList.add('feed-post-emoji-popup-active-final-item');
@@ -599,6 +671,7 @@ BXRL.render = {
 							reactions[3].style.opacity = '';
 							reactions[4].style.opacity = '';
 							reactions[5].style.opacity = '';
+							reactions[6].style.opacity = '';
 						}
 					});
 					BXRL.render.reactionsPopupAnimation2.animate();
@@ -618,12 +691,6 @@ BXRL.render = {
 		}
 		else
 		{
-			var elements = BX.findChildren(
-				BXRL.render.reactionsPopup,
-				{ className: 'feed-post-emoji-icon-item' },
-				true
-			);
-
 			BXRL.render.touchScrollTop = BX.GetWindowSize().scrollTop;
 			BXRL.render.hasMobileTouchMoved = null;
 
@@ -670,7 +737,7 @@ BXRL.render = {
 		e.preventDefault();
 	},
 
-	reactionsPopupMobileHide: function()
+	reactionsPopupMobileHide: function(e)
 	{
 		window.removeEventListener("touchend", BXRL.render.reactionsPopupMobileHide);
 		if (BXRL.render.reactionsPopupLikeId)
@@ -678,6 +745,10 @@ BXRL.render = {
 			BXRL.render.hideReactionsPopup({
 				likeId: BXRL.render.reactionsPopupLikeId
 			});
+			if (e)
+			{
+				e.preventDefault();
+			}
 		}
 	},
 
@@ -839,8 +910,7 @@ BXRL.render = {
 
 	hideReactionsPopup: function(params)
 	{
-		var
-			likeId = (BX.type.isNotEmptyString(params.likeId) ? params.likeId : false);
+		var likeId = (BX.type.isNotEmptyString(params.likeId) ? params.likeId : false);
 
 		if (BXRL.render.reactionsPopup)
 		{
@@ -1081,7 +1151,8 @@ BXRL.render = {
 				laugh: 2,
 				wonder: 3,
 				cry: 4,
-				angry: 5
+				angry: 5,
+				facepalm: 6
 			};
 			if (sample[a.reaction] < sample[b.reaction])
 			{
@@ -1154,7 +1225,7 @@ BXRL.render = {
 			}));
 		}
 
-		var usersNode = BX.findChild(rating.popupContent, { className: 'bx-ilike-popup-content-container' });
+		var usersNode = rating.popupContent.querySelector('.bx-ilike-popup-content-container');
 		var usersNodeExists = false;
 
 		if (!usersNode)
@@ -1170,14 +1241,14 @@ BXRL.render = {
 			usersNodeExists = true;
 		}
 
-		var contentNodes = BX.findChildren(usersNode, { className: 'bx-ilike-popup-content' });
+		var contentNodes = usersNode.querySelectorAll('.bx-ilike-popup-content');
 
 		for(i = 0; i < contentNodes.length; i++)
 		{
 			contentNodes[i].classList.add('bx-ilike-popup-content-invisible');
 		}
 
-		var reactionUsersNode = BX.findChild(usersNode, { className: 'bx-ilike-popup-content-' + this.popupCurrentReaction });
+		var reactionUsersNode = usersNode.querySelector('.bx-ilike-popup-content-' + this.popupCurrentReaction);
 		if (!reactionUsersNode)
 		{
 			reactionUsersNode = BX.create('span', {
@@ -1230,12 +1301,12 @@ BXRL.render = {
 			}));
 		}
 
-		var waitNode = BX.findChild(rating.popupContent, { className: 'bx-ilike-wait' });
+		var waitNode = rating.popupContent.querySelector('.bx-ilike-wait');
 		if (waitNode)
 		{
 			BX.cleanNode(waitNode, true);
 		}
-		var tabsNodeOld = BX.findChild(rating.popupContent, { className: 'bx-ilike-popup-head' });
+		var tabsNodeOld = rating.popupContent.querySelector('.bx-ilike-popup-head');
 		if (tabsNodeOld)
 		{
 			tabsNodeOld.parentNode.insertBefore(tabsNode, tabsNodeOld);
@@ -1288,29 +1359,29 @@ BXRL.render = {
 			i = false,
 			reactionTabNode = false;
 
-		var contentContainerNode = BX.findChild(rating.popupContent, { className: 'bx-ilike-popup-content-container' });
+		var contentContainerNode = rating.popupContent.querySelector('.bx-ilike-popup-content-container');
 		if (!contentContainerNode)
 		{
 			return false;
 		}
 
-		var reactionUsersNode = BX.findChild(contentContainerNode, { className: 'bx-ilike-popup-content-' + reaction });
+		var reactionUsersNode = contentContainerNode.querySelector('.bx-ilike-popup-content-' + reaction);
 		if (reactionUsersNode)
 		{
 			this.popupCurrentReaction = (BX.type.isNotEmptyString(reaction) ? reaction : 'all');
 
-			var tabNodes = BX.findChildren(rating.popupContent, { className: 'bx-ilike-popup-head-item' }, true);
+			var tabNodes = rating.popupContent.querySelectorAll('.bx-ilike-popup-head-item');
 			for(i = 0; i < tabNodes.length; i++)
 			{
 				tabNodes[i].classList.remove('bx-ilike-popup-head-item-current');
-				reactionTabNode = BX.findChild(tabNodes[i], { className: 'feed-post-emoji-icon-' + reaction });
+				reactionTabNode = tabNodes[i].querySelector('.feed-post-emoji-icon-' + reaction);
 				if (reactionTabNode)
 				{
 					tabNodes[i].classList.add('bx-ilike-popup-head-item-current');
 				}
 			}
 
-			var contentNodes = BX.findChildren(contentContainerNode, { className: 'bx-ilike-popup-content' });
+			var contentNodes = contentContainerNode.querySelectorAll('.bx-ilike-popup-content');
 			for(i = 0; i < contentNodes.length; i++)
 			{
 				contentNodes[i].classList.add('bx-ilike-popup-content-invisible');

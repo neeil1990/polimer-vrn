@@ -575,7 +575,6 @@ BX["UI"].FileInput.prototype = {
 					contentColor : 'white',
 					closeIcon : true,
 					closeByEsc : true,
-					zIndex : getZIndex(1),
 					content : '<span class="adm-photoeditor-popup-frame-wait"><span></span>' + BX.message("JS_CORE_FI_FRAME_IS_LOADING") + '</span>',
 					overlay : {},
 					events : {
@@ -705,7 +704,7 @@ BX["UI"].FileInput.prototype = {
 		}
 		if (error)
 		{
-			this.onError(BX.message('JS_CORE_FI_TOO_MANY_FILES').replace('#amount#', this.uploadParams['maxCount']), true);
+			this.onError(BX.message('JS_CORE_FI_TOO_MANY_FILES').replace('#amount#', BX.util.htmlspecialchars(this.uploadParams['maxCount'])), true);
 		}
 		return files;
 	},
@@ -891,14 +890,14 @@ BX["UI"].FileInput.prototype = {
 
 		if (this.uploadParams["maxCount"] <= 1)
 		{
-			var n = BX.findChild(this.agent.form, {tagName : "INPUT", attr : {name : (input_name)}}, false);
+			var n = BX.findChild(this.container, {tagName : "INPUT", attr : {name : (input_name)}}, false);
 			if (n)
 			{
 				BX.adjust(n, { attrs : { disabled : true }});
 				var nDelName = input_name + '_del';
 				if (input_name.indexOf('[') > 0)
 					nDelName = input_name.substr(0, input_name.indexOf('[')) + '_del' + input_name.substr(input_name.indexOf('['));
-				n = BX.findChild(this.agent.form, {tagName : "INPUT", attr : {name : nDelName}}, false);
+				n = BX.findChild(this.container, {tagName : "INPUT", attr : {name : nDelName}}, false);
 				if (n)
 					BX.adjust(n, { attrs : { disabled : true } } );
 			}
@@ -1077,7 +1076,13 @@ BX["UI"].FileInput.prototype = {
 		if (item.description == undefined)
 			item.description = (BX(id + 'Description') && BX(id + 'Description').value ? BX(id + 'Description').value : '');
 		if (item.description)
-			hint +=  '<span class="adm-fileinput-drag-area-popup-param">' + BX.message('JS_CORE_FILE_DESCRIPTION') + ':&nbsp;<span>' + item.description + '</span></span>';
+		{
+			hint +=  '<span class="adm-fileinput-drag-area-popup-param">' +
+				BX.message('JS_CORE_FILE_DESCRIPTION') +
+				':&nbsp;<span>' +
+					BX.util.htmlspecialchars(String(item.description).replace(/\&quot\;/gi, "\"")) +
+				'</span></span>';
+		}
 		var path = item["file"] ? (item["file"]["real_url"] || item["file"]["tmp_url"]) : '';
 		if (path)
 		{
@@ -1135,20 +1140,20 @@ BX["UI"].FileInput.prototype = {
 				name : name,
 				type : "hidden",
 				value : item['file']['input_value']}});
-			this.agent.form.appendChild(node);
+			this.container.appendChild(node);
 			node = BX.create("INPUT", { props : {
 				name : nDelName,
 				type : "hidden",
 				value : "Y"}});
-			this.agent.form.appendChild(node);
+			this.agent.fileInput.parentNode.appendChild(node);
 		}
 		else
 		{
-			var n = BX.findChild(this.agent.form, {tagName : "INPUT", attr : { name : name, disabled : true }}, false);
+			var n = BX.findChild(this.container, {tagName : "INPUT", attr : { name : name, disabled : true }}, false);
 			if (n)
 			{
 				BX.adjust(n, { attrs : { disabled : false } } );
-				BX.adjust(BX.findChild(this.agent.form, {tagName : "INPUT", attr : { name : nDelName, disabled : true }}, false), { attrs : { disabled : false } } );
+				BX.adjust(BX.findChild(this.container, {tagName : "INPUT", attr : { name : nDelName, disabled : true }}, false), { attrs : { disabled : false } } );
 			}
 		}
 
@@ -1177,7 +1182,7 @@ var filePath = function(id, events, maxCount)
 				'<label for="#id#_#number#_path">', BX.message("JS_CORE_FI_LINK"),'</label>',
 				'<input id="#id#_#number#_path" type="text" value="" />',
 			'</div>'
-		].join("").replace(/#id#/gi, this.id);
+		].join("").replace(/#id#/gi, BX.util.htmlspecialchars(this.id));
 	var v1 = (this.number++);
 	this.number++;
 	this.template = [
@@ -1189,7 +1194,7 @@ var filePath = function(id, events, maxCount)
 			'</ol>',
 			'<a href="#" id="#id#_add_point" class="adm-fileinput-item-add"', (this.single ? ' style="display:none"' : ''),'>', BX.message("JS_CORE_FI_ADD_LINK"), '</a>',
 			'<div style="clear:both;"></div>',
-		'</div>'].join("").replace(/#id#/gi, this.id);
+		'</div>'].join("").replace(/#id#/gi, BX.util.htmlspecialchars(this.id));
 
 	if (events)
 	{
@@ -1313,7 +1318,6 @@ filePath.prototype = {
 					lightShadow : true,
 					closeIcon : false,
 					closeByEsc : true,
-					zIndex : getZIndex(1),
 					content : editorNode,
 					overlay : {},
 					events : {
@@ -1364,7 +1368,7 @@ FramePreset = function() {
 				'<input class="adm-fileinput-presets-hight" name="presets[#id#][height]" type="text" value="#height#" placeholder="', BX.message("JS_CORE_FI_HEIGHT"), '" />',
 				'</div>',
 				'</li>'
-			].join("").replace(/#classId#/gi, this.id);
+			].join("").replace(/#classId#/gi, BX.util.htmlspecialchars(this.id));
 		},
 		getTemplate : function()
 		{
@@ -1415,19 +1419,19 @@ FramePreset = function() {
 			for (var ii = 0; ii < values.length; ii ++)
 			{
 				html += this.getTemplateNode()
-					.replace(/#id#/gi, values[ii]["id"])
-					.replace(/#title#/gi, values[ii]["title"])
-					.replace(/#width#/gi, values[ii]["width"])
-					.replace(/#height#/gi, values[ii]["height"]);
+					.replace(/#id#/gi, BX.util.htmlspecialchars(values[ii]["id"]))
+					.replace(/#title#/gi, BX.util.htmlspecialchars(values[ii]["title"]))
+					.replace(/#width#/gi, BX.util.htmlspecialchars(values[ii]["width"]))
+					.replace(/#height#/gi, BX.util.htmlspecialchars(values[ii]["height"]));
 			}
 
 			if (this.values.length < this.maxLength && params && params["width"] && params["height"])
 			{
 				html += this.getTemplateNode()
-					.replace(/#id#/gi, ii)
+					.replace(/#id#/gi, BX.util.htmlspecialchars(ii))
 					.replace(/#title#/gi, "")
-					.replace(/#width#/gi, params["width"])
-					.replace(/#height#/gi, params["height"]);
+					.replace(/#width#/gi, BX.util.htmlspecialchars(params["width"]))
+					.replace(/#height#/gi, BX.util.htmlspecialchars(params["height"]));
 			}
 
 			if (!!this.popup)
@@ -1441,7 +1445,6 @@ FramePreset = function() {
 				offsetLeft: Math.ceil(res.width / 2),
 				autoHide: true,
 				closeByEsc: true,
-				zIndex : getZIndex(30 + BX.PopupWindow.getOption("popupOverlayZindex") - BX.PopupWindow.getOption("popupZindex")),
 				bindOptions: {position: "top"},
 				overlay : false,
 				events : {
@@ -1457,7 +1460,7 @@ FramePreset = function() {
 					}, this) } } ),
 					new BX.PopupWindowButtonLink( {text : BX.message('CANVAS_CANCEL'), className : "popup-window-button-link-cancel", events : { click : BX.delegate(function(){this.popup.close();}, this) } } )
 				],
-				content : this.getTemplate().replace(/#classId#/gi, this.id).replace(/#nodes#/i, html)
+				content : this.getTemplate().replace(/#classId#/gi, BX.util.htmlspecialchars(this.id)).replace(/#nodes#/i, html)
 			});
 			this.popup.show();
 			this.popup.setAngle({position:'bottom'});
@@ -1506,7 +1509,7 @@ FramePreset = function() {
 				list.appendChild(BX.create('LI', {html :  this.getTemplateNode()
 					.replace(/^<li(.*?)>/gi, "")
 					.replace(/<\/li(.*?)>$/gi, "")
-					.replace(/#id#/gi, id)
+					.replace(/#id#/gi, BX.util.htmlspecialchars(id))
 					.replace(/#title#/gi, "")
 					.replace(/#width#/gi, "")
 					.replace(/#height#/gi, "") }));
@@ -1796,7 +1799,7 @@ FrameMaster.prototype = {
 		}
 
 		this.activeItem = item;
-		this.description.value = item.props.description;
+		this.description.value = String(item.props.description).replace(/\&quot\;/gi, "\"");
 		var file = (item.file || item.item.file);
 		this.canvas.set(item.canvas, { props : { width : file.width, height : file.height } });
 		if (item.canvas.width != file.width || item.canvas.height != file.height)
@@ -1910,9 +1913,9 @@ FrameMaster.prototype = {
 			var presets = '', activePreset = this.preset.getActive(), ii;
 			for (ii = 0; ii < this.preset.values.length; ii++)
 			{
-				presets += '<option value="' + ii + '" bx-width="' + this.preset.values[ii]['width'] + '" bx-height="' +
-					this.preset.values[ii]['height'] + '"' + (ii == activePreset["id"] ? ' selected="selected"' : '') +
-				'>' + preset.values[ii]['title'] + '(' + this.preset.values[ii]['width'] + 'x' + this.preset.values[ii]['height'] + ')</option>';
+				presets += '<option value="' + ii + '" bx-width="' + BX.util.htmlspecialchars(this.preset.values[ii]['width']) + '" bx-height="' +
+					BX.util.htmlspecialchars(this.preset.values[ii]['height']) + '"' + (ii == activePreset["id"] ? ' selected="selected"' : '') +
+				'>' + BX.util.htmlspecialchars(preset.values[ii]['title'] + '(' + this.preset.values[ii]['width'] + 'x' + this.preset.values[ii]['height']) + ')</option>';
 			}
 			node.innerHTML = presets;
 		}
@@ -1969,7 +1972,7 @@ FrameMaster.prototype = {
 		this.items.reset();
 		while ((item = this.items.getNext()) && item)
 		{
-			thumbs += iTemplate.replace(/#id#/gi, item.id);
+			thumbs += iTemplate.replace(/#id#/gi, BX.util.htmlspecialchars(item.id));
 		}
 		return [
 			/*jshint multistr: true */
@@ -2092,7 +2095,6 @@ FrameMaster.prototype = {
 					lightShadow : true,
 					closeIcon : false,
 					closeByEsc : true,
-					zIndex : getZIndex(1),
 					content : editorNode,
 					overlay : {},
 					events : {
@@ -2758,7 +2760,6 @@ CanvasMaster.prototype = {
 			offsetLeft: Math.ceil(res.width / 2),
 			autoHide: true,
 			closeByEsc: true,
-			zIndex : BX.PopupWindow.getOption("popupOverlayZindex") + getZIndex(2),
 			bindOptions: {position: "top"},
 			overlay : false,
 			events : {
@@ -2930,7 +2931,6 @@ CanvasMaster.prototype = {
 					lightShadow : true,
 					autoHide: true,
 					closeByEsc: true,
-					zIndex : getZIndex(2),
 					overlay : {},
 					buttons : [
 						new BX.PopupWindowButton( {text : BX.message("JS_CORE_FI_SCALE"), className : "popup-window-button-accept", events : { click : this.onCropTooBigPopupApply } } ),
@@ -3272,12 +3272,12 @@ CanvasCrop.prototype = {
 				},
 				style : {
 					position : "absolute",
-					zIndex :  BX.PopupWindow.getOption("popupOverlayZindex") + getZIndex(10),
 					boxSizing: "border-box",
 					"-webkit-user-select" : "none"
 				}
 			});
 			document.body.appendChild(this.root);
+			BX.ZIndexManager.register(this.root);
 			this.preventer = BX.create('DIV', {
 				attrs : {
 					className : "adm-photoeditor-crop-area"
@@ -3726,6 +3726,7 @@ CanvasCrop.prototype = {
 			height : pos.height + 'px',
 			display : "block"
 		}});
+		BX.ZIndexManager.bringToFront(this.root);
 
 		var projection = { left : 0, top : 0, right : 0, bottom : 0, display : "block" };
 		if (this.canvas.visiblePart.topGap > 0)
@@ -4101,8 +4102,7 @@ var CanvasMapMaster = function(block, params) {
 		this.root = BX.create('DIV', {
 			style : {
 				display : "none",
-				position : "absolute",
-				zIndex :  BX.PopupWindow.getOption("popupOverlayZindex") + getZIndex(20)
+				position : "absolute"
 			},
 			attrs : {
 				id : this.id + 'Root',
@@ -4124,6 +4124,7 @@ var CanvasMapMaster = function(block, params) {
 			].join("").replace(/[\n\t]/gi, '').replace(/>\s</gi, '><')
 		} );
 		document.body.appendChild(this.root);
+		BX.ZIndexManager.register(this.root);
 	}
 	this.moveStart = BX.delegate(this.moveStart, this);
 	this.move = BX.delegate(this.move, this);
@@ -4236,6 +4237,8 @@ CanvasMapMaster.prototype = {
 		this.root.style.height = this.root.pos.height + 'px';
 		this.root.style.display = (this.options.collapsed ? 'none' : 'block');
 		this.collapsedNode.style.display = '';
+
+		BX.ZIndexManager.bringToFront(this.root);
 
 		this.canvasMapBlock.style.top = "-" + (this.canvasMap.height + 1) + 'px';
 		this.canvasMapBlock.style.left = 0;
@@ -4498,6 +4501,9 @@ CanvasMapMaster.prototype = {
 		else
 		{
 			this.root.style.display = 'block';
+
+			BX.ZIndexManager.bringToFront(this.root);
+
 			if (this.collapsedNode)
 				BX.addClass(this.collapsedNode, "disabled");
 			BX.addClass(this.root, "collapse");
@@ -4601,10 +4607,6 @@ CanvasMapMaster.prototype = {
 		}
 	}
 };
-var frameMaster = new FrameMaster(),
-	getZIndex = function(delta)
-	{
-		var res = Math.max(BX.WindowManager.GetZIndex(), BX.PopupWindow.getOption("popupOverlayZindex")) - BX.PopupWindow.getOption("popupOverlayZindex") + delta;
-		return res;
-	};
+var frameMaster = new FrameMaster();
+
 })();

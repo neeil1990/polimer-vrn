@@ -77,15 +77,18 @@ class LogIndexTable extends Entity\DataManager
 		$connection = Application::getConnection();
 		$helper = $connection->getSqlHelper();
 
+		$value = $helper->forSql($content);
+		$encryptedValue = sha1($content);
+
 		$insertFields = array(
 			"ITEM_TYPE" => $helper->forSql($itemType),
 			"ITEM_ID" => $itemId,
 			"LOG_ID" => $logId,
-			"CONTENT" => $helper->forSql($content)
+			"CONTENT" => $value
 		);
 
 		$updateFields = array(
-			"CONTENT" => $helper->forSql($content)
+			'CONTENT' => new \Bitrix\Main\DB\SqlExpression("IF(SHA1(CONTENT) = '{$encryptedValue}', CONTENT, '{$value}')")
 		);
 
 		if (
@@ -137,7 +140,7 @@ class LogIndexTable extends Entity\DataManager
 		$now = $connection->getSqlHelper()->getCurrentDateTimeFunction();
 		if (
 			!$value
-			|| strtolower($value) == strtolower($now)
+			|| mb_strtolower($value) == mb_strtolower($now)
 		)
 		{
 			$value = new SqlExpression($now);

@@ -15,8 +15,6 @@ class Param implements Errorable
 	private $params = [];
 	private $interchangeableParams = [];
 
-	private $errorCollection;
-
 	public function __construct(array $params)
 	{
 		$this->params = $this->changeKeyCaseRecursive($params);

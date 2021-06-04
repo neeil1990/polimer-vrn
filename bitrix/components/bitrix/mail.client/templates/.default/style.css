@@ -133,7 +133,7 @@
 	color: #fff !important;
 }
 
-.bitrix24-light-theme .mail-msg-counter-number.
+.bitrix24-light-theme .mail-msg-counter-number,
 .bitrix24-light-theme .mail-msg-counter-container:hover .mail-msg-counter-inner:after
 {
 	border: 1px solid rgba(255,255,255,.4);
@@ -163,19 +163,15 @@
 }
 
 .mail-msg-title-icon {
-	position: absolute;
 	display: inline-block;
 	width: 50px;
 	height: 34px;
+	margin-right: 7px;
 	background: url(images/task-list-sprite.svg?1);
 }
 
-.mail-msg-title-icon-placeholder {
-	display: inline-block;
-	width: 50px;
-}
-
 .mail-msg-title-icon-income {
+	min-width: 50px;
 	background-position: 0 -234px;
 }
 
@@ -286,6 +282,13 @@
 	}
 }
 
+.mail-msg-header-group {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+
+}
+
 .mail-msg-header-control-item {
 	display: -webkit-box;
 	display: -ms-flexbox;
@@ -329,4 +332,18 @@
 
 .mail-msg-header-control-select:hover .mail-msg-header-control-triangle {
 	border-color: #3e434e transparent transparent transparent;
+}
+
+.mail-msg-sidepanel-title-container .main-ui-filter-search {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	margin: auto 19px auto 0;
+	width: 100%;
+	max-width: 800px;
+	min-width: 300px;
+}
+
+.mail-pagetitle-flexible-space {
+	flex: 1 1 auto;
 }

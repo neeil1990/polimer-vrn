@@ -11,9 +11,7 @@
 	var offsetLeft = BX.Landing.Utils.offsetLeft;
 	var bind = BX.Landing.Utils.bind;
 	var unbind = BX.Landing.Utils.unbind;
-
-	var Menu = BX.Landing.UI.Tool.Menu;
-
+	
 	/**
 	 * Implements interface for works with dropdown
 	 *
@@ -25,12 +23,15 @@
 	{
 		this.items = "items" in options && options.items ? options.items : {};
 		BX.Landing.UI.Field.BaseField.apply(this, arguments);
+		this.setEventNamespace('BX.Landing.UI.Field.Dropdown');
+		this.subscribeFromOptions(BX.Landing.UI.Component.fetchEventsFromOptions(options));
 		this.onChangeHandler = typeof options.onChange === "function" ? options.onChange : (function() {});
 		this.layout.classList.add("landing-ui-field-dropdown");
 		this.popup = null;
 		this.input.addEventListener("click", this.onInputClick.bind(this));
 		document.addEventListener("click", this.onDocumentClick.bind(this));
-		top.document.addEventListener("click", this.onDocumentClick.bind(this));
+		var rootWindow = BX.Landing.PageObject.getRootWindow();
+		rootWindow.document.addEventListener("click", this.onDocumentClick.bind(this));
 
 		if (BX.type.isPlainObject(this.items))
 		{
@@ -43,7 +44,11 @@
 		setTextContent(this.input, this.items[0].name);
 		data(this.input, "value", this.items[0].value);
 
-		this.setValue(this.content);
+		if (this.content !== "")
+		{
+			this.setValue(this.content);
+			this.onMouseWheel = this.onMouseWheel.bind(this);
+		}
 	};
 
 	BX.Landing.UI.Field.Dropdown.prototype = {
@@ -55,12 +60,13 @@
 			event.stopPropagation();
 			if (!this.popup || (this.popupRoot && !this.popupRoot.contains(this.popup.popupWindow.popupContainer)))
 			{
-				this.popup = new Menu({
+				this.popup = new BX.PopupMenuWindow({
 					id: "dropdown_" + (+new Date()),
 					bindElement: this.input,
 					items: this.items.map(function(item) {
 						return {
-							text: escapeText(item.name),
+							html: item.html,
+							text: !item.html ? escapeText(item.name) : undefined,
 							onclick: function() {
 								this.onItemClick(item)
 							}.bind(this)
@@ -114,6 +120,7 @@
 			this.onChangeHandler(item.value, this.items, this.postfix, this.property);
 			this.onValueChangeHandler(this);
 			BX.fireEvent(this.input, "input");
+			this.emit('onChange');
 		},
 
 		/**
@@ -121,12 +128,18 @@
 		 */
 		getValue: function()
 		{
-			return typeof this.input.dataset.value !== "undefined" ? this.input.dataset.value : this.items[0].value;
+			var value = this.input.dataset.value;
+
+			if (value !== "undefined" && typeof value !== "undefined")
+			{
+				return value;
+			}
+
+			return this.items[0].value;
 		},
 
 		setValue: function(value)
 		{
-			this.input.dataset.value = value;
 			this.items.forEach(function(item) {
 				// noinspection EqualityComparisonWithCoercionJS
 				if (value == item.value)
@@ -161,8 +174,9 @@
 		 */
 		onMouseOver: function()
 		{
-			bind(this.popup.popupWindow.popupContainer, !!window.onwheel ? "wheel" : "mousewheel", this.onMouseWheel.bind(this));
-			bind(this.popup.popupWindow.popupContainer, "touchmove", this.onMouseWheel.bind(this));
+			var mouseEvent = "onwheel" in window ? "wheel" : "mousewheel";
+			bind(this.popup.popupWindow.popupContainer, mouseEvent, this.onMouseWheel);
+			bind(this.popup.popupWindow.popupContainer, "touchmove", this.onMouseWheel);
 		},
 
 
@@ -171,8 +185,9 @@
 		 */
 		onMouseLeave: function()
 		{
-			unbind(this.popup.popupWindow.popupContainer, !!window.onwheel ? "wheel" : "mousewheel", this.onMouseWheel.bind(this));
-			unbind(this.popup.popupWindow.popupContainer, "touchmove", this.onMouseWheel.bind(this));
+			var mouseEvent = "onwheel" in window ? "wheel" : "mousewheel";
+			unbind(this.popup.popupWindow.popupContainer, mouseEvent, this.onMouseWheel);
+			unbind(this.popup.popupWindow.popupContainer, "touchmove", this.onMouseWheel);
 		},
 
 
@@ -185,12 +200,15 @@
 			event.stopPropagation();
 			event.preventDefault();
 
-			var delta = BX.Landing.UI.Panel.Content.getDeltaFromEvent(event);
-			var scrollTop = this.popup.popupWindow.contentContainer.scrollTop;
+			if (this.popup)
+			{
+				var delta = BX.Landing.UI.Panel.Content.getDeltaFromEvent(event);
+				var scrollTop = this.popup.popupWindow.contentContainer.scrollTop;
 
-			requestAnimationFrame(function() {
-				this.popup.popupWindow.contentContainer.scrollTop = scrollTop - delta.y;
-			}.bind(this));
+				requestAnimationFrame(function() {
+					this.popup.popupWindow.contentContainer.scrollTop = scrollTop - delta.y;
+				}.bind(this));
+			}
 		}
 	};
 })();

@@ -2,6 +2,11 @@
 
 namespace Bitrix\Mail\Helper;
 
+use Bitrix\Mail\Internals\MessageAccessTable;
+use Bitrix\Mail\Internals\MessageClosureTable;
+use Bitrix\Mail\MailboxDirectory;
+use Bitrix\Mail\MailboxTable;
+use Bitrix\Mail\MailMessageUidTable;
 use Bitrix\Main;
 use Bitrix\Main\Security;
 use Bitrix\Mail;
@@ -9,6 +14,13 @@ use Bitrix\Mail;
 class Message
 {
 
+	/**
+	 * Adapts a message(result of Mail\MailMessageTable::getList) for output in the public interface.
+	 *
+	 * @param array &$message(result of Mail\MailMessageTable::getList. Changes the data in a variable!).
+	 *
+	 * @return array(modified $message).
+	 */
 	public static function prepare(&$message)
 	{
 		$message['__email'] = null;
@@ -35,7 +47,7 @@ class Message
 		{
 			foreach ($fieldsMap as $field)
 			{
-				if (strlen($message[$field]) == 255)
+				if (mb_strlen($message[$field]) == 255)
 				{
 					$parsedHeader = \CMailMessage::parseHeader($message['HEADER'], LANG_CHARSET);
 
@@ -71,8 +83,9 @@ class Message
 						}
 
 						$message[$extField][] = array(
-							'name'  => $address->getName(),
+							'name' => $address->getName(),
 							'email' => $address->getEmail(),
+							'formated' => ($address->getName() ? $address->get() : $address->getEmail()),
 						);
 					}
 					else
@@ -109,11 +122,13 @@ class Message
 				if ($diskFile = Attachment\Storage::getObjectByAttachment($item, true))
 				{
 					$message['__files'][$k] = array(
-						'id'      => sprintf('n%u', $diskFile->getId()),
-						'name'    => $item['FILE_NAME'],
-						'url'     => $urlManager->getUrlForShowFile($diskFile, $urlParams),
-						'size'    => \CFile::formatSize($diskFile->getSize()),
-						'fileId'  => $diskFile->getFileId(),
+						'id' => sprintf('n%u', $diskFile->getId()),
+						'name' => $item['FILE_NAME'],
+						'url' => $urlManager->getUrlForShowFile($diskFile, $urlParams),
+						'size' => \CFile::formatSize($diskFile->getSize()),
+						'fileId' => $diskFile->getFileId(),
+						'objectId' => $diskFile->getId(),
+						'bytes' => $diskFile->getSize(),
 					);
 
 					if (\Bitrix\Disk\TypeFile::isImage($diskFile))
@@ -121,7 +136,7 @@ class Message
 						$message['__files'][$k]['preview'] = $urlManager->getUrlForShowFile(
 							$diskFile,
 							array_merge(
-								array('width' => 80, 'height' => 80),
+								array('width' => 80, 'height' => 80, 'exact' => 'Y'),
 								$urlParams
 							)
 						);
@@ -143,11 +158,12 @@ class Message
 					if (!empty($file) && is_array($file))
 					{
 						$message['__files'][$k] = array(
-							'id'      => $file['ID'],
-							'name'    => $item['FILE_NAME'],
-							'url'     => $file['SRC'],
-							'size'    => \CFile::formatSize($file['FILE_SIZE']),
-							'fileId'  => $file['ID'],
+							'id' => $file['ID'],
+							'name' => $item['FILE_NAME'],
+							'url' => $file['SRC'],
+							'size' => \CFile::formatSize($file['FILE_SIZE']),
+							'fileId' => $file['ID'],
+							'bytes' => $file['FILE_SIZE'],
 						);
 
 						if (\CFile::isImage($item['FILE_NAME'], $item['CONTENT_TYPE']))
@@ -194,21 +210,21 @@ class Message
 			$userId = $USER->getId();
 		}
 
-		$access = (bool) Mail\MailboxTable::getUserMailbox($message['MAILBOX_ID'], $userId);
+		$access = (bool) MailboxTable::getUserMailbox($message['MAILBOX_ID'], $userId);
 
 		$message['__access_level'] = $access ? 'full' : false;
 
 		if (!$access && isset($_REQUEST['mail_uf_message_token']))
 		{
 			$token = $signature = '';
-			if (is_string($_REQUEST['mail_uf_message_token']) && strpos($_REQUEST['mail_uf_message_token'], ':') > 0)
+			if (is_string($_REQUEST['mail_uf_message_token']) && mb_strpos($_REQUEST['mail_uf_message_token'], ':') > 0)
 			{
 				list($token, $signature) = explode(':', $_REQUEST['mail_uf_message_token'], 2);
 			}
 
-			if (strlen($token) > 0 && strlen($signature) > 0)
+			if ($token <> '' && $signature <> '')
 			{
-				$excerpt = Mail\Internals\MessageAccessTable::getList(array(
+				$excerpt = MessageAccessTable::getList(array(
 					'select' => array('SECRET', 'MESSAGE_ID'),
 					'filter' => array(
 						'=TOKEN' => $token,
@@ -227,7 +243,7 @@ class Message
 
 						if (!$access) // check parent access
 						{
-							$access = (bool) Mail\Internals\MessageClosureTable::getList(array(
+							$access = (bool) MessageClosureTable::getList(array(
 								'select' => array('PARENT_ID'),
 								'filter' => array(
 									'=MESSAGE_ID' => $message['ID'],
@@ -283,7 +299,7 @@ class Message
 
 	public static function getTotalUnseenForMailboxes($userId)
 	{
-		$mailboxes = Mail\MailboxTable::getUserMailboxes($userId);
+		$mailboxes = MailboxTable::getUserMailboxes($userId);
 
 		if (empty($mailboxes))
 		{
@@ -300,18 +316,14 @@ class Message
 		);
 		foreach ($mailboxes as $item)
 		{
+			$dirs = MailboxDirectory::fetchTrashAndSpamHash($item['ID']);
+
 			$mailboxFilter[] = array(
 				'=MAILBOX_ID' => $item['ID'],
-				'!@DIR_MD5' => array_map(
-					'md5',
-					array_merge(
-						(array) $item['OPTIONS']['imap'][MessageFolder::TRASH],
-						(array) $item['OPTIONS']['imap'][MessageFolder::SPAM]
-					)
-				),
+				'!@DIR_MD5' => $dirs,
 			);
 		}
-		$totalUnseen = Mail\MailMessageUidTable::getList(array(
+		$totalUnseen = MailMessageUidTable::getList(array(
 			'select' => array(
 				'MAILBOX_ID',
 				new \Bitrix\Main\Entity\ExpressionField('TOTAL', 'COUNT(1)'),
@@ -323,7 +335,8 @@ class Message
 			),
 			'filter' => array(
 				$mailboxFilter,
-				'>MESSAGE_ID' => 0,
+				'>MESSAGE_ID'  => 0,
+				'=DELETE_TIME' => 'IS NULL',
 			),
 			'group' => array(
 				'MAILBOX_ID',
@@ -342,12 +355,71 @@ class Message
 
 	public static function ensureAttachments(&$message)
 	{
-		if ($message['OPTIONS']['attachments'] > 0 && !($message['ATTACHMENTS'] > 0))
+		if ($message['ATTACHMENTS'] > 0 || !($message['OPTIONS']['attachments'] > 0))
 		{
-			if (Main\Config\Option::get('mail', 'save_attachments', B_MAIL_SAVE_ATTACHMENTS) == 'Y')
+			return;
+		}
+
+		if (Main\Config\Option::get('mail', 'save_attachments', B_MAIL_SAVE_ATTACHMENTS) !== 'Y')
+		{
+			return;
+		}
+
+		$mailboxHelper = Mailbox::createInstance($message['MAILBOX_ID'], false);
+
+		$attachments = empty($mailboxHelper) ? false : $mailboxHelper->downloadAttachments($message);
+
+		if (false === $attachments)
+		{
+			$logEntry = sprintf(
+				'Helper\Message: Attachments downloading failed (%u:%s:%u)',
+				$message['MAILBOX_ID'],
+				$message['DIR_MD5'],
+				$message['MSG_UID']
+			);
+
+			if (!empty($mailboxHelper) && !$mailboxHelper->getErrors()->isEmpty())
 			{
-				return static::resync($message);
+				$logEntry .= PHP_EOL . join(PHP_EOL, $mailboxHelper->getErrors()->toArray());
 			}
+
+			addMessage2Log($logEntry, 'mail', 2);
+
+			return false;
+		}
+
+		foreach ($attachments as $i => $item)
+		{
+			$attachFields = array(
+				'MESSAGE_ID'   => $message['ID'],
+				'FILE_NAME'    => $item['FILENAME'],
+				'CONTENT_TYPE' => $item['CONTENT-TYPE'],
+				'FILE_DATA'    => $item['BODY'],
+				'CONTENT_ID'   => $item['CONTENT-ID'],
+			);
+
+			$attachmentId = \CMailMessage::addAttachment($attachFields);
+
+			if ($attachmentId > 0)
+			{
+				$message['ATTACHMENTS']++;
+
+				$message['BODY_HTML'] = preg_replace(
+					sprintf(
+						'/<img([^>]+)src\s*=\s*(\'|\")?\s*(http:\/\/cid:%s)\s*\2([^>]*)>/is',
+						preg_quote($item['CONTENT-ID'], '/')
+					),
+					sprintf('<img\1src="aid:%u"\4>', $attachmentId),
+					$message['BODY_HTML']
+				);
+			}
+		}
+
+		if ($message['ATTACHMENTS'] > 0)
+		{
+			\CMailMessage::update($message['ID'], array('BODY_HTML' => $message['BODY_HTML']));
+
+			return $message['ID'];
 		}
 	}
 
@@ -355,7 +427,26 @@ class Message
 	{
 		$mailboxHelper = Mailbox::createInstance($message['MAILBOX_ID'], false);
 
-		return empty($mailboxHelper) ? false : $mailboxHelper->resyncMessage($message);
+		$result = empty($mailboxHelper) ? false : $mailboxHelper->resyncMessage($message);
+
+		if (false === $result)
+		{
+			$logEntry = sprintf(
+				'Helper\Message: Message resync failed (%u:%s:%u)',
+				$message['MAILBOX_ID'],
+				$message['DIR_MD5'],
+				$message['MSG_UID']
+			);
+
+			if (!empty($mailboxHelper) && !$mailboxHelper->getErrors()->isEmpty())
+			{
+				$logEntry .= PHP_EOL . join(PHP_EOL, $mailboxHelper->getErrors()->toArray());
+			}
+
+			addMessage2Log($logEntry, 'mail', 3);
+		}
+
+		return $result;
 	}
 
 }

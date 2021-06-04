@@ -57,16 +57,16 @@ class RecentTable extends Main\Entity\DataManager
 			),
 			'ITEM_MID' => array(
 				'data_type' => 'integer',
-				'required' => true,
+				'default_value' => 0,
 				'title' => Loc::getMessage('RECENT_ENTITY_ITEM_MID_FIELD'),
 			),
 			'ITEM_CID' => array(
 				'data_type' => 'integer',
-				'required' => true,
+				'default_value' => 0,
 			),
 			'ITEM_RID' => array(
 				'data_type' => 'integer',
-				'required' => true,
+				'default_value' => 0,
 			),
 			'ITEM_OLID' => array(
 				'data_type' => 'integer',
@@ -76,6 +76,16 @@ class RecentTable extends Main\Entity\DataManager
 				'data_type' => 'boolean',
 				'values' => array('N', 'Y'),
 				'default_value' => 'N',
+			),
+			'UNREAD' => array(
+				'data_type' => 'boolean',
+				'values' => array('N', 'Y'),
+				'default_value' => 'N',
+			),
+			'DATE_MESSAGE' => array(
+				'data_type' => 'datetime',
+				'required' => true,
+				'default_value' => array(__CLASS__, 'getCurrentDate'),
 			),
 			'DATE_UPDATE' => array(
 				'data_type' => 'datetime',

@@ -3,7 +3,7 @@
  * Bitrix Framework
  * @package bitrix
  * @subpackage main
- * @copyright 2001-2013 Bitrix
+ * @copyright 2001-2020 Bitrix
  */
 /*
 RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -18,11 +18,18 @@ RewriteCond %{REQUEST_FILENAME} [\xF1-\xF3][\x80-\xBF]{3} [OR]
 RewriteCond %{REQUEST_FILENAME} \xF4[\x80-\x8F][\x80-\xBF]{2}
 RewriteRule ^(.*)$ /bitrix/virtual_file_system.php [L]
 */
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/lib/loader.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/tools.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/classes/general/virtual_io.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/bx_root.php");
+require_once(__DIR__."/../bx_root.php");
+require_once(__DIR__."/../lib/loader.php");
+require_once(__DIR__."/autoload.php");
+require_once(__DIR__."/../tools.php");
+
 require_once($_SERVER["DOCUMENT_ROOT"].BX_PERSONAL_ROOT."/php_interface/dbconn.php");
+
+if (stripos(PHP_OS, "WIN") !== 0)
+{
+	CHTTP::SetStatus("403 Forbidden");
+	die("Filename is out of range.");
+}
 
 $io = CBXVirtualIo::GetInstance();
 
@@ -31,6 +38,7 @@ if (($pos = strpos($requestUri, "?")) !== false)
 	$requestUri = substr($requestUri, 0, $pos);
 
 $requestUri = rawurldecode($requestUri);
+$requestUri = $io->CombinePath('/', $requestUri);
 if (!preg_match("#([\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})#", $requestUri))
 {
 	// Not utf-8 filename. Should be handled in the regular way.
@@ -49,17 +57,17 @@ $requestUri = preg_replace("/[\\.\\/\\\\\\x20\\x22\\x3c\\x3e\\x5c]{30,}/", " X "
 $requestUriAbsolute = $io->RelativeToAbsolutePath($requestUri);
 
 $documentRoot = rtrim($_SERVER["DOCUMENT_ROOT"], "/");
-$documentRootLength = strlen($documentRoot) + 1;
-if ($documentRootLength >= strlen($requestUriAbsolute)
-	|| substr($requestUriAbsolute, 0, $documentRootLength) !== $documentRoot."/")
+$documentRootLength = mb_strlen($documentRoot) + 1;
+if ($documentRootLength >= mb_strlen($requestUriAbsolute)
+	|| mb_substr($requestUriAbsolute, 0, $documentRootLength) !== $documentRoot."/")
 {
 	CHTTP::SetStatus("403 Forbidden");
 	die("Path is out of range.");
 }
 
-$urlTmp = substr($requestUriAbsolute, $documentRootLength);
+$urlTmp = mb_substr($requestUriAbsolute, $documentRootLength);
 $urlTmp = str_replace(".", "", $urlTmp);
-if (substr($urlTmp, 0, 7) == "bitrix/")
+if (mb_substr($urlTmp, 0, 7) == "bitrix/")
 {
 	CHTTP::SetStatus("403 Forbidden");
 	die("Path is out of range.");
@@ -91,7 +99,7 @@ if (!$io->FileExists($requestUriAbsolute))
 
 if (strtolower(substr($requestUriAbsolute, -4)) == ".php")
 {
-	$relativePath = $io->CombinePath("/", substr($requestUriAbsolute, strlen($_SERVER["DOCUMENT_ROOT"])));
+	$relativePath = $io->CombinePath("/", mb_substr($requestUriAbsolute, mb_strlen($_SERVER["DOCUMENT_ROOT"])));
 	$_SERVER["REAL_FILE_PATH"] = $relativePath;
 
 	include($io->GetPhysicalName($requestUriAbsolute));
@@ -104,7 +112,7 @@ else
 
 	$arTypes = array("jpeg"=>"image/jpeg", "jpe"=>"image/jpeg", "jpg"=>"image/jpeg", "png"=>"image/png", "gif"=>"image/gif", "bmp"=>"image/bmp");
 
-	$ext = strtolower(substr($requestUriAbsolute, bxstrrpos($requestUriAbsolute, ".") + 1));
+	$ext = mb_strtolower(mb_substr($requestUriAbsolute, bxstrrpos($requestUriAbsolute, ".") + 1));
 	if(isset($arTypes[$ext]))
 	{
 		header("Content-Type: ".$arTypes[$ext]);

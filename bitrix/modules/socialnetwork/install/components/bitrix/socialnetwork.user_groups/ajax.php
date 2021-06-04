@@ -5,7 +5,7 @@ define("NO_LANG_FILES", true);
 define("NOT_CHECK_PERMISSIONS", true);
 
 $siteId = (isset($_POST["site"]) && is_string($_POST["site"])) ? trim($_POST["site"]) : "";
-$siteId = substr(preg_replace("/[^a-z0-9_]/i", "", $siteId), 0, 2);
+$siteId = mb_substr(preg_replace("/[^a-z0-9_]/i", "", $siteId), 0, 2);
 $groupId = (isset($_POST["groupId"]) ? intval($_POST["groupId"]) : 0);
 $action = (isset($_POST["action"]) ? $_POST["action"] : false);
 
@@ -27,11 +27,6 @@ if ($site = $res->fetch())
 else
 {
 	define("LANGUAGE_ID", "en");
-}
-
-if(Loader::includeModule("compression"))
-{
-	CCompress::disable2048Spaces();
 }
 
 if (!Loader::includeModule("socialnetwork"))

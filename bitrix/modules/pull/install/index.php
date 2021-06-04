@@ -16,9 +16,7 @@ class pull extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -48,7 +46,7 @@ class pull extends CModule
 
 		$this->errors = false;
 		if(!$DB->Query("SELECT 'x' FROM b_pull_stack", true))
-			$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/pull/install/db/".strtolower($DB->type)."/install.sql");
+			$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/pull/install/db/".mb_strtolower($DB->type)."/install.sql");
 
 		if($this->errors !== false)
 		{
@@ -59,6 +57,7 @@ class pull extends CModule
 		RegisterModule("pull");
 		RegisterModuleDependences("main", "OnBeforeProlog", "main", "", "", 50, "/modules/pull/ajax_hit_before.php");
 		RegisterModuleDependences("main", "OnProlog", "main", "", "", 3, "/modules/pull/ajax_hit.php");
+		RegisterModuleDependences("main", "OnProlog", "pull", "CPullOptions", "OnProlog");
 		RegisterModuleDependences("main", "OnEpilog", "pull", "CPullOptions", "OnEpilog");
 		RegisterModuleDependences("main", "OnAfterEpilog", "pull", "\Bitrix\Pull\Event", "onAfterEpilog");
 		RegisterModuleDependences("main", "OnAfterEpilog", "pull", "CPullWatch", "DeferredSql");
@@ -92,7 +91,7 @@ class pull extends CModule
 	function DoUninstall()
 	{
 		global $DOCUMENT_ROOT, $APPLICATION, $step;
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 		{
 			$APPLICATION->IncludeAdminFile(GetMessage("PULL_UNINSTALL_TITLE"), $DOCUMENT_ROOT."/bitrix/modules/pull/install/unstep1.php");
@@ -112,7 +111,7 @@ class pull extends CModule
 		$this->errors = false;
 
 		if (!$arParams['savedata'])
-			$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/pull/install/db/".strtolower($DB->type)."/uninstall.sql");
+			$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/pull/install/db/".mb_strtolower($DB->type)."/uninstall.sql");
 
 		$arSQLErrors = Array();
 		if(is_array($this->errors))
@@ -129,6 +128,7 @@ class pull extends CModule
 		UnRegisterModuleDependences("main", "OnAfterUnRegisterModule", "pull", "CPullOptions", "ClearCheckCache");
 		UnRegisterModuleDependences("perfmon", "OnGetTableSchema", "pull", "CPullTableSchema", "OnGetTableSchema");
 		UnRegisterModuleDependences("main", "OnProlog", "main", "", "", "/modules/pull/ajax_hit.php");
+		UnRegisterModuleDependences("main", "OnProlog", "pull", "CPullOptions", "OnProlog");
 		UnRegisterModuleDependences("main", "OnEpilog", "pull", "CPullOptions", "OnEpilog");
 		UnRegisterModuleDependences("main", "OnAfterEpilog", "pull", "\Bitrix\Pull\Event", "onAfterEpilog");
 		UnRegisterModuleDependences("main", "OnAfterEpilog", "pull", "CPullWatch", "DeferredSql");

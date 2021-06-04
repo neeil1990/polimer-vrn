@@ -3,6 +3,7 @@ use Bitrix\Main\Composite;
 use Bitrix\Main\Composite\Helper;
 use Bitrix\Main\Composite\Internals\AutomaticArea;
 use Bitrix\Main\Config\Option;
+use Bitrix\Main\Config\Configuration;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
 require_once($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/main/prolog.php");
@@ -26,6 +27,7 @@ if (Composite\Engine::isSelfHostedPortal())
 $APPLICATION->SetAdditionalCSS("/bitrix/panel/main/composite.css");
 $APPLICATION->AddHeadString("<style type=\"text/css\">".Composite\Engine::getInjectedCSS()."</style>");
 
+$errors = [];
 $compositeOptions = Helper::getOptions();
 $autoCompositeMode = false;
 $compositeMode = false;
@@ -95,7 +97,7 @@ $tabControl = new CAdminTabControl("tabControl", $tabs, false, true);
 if ($_SERVER["REQUEST_METHOD"] == "POST" &&
 	check_bitrix_sessid() &&
 	$isAdmin &&
-	((isset($_REQUEST["composite_save_opt"]) && strlen($_REQUEST["composite_save_opt"]) > 0) ||
+	((isset($_REQUEST["composite_save_opt"]) && $_REQUEST["composite_save_opt"] <> '') ||
 	 isset($_REQUEST["autocomposite_mode_button"]) ||
 	 isset($_REQUEST["composite_mode_button"]))
 )
@@ -149,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" &&
 		}
 	}
 
-	if (isset($_REQUEST["composite_domains"]) && strlen($_REQUEST["composite_domains"]) > 0)
+	if (isset($_REQUEST["composite_domains"]) && $_REQUEST["composite_domains"] <> '')
 	{
 		$compositeOptions["DOMAINS"] = array();
 		foreach(explode("\n", $_REQUEST["composite_domains"]) as $domain)
@@ -158,6 +160,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" &&
 			if ($domain != "")
 			{
 				$compositeOptions["DOMAINS"][$domain] = $domain;
+			}
+		}
+
+		$isSaveOptions = (isset($_REQUEST["composite_save_opt"]) && $_REQUEST["composite_save_opt"] <> '');
+		$isTurnOnComposite = (
+			(isset($_REQUEST["composite_mode_button"]) && isset($_REQUEST["composite"]) && $_REQUEST["composite"] === "Y")
+			|| (isset($_REQUEST["autocomposite_mode_button"]) && isset($_REQUEST["auto_composite"]) && $_REQUEST["auto_composite"] === "Y")
+		);
+
+		if ($isSaveOptions || $isTurnOnComposite)
+		{
+			$siteList = \Bitrix\Main\SiteTable::getList([
+				"select" => ["LID", "SERVER_NAME", "DEF"],
+			])->fetchAll();
+			$portalSiteData = [];
+			foreach ($siteList as $site)
+			{
+				if (Option::get("main", "wizard_firstportal_".$site["LID"], false, $site["LID"]) !== false)
+				{
+					$portalSiteData = $site;
+					break;
+				}
+			}
+
+			if ($portalSiteData)
+			{
+				$corporatePortalDomain = null;
+				if (!empty($portalSiteData["SERVER_NAME"]))
+				{
+					$corporatePortalDomain = $portalSiteData["SERVER_NAME"];
+				}
+				elseif ($portalSiteData["DEF"] === "Y")
+				{
+					$corporatePortalDomain = Option::get("main", "server_name", "");
+				}
+
+				if ($corporatePortalDomain)
+				{
+					$corporatePortalDomain = Helper::getDomainName($corporatePortalDomain);
+					foreach ($compositeOptions["DOMAINS"] as $domain)
+					{
+						if (Helper::getDomainName($domain) === $corporatePortalDomain)
+						{
+							$errors[] = GetMessage("MAIN_COMPOSITE_CORPORATE_PORTAL_DOMAIN_WARNING");
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -186,46 +236,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" &&
 	$compositeOptions["FRAME_MODE"] = isset($_REQUEST["composite_frame_mode"]) ? $_REQUEST["composite_frame_mode"] : "";
 	$compositeOptions["FRAME_TYPE"] = isset($_REQUEST["composite_frame_type"]) ? $_REQUEST["composite_frame_type"] : "";
 
-	if (isset($_REQUEST["autocomposite_mode_button"]) && isset($_REQUEST["auto_composite"]))
+	if (empty($errors))
 	{
-		if ($_REQUEST["auto_composite"] === "Y")
+		if (isset($_REQUEST["autocomposite_mode_button"]) && isset($_REQUEST["auto_composite"]))
 		{
-			Helper::setEnabled(true);
-			$compositeOptions["AUTO_COMPOSITE"] = "Y";
-			$compositeOptions["FRAME_MODE"] = "Y";
-			$compositeOptions["FRAME_TYPE"] = "DYNAMIC_WITH_STUB";
-			$compositeOptions["AUTO_UPDATE"] = "Y";
-			$compositeOptions["AUTO_UPDATE_TTL"] = isset($_REQUEST["composite_standard_ttl"]) ? $_REQUEST["composite_standard_ttl"] : 120;
+			if ($_REQUEST["auto_composite"] === "Y")
+			{
+				Helper::setEnabled(true);
+				$compositeOptions["AUTO_COMPOSITE"] = "Y";
+				$compositeOptions["FRAME_MODE"] = "Y";
+				$compositeOptions["FRAME_TYPE"] = "DYNAMIC_WITH_STUB";
+				$compositeOptions["AUTO_UPDATE"] = "Y";
+				$compositeOptions["AUTO_UPDATE_TTL"] = isset($_REQUEST["composite_standard_ttl"]) ? $_REQUEST["composite_standard_ttl"] : 120;
+			}
+			else if ($_REQUEST["auto_composite"] === "N")
+			{
+				Helper::setEnabled(false);
+				$compositeOptions["AUTO_COMPOSITE"] = "N";
+				$compositeOptions["FRAME_MODE"] = "N";
+				$compositeOptions["AUTO_UPDATE_TTL"] = "0";
+			}
 		}
-		else if ($_REQUEST["auto_composite"] === "N")
+		elseif (isset($_REQUEST["composite_mode_button"]) && isset($_REQUEST["composite"]))
 		{
-			Helper::setEnabled(false);
 			$compositeOptions["AUTO_COMPOSITE"] = "N";
-			$compositeOptions["FRAME_MODE"] = "N";
-			$compositeOptions["AUTO_UPDATE_TTL"] = "0";
+			if ($_REQUEST["composite"] === "Y")
+			{
+				Helper::setEnabled(true);
+			}
+			elseif ($_REQUEST["composite"] == "N")
+			{
+				Helper::setEnabled(false);
+			}
 		}
-	}
-	elseif (isset($_REQUEST["composite_mode_button"]) && isset($_REQUEST["composite"]))
-	{
-		$compositeOptions["AUTO_COMPOSITE"] = "N";
-		if ($_REQUEST["composite"] === "Y")
-		{
-			Helper::setEnabled(true);
-		}
-		elseif ($_REQUEST["composite"] == "N")
-		{
-			Helper::setEnabled(false);
-		}
-	}
 
-	if (isset($_REQUEST["composite_show_banner"]) && in_array($_REQUEST["composite_show_banner"], array("Y", "N")))
-	{
-		Option::set("main", "~show_composite_banner", $_REQUEST["composite_show_banner"]);
-	}
+		if (isset($_REQUEST["composite_show_banner"]) && in_array($_REQUEST["composite_show_banner"], array("Y", "N")))
+		{
+			Option::set("main", "~show_composite_banner", $_REQUEST["composite_show_banner"]);
+		}
 
-	Helper::setOptions($compositeOptions);
-	bx_accelerator_reset();
-	LocalRedirect("/bitrix/admin/composite.php?lang=".LANGUAGE_ID."&".$tabControl->ActiveTabParam());
+		Helper::setOptions($compositeOptions);
+		bx_accelerator_reset();
+		LocalRedirect("/bitrix/admin/composite.php?lang=".LANGUAGE_ID."&".$tabControl->ActiveTabParam());
+	}
 }
 
 if (
@@ -246,7 +299,7 @@ if (
 		$text = GetMessage("MAIN_COMPOSITE_CHECK_CONNECTION_ERR1");
 		$status = "error";
 	}
-	elseif (strlen($host) > 0 && strlen($port) > 0 && ($memcached = new \Memcache()) && @$memcached->connect($host, $port))
+	elseif ($host <> '' && $port <> '' && ($memcached = new \Memcache()) && @$memcached->connect($host, $port))
 	{
 		$text = GetMessage("MAIN_COMPOSITE_CHECK_CONNECTION_OK");
 		$status = "success";
@@ -285,6 +338,26 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_aft
 		}
 	}
 </script>
+
+<?php
+if ($errors):
+?>
+	<div class="adm-info-message-wrap adm-info-message-red">
+		<div class="adm-info-message">
+			<div class="adm-info-message-title"><?=GetMessage("MAIN_COMPOSITE_SAVE_ERROR")?></div>
+			<?=implode("<br>", $errors)?>
+			<div class="adm-info-message-icon"></div>
+		</div>
+	</div>
+<?php
+elseif (Configuration::getValue("force_enable_self_hosted_composite") === true):
+?>
+	<div class="adm-info-message-wrap">
+		<div class="adm-info-message"><?=GetMessage("MAIN_COMPOSITE_CORPORATE_PORTAL_DOMAIN_WARNING")?></div>
+	</div>
+<?php
+endif;
+?>
 
 <form method="POST" name="composite_form" action="<?echo $APPLICATION->GetCurPage()?>">
 
@@ -874,7 +947,7 @@ if (!isset($compositeOptions["MEMCACHED_PORT"]))
 					$disabled = " disabled";
 					$nameDesc = " (".GetMessage("MAIN_COMPOSITE_MODULE_ERROR", array("#MODULE#" => $storage["module"])).")";
 				}
-				elseif (isset($storage["extension"]) && strlen($storage["extension"]) > 0 && !extension_loaded($storage["extension"]))
+				elseif (isset($storage["extension"]) && $storage["extension"] <> '' && !extension_loaded($storage["extension"]))
 				{
 					$disabled = " disabled";
 					$nameDesc = " (".GetMessage("MAIN_COMPOSITE_EXT_ERROR", array("#EXTENSION#" => $storage["extension"])).")";

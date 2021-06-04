@@ -10,11 +10,13 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_19.5.COVER_WITH_IMG_TEXT_AND_BUTTONS_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_19.5.COVER_WITH_IMG_TEXT_AND_BUTTONS_NODES_LANDINGBLOCKNODE_CARD'),
 			'label' => array('.landing-block-node-card-button-img'),
+			'presets' => include __DIR__ . '/presets.php',
 		),
 	),
 	'nodes' => array(
@@ -29,9 +31,14 @@ return array(
 		'.landing-block-node-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_19.5.COVER_WITH_IMG_TEXT_AND_BUTTONS_NODES_LANDINGBLOCKNODEIMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 526, 'height' => 709),
+			'dimensions' => array('width' => 540),
 		),
 		'.landing-block-node-card-button-img' => array(
+			'name' => Loc::getMessage('LANDING_BLOCK_19.5.COVER_WITH_IMG_TEXT_AND_BUTTONS_NODES_LANDINGBLOCKNODE_BUTTON_IMG'),
+			'type' => 'img',
+			'group' => 'button',
+		),
+		'.landing-block-node-card-button-img-custom' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_19.5.COVER_WITH_IMG_TEXT_AND_BUTTONS_NODES_LANDINGBLOCKNODE_BUTTON_IMG'),
 			'type' => 'img',
 			'group' => 'button',

@@ -16,9 +16,7 @@ class im extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		if (is_array($arModuleVersion) && array_key_exists("VERSION", $arModuleVersion))
 		{
@@ -47,7 +45,7 @@ class im extends CModule
 	{
 		global $DB, $APPLICATION;
 
-		if(strtolower($DB->type) !== 'mysql')
+		if($DB->type !== 'MYSQL')
 		{
 			$this->errors = array(
 				GetMessage('IM_DB_NOT_SUPPORTED'),
@@ -55,13 +53,11 @@ class im extends CModule
 		}
 		else
 		{
-			$this->errors = false;
 			if(!$DB->Query("SELECT 'x' FROM b_im_chat", true))
-				$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/im/install/db/".strtolower($DB->type)."/install.sql");
+				$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/im/install/db/".mb_strtolower($DB->type)."/install.sql");
 		}
 
-
-		if($this->errors !== false)
+		if(!empty($this->errors))
 		{
 			$APPLICATION->ThrowException(implode("", $this->errors));
 			return false;
@@ -90,12 +86,17 @@ class im extends CModule
 		CAgent::AddAgent("CIMMail::MailNotifyAgent();", "im", "N", 600);
 		CAgent::AddAgent("CIMMail::MailMessageAgent();", "im", "N", 600);
 		CAgent::AddAgent("CIMDisk::RemoveTmpFileAgent();", "im", "N", 43200);
+		CAgent::AddAgent("\\Bitrix\\Im\\Notify::cleanNotifyAgent();", "im", "N", 7200);
 		CAgent::AddAgent("\\Bitrix\\Im\\Bot::deleteExpiredTokenAgent();", "im", "N", 86400);
 		CAgent::AddAgent("\\Bitrix\\Im\\Disk\\NoRelationPermission::cleaningAgent();", "im", "N", 3600);
+		CAgent::AddAgent("\\Bitrix\\Im\\Call\\Conference::removeTemporaryAliases();", "im", "N", 86400);
 
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
 		$eventManager->registerEventHandler('pull', 'onGetMobileCounter', 'im', '\Bitrix\Im\Counter', 'onGetMobileCounter');
 		$eventManager->registerEventHandler('pull', 'onGetMobileCounterTypes', 'im', '\Bitrix\Im\Counter', 'onGetMobileCounterTypes');
+		$eventManager->registerEventHandler('voximplant', 'onConferenceFinished', 'im', '\Bitrix\Im\Call\Call', 'onVoximplantConferenceFinished');
+
+		$eventManager->registerEventHandler('rest', 'onRestCheckAuth', 'im', '\Bitrix\Im\Call\Auth', 'onRestCheckAuth');
 
 		$solution = COption::GetOptionString("main", "wizard_solution", false);
 		if ($solution == 'community')
@@ -105,10 +106,17 @@ class im extends CModule
 
 		CModule::IncludeModule("im");
 
-		$errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/im/install/mysql/install_ft.sql");
+		if(\Bitrix\Main\Entity\CryptoField::cryptoAvailable())
+		{
+			\Bitrix\Im\Model\ConferenceTable::enableCrypto("PASSWORD");
+		}
+
+		\Bitrix\Im\Integration\Intranet\User::registerEventHandler();
+
+		$errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/im/install/db/mysql/install_ft.sql");
 		if ($errors === false)
 		{
-			\Bitrix\Im\Model\MessageTable::getEntity()->enableFullTextIndex("MESSAGE");
+			\Bitrix\Im\Model\MessageIndexTable::getEntity()->enableFullTextIndex("SEARCH_CONTENT");
 			\Bitrix\Im\Model\ChatIndexTable::getEntity()->enableFullTextIndex("SEARCH_CONTENT");
 		}
 
@@ -127,7 +135,7 @@ class im extends CModule
 		$this->InstallEvents();
 		$this->InstallUserFields();
 
-		CIMChat::InstallGeneralChat();
+		CAgent::AddAgent("CIMChat::InstallGeneralChat(true);", "im", "N", 900, "", "Y", ConvertTimeStamp(time()+CTimeZone::GetOffset()+900, "FULL"));
 
 		return true;
 	}
@@ -142,24 +150,34 @@ class im extends CModule
 			CopyDirFiles($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/im/install/admin', $_SERVER['DOCUMENT_ROOT'].'/bitrix/admin', true, true);
 			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/im/install/templates", $_SERVER["DOCUMENT_ROOT"]."/bitrix/templates", True, True);
 			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/im/install/public", $_SERVER["DOCUMENT_ROOT"]."/", True, True);
+			CopyDirFiles($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/im/install/pub", $_SERVER["DOCUMENT_ROOT"]."/pub", true, true);
 
-			$siteId = \CSite::GetDefSite();
-			if ($siteId)
+			if (!IsModuleInstalled('bitrix24'))
 			{
-				\Bitrix\Main\UrlRewriter::add($siteId, array(
-					"CONDITION" => "#^/online/([\.\-0-9a-zA-Z]+)(/?)([^/]*)#",
-					"RULE" => "alias=\$1",
-					"PATH" => "/desktop_app/router.php",
-				));
-				\Bitrix\Main\UrlRewriter::add($siteId, array(
-					"CONDITION" => "#^/online/(/?)([^/]*)#",
-					"RULE" => "",
-					"PATH" => "/desktop_app/router.php",
-				));
+				$siteId = \CSite::GetDefSite();
+				if ($siteId)
+				{
+					\Bitrix\Main\UrlRewriter::add($siteId, array(
+						"CONDITION" => "#^/video([\.\-0-9a-zA-Z]+)(/?)([^/]*)#",
+						"RULE" => "alias=\$1&videoconf",
+						"PATH" => "/desktop_app/router.php",
+					));
+					\Bitrix\Main\UrlRewriter::add($siteId, array(
+						"CONDITION" => "#^/online/([\.\-0-9a-zA-Z]+)(/?)([^/]*)#",
+						"RULE" => "alias=\$1",
+						"PATH" => "/desktop_app/router.php",
+					));
+					\Bitrix\Main\UrlRewriter::add($siteId, array(
+						"CONDITION" => "#^/online/(/?)([^/]*)#",
+						"RULE" => "",
+						"PATH" => "/desktop_app/router.php",
+					));
+				}
 			}
 
 			$GLOBALS["APPLICATION"]->SetFileAccessPermission('/desktop_app/', array("*" => "R"));
 			$GLOBALS["APPLICATION"]->SetFileAccessPermission('/online/', array("*" => "R"));
+			$GLOBALS["APPLICATION"]->SetFileAccessPermission('/video/', array("*" => "R"));
 		}
 		return true;
 	}
@@ -202,6 +220,20 @@ class im extends CModule
 				"TEMPLATE" => "desktop_app"
 			);
 
+			$callAppFound = false;
+			$arCallTempalate = Array(
+				"SORT" => 50,
+				"CONDITION" => 'preg_match("#^/video/([\.\-0-9a-zA-Z]+)(/?)([^/]*)#", $GLOBALS[\'APPLICATION\']->GetCurPage(0))',
+				"TEMPLATE" => "call_app"
+			);
+
+			$callDesktopAppFound = false;
+			$arCallTempalateForDesktop = [
+				"SORT" => 60,
+				"CONDITION" => 'preg_match("#^/desktop_app/router.php\?alias=([\.\-0-9a-zA-Z]+)&videoconf#", $GLOBALS[\'APPLICATION\']->GetCurPage(0))',
+				"TEMPLATE" => "call_app"
+			];
+
 			$pubAppFound = false;
 			$arPubTempalate = Array(
 				"SORT" => 100,
@@ -218,6 +250,16 @@ class im extends CModule
 					$desktopAppFound = true;
 					$template = $arAppTempalate;
 				}
+				else if ($template["CONDITION"] == 'preg_match("#^/video/([\.\-0-9a-zA-Z]+)(/?)([^/]*)#", $GLOBALS[\'APPLICATION\']->GetCurPage(0))')
+				{
+					$callAppFound = true;
+					$template = $arCallTempalate;
+				}
+				else if ($template["CONDITION"] == 'preg_match("#^/desktop_app/router.php\?alias=([\.\-0-9a-zA-Z]+)&videoconf#", $GLOBALS[\'APPLICATION\']->GetCurPage(0))')
+				{
+					$callDesktopAppFound = true;
+					$template = $arCallTempalateForDesktop;
+				}
 				else if ($template["CONDITION"] == 'preg_match("#^/online/([\.\-0-9a-zA-Z]+)(/?)([^/]*)#", $GLOBALS[\'APPLICATION\']->GetCurPage(0))')
 				{
 					$pubAppFound = true;
@@ -233,6 +275,10 @@ class im extends CModule
 				$arFields["TEMPLATE"][] = $arAppTempalate;
 			if (!$pubAppFound)
 				$arFields["TEMPLATE"][] = $arPubTempalate;
+			if (!$callDesktopAppFound)
+				$arFields["TEMPLATE"][] = $arCallTempalateForDesktop;
+			if (!$callAppFound)
+				$arFields["TEMPLATE"][] = $arCallTempalate;
 
 			$obSite = new CSite;
 			$arFields["LID"] = $default_site_id;
@@ -279,7 +325,7 @@ class im extends CModule
 	function DoUninstall()
 	{
 		global $DOCUMENT_ROOT, $APPLICATION, $step;
-		$step = IntVal($step);
+		$step = intval($step);
 		if($step<2)
 		{
 			$APPLICATION->IncludeAdminFile(GetMessage("IM_UNINSTALL_TITLE"), $DOCUMENT_ROOT."/bitrix/modules/im/install/unstep1.php");
@@ -303,9 +349,11 @@ class im extends CModule
 
 		$this->errors = false;
 
+		CModule::IncludeModule('im');
+
 		if (!$arParams['savedata'])
 		{
-			$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/im/install/db/".strtolower($DB->type)."/uninstall.sql");
+			$this->errors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/im/install/db/".mb_strtolower($DB->type)."/uninstall.sql");
 			COption::RemoveOption("im", "general_chat_id");
 		}
 
@@ -318,13 +366,18 @@ class im extends CModule
 			$APPLICATION->ThrowException(implode("", $arSQLErrors));
 			return false;
 		}
+
+		\Bitrix\Im\Integration\Intranet\User::unRegisterEventHandler();
+
 		CAdminNotify::DeleteByTag("IM_CONVERT");
 
 		CAgent::RemoveAgent("CIMMail::MailNotifyAgent();", "im");
 		CAgent::RemoveAgent("CIMMail::MailMessageAgent();", "im");
 		CAgent::RemoveAgent("CIMDisk::RemoveTmpFileAgent();", "im");
+		CAgent::RemoveAgent("\\Bitrix\\Im\\Notify::cleanNotifyAgent();", "im");
 		CAgent::RemoveAgent("\\Bitrix\\Im\\Bot::deleteExpiredTokenAgent();", "im");
 		CAgent::RemoveAgent("\\Bitrix\\Im\\Disk\\NoRelationPermission::cleaningAgent();", "im");
+		CAgent::RemoveAgent("\\Bitrix\\Im\\Call\\Conference::removeTemporaryAliases();", "im");
 		UnRegisterModuleDependences("im", "OnGetNotifySchema", "im", "CIMNotifySchema", "OnGetNotifySchema");
 		UnRegisterModuleDependences("main", "OnFileDelete", "im", "CIMEvent", "OnFileDelete");
 		UnRegisterModuleDependences("disk", "onAfterDeleteFile", "im", "CIMDisk", "OnAfterDeleteFile");
@@ -347,8 +400,11 @@ class im extends CModule
 		$eventManager = \Bitrix\Main\EventManager::getInstance();
 		$eventManager->unRegisterEventHandler('pull', 'onGetMobileCounter', 'im', '\Bitrix\Im\Counter', 'onGetMobileCounter');
 		$eventManager->unRegisterEventHandler('pull', 'onGetMobileCounterTypes', 'im', '\Bitrix\Im\Counter', 'onGetMobileCounterTypes');
+		$eventManager->unRegisterEventHandler('voximplant', 'onConferenceFinished', 'im', '\Bitrix\Im\Call\Call', 'onVoximplantConferenceFinished');
 
 		$this->UnInstallUserFields($arParams);
+
+
 
 		UnRegisterModule("im");
 
@@ -361,6 +417,7 @@ class im extends CModule
 		{
 			DeleteDirFilesEx('/desktop_app/');
 			DeleteDirFilesEx('/bitrix/templates/desktop_app/');
+			DeleteDirFilesEx('/bitrix/templates/call_app/');
 		}
 		$GLOBALS["APPLICATION"]->SetFileAccessPermission('/desktop_app/', array("*" => "D"));
 		return true;

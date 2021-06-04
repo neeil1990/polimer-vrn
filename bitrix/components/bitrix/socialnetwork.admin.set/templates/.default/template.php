@@ -1,6 +1,9 @@
-<?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <?
-if(strlen($arResult["FatalError"])>0)
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+\Bitrix\Main\UI\Extension::load("ui.alerts");
+?>
+<?
+if($arResult["FatalError"] <> '')
 {
 	?><span class='errortext'><?=$arResult["FatalError"]?></span><br /><br /><?
 }
@@ -8,7 +11,7 @@ else
 {
 	CUtil::InitJSCore(array("ajax", "popup"));
 
-	if(strlen($arResult["ErrorMessage"])>0)
+	if($arResult["ErrorMessage"] <> '')
 	{
 		?><span class="errortext"><?=$arResult["ErrorMessage"]?></span><br /><br /><?
 	}
@@ -34,9 +37,9 @@ else
 
 		if ($arResult["SHOW_BANNER"])
 		{
-			?><div class="sonet-admin-note"><?
-				?><?=GetMessage("SONET_SAS_T_ADMIN_".(!$arResult["IS_SESSION_ADMIN"] ? "OFF" : "ON"))?>
-				<a href="#" onclick="__SASSetAdmin(); return false;"><?=GetMessage("SONET_SAS_T_ADMIN_".(!$arResult["IS_SESSION_ADMIN"] ? "SET" : "UNSET"))?></a>
+			?><div class="ui-alert ui-alert-warning ui-alert-icon-info"><?
+				?>	<span class="ui-alert-message"><?=GetMessage("SONET_SAS_T_ADMIN_".(!$arResult["IS_SESSION_ADMIN"] ? "OFF" : "ON"))?>
+					<a href="#" onclick="__SASSetAdmin(); return false;"><?=GetMessage("SONET_SAS_T_ADMIN_".(!$arResult["IS_SESSION_ADMIN"] ? "SET" : "UNSET"))?></a></span>
 			</div><?
 		}
 

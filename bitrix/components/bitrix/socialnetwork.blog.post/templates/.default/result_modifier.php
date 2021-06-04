@@ -82,7 +82,7 @@ if (
 	}
 }
 
-if (!empty($arParams['TOP_RATING_DATA']))
+if (is_array($arParams['TOP_RATING_DATA']))
 {
 	$arResult['TOP_RATING_DATA'] = $arParams['TOP_RATING_DATA'];
 }
@@ -102,4 +102,10 @@ elseif (
 	{
 		$arResult['TOP_RATING_DATA'] = $ratingData[$arParams["LOG_ID"]];
 	}
+}
+
+if (!empty($arResult['Post']['BACKGROUND_CODE']))
+{
+	$arResult['Post']['IS_IMPORTANT'] = false;
+	$arResult['GRATITUDE'] = [];
 }

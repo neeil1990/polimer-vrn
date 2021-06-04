@@ -1,13 +1,8 @@
 <?
-##############################################
-# Bitrix: SiteManager                        #
-# Copyright (c) 2002-2006 Bitrix             #
-# http://www.bitrixsoft.com                  #
-# mailto:admin@bitrixsoft.com                #
-##############################################
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions < "W")
@@ -29,7 +24,7 @@ $lAdmin->InitFilter($arFilterFields);
 
 $arFilter = array();
 
-if (IntVal($filter_person_type_id)>0)
+if (intval($filter_person_type_id)>0)
 	$arFilter["PERSON_TYPE_ID"] = $filter_person_type_id;
 else
 	Unset($arFilter["PERSON_TYPE_ID"]);
@@ -39,7 +34,7 @@ if ($lAdmin->EditAction() && $saleModulePermissions >= "W")
 	foreach ($FIELDS as $ID => $arFields)
 	{
 		$DB->StartTransaction();
-		$ID = IntVal($ID);
+		$ID = intval($ID);
 
 		if (!$lAdmin->IsUpdated($ID))
 			continue;
@@ -78,7 +73,7 @@ if (($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "W")
 
 	foreach ($arID as $ID)
 	{
-		if (strlen($ID) <= 0)
+		if ($ID == '')
 			continue;
 
 		switch ($_REQUEST['action'])
@@ -168,7 +163,7 @@ while ($arPropsGroup = $dbResultList->NavNext(true, "f_"))
 			array("PROPS_GROUP_ID" => $f_ID),
 			array()
 		);
-		$numProps = IntVal($numProps);
+		$numProps = intval($numProps);
 
 		if ($numProps > 0)
 			$fieldValue = "<a href=\"sale_order_props.php?lang=".LANG."&set_filter=Y&filter_group=".$f_ID."\">".$numProps."</a>";

@@ -1,4 +1,6 @@
 <?
+use Bitrix\Main;
+
 /*
 This class is used to parse and load an xml file into database table.
 */
@@ -21,17 +23,7 @@ class CIBlockXMLFile
 	function __construct($table_name = "b_xml_tree")
 	{
 		$this->_table_name = strtolower($table_name);
-		if (defined("BX_UTF"))
-		{
-			if (function_exists("mb_orig_strpos") && function_exists("mb_orig_strlen") && function_exists("mb_orig_substr"))
-				$this->_get_xml_chunk_function = "_get_xml_chunk_mb_orig";
-			else
-				$this->_get_xml_chunk_function = "_get_xml_chunk_mb";
-		}
-		else
-		{
-			$this->_get_xml_chunk_function = "_get_xml_chunk";
-		}
+		$this->_get_xml_chunk_function = "_get_xml_chunk";
 	}
 
 	function StartSession($sess_id)
@@ -110,7 +102,7 @@ class CIBlockXMLFile
 	*/
 	function DropTemporaryTables()
 	{
-		if(!isset($this) || !is_object($this) || strlen($this->_table_name) <= 0)
+		if(!isset($this) || !is_object($this) || $this->_table_name == '')
 		{
 			$ob = new CIBlockXMLFile;
 			return $ob->DropTemporaryTables();
@@ -127,7 +119,7 @@ class CIBlockXMLFile
 
 	function CreateTemporaryTables($with_sess_id = false)
 	{
-		if(!isset($this) || !is_object($this) || strlen($this->_table_name) <= 0)
+		if(!isset($this) || !is_object($this) || $this->_table_name == '')
 		{
 			$ob = new CIBlockXMLFile;
 			return $ob->CreateTemporaryTables();
@@ -136,7 +128,10 @@ class CIBlockXMLFile
 		{
 			global $DB;
 
-			if(defined("MYSQL_TABLE_TYPE") && strlen(MYSQL_TABLE_TYPE) > 0)
+			if ($DB->TableExists($this->_table_name))
+				return false;
+
+			if(defined("MYSQL_TABLE_TYPE") && MYSQL_TABLE_TYPE <> '')
 				$DB->Query("SET storage_engine = '".MYSQL_TABLE_TYPE."'", true);
 
 			$res = $DB->DDL("create table ".$this->_table_name."
@@ -165,7 +160,7 @@ class CIBlockXMLFile
 	{
 		global $DB;
 
-		if (!isset($this) || !is_object($this) || strlen($this->_table_name) <= 0)
+		if (!isset($this) || !is_object($this) || $this->_table_name == '')
 		{
 			$ob = new CIBlockXMLFile;
 			return $ob->IsExistTemporaryTable();
@@ -182,7 +177,7 @@ class CIBlockXMLFile
 
 		$parentID = (int)$parentID;
 
-		if (!isset($this) || !is_object($this) || strlen($this->_table_name) <= 0)
+		if (!isset($this) || !is_object($this) || $this->_table_name == '')
 		{
 			$ob = new CIBlockXMLFile;
 			return $ob->GetCountItemsWithParent($parentID);
@@ -206,7 +201,7 @@ class CIBlockXMLFile
 	*/
 	function IndexTemporaryTables($with_sess_id = false)
 	{
-		if(!isset($this) || !is_object($this) || strlen($this->_table_name) <= 0)
+		if(!isset($this) || !is_object($this) || $this->_table_name == '')
 		{
 			$ob = new CIBlockXMLFile;
 			return $ob->IndexTemporaryTables();
@@ -287,8 +282,6 @@ class CIBlockXMLFile
 	*/
 	function ReadXMLToDatabase($fp, &$NS, $time_limit=0, $read_size = 1024)
 	{
-		global $APPLICATION;
-
 		//Initialize object
 		if(!array_key_exists("charset", $NS))
 			$NS["charset"] = false;
@@ -314,13 +307,12 @@ class CIBlockXMLFile
 			$end_time = time() + 365*24*3600; // One year
 
 		$cs = $this->charset;
-		$_get_xml_chunk = array($this, $this->_get_xml_chunk_function);
 		fseek($fp, $this->file_position);
-		while(($xmlChunk = call_user_func_array($_get_xml_chunk, array($fp))) !== false)
+		while(($xmlChunk = $this->_get_xml_chunk($fp)) !== false)
 		{
 			if($cs)
 			{
-				$xmlChunk = $APPLICATION->ConvertCharset($xmlChunk, $cs, LANG_CHARSET);
+				$xmlChunk = Main\Text\Encoding::convertEncoding($xmlChunk, $cs, LANG_CHARSET);
 			}
 
 			if($xmlChunk[0] == "/")
@@ -331,7 +323,7 @@ class CIBlockXMLFile
 			}
 			elseif($xmlChunk[0] == "!" || $xmlChunk[0] == "?")
 			{
-				if(substr($xmlChunk, 0, 4) === "?xml")
+				if(strncmp($xmlChunk, "?xml", 4) === 0)
 				{
 					if(preg_match('#encoding[\s]*=[\s]*"(.*?)"#i', $xmlChunk, $arMatch))
 					{
@@ -352,10 +344,13 @@ class CIBlockXMLFile
 		return feof($fp);
 	}
 
-	/*
-	Internal function.
-	Used to read an xml by chunks started with "<" and endex with "<"
-	*/
+	/**
+	 * Internal function.
+	 * Used to read an xml by chunks started with "<" and endex with "<"
+	 *
+	 * @param resource $fp
+	 * @return bool|string
+	 */
 	function _get_xml_chunk($fp)
 	{
 		if($this->buf_position >= $this->buf_len)
@@ -418,10 +413,14 @@ class CIBlockXMLFile
 		return $result;
 	}
 
-	/*
-	Internal function.
-	Used to read an xml by chunks started with "<" and endex with "<"
-	*/
+	/**
+	 * Internal function.
+	 * Used to read an xml by chunks started with "<" and endex with "<"
+	 *
+	 * @deprecated deprecated since iblock 20.100.0
+	 * @param resource $fp
+	 * @return bool|string
+	 */
 	function _get_xml_chunk_mb_orig($fp)
 	{
 		if($this->buf_position >= $this->buf_len)
@@ -484,10 +483,14 @@ class CIBlockXMLFile
 		return $result;
 	}
 
-	/*
-	Internal function.
-	Used to read an xml by chunks started with "<" and endex with "<"
-	*/
+	/**
+	 * Internal function.
+	 * Used to read an xml by chunks started with "<" and endex with "<"
+	 *
+	 * @deprecated deprecated since iblock 20.100.0
+	 * @param resource $fp
+	 * @return bool|string
+	 */
 	function _get_xml_chunk_mb($fp)
 	{
 		if($this->buf_position >= $this->buf_len)
@@ -496,14 +499,14 @@ class CIBlockXMLFile
 			{
 				$this->buf = fread($fp, $this->read_size);
 				$this->buf_position = 0;
-				$this->buf_len = mb_strlen($this->buf);
+				$this->buf_len = mb_strlen($this->buf, 'latin1');
 			}
 			else
 				return false;
 		}
 
 		//Skip line delimiters (ltrim)
-		$xml_position = mb_strpos($this->buf, "<", $this->buf_position);
+		$xml_position = mb_strpos($this->buf, "<", $this->buf_position, 'latin1');
 		while($xml_position === $this->buf_position)
 		{
 			$this->buf_position++;
@@ -515,12 +518,12 @@ class CIBlockXMLFile
 				{
 					$this->buf = fread($fp, $this->read_size);
 					$this->buf_position = 0;
-					$this->buf_len = mb_strlen($this->buf);
+					$this->buf_len = mb_strlen($this->buf, 'latin1');
 				}
 				else
 					return false;
 			}
-			$xml_position = mb_strpos($this->buf, "<", $this->buf_position);
+			$xml_position = mb_strpos($this->buf, "<", $this->buf_position, 'latin1');
 		}
 
 		//Let's find next line delimiter
@@ -531,20 +534,20 @@ class CIBlockXMLFile
 			if(!feof($fp))
 			{
 				$this->buf .= fread($fp, $this->read_size);
-				$this->buf_len = mb_strlen($this->buf);
+				$this->buf_len = mb_strlen($this->buf, 'latin1');
 			}
 			else
 				break;
 
 			//Let's find xml tag start
-			$xml_position = mb_strpos($this->buf, "<", $next_search);
+			$xml_position = mb_strpos($this->buf, "<", $next_search, 'latin1');
 		}
 		if($xml_position===false)
 			$xml_position = $this->buf_len+1;
 
 		$len = $xml_position-$this->buf_position;
 		$this->file_position += $len;
-		$result = mb_substr($this->buf, $this->buf_position, $len);
+		$result = mb_substr($this->buf, $this->buf_position, $len, 'latin1');
 		$this->buf_position = $xml_position;
 
 		return $result;
@@ -574,20 +577,20 @@ class CIBlockXMLFile
 		$p = strpos($xmlChunk, ">");
 		if($p !== false)
 		{
-			if(substr($xmlChunk, $p - 1, 1)=="/")
+			if(substr($xmlChunk, $p - 1, 1) == "/")
 			{
 				$bHaveChildren = false;
-				$elementName = substr($xmlChunk, 0, $p-1);
+				$elementName = substr($xmlChunk, 0, $p - 1);
 				$DBelementValue = false;
 			}
 			else
 			{
 				$bHaveChildren = true;
 				$elementName = substr($xmlChunk, 0, $p);
-				$elementValue = substr($xmlChunk, $p+1);
+				$elementValue = substr($xmlChunk, $p + 1);
 				if(preg_match("/^\s*$/", $elementValue))
 					$DBelementValue = false;
-				elseif(strpos($elementValue, "&")===false)
+				elseif(strpos($elementValue, "&") === false)
 					$DBelementValue = $elementValue;
 				else
 					$DBelementValue = preg_replace($search, $replace, $elementValue);
@@ -596,11 +599,11 @@ class CIBlockXMLFile
 			if(($ps = strpos($elementName, " "))!==false)
 			{
 				//Let's handle attributes
-				$elementAttrs = substr($elementName, $ps+1);
+				$elementAttrs = substr($elementName, $ps + 1);
 				$elementName = substr($elementName, 0, $ps);
 				preg_match_all("/(\\S+)\\s*=\\s*[\"](.*?)[\"]/s".BX_UTF_PCRE_MODIFIER, $elementAttrs, $attrs_tmp);
 				$attrs = array();
-				if(strpos($elementAttrs, "&")===false)
+				if(strpos($elementAttrs, "&") === false)
 				{
 					foreach($attrs_tmp[1] as $i=>$attrs_tmp_1)
 						$attrs[$attrs_tmp_1] = $attrs_tmp[2][$i];
@@ -812,12 +815,10 @@ class CIBlockXMLFile
 
 	public static function UnZip($file_name, $last_zip_entry = "", $start_time = 0, $interval = 0)
 	{
-		global $APPLICATION;
-
 		//Function and securioty checks
 		if(!function_exists("zip_open"))
 			return false;
-		$dir_name = substr($file_name, 0, strrpos($file_name, "/")+1);
+		$dir_name = substr($file_name, 0, strrpos($file_name, "/") + 1);
 		if(strlen($dir_name) <= strlen($_SERVER["DOCUMENT_ROOT"]))
 			return false;
 
@@ -843,7 +844,7 @@ class CIBlockXMLFile
 			{
 
 				$file_name = trim(str_replace("\\", "/", trim($entry_name)), "/");
-				$file_name = $APPLICATION->ConvertCharset($file_name, "cp866", LANG_CHARSET);
+				$file_name = Main\Text\Encoding::convertEncoding($file_name, "cp866", LANG_CHARSET);
 				$file_name = preg_replace("#^import_files/tmp/webdata/\\d+/\\d+/import_files/#", "import_files/", $file_name);
 
 				$bBadFile = HasScriptExtension($file_name)
@@ -858,9 +859,10 @@ class CIBlockXMLFile
 					$fout = fopen($file_name, "wb");
 					if(!$fout)
 						return false;
+					$useMbstring = function_exists('mb_strlen');
 					while($data = zip_entry_read($entry, 102400))
 					{
-						$data_len = function_exists('mb_strlen') ? mb_strlen($data, 'latin1') : strlen($data);
+						$data_len = $useMbstring ? mb_strlen($data, 'latin1') : strlen($data);
 						$result = fwrite($fout, $data);
 						if($result !== $data_len)
 							return false;

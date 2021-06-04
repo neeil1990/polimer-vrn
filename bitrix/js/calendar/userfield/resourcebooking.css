@@ -2117,3 +2117,10 @@ input.calendar-resbook-webform-settings-popup-field-subtitle-text {
 	margin-left: 10px;
 	font-size: 90%;
 }
+
+.calendar-resbook-empty-input {
+	width: 1px!important;
+	position: absolute!important;
+	border: none!important;
+	opacity: 0!important;
+}

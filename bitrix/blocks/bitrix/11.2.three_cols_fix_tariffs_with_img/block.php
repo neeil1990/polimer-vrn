@@ -12,8 +12,7 @@
 		<div class="row landing-block-inner">
 			<div class="landing-block-node-card col-md-6 col-lg-4 g-mb-30 g-mb-0--md">
 				<!-- Article -->
-				<article
-						class="landing-block-node-card-container js-animation fadeInRight text-center text-uppercase g-theme-photography-bg-gray-dark-v2 g-color-white-opacity-0_5">
+				<article class="landing-block-node-card-container js-animation fadeInRight text-center text-uppercase g-theme-photography-bg-gray-dark-v2 g-color-white-opacity-0_5">
 					<!-- Article Image -->
 					<img class="landing-block-node-card-img w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/370x200/img1.jpg"
 						 alt="">
@@ -31,10 +30,10 @@
 						</div>
 					</header>
 
-					<div class="landing-block-node-card-price g-font-weight-700 d-block g-color-white g-font-size-26 g-letter-spacing-5 g-mb-20">
+					<div class="landing-block-node-card-price g-font-weight-700 d-block g-color-white g-font-size-26 g-letter-spacing-5">
 						$100.00
 					</div>
-					<ul class="landing-block-node-card-price-list list-unstyled g-letter-spacing-0_5 g-font-size-12 mb-0">
+					<ul class="landing-block-node-card-price-list list-unstyled g-letter-spacing-0_5 g-font-size-12 mb-0 g-pt-20">
 						<li class="g-theme-photography-bg-gray-dark-v3 g-py-10 g-px-30"><b>10%</b> In hac habitasse
 							platea
 						</li>
@@ -50,7 +49,7 @@
 					</ul>
 
 					<footer class="g-pa-40 landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md rounded-0 u-btn-outline-white g-brd-2 g-font-size-12 g-font-weight-600 g-letter-spacing-1"
+						<a class="landing-block-node-card-button btn g-btn-type-outline g-btn-white g-btn-size-md g-btn-px-m rounded-0 g-letter-spacing-1"
 						   href="#">Order Now</a>
 					</footer>
 					<!-- End of Article Content -->
@@ -60,8 +59,7 @@
 
 			<div class="landing-block-node-card col-md-6 col-lg-4 g-mb-30 g-mb-0--md">
 				<!-- Article -->
-				<article
-						class="landing-block-node-card-container js-animation fadeInRight text-center text-uppercase g-theme-photography-bg-gray-dark-v2 g-color-white-opacity-0_5">
+				<article class="landing-block-node-card-container js-animation fadeInRight text-center text-uppercase g-theme-photography-bg-gray-dark-v2 g-color-white-opacity-0_5">
 					<!-- Article Image -->
 					<img class="landing-block-node-card-img w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/370x200/img2.jpg"
 						 alt="">
@@ -78,10 +76,10 @@
 						</div>
 					</header>
 
-					<div class="landing-block-node-card-price g-font-weight-700 d-block g-color-white g-font-size-26 g-letter-spacing-5 g-mb-20">
+					<div class="landing-block-node-card-price g-font-weight-700 d-block g-color-white g-font-size-26 g-letter-spacing-5">
 						$150.00
 					</div>
-					<ul class="landing-block-node-card-price-list list-unstyled g-letter-spacing-0_5 g-font-size-12 mb-0">
+					<ul class="landing-block-node-card-price-list list-unstyled g-letter-spacing-0_5 g-font-size-12 mb-0 g-pt-20">
 						<li class="g-theme-photography-bg-gray-dark-v3 g-py-10 g-px-30"><b>10%</b> In hac habitasse
 							platea
 						</li>
@@ -97,7 +95,7 @@
 					</ul>
 
 					<footer class="g-pa-40 landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md rounded-0 u-btn-outline-white g-brd-2 g-font-size-12 g-font-weight-600 g-letter-spacing-1"
+						<a class="landing-block-node-card-button btn g-btn-type-outline g-btn-white g-btn-size-md g-btn-px-m rounded-0 g-letter-spacing-1"
 						   href="#">Order Now</a>
 					</footer>
 					<!-- End of Article Content -->
@@ -107,8 +105,7 @@
 
 			<div class="landing-block-node-card col-md-6 col-lg-4 g-mb-30 g-mb-0--md">
 				<!-- Article -->
-				<article
-						class="landing-block-node-card-container js-animation fadeInRight text-center text-uppercase g-theme-photography-bg-gray-dark-v2 g-color-white-opacity-0_5">
+				<article class="landing-block-node-card-container js-animation fadeInRight text-center text-uppercase g-theme-photography-bg-gray-dark-v2 g-color-white-opacity-0_5">
 					<!-- Article Image -->
 					<img class="landing-block-node-card-img w-100" src="https://cdn.bitrix24.site/bitrix/images/landing/business/370x200/img3.jpg"
 						 alt="">
@@ -126,10 +123,10 @@
 						</div>
 					</header>
 
-					<div class="landing-block-node-card-price g-font-weight-700 d-block g-color-white g-font-size-26 g-letter-spacing-5 g-mb-20">
+					<div class="landing-block-node-card-price g-font-weight-700 d-block g-color-white g-font-size-26 g-letter-spacing-5">
 						$200.00
 					</div>
-					<ul class="landing-block-node-card-price-list list-unstyled g-letter-spacing-0_5 g-font-size-12 mb-0">
+					<ul class="landing-block-node-card-price-list list-unstyled g-letter-spacing-0_5 g-font-size-12 mb-0 g-pt-20">
 						<li class="g-theme-photography-bg-gray-dark-v3 g-py-10 g-px-30"><b>10%</b> In hac habitasse
 							platea
 						</li>
@@ -145,7 +142,7 @@
 					</ul>
 
 					<footer class="g-pa-40 landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-md rounded-0 u-btn-outline-white g-brd-2 g-font-size-12 g-font-weight-600 g-letter-spacing-1"
+						<a class="landing-block-node-card-button btn g-btn-type-outline g-btn-white g-btn-size-md g-btn-px-m rounded-0 g-letter-spacing-1"
 						   href="#">Order Now</a>
 					</footer>
 					<!-- End of Article Content -->

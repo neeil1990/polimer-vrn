@@ -8,11 +8,10 @@
 
 namespace Bitrix\Sender\Integration\Seo\Ads;
 
-use Bitrix\Seo\Retargeting;
-
 use Bitrix\Sender\Message;
-use Bitrix\Sender\Transport;
 use Bitrix\Sender\Recipient;
+use Bitrix\Sender\Transport;
+use Bitrix\Seo\Retargeting;
 
 /**
  * Class TransportBase
@@ -25,6 +24,8 @@ class TransportBase implements Transport\iBase
 	const CODE_ADS_FB = 'ads_fb';
 	const CODE_ADS_YA = 'ads_ya';
 	const CODE_ADS_GA = 'ads_ga';
+	const CODE_ADS_LOOKALIKE_FB = 'ads_lookalike_fb';
+	const CODE_ADS_LOOKALIKE_VK = 'ads_lookalike_vk';
 
 	/** @var Message\Configuration $configuration Configuration. */
 	protected $configuration;
@@ -107,6 +108,7 @@ class TransportBase implements Transport\iBase
 	public function send(Message\Adapter $message)
 	{
 		$config = $message->getConfiguration();
+		$clientId = $config->get('CLIENT_ID');
 		$audienceId = $config->get('AUDIENCE_ID');
 		$audiencePhoneId = $config->get('AUDIENCE_PHONE_ID');
 		$audienceEmailId = $config->get('AUDIENCE_EMAIL_ID');
@@ -166,6 +168,7 @@ class TransportBase implements Transport\iBase
 			$this->adsConfig->contactType = $audience['contactType'];
 			$this->adsConfig->type = $this->getAdsType();
 			$this->adsConfig->autoRemoveDayNumber = $config->get('AUTO_REMOVE_DAY_NUMBER');
+			$this->adsConfig->parentId = 'sender:'.$config->getId();
 
 			if ($adsContactType !== $this->adsConfig->contactType)
 			{
@@ -173,13 +176,18 @@ class TransportBase implements Transport\iBase
 			}
 
 			$contacts[$adsContactType] = array($message->getRecipientCode());
-
-
-			Retargeting\AdsAudience::useQueue();
-			$isSuccess = Retargeting\AdsAudience::addToAudience($this->adsConfig, $contacts);
+			static::addToAudience($clientId, $contacts);
 		}
 
 		return $isSuccess;
+	}
+
+	protected function addToAudience($clientId, $contacts)
+	{
+		$service = Retargeting\AdsAudience::getService();
+		$service->setClientId($clientId);
+		Retargeting\AdsAudience::useQueue();
+		return Retargeting\AdsAudience::addToAudience($this->adsConfig, $contacts);
 	}
 
 	public function end()

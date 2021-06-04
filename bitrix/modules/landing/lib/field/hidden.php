@@ -21,8 +21,17 @@ class Hidden extends \Bitrix\Landing\Field
 		?>name="<?= \htmlspecialcharsbx(isset($params['name_format'])
 				? str_replace('#field_code#', $this->code, $params['name_format'])
 				: $this->code)?>" <?
-		?>value="<?= \htmlspecialcharsbx($this->value)?>" <?
+		?>value="<?= \htmlspecialcharsbx($this->value ? $this->value : $this->default)?>" <?
 		?> />
 		<?
+	}
+
+	/**
+	 * Gets true, if current value is empty.
+	 * @return bool
+	 */
+	public function isEmptyValue()
+	{
+		return $this->value === '';
 	}
 }

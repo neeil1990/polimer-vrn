@@ -125,8 +125,8 @@
 	};
 })(window);
 
-BX.namespace("BX.Main.Menu");
-BX.Main.Menu.CatalogHorizontal = (function()
+BX.namespace("BX.Main.MenuComponent");
+BX.Main.MenuComponent.CatalogHorizontal = (function()
 {
 	var CatalogHorizontal = function(menuBlockId, itemImgDesc)
 	{
@@ -139,12 +139,10 @@ BX.Main.Menu.CatalogHorizontal = (function()
 
 	CatalogHorizontal.prototype.clickInMobile = function(element, event)
 	{
-		if (BX.findParent(element, {className: "bx-aside-nav"}, true))
-			return;
-
-		event.preventDefault();
-		element.onclick = '';
-		return false;
+		if (!BX.hasClass(element, "bx-hover"))
+		{
+			event.preventDefault();
+		}
 	};
 
 	CatalogHorizontal.prototype.toggleInMobile = function(element)

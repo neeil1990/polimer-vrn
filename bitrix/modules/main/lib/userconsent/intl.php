@@ -26,10 +26,10 @@ class Intl
 	protected $languageId = null;
 
 	/** @var array  */
-	protected $data = array();
+	protected $data = [];
 
 	/** @var array  */
-	protected static $virtualLanguageMap = array('kz' => 'ru');
+	protected static $virtualLanguageMap = ['kz' => 'ru', 'by' => 'ru'];
 
 
 	/**
@@ -170,6 +170,7 @@ class Intl
 					array(
 						'CODE' => 'COMPANY_NAME',
 						'TYPE' => 'text',
+						'TAB' => 'text',
 					),
 					array(
 						'CODE' => 'COMPANY_ADDRESS',
@@ -179,17 +180,20 @@ class Intl
 						'CODE' => 'PURPOSES',
 						'TYPE' => 'text',
 						'SHOW_BY_CHECKBOX' => true,
+						'TAB' => 'settings',
 					),
 					array(
 						'CODE' => 'THIRD_PARTIES',
 						'TYPE' => 'text',
 						'SHOW_BY_CHECKBOX' => true,
+						'TAB' => 'settings',
 					),
 					array(
 						'CODE' => 'EMAIL',
 						'TYPE' => 'string',
 						'PLACEHOLDER' => $email,
 						'DEFAULT_VALUE' => $email,
+						'TAB' => 'settings',
 					),
 				),
 			),
@@ -199,6 +203,7 @@ class Intl
 					array(
 						'CODE' => 'COMPANY_NAME',
 						'TYPE' => 'text',
+						'TAB' => 'text',
 					),
 				),
 			),
@@ -208,26 +213,65 @@ class Intl
 					array(
 						'CODE' => 'COMPANY_NAME',
 						'TYPE' => 'text',
+						'TAB' => 'text',
 					),
 					array(
 						'CODE' => 'COMPANY_ADDRESS',
 						'TYPE' => 'text',
+						'TAB' => 'text',
 					),
 					array(
 						'CODE' => 'PURPOSES',
 						'TYPE' => 'text',
 						'SHOW_BY_CHECKBOX' => true,
+						'TAB' => 'settings',
 					),
 					array(
 						'CODE' => 'THIRD_PARTIES',
 						'TYPE' => 'text',
 						'SHOW_BY_CHECKBOX' => true,
+						'TAB' => 'settings',
 					),
 					array(
 						'CODE' => 'EMAIL',
 						'TYPE' => 'string',
 						'PLACEHOLDER' => $email,
 						'DEFAULT_VALUE' => $email,
+						'TAB' => 'settings',
+					),
+				),
+			),
+			'by' => array(
+				'PHRASES' => array('COMPANY_NAME', 'IP_NAME'),
+				'FIELDS' => array(
+					array(
+						'CODE' => 'COMPANY_NAME',
+						'TYPE' => 'text',
+						'TAB' => 'text',
+					),
+					array(
+						'CODE' => 'COMPANY_ADDRESS',
+						'TYPE' => 'text',
+						'TAB' => 'text',
+					),
+					array(
+						'CODE' => 'PURPOSES',
+						'TYPE' => 'text',
+						'SHOW_BY_CHECKBOX' => true,
+						'TAB' => 'settings',
+					),
+					array(
+						'CODE' => 'THIRD_PARTIES',
+						'TYPE' => 'text',
+						'SHOW_BY_CHECKBOX' => true,
+						'TAB' => 'settings',
+					),
+					array(
+						'CODE' => 'EMAIL',
+						'TYPE' => 'string',
+						'PLACEHOLDER' => $email,
+						'DEFAULT_VALUE' => $email,
+						'TAB' => 'settings',
 					),
 				),
 			)
@@ -311,7 +355,7 @@ class Intl
 		// set virtual languages
 		foreach (self::$virtualLanguageMap as $virtualLanguageId => $languageId)
 		{
-			$languageName = Loc::getMessage('MAIN_USER_CONSENT_INTL_LANG_NAME_' . strtoupper($virtualLanguageId));
+			$languageName = Loc::getMessage('MAIN_USER_CONSENT_INTL_LANG_NAME_'.mb_strtoupper($virtualLanguageId));
 			if (!$languageName)
 			{
 				$languageName = $virtualLanguageId;
@@ -392,17 +436,17 @@ class Intl
 		// append postfix to message codes from virtual language
 		if ($virtualLanguageId)
 		{
-			$postfix = '_' . strtoupper($virtualLanguageId);
+			$postfix = '_'.mb_strtoupper($virtualLanguageId);
 			foreach ($map as $itemKey => $messageKey)
 			{
-				if (substr($itemKey, -strlen($postfix)) == $postfix)
+				if (mb_substr($itemKey, -mb_strlen($postfix)) == $postfix)
 				{
 					$oldItemKey = $itemKey;
-					$itemKey = substr($itemKey, 0, -strlen($postfix));
+					$itemKey = mb_substr($itemKey, 0, -mb_strlen($postfix));
 					unset($map[$oldItemKey]);
 				}
 
-				if (substr($messageKey, -strlen($postfix)) != $postfix)
+				if (mb_substr($messageKey, -mb_strlen($postfix)) != $postfix)
 				{
 					if (isset($messages[$messageKey . $postfix]))
 					{

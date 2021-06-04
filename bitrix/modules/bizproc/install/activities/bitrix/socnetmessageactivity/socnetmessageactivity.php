@@ -37,7 +37,7 @@ class CBPSocNetMessageActivity
 			"=DATE_CREATE" => $GLOBALS["DB"]->CurrentTimeFunction(),
 			"MESSAGE_TYPE" => SONET_MESSAGE_SYSTEM,
 			"FROM_USER_ID" => $arMessageUserFrom,
-			"MESSAGE" => CBPHelper::ConvertTextForMail($this->MessageText),
+			"MESSAGE" => $this->getMessageText(),
 		);
 		$ar = array();
 		foreach ($arMessageUserTo as $userTo)
@@ -53,6 +53,42 @@ class CBPSocNetMessageActivity
 		return CBPActivityExecutionStatus::Closed;
 	}
 
+	private function getMessageText($isRobot = false)
+	{
+		$messageText = $this->MessageText;
+		if (is_array($messageText))
+		{
+			$messageText = implode(', ', CBPHelper::MakeArrayFlat($messageText));
+		}
+
+		$messageText = (string) $messageText;
+
+		if ($messageText)
+		{
+			$messageText = strip_tags($messageText);
+			if ($isRobot)
+			{
+				$CCTP = new CTextParser();
+				$CCTP->allow = array(
+					"HTML" => "N",
+					"USER" => "N",
+					"ANCHOR" => "Y",
+					"BIU" => "Y",
+					"IMG" => "N", "QUOTE" => "N", "CODE" => "N",
+					"FONT" => "Y", "LIST" => "Y",
+					"SMILES" => "N", "NL2BR" => "Y", "VIDEO" => "N", "TABLE" => "N",
+					"CUT_ANCHOR" => "N", "ALIGN" => "N"
+				);
+				$messageText = $CCTP->convertText($messageText);
+			}
+			else
+			{
+				$messageText = CBPHelper::ConvertTextForMail($messageText);
+			}
+		}
+		return $messageText;
+	}
+
 	private function sendRobotMessage()
 	{
 		$runtime = CBPRuntime::GetRuntime();
@@ -60,37 +96,24 @@ class CBPSocNetMessageActivity
 		/** @var CBPDocumentService $documentService */
 		$documentService = $runtime->GetService('DocumentService');
 
-		$messageText = $this->MessageText;
-
-		$CCTP = new CTextParser();
-		$CCTP->allow = array(
-			"HTML" => "N",
-			"USER" => "N",
-			"ANCHOR" => "Y",
-			"BIU" => "Y",
-			"IMG" => "Y", "QUOTE" => "N", "CODE" => "N", "FONT" => "Y", "LIST" => "Y",
-			"SMILES" => "N", "NL2BR" => "Y", "VIDEO" => "N", "TABLE" => "N",
-			"CUT_ANCHOR" => "N", "ALIGN" => "N"
-		);
+		$messageText = $this->getMessageText(true);
 
 		$attach = new CIMMessageParamAttach(1, '#468EE5');
 		$attach->AddUser(Array(
 			'NAME' => GetMessage('BPSNMA_FORMAT_ROBOT'),
 			'AVATAR' => '/bitrix/images/bizproc/message_robot.png'
 		));
-		$attach->AddDelimiter(Array('COLOR' => '#c6c6c6'));
-		$attach->AddGrid(Array(
-			Array(
-				"NAME" => $documentService->getDocumentTypeName($this->GetDocumentType()) . ':',
-				"VALUE" => $documentService->getDocumentName($documentId),
-				"LINK" => $documentService->GetDocumentAdminPage($documentId),
-				"DISPLAY" => "COLUMN",
-				"WIDTH" => 60,
-			),
-		));
+		$attach->AddDelimiter();
+		$attach->AddGrid([[
+			'NAME' => $documentService->getDocumentTypeName($this->GetDocumentType()).':',
+			'VALUE' => $documentService->getDocumentName($documentId),
+			'LINK' => $documentService->GetDocumentAdminPage($documentId),
+			'DISPLAY' => 'BLOCK'
+		]]);
+
 		$attach->AddDelimiter();
 		$attach->AddHtml('<span style="color: #6E6E6E">'.
-			$CCTP->convertText($messageText)
+			$messageText
 			.'</span>'
 		);
 
@@ -103,7 +126,7 @@ class CBPSocNetMessageActivity
 			"MESSAGE_TYPE" => IM_MESSAGE_SYSTEM,
 			"MESSAGE_OUT" => CBPHelper::ConvertTextForMail($messageText),
 			"ATTACH" => $attach,
-			'NOTIFY_TAG' => 'ROBOT|'.implode('|', array_map('strtoupper', $documentId))	.'|'.$tagSalt
+			'NOTIFY_TAG' => 'ROBOT|'.implode('|', array_map('mb_strtoupper', $documentId))	.'|'.$tagSalt
 		);
 
 		if ($arMessageUserFrom)
@@ -131,7 +154,7 @@ class CBPSocNetMessageActivity
 		{
 			$arErrors[] = array("code" => "NotExist", "parameter" => "MessageUserTo", "message" => GetMessage("BPSNMA_EMPTY_TO"));
 		}
-		if (!array_key_exists("MessageText", $arTestProperties) || strlen($arTestProperties["MessageText"]) <= 0)
+		if (!array_key_exists("MessageText", $arTestProperties) || $arTestProperties["MessageText"] == '')
 		{
 			$arErrors[] = array("code" => "NotExist", "parameter" => "MessageText", "message" => GetMessage("BPSNMA_EMPTY_MESSAGE"));
 		}
@@ -176,6 +199,7 @@ class CBPSocNetMessageActivity
 			),
 			'MessageText' => array(
 				'Name' => GetMessage('BPSNMA_MESSAGE'),
+				'Description' => GetMessage('BPSNMA_MESSAGE'),
 				'FieldName' => 'message_text',
 				'Type' => 'text',
 				'Required' => true

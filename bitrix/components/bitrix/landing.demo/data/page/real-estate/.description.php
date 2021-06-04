@@ -13,7 +13,6 @@ return array(
 	'fields' => array(
 		'ADDITIONAL_FIELDS' => array(
 			'THEME_CODE' => 'real-estate',
-			'THEME_CODE_TYPO' => 'real-estate',
 			'METAOG_IMAGE' => 'https://cdn.bitrix24.site/bitrix/images/demo/page/real-estate/preview.jpg',
 			'METAOG_TITLE' => Loc::getMessage('LANDING_DEMO_REALESTATE_TITLE'),
 			'METAOG_DESCRIPTION' => Loc::getMessage('LANDING_DEMO_REALESTATE_DESCRIPTION'),
@@ -26,71 +25,104 @@ return array(
 			array (
 				'CODE' => '0.menu_16',
 				'SORT' => '-100',
-				'CONTENT' => '
-<header class="landing-block landing-block-menu u-header u-header--floating u-header--floating-relative">
-	<div class="landing-block-node-top-block text-center text-lg-left u-header__section u-header__section--hidden u-header__section--light g-bg-white g-brd-bottom g-brd-gray-light-v4 g-py-20">
+				'CONTENT' => '<header class="landing-block landing-block-menu u-header u-header--sticky u-header--relative">
+	<div class="landing-block-node-top-block u-header__section u-header__section--hidden u-header__section--light g-bg-white g-brd-bottom g-brd-gray-light-v4 g-py-10 g-py-20--sm">
 		<div class="container">
-			<div class="row flex-lg-row align-items-center justify-content-lg-start">
-				<div class="col-6 col-sm-3 col-lg-2">
+			<div class="row no-gutters flex-lg-row align-items-center justify-content-lg-start">
+				<div class="col-12 col-sm-3 col-lg-2 text-center text-md-left">
 					<!-- Logo -->
-					<a href="#" class="navbar-brand landing-block-node-menu-logo-link">
-						<img class="landing-block-node-menu-logo img-fluid g-max-width-180"
-							 src="https://cdn.bitrix24.site/bitrix/images/landing/logos/real-estate-logo.png" alt="Logo">
+					<a href="#system_mainpage" class="navbar-brand landing-block-node-menu-logo-link g-mb-10 g-mb-0--sm g-mr-0">
+						<img class="landing-block-node-menu-logo img-fluid g-max-width-100x"
+							 src="https://cdn.bitrix24.site/bitrix/images/landing/logos/real-estate-logo.png"
+							 alt="Logo">
 					</a>
 					<!-- End Logo -->
 				</div>
 
-				<div class="col-6 col-sm-9 col-lg-10">
-					<div class="row">
-						<div class="landing-block-card-menu-contact col-sm g-brd-right--sm g-brd-gray-light-v4">
-							<div class="g-pa-10--lg">
-								<div class="landing-block-node-menu-contact-img-container d-lg-inline-block g-valign-top g-color-primary g-mr-5">
-									<i class="landing-block-node-menu-contact-img icon icon-screen-smartphone g-font-size-18"></i>
+				<div class="col-12 col-sm-9 col-lg-10">
+					<div class="row g-ml-20--sm">
+						<div class="landing-block-card-menu-contact-container col-sm-8 col-md-9">
+							<div class="landing-block-card-menu-contact-container-inner row">
+								<div class="landing-block-card-menu-contact col-md g-mb-10 g-mb-0--md g-brd-right--md g-brd-gray-light-v4"
+									 data-card-preset="contact-link">
+
+									<a href="tel:+469548521" class="landing-block-node-menu-contactlink-link g-pa-10--md row align-items-center justify-content-center justify-content-sm-start justify-content-md-center justify-content-lg-start g-text-decoration-none--hover">
+										<span class="landing-block-node-menu-contact-img-container text-left text-md-center text-lg-left w-auto g-width-100x--md g-width-auto--lg g-font-size-18 g-line-height-1 d-none d-sm-inline-block g-valign-top g-color-primary g-mr-10 g-mr-0--md g-mr-10--lg">
+											<i class="landing-block-node-menu-contact-img icon icon-screen-smartphone"></i>
+										</span>
+										<span class="landing-block-node-menu-contactlink-text-container text-center text-sm-left text-md-center text-lg-left d-inline-block">
+											<span class="landing-block-node-menu-contactlink-title  landing-block-node-menu-contact-title-style g-color-main d-block text-uppercase g-font-size-13">
+												Call Us
+											</span>
+											<span class="landing-block-node-menu-contactlink-text landing-block-node-menu-contact-text-style d-block g-color-gray-dark-v2 g-font-weight-700 g-text-decoration-none g-text-underline--hover">
+												+469 548 521
+											</span>
+										</span>
+									</a>
 								</div>
-								<div class="landing-block-node-menu-contact-text-container d-inline-block">
-									<div class="landing-block-node-menu-contact-title text-uppercase g-font-size-13">
-										Call Us
+
+								<div class="landing-block-card-menu-contact col-md g-mb-10 g-mb-0--md g-brd-right--md g-brd-gray-light-v4"
+									 data-card-preset="contact-text">
+									<div class="g-pa-10--md row align-items-center justify-content-center justify-content-sm-start justify-content-md-center justify-content-lg-start">
+										<div class="landing-block-node-menu-contact-img-container text-left text-md-center text-lg-left w-auto g-width-100x--md g-width-auto--lg g-font-size-18 g-line-height-1 d-none d-sm-inline-block g-valign-top g-color-primary g-mr-10 g-mr-0--md g-mr-10--lg">
+											<i class="landing-block-node-menu-contact-img icon icon-clock"></i>
+										</div>
+										<div class="landing-block-node-menu-contact-text-container text-center text-sm-left text-md-center text-lg-left d-inline-block">
+											<div class="landing-block-node-menu-contact-title landing-block-node-menu-contact-title-style g-color-main text-uppercase g-font-size-13">
+												Opening time
+											</div>
+											<div class="landing-block-node-menu-contact-value landing-block-node-menu-contact-text-style g-color-gray-dark-v2 g-font-weight-700">
+												Mon-Sat: 08.00 -18.00
+											</div>
+										</div>
 									</div>
-									<div class="landing-block-node-menu-contact-value g-color-gray-dark-v2 g-font-weight-700">
-										<a href="tel:+469548521">+469 548 521</a>
-									</div>
+								</div>
+
+								<div class="landing-block-card-menu-contact col-md g-mb-10 g-mb-0--md g-brd-right--md g-brd-gray-light-v4"
+									 data-card-preset="contact-link">
+
+									<a href="mailto:info@company24.com" class="landing-block-node-menu-contactlink-link g-pa-10--md row align-items-center justify-content-center justify-content-sm-start justify-content-md-center justify-content-lg-start g-text-decoration-none--hover">
+										<span class="landing-block-node-menu-contact-img-container text-left text-md-center text-lg-left w-auto g-width-100x--md g-width-auto--lg g-font-size-18 g-line-height-1 d-none d-sm-inline-block g-valign-top g-color-primary g-mr-10 g-mr-0--md g-mr-10--lg">
+											<i class="landing-block-node-menu-contactlink-img icon icon-envelope"></i>
+										</span>
+										<span class="landing-block-node-menu-contactlink-text-container text-center text-sm-left text-md-center text-lg-left d-inline-block">
+											<span class="landing-block-node-menu-contactlink-title  landing-block-node-menu-contact-title-style g-color-main d-block text-uppercase g-font-size-13">
+												Email us
+											</span>
+											<span class="landing-block-node-menu-contactlink-text landing-block-node-menu-contact-text-style d-block g-color-gray-dark-v2 g-font-weight-700 g-text-decoration-none g-text-underline--hover">
+												info@company24.com
+											</span>
+										</span>
+									</a>
+									
 								</div>
 							</div>
 						</div>
 
-						<div class="landing-block-card-menu-contact col-sm g-hidden-md-down g-brd-right--sm g-brd-gray-light-v4">
-							<div class="g-pa-10--lg">
-								<div class="landing-block-node-menu-contact-img-container d-lg-inline-block g-valign-top g-color-primary g-mr-5">
-									<i class="landing-block-node-menu-contact-img icon icon-clock g-font-size-18"></i>
-								</div>
-								<div class="landing-block-node-menu-contact-text-container d-inline-block">
-									<div class="landing-block-node-menu-contact-title text-uppercase g-font-size-13">
-										Opening time
-									</div>
-									<div class="landing-block-node-menu-contact-value g-color-gray-dark-v2 g-font-weight-700">
-										Mon-Sat: 08.00 -18.00
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="landing-block-card-menu-contact col-sm g-hidden-sm-down g-brd-right--sm g-brd-gray-light-v4">
-							<div class="g-pa-10--lg">
-								<div class="landing-block-node-menu-contact-img-container d-lg-inline-block g-valign-top g-color-primary g-mr-5">
-									<i class="landing-block-node-menu-contact-img icon icon-envelope g-font-size-18"></i>
-								</div>
-								<div class="landing-block-node-menu-contact-text-container d-inline-block">
-									<div class="landing-block-node-menu-contact-title text-uppercase g-font-size-13">
-										Email us
-									</div>
-									<div class="landing-block-node-menu-contact-value g-color-gray-dark-v2 g-font-weight-700">
-										<a href="mailto:info@company24.com">info@company24.com</a>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="col-sm g-hidden-sm-down">
+						<div class="landing-block-socials-container col-sm-4 col-md-3 g-mb-10 g-mb-0--md">
+							<ul class="landing-block-cards-social list-inline g-pa-10--md g-mb-0 row align-items-center justify-content-center justify-content-sm-start">
+								<li class="landing-block-card-social list-inline-item g-valign-middle g-mx-3 g-mb-6"
+									data-card-preset="facebook">
+									<a class="landing-block-card-social-icon-link d-block u-icon-v3 u-icon-size--sm g-rounded-50x g-bg-gray-light-v4 g-color-gray-light-v1 g-bg-primary--hover g-color-white--hover g-font-size-14"
+									   href="https://facebook.com">
+										<i class="landing-block-card-social-icon fa fa-facebook"></i>
+									</a>
+								</li>
+								<li class="landing-block-card-social list-inline-item g-valign-middle g-mx-3 g-mb-6"
+									data-card-preset="twitter">
+									<a class="landing-block-card-social-icon-link d-block u-icon-v3 u-icon-size--sm g-rounded-50x g-bg-gray-light-v4 g-color-gray-light-v1 g-bg-primary--hover g-color-white--hover g-font-size-14"
+									   href="https://twitter.com">
+										<i class="landing-block-card-social-icon fa fa-twitter"></i>
+									</a>
+								</li>
+								<li class="landing-block-card-social list-inline-item g-valign-middle g-mx-3 g-mb-6"
+									data-card-preset="instagram">
+									<a class="landing-block-card-social-icon-link d-block u-icon-v3 u-icon-size--sm g-rounded-50x g-bg-gray-light-v4 g-color-gray-light-v1 g-bg-primary--hover g-color-white--hover g-font-size-14"
+									   href="https://instagram.com">
+										<i class="landing-block-card-social-icon fa fa-instagram"></i>
+									</a>
+								</li>
+							</ul>
 						</div>
 					</div>
 				</div>
@@ -98,46 +130,62 @@ return array(
 		</div>
 	</div>
 
-	<div class="landing-block-node-bottom-block u-header__section g-bg-black g-py-15"
+	<div class="landing-block-node-bottom-block u-header__section g-bg-black g-py-15--lg g-py-10"
 		 data-header-fix-moment-classes="u-shadow-v18">
 		<nav class="navbar navbar-expand-lg py-0 g-px-10">
 			<div class="container">
 				<!-- Navigation -->
 				<div class="collapse navbar-collapse align-items-center flex-sm-row g-mr-40--sm" id="navBar">
-					<ul class="landing-block-node-menu-list js-scroll-nav navbar-nav text-uppercase g-font-weight-700 g-font-size-13 g-py-10--md mr-auto">
-						<li class="landing-block-node-menu-list-item nav-item g-mr-15--lg g-mb-7 g-mb-0--lg ">
-							<a href="#block@block[46.9.cover_bgimg_vertical_slider]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">HOME</a>
+					<ul class="landing-block-node-menu-list js-scroll-nav navbar-nav w-100 g-ml-minus-15--lg text-uppercase g-font-weight-700 g-font-size-13 g-py-10--md">
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[46.9.cover_bgimg_vertical_slider]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Home
+							</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">APARTMENTS FOR RENT</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Flats
+								for rent</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[04.1.one_col_fix_with_title]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">SPECIAL OFFERS</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[04.1.one_col_fix_with_title]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Special offers</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2@2]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">OUR HOUSES</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2@2]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Our houses</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[01.big_with_text_blocks]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">GALLERY</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[01.big_with_text_blocks]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Gallery</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2@3]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">AGENTS</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2@3]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Agents</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[01.big_with_text_3]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">DISCOUNT</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[01.big_with_text_3]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Discount</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg">
-							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2@4]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">TESTIMONIALS</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[04.7.one_col_fix_with_title_and_text_2@4]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Testimonials</a>
 						</li>
-						<li class="landing-block-node-menu-list-item nav-item g-ml-15--lg">
-							<a href="#block@block[33.3.form_1_transparent_black_no_text]" class="landing-block-node-menu-list-item-link nav-link p-0" target="_self">CONTACT US</a>
+						<li class="landing-block-node-menu-list-item nav-item g-mx-15--lg g-mb-7 g-mb-0--lg g-max-width-120">
+							<a href="#block@block[33.3.form_1_transparent_black_no_text]"
+							   class="landing-block-node-menu-list-item-link nav-link p-0">Contact</a>
 						</li>
 					</ul>
 				</div>
 				<!-- End Navigation -->
 
 				<!-- Responsive Toggle Button -->
-				<button class="navbar-toggler btn g-pos-rel g-line-height-1 g-brd-none g-pa-0 ml-auto" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navBar" data-toggle="collapse" data-target="#navBar">
+				<button class="navbar-toggler btn g-pos-rel g-line-height-1 g-brd-none g-pa-0 ml-auto" type="button"
+						aria-label="Toggle navigation"
+						aria-expanded="false"
+						aria-controls="navBar"
+						data-toggle="collapse"
+						data-target="#navBar">
                 <span class="hamburger hamburger--slider">
                   <span class="hamburger-box">
                     <span class="hamburger-inner"></span>
@@ -169,7 +217,7 @@ return array(
 						Apartment in<br />London\'s center
 					</h2>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg g-mt-20 g-mt-0--md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 g-py-15 g-px-40 g-rounded-4" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-l g-mt-20 g-mt-0--md text-uppercase g-btn-primary g-py-15 g-rounded-4" href="#">Learn more</a>
 					</div>
 				</div>
 			</div>
@@ -186,7 +234,7 @@ return array(
 						Apartment in<br />London\'s center
 					</h2>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg g-mt-20 g-mt-0--md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 g-py-15 g-px-40 g-rounded-4" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-l g-mt-20 g-mt-0--md text-uppercase g-btn-primary g-py-15 g-rounded-4" href="#">Learn more</a>
 					</div>
 				</div>
 			</div>
@@ -203,7 +251,7 @@ return array(
 						Apartment in<br />London\'s center
 					</h2>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg g-mt-20 g-mt-0--md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 g-py-15 g-px-40 g-rounded-4" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-l g-mt-20 g-mt-0--md text-uppercase g-btn-primary g-py-15 g-rounded-4" href="#">Learn more</a>
 					</div>
 				</div>
 			</div>
@@ -221,7 +269,7 @@ return array(
 						Apartment in<br />London\'s center
 					</h2>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg g-mt-20 g-mt-0--md text-uppercase u-btn-primary g-font-weight-700 g-font-size-12 g-py-15 g-px-40 g-rounded-4" href="#">Learn more</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-l g-mt-20 g-mt-0--md text-uppercase g-btn-primary g-py-15 g-rounded-4" href="#">Learn more</a>
 					</div>
 				</div>
 			</div>
@@ -594,13 +642,13 @@ return array(
 				'CONTENT' => '<section class="landing-block g-theme-architecture-bg-blue-dark-v1">
 	<div>
 		<div class="row mx-0">
-			<div class="landing-block-node-img col-md-6 g-min-height-300 g-bg-img-hero g-px-0 g-bg-size-contain--xs g-bg-size-cover--sm" style="background-image: url(\'https://cdn.bitrix24.site/bitrix/images/landing/business/800x460/img1.jpg\');" data-fileid="-1" data-filehash="9eef207add73028ae50f74a9033c20cb"></div>
+			<div class="landing-block-node-img col-md-6 g-min-height-300 g-bg-img-hero g-px-0 g-bg-size-cover" style="background-image: url(\'https://cdn.bitrix24.site/bitrix/images/landing/business/800x460/img1.jpg\');" data-fileid="-1" data-filehash="9eef207add73028ae50f74a9033c20cb"></div>
 			
 			<div class="col-md-6 text-center text-md-left g-py-50 g-py-100--md g-px-15 g-px-50--md">
-				<h3 class="landing-block-node-title text-uppercase g-font-weight-700 g-font-size-default g-color-white g-mb-25 js-animation fadeInUp animated">Ut pulvinar tellus sed elit luctus</h3>
+				<h3 class="landing-block-node-title text-uppercase g-font-weight-700 g-color-white g-mb-25 js-animation fadeInUp animated">Ut pulvinar tellus sed elit luctus</h3>
 				<div class="landing-block-node-text g-mb-30 g-color-gray-light-v2 js-animation fadeInUp animated"><p>Fusce dolor libero, efficitur et lobortis at, faucibus nec nunc. Proin fermentum turpis eget nisi lobortis.<br /><br />FOR $1.500.000 INSTEAD $1.750.000! </p></div>
 				<div class="landing-block-node-button-container">
-					<a class="landing-block-node-button text-uppercase btn btn-xl u-btn-primary g-font-weight-700 g-font-size-12 js-animation fadeInUp animated g-rounded-4" href="#" tabindex="0" target="_self">LEARN MORE</a>
+					<a class="landing-block-node-button text-uppercase btn g-btn-type-solid g-btn-size-md g-btn-px-m g-btn-primary js-animation fadeInUp animated g-rounded-4" href="#" tabindex="0" target="_self">LEARN MORE</a>
 				</div>
 			</div>
 		</div>
@@ -1291,7 +1339,7 @@ return array(
 					<h2 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-22 g-font-size-36--md g-color-white g-mb-20">Nunc sed trisrique mi</h2>
 					<div class="landing-block-node-card-text g-max-width-645 g-color-white-opacity-0_9 mx-auto g-mb-35"><p>Fusce dolor libero, efficitur et lobortis at, faucibus nec nunc. Proin fermentum turpis eget nisi facilisis lobortis. Praesent malesuada facilisis maximus.<br /><br /><span style="font-weight: bold;">For $2.500.000</span></p></div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg u-btn-primary g-font-weight-700 g-font-size-12 text-uppercase g-px-25 g-py-15 g-rounded-4" href="#" tabindex="-1" target="_self">LEARN MORE</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-m g-btn-primary text-uppercase g-py-15 g-rounded-4" href="#" tabindex="-1" target="_self">LEARN MORE</a>
 					</div>
 				</div>
 			</div>
@@ -1304,7 +1352,7 @@ return array(
 					<h2 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-22 g-font-size-36--md g-color-white g-mb-20">Nunc sed trisrique mi</h2>
 					<div class="landing-block-node-card-text g-max-width-645 g-color-white-opacity-0_9 mx-auto g-mb-35"><p>Fusce dolor libero, efficitur et lobortis at, faucibus nec nunc. Proin fermentum turpis eget nisi facilisis lobortis. Praesent malesuada facilisis maximus.</p><p><span style="font-weight: bold;">For $2.500.000</span></p></div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg u-btn-primary g-font-weight-700 g-font-size-12 text-uppercase g-px-25 g-py-15 g-rounded-4" href="#" tabindex="-1" target="_self">LEARN MORE</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-m g-btn-primary text-uppercase g-py-15 g-rounded-4" href="#" tabindex="-1" target="_self">LEARN MORE</a>
 					</div>
 				</div>
 			</div>
@@ -1317,7 +1365,7 @@ return array(
 					<h2 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-22 g-font-size-36--md g-color-white g-mb-20">NUNC SED TRISRIQUE MI</h2>
 					<div class="landing-block-node-card-text g-max-width-645 g-color-white-opacity-0_9 mx-auto g-mb-35"><p>Fusce dolor libero, efficitur et lobortis at, faucibus nec nunc. Proin fermentum turpis eget nisi facilisis lobortis. Praesent malesuada facilisis maximus.</p><p><span style="font-weight: bold; color: rgb(244, 81, 30);">For $2.500.000</span></p></div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg u-btn-primary g-font-weight-700 g-font-size-12 text-uppercase g-px-25 g-py-15 g-rounded-4" href="#" tabindex="0" target="_self">LEARN MORE</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-m g-btn-primary text-uppercase g-py-15 g-rounded-4" href="#" tabindex="0" target="_self">LEARN MORE</a>
 					</div>
 				</div>
 			</div>
@@ -1331,7 +1379,7 @@ return array(
 					<h2 class="landing-block-node-card-title text-uppercase g-font-weight-700 g-font-size-22 g-font-size-36--md g-color-white g-mb-20">Nunc sed trisrique mi</h2>
 					<div class="landing-block-node-card-text g-max-width-645 g-color-white-opacity-0_9 mx-auto g-mb-35"><p>Fusce dolor libero, efficitur et lobortis at, faucibus nec nunc. Proin fermentum turpis eget nisi facilisis lobortis. Praesent malesuada facilisis maximus.</p><p><span style="font-weight: bold;">For $2.500.000</span></p></div>
 					<div class="landing-block-node-card-button-container">
-						<a class="landing-block-node-card-button btn btn-lg u-btn-primary g-font-weight-700 g-font-size-12 text-uppercase g-px-25 g-py-15 g-rounded-4" href="#" tabindex="0" target="_self">LEARN MORE</a>
+						<a class="landing-block-node-card-button btn g-btn-type-solid g-btn-size-md g-btn-px-m g-btn-primary text-uppercase g-py-15 g-rounded-4" href="#" tabindex="0" target="_self">LEARN MORE</a>
 					</div>
 				</div>
 			</div>
@@ -1377,8 +1425,8 @@ return array(
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
+						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none g-mt-0">
+							<div class="landing-block-node-employee-quote g-pointer-events-all text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
 								your mind and changing world</div>
 						
 						<!-- End Figure Caption -->
@@ -1402,8 +1450,8 @@ return array(
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
+						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none g-mt-0">
+							<div class="landing-block-node-employee-quote g-pointer-events-all text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
 								your mind and changing world</div>
 						
 						<!-- End Figure Caption -->
@@ -1427,8 +1475,8 @@ return array(
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
+						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none g-mt-0">
+							<div class="landing-block-node-employee-quote g-pointer-events-all text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
 								your mind and changing world</div>
 						
 						<!-- End Figure Caption -->
@@ -1452,8 +1500,8 @@ return array(
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
+						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none g-mt-0">
+							<div class="landing-block-node-employee-quote g-pointer-events-all text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
 								your mind and changing world</div>
 						
 						<!-- End Figure Caption -->
@@ -1482,7 +1530,7 @@ return array(
 
 		<div class="landing-block-node-text g-color-white-opacity-0_7 g-mb-35">Donec eleifend mauris eu leo varius consectetur. Aliquam luctus a lorem ac rutrum. Cras in nulla id mi ornare vestibulum. <p>Donec et magna nulla. Pellentesque ut ipsum id nibh pretium blandit quis ac erat.</p></div>
 		<div class="landing-block-node-button-container">
-			<a href="#" class="landing-block-node-button btn btn-xl u-btn-primary text-uppercase g-font-weight-700 g-font-size-12 g-py-15 g-px-40 g-mb-15 g-rounded-4" target="_self">CONTACT US</a>
+			<a href="#" class="landing-block-node-button btn g-btn-primary g-btn-type-solid g-btn-px-l g-btn-size-md g-btn-primary text-uppercase g-py-15 g-mb-15 g-rounded-4" target="_self">CONTACT US</a>
 		</div>
 	</div>
 </section>',
@@ -1539,39 +1587,23 @@ return array(
 			array (
 				'CODE' => '33.3.form_1_transparent_black_no_text',
 				'SORT' => '7500',
-				'CONTENT' => '<section class="landing-block g-pos-rel g-bg-primary-dark-v1 g-pt-120 g-pb-120 landing-block-node-bgimg g-bg-size-cover g-bg-img-hero g-bg-cover g-bg-black-opacity-0_7--after" style="background-image: url(\'https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1275/img1.jpg\');" data-fileid="-1">
-		
-		<div class="container g-pos-rel g-z-index-1">
-			<div class="row align-items-center">
+				'CONTENT' => '<section class="landing-block landing-block-node-bgimg landing-semantic-color-overlay g-bg-primary-dark-v1 g-pos-rel g-pt-120 g-pb-120 g-bg-size-cover g-bg-img-hero g-bg-cover g-bg-black-opacity-0_7--after"
+		style="background-image: url(https://cdn.bitrix24.site/bitrix/images/landing/business/1920x1275/img1.jpg);">
 
-				<div class="landing-block-form-styles" hidden="">
-					<div class="g-bg-transparent h1 g-color-white g-brd-none g-pa-0" data-form-style-wrapper-padding="1" data-form-style-bg="1" data-form-style-bg-content="1" data-form-style-bg-block="1" data-form-style-header-font-size="1" data-form-style-header-font-weight="1" data-form-style-button-font-color="1" data-form-style-border-block="1">
-					</div>
-					<div class="g-bg-primary g-color-primary g-brd-primary" data-form-style-main-bg="1" data-form-style-main-border-color="1" data-form-style-main-font-color-hover="1">
-					</div>
-					<div class="g-bg-transparent g-brd-none g-brd-bottom g-brd-white" data-form-style-input-bg="1" data-form-style-input-border="1" data-form-style-input-border-radius="1" data-form-style-input-border-color="1">
-					</div>
-					<div class="g-brd-primary g-brd-none g-brd-bottom g-bg-black-opacity-0_7" data-form-style-input-border-hover="1" data-form-style-input-border-color-hover="1" data-form-style-input-select-bg="1">
-					</div>
+	<div class="container g-z-index-1 g-pos-rel">
+		<div class="row align-items-center">
 
-					<p class="g-color-white-opacity-0_6" data-form-style-main-font-weight="1" data-form-style-header-text-font-size="1" data-form-style-label-font-weight="1" data-form-style-label-font-size="1" data-form-style-second-font-color="1">
-					</p>
-
-					<h3 class="h4 g-color-white" data-form-style-main-font-color="1" data-form-style-main-font-family="1">
-					</h3>
-
-					<p data-form-style-main-font-family="1" data-form-style-main-font-weight="1" data-form-style-header-text-font-size="1">
-				
-				</p></div>
-
-
-				<div class="col-12 col-md-10 col-lg-8 mx-auto">
-					<div class="bitrix24forms g-brd-none g-brd-around--sm g-brd-white-opacity-0_6 g-px-0 g-px-20--sm g-px-45--lg g-py-0 g-py-30--sm g-py-60--lg u-form-alert-v1" data-b24form="" data-form-style-input-border-color="1" data-b24form-use-style="Y" data-b24form-show-header="Y" data-b24form-original-domain=""></div>
+			<div class="col-12 col-md-10 col-lg-8 mx-auto">
+				<div class="bitrix24forms g-brd-none g-brd-around--sm g-brd-white-opacity-0_6 g-px-0 g-px-20--sm g-px-45--lg g-py-0 g-py-30--sm g-py-60--lg u-form-alert-v1"
+					data-b24form-use-style="Y"
+					data-b24form-embed
+					data-b24form-design=\'{"dark":true,"style":"modern","shadow":false,"compact":false,"color":{"primary":"--primary","primaryText":"#fff","text":"#fff","background":"#00000000","fieldBorder":"#fff","fieldBackground":"#ffffff00","fieldFocusBackground":"#ffffff00"},"border":{"top":false,"bottom":false,"left":false,"right":false}}\'
+				>
 				</div>
-
 			</div>
-		</div>
 
+		</div>
+	</div>
 </section>',
 			),
 		'35.2.footer_dark' =>
@@ -1583,7 +1615,7 @@ return array(
 		<div class="row">
 			<div class="col-sm-12 col-md-6 col-lg-6 g-mb-25 g-mb-0--lg">
 				<h2 class="landing-block-node-title text-uppercase g-color-white g-font-weight-700 g-font-size-16 g-mb-20"> </h2>
-				<div class="landing-block-node-text g-font-size-default g-color-gray-light-v1 g-mb-20"> </div>
+				<div class="landing-block-node-text g-color-gray-light-v1 g-mb-20"> </div>
 
 				<address class="g-color-gray-light-v1 g-mb-20">
 				

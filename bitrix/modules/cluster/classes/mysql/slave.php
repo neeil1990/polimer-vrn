@@ -317,7 +317,7 @@ class CClusterSlave
 		}
 
 
-		if(strlen($arNode["MASTER_ID"]))
+		if($arNode["MASTER_ID"] <> '')
 		{
 			$arStatus = array_merge($arStatus, array(
 				'Slave_IO_State' => null,
@@ -328,7 +328,7 @@ class CClusterSlave
 				'Seconds_Behind_Master' => null,
 				'Last_IO_Error' => null,
 				'Last_SQL_Error' => null,
-	//			'Replicate_Ignore_Table' => null,
+				//			'Replicate_Ignore_Table' => null,
 				'Com_select' => null,
 			));
 
@@ -336,16 +336,22 @@ class CClusterSlave
 			{
 				$rs = $nodeDB->Query("SHOW SLAVE STATUS", true, "", array("fixed_connection" => true));
 				if(!$rs)
+				{
 					return GetMessage("CLU_NO_PRIVILEGES", array("#sql#" => "GRANT REPLICATION CLIENT on *.* to '".$nodeDB->DBLogin."'@'%';"));
+				}
 				$ar = $rs->Fetch();
 				if(is_array($ar))
 				{
-					foreach($ar as $key=>$value)
+					foreach($ar as $key => $value)
 					{
 						if($key == 'Last_Error')
+						{
 							$key = 'Last_SQL_Error';
+						}
 						if(array_key_exists($key, $arStatus))
+						{
 							$arStatus[$key] = $value;
+						}
 					}
 				}
 			}

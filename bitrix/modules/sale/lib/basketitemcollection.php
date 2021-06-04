@@ -53,18 +53,6 @@ abstract class BasketItemCollection extends Internals\EntityCollection
 	}
 
 	/**
-	 * @return null|string
-	 * @throws NotImplementedException
-	 * @throws \Bitrix\Main\ArgumentException
-	 */
-	protected function getItemEventName()
-	{
-		/** @var BasketItem $basketItemClassName */
-		$basketItemClassName = static::getItemCollectionClassName();
-		return $basketItemClassName::getEntityEventName();
-	}
-
-	/**
 	 * @return OrderBase
 	 */
 	public function getOrder()
@@ -97,6 +85,9 @@ abstract class BasketItemCollection extends Internals\EntityCollection
 			$basketItem = $itemClassName::load($this, $item);
 			$this->addItem($basketItem);
 		}
+
+		$controller = Internals\CustomFieldsController::getInstance();
+		$controller->initializeCollection($this);
 	}
 
 	/**
@@ -265,13 +256,5 @@ abstract class BasketItemCollection extends Internals\EntityCollection
 		}
 
 		return $context;
-	}
-
-	/**
-	 * @throws NotImplementedException
-	 */
-	public static function getRegistryType()
-	{
-		throw new NotImplementedException();
 	}
 }

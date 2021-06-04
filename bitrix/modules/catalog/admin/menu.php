@@ -53,7 +53,7 @@ if (!function_exists("__get_export_profiles"))
 				$rsProfiles = CCatalogExport::GetList(array("NAME"=>"ASC", "ID"=>"ASC"), array("IN_MENU"=>"Y"));
 				while ($arProfile = $rsProfiles->Fetch())
 				{
-					$strName = (strlen($arProfile["NAME"]) > 0 ? $arProfile["NAME"] : $arProfile["FILE_NAME"]);
+					$strName = ($arProfile["NAME"] <> '' ? $arProfile["NAME"] : $arProfile["FILE_NAME"]);
 					if ('Y' == $arProfile['DEFAULT_PROFILE'])
 					{
 						$arProfileList[] = array(
@@ -106,7 +106,7 @@ if (!function_exists("__get_import_profiles"))
 				$rsProfiles = CCatalogImport::GetList(array("NAME"=>"ASC", "ID"=>"ASC"), array("IN_MENU"=>"Y"));
 				while ($arProfile = $rsProfiles->Fetch())
 				{
-					$strName = (strlen($arProfile["NAME"]) > 0 ? $arProfile["NAME"] : $arProfile["FILE_NAME"]);
+					$strName = ($arProfile["NAME"] <> '' ? $arProfile["NAME"] : $arProfile["FILE_NAME"]);
 					if ('Y' == $arProfile['DEFAULT_PROFILE'])
 					{
 						$arProfileList[] = array(
@@ -324,7 +324,7 @@ if ($boolRead)
 if (empty($arSubItems))
 	return false;
 
-$aMenu = array(
+return array(
 	"parent_menu" => "global_menu_store",
 	"section" => "catalog",
 	"sort" => 200,
@@ -335,4 +335,3 @@ $aMenu = array(
 	"items_id" => "mnu_catalog",
 	"items" => $arSubItems,
 );
-return $aMenu;

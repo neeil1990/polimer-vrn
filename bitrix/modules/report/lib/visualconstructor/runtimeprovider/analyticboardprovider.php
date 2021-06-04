@@ -3,6 +3,7 @@
 namespace Bitrix\Report\VisualConstructor\RuntimeProvider;
 
 use Bitrix\Report\VisualConstructor\AnalyticBoard;
+use Bitrix\Report\VisualConstructor\AnalyticBoardBatch;
 use Bitrix\Report\VisualConstructor\Internal\Manager\AnalyticBoardManager;
 use Bitrix\Report\VisualConstructor\IProvidable;
 
@@ -18,7 +19,7 @@ class AnalyticBoardProvider extends Base
 	 */
 	protected function availableFilterKeys()
 	{
-		return ['primary', 'boardKey'];
+		return ['primary', 'boardKey', 'boardBatchKey', 'group'];
 	}
 
 	/**
@@ -45,4 +46,28 @@ class AnalyticBoardProvider extends Base
 	{
 		return $this->getManagerInstance()->getIndices();
 	}
+
+	/**
+	 * @param array $entities
+	 * @param array $filteredEntityIds
+	 *
+	 * @return array
+	 */
+	protected function applyFilters($entities, $filteredEntityIds)
+	{
+		$result = [];
+
+		foreach ($entities as $key => $entity)
+		{
+			/** @var \Bitrix\Report\VisualConstructor\AnalyticBoard $entity */
+			if (in_array($key, $filteredEntityIds) || in_array($entity->getGroup(), $filteredEntityIds))
+			{
+				$this->processAvailableRelations($entity);
+				$result[] = $entity;
+			}
+		}
+
+		return $result;
+	}
+
 }

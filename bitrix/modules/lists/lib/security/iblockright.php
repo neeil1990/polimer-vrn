@@ -18,8 +18,6 @@ class IblockRight implements RightEntity, Errorable
 	private $listsPermission;
 	private $rightParam;
 
-	private $errorCollection;
-
 	public function __construct(RightParam $rightParam)
 	{
 		$this->rightParam = $rightParam;

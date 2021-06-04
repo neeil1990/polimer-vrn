@@ -36,8 +36,18 @@ class Rights
 	 */
 	const ADDITIONAL_RIGHTS = [
 		'menu24' => 'menu24',//show in main menu of Bitrix24
-		'create' => 'create'//can create new sites
+		'create' => 'create',//can create new sites
+		'knowledge_menu24' => 'knowledge_menu24',// show Knowledge in main menu of Bitrix24
+		'knowledge_create' => 'knowledge_create',//can create new Knowledge base
+		'group_create' => 'group_create',//can create new social network group base
+		'group_menu24' => 'group_menu24',// show group in main menu of Bitrix24
 	];
+
+	/**
+	 * Allowed site ids with full access.
+	 * @var int[]
+	 */
+	protected static $allowedSites = [];
 
 	/**
 	 * If true, rights is not checking.
@@ -46,7 +56,19 @@ class Rights
 	protected static $available = true;
 
 	/**
-	 * Set rights checking to no.
+	 * If true, rights is not checking (global mode).
+	 * @var bool
+	 */
+	protected static $globalAvailable = true;
+
+	/**
+	 * Context user id.
+	 * @var int
+	 */
+	protected static $userId = null;
+
+	/**
+	 * Set rights checking to 'no'.
 	 * @return void
 	 */
 	public static function setOff()
@@ -55,7 +77,7 @@ class Rights
 	}
 
 	/**
-	 * Set rights checking to yes.
+	 * Set rights checking to 'yes'.
 	 * @return void
 	 */
 	public static function setOn()
@@ -64,11 +86,40 @@ class Rights
 	}
 
 	/**
+	 * Set rights checking to 'no' (global mode).
+	 * @return void
+	 */
+	public static function setGlobalOff()
+	{
+		self::$globalAvailable = false;
+	}
+
+	/**
+	 * Set rights checking to 'yes' (global mode).
+	 * @return void
+	 */
+	public static function setGlobalOn()
+	{
+		self::$globalAvailable = true;
+	}
+
+	/**
 	 * Check current status for checking rights.
 	 * @return bool
 	 */
 	public static function isOn()
 	{
+		if (
+			defined('LANDING_DISABLE_RIGHTS') &&
+			LANDING_DISABLE_RIGHTS === true
+		)
+		{
+			return false;
+		}
+		if (!self::$globalAvailable)
+		{
+			return false;
+		}
 		return self::$available;
 	}
 
@@ -85,6 +136,51 @@ class Rights
 		return false;
 	}
 
+	/**
+	 * Returns allowed sites with full access.
+	 * @return int[]
+	 */
+	public static function getAllowedSites(): array
+	{
+		return self::$allowedSites;
+	}
+
+	/**
+	 * Sets context user id.
+	 * @param int $uid
+	 * @return void
+	 */
+	public static function setContextUserId(int $uid): void
+	{
+		self::$userId = $uid;
+	}
+
+	/**
+	 * Clears context user id.
+	 * @return void
+	 */
+	public static function clearContextUserId(): void
+	{
+		self::$userId = null;
+	}
+
+	/**
+	 * Returns context user id (current by default).
+	 * @return int
+	 */
+	public static function getContextUserId(): int
+	{
+		if (!self::$userId)
+		{
+			self::$userId = Manager::getUserId();
+		}
+		return self::$userId;
+	}
+
+	/**
+	 * Available or not permission feature by current plan.
+	 * @return bool
+	 */
 	protected static function isFeatureOn()
 	{
 		return Manager::checkFeature(
@@ -108,7 +204,7 @@ class Rights
 			);
 			while ($row = $res->fetch())
 			{
-				$row['NAME'] = substr($row['NAME'], 14);
+				$row['NAME'] = mb_substr($row['NAME'], 14);
 				$tasks[$row['ID']] = $row;
 			}
 		}
@@ -288,15 +384,27 @@ class Rights
 	 */
 	protected static function getOperations($entityId, $entityType)
 	{
+		// full access for allowed sites
+		if (
+			$entityType == self::ENTITY_TYPE_SITE &&
+			in_array($entityId, self::$allowedSites)
+		)
+		{
+			$types = self::ACCESS_TYPES;
+			unset($types[self::ACCESS_TYPES['delete']]);
+			return array_values($types);
+		}
+
 		$operations = [];
 		$operationsDefault = [];
 		$wasChecked = false;
-		$uid = Manager::getUserId();
+		$uid = self::getContextUserId();
 		$extendedMode = self::isExtendedMode();
 
 		// full access for admin
 		if (
-			self::$available &&
+			$uid &&
+			self::isOn() &&
 			!self::isAdmin() &&
 			self::isFeatureOn() &&
 			self::exist()
@@ -326,7 +434,7 @@ class Rights
 			}
 			else
 			{
-				$filter['>ROLE_ID'] = 0;
+				$filter['ROLE_ID'] = Role::getExpectedRoleIds();
 			}
 			$res = RightsTable::getList(
 				[
@@ -341,14 +449,14 @@ class Rights
 			{
 				if ($row['ENTITY_ID'] == 0)
 				{
-					$operationsDefault[] = substr($row['OPERATION_NAME'], 8);
+					$operationsDefault[] = mb_substr($row['OPERATION_NAME'], 8);
 					continue;
 				}
 				if (!isset($operations[$row['ENTITY_ID']]))
 				{
 					$operations[$row['ENTITY_ID']] = array();
 				}
-				$operations[$row['ENTITY_ID']][] = substr($row['OPERATION_NAME'], 8);
+				$operations[$row['ENTITY_ID']][] = mb_substr($row['OPERATION_NAME'], 8);
 				$operations[$row['ENTITY_ID']] = array_unique($operations[$row['ENTITY_ID']]);
 			}
 		}
@@ -410,10 +518,16 @@ class Rights
 	public static function hasAccessForSite($siteId, $accessType, $deleted = false)
 	{
 		static $operations = [];
+		$siteId = intval($siteId);
+
+		if (!is_string($accessType))
+		{
+			return false;
+		}
 
 		if (!isset($operations[$siteId]))
 		{
-			if ($siteId === 0 || Site::ping($siteId, $deleted))
+			if ($siteId === 0 || !self::isOn() || Site::ping($siteId, $deleted))
 			{
 				$operations[$siteId] = self::getOperations(
 					$siteId,
@@ -438,6 +552,12 @@ class Rights
 	public static function hasAccessForLanding($landingId, $accessType)
 	{
 		static $operations = [];
+		$landingId = intval($landingId);
+
+		if (!is_string($accessType))
+		{
+			return false;
+		}
 
 		if (!isset($operations[$landingId]))
 		{
@@ -446,7 +566,9 @@ class Rights
 					'SITE_ID'
 				],
 				'filter' => [
-					'ID' => $landingId
+					'ID' => $landingId,
+					'=SITE.DELETED' => ['Y', 'N'],
+					'=DELETED' => ['Y', 'N']
 				]
 			])->fetch();
 
@@ -481,6 +603,7 @@ class Rights
 		}
 
 		$tasks = self::getAccessTasksReferences();
+		$entityId = intval($entityId);
 
 		self::removeData(
 			$entityId,
@@ -525,6 +648,8 @@ class Rights
 	 */
 	public static function setOperationsForSite($siteId, array $rights = [])
 	{
+		$siteId = intval($siteId);
+
 		if ($siteId == 0 || Site::ping($siteId))
 		{
 			return self::setOperations(
@@ -549,10 +674,14 @@ class Rights
 
 		if ($exist === null)
 		{
+			$type = Site\Type::getCurrentScopeId();
 			$res = RightsTable::getList([
 				'select' => [
 					'ID'
 				],
+				'filter' => $type
+						? ['=ROLE.TYPE' => $type]
+						: [],
 				'limit' => 1
 			]);
 			$exist = (bool) $res->fetch();
@@ -563,14 +692,15 @@ class Rights
 
 	/**
 	 * Gets access filter for current user.
+	 * @param array $additionalFilterOr Additional filter for OR section.
 	 * @return array
 	 */
-	public static function getAccessFilter()
+	public static function getAccessFilter(array $additionalFilterOr = [])
 	{
 		$filter = [];
 
 		if (
-			self::$available &&
+			self::isOn() &&
 			!self::isAdmin() &&
 			self::isFeatureOn() &&
 			self::exist()
@@ -578,7 +708,7 @@ class Rights
 		{
 			$tasks = self::getAccessTasksReferences();
 			$extendedRights = self::isExtendedMode();
-			$uid = Manager::getUserId();
+			$uid = self::getContextUserId();
 
 			if ($extendedRights)
 			{
@@ -590,7 +720,8 @@ class Rights
 					],
 					[
 						'=RIGHTS.TASK_ID' => null
-					]
+					],
+					$additionalFilterOr
 				];
 			}
 			else
@@ -605,7 +736,8 @@ class Rights
 						'=RIGHTS.TASK_ID' => null,
 						'!RIGHTS_COMMON.TASK_ID' => $tasks[Rights::ACCESS_TYPES['denied']],
 						'RIGHTS_COMMON.USER_ACCESS.USER_ID' => $uid
-					]
+					],
+					$additionalFilterOr
 				];
 			}
 		}
@@ -645,7 +777,7 @@ class Rights
 
 	/**
 	 * Refresh additional rights for all roles.
-	 * @param array $additionalRights Array for set additional
+	 * @param array $additionalRights Array for set additional.
 	 * @return void
 	 */
 	public static function refreshAdditionalRights(array $additionalRights = [])
@@ -704,7 +836,7 @@ class Rights
 			}
 
 			// set new rights in option
-			Manager::setOption('access_codes_' . $code, serialize($right));
+			Manager::setOption('access_codes_' . $code, $right ? serialize($right) : '');
 
 			// clear menu cache
 			if (Manager::isB24())
@@ -725,11 +857,15 @@ class Rights
 	/**
 	 * Set additional right.
 	 * @param string $code Code from ADDITIONAL_RIGHTS.
-	 * @param array
+	 * @param array $accessCodes Additional rights array.
 	 * @return void
 	 */
 	public static function setAdditionalRightExtended($code, array $accessCodes = [])
 	{
+		if (!is_string($code))
+		{
+			return;
+		}
 		self::refreshAdditionalRights([
 		  	$code => [
 				0 => $accessCodes
@@ -747,6 +883,10 @@ class Rights
 		static $access = null;
 		$return = [];
 
+		if (!is_string($code))
+		{
+			return $return;
+		}
 		if ($access === null)
 		{
 			$access = new \CAccess;
@@ -789,28 +929,112 @@ class Rights
 	{
 		$rights = [];
 
+		$type = Site\Type::getCurrentScopeId();
+
 		foreach (self::ADDITIONAL_RIGHTS as $right)
 		{
-			$rights[$right] = Loc::getMessage('LANDING_RIGHTS_R_' . strtoupper($right));
+			if (mb_strpos($right, '_') > 0)
+			{
+				[$prefix, ] = explode('_', $right);
+				$prefix = mb_strtoupper($prefix);
+				if ($prefix != $type)
+				{
+					continue;
+				}
+			}
+			else if ($type !== null)
+			{
+				continue;
+			}
+			$rights[$right] = Loc::getMessage('LANDING_RIGHTS_R_'.mb_strtoupper($right));
 		}
 
 		return $rights;
 	}
 
 	/**
-	 * Has current user additional right or not.
-	 * @param string $code Code from ADDITIONAL_RIGHTS.
+	 * Has user some extra access?
 	 * @return bool
 	 */
-	public static function hasAdditionalRight($code)
+	protected static function hasExtraRights(): bool
+	{
+		// has context user access to crm forms
+		if (\Bitrix\Main\Loader::includeModule('crm'))
+		{
+			$access = new \CCrmPerms(self::getContextUserId());
+			if (!$access->havePerm('WEBFORM', BX_CRM_PERM_NONE, 'WRITE'))
+			{
+				// grant access to crm forms sites
+				$res = Site::getList([
+					'select' => [
+						'ID'
+					],
+					'filter' => [
+						'=CODE' => [
+							'/' . Site\Type::PSEUDO_SCOPE_CODE_FORMS . '/',
+							'/' . Site\Type::PSEUDO_SCOPE_CODE_FORMS . '2/'// :(
+						],
+						'=SPECIAL' => 'Y',
+						'CHECK_PERMISSIONS' => 'N'
+					]
+				]);
+				while ($row = $res->fetch())
+				{
+					self::$allowedSites[] = $row['ID'];
+				}
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Has current user additional right or not.
+	 * @param string $code Code from ADDITIONAL_RIGHTS.
+	 * @param string $type Scope type.
+	 * @param bool $checkExtraRights Check extra rights.
+	 * @return bool
+	 */
+	public static function hasAdditionalRight($code, $type = null, bool $checkExtraRights = false)
 	{
 		static $options = [];
+
+		if ($checkExtraRights && self::hasExtraRights())
+		{
+			return true;
+		}
+
+		if (!is_string($code))
+		{
+			return false;
+		}
+		if ($type === null)
+		{
+			$type = Site\Type::getCurrentScopeId();
+		}
+
+		if ($type !== null)
+		{
+			$type = mb_strtolower($type);
+			//@todo: hotfix for group right
+			if ($type == Site\Type::SCOPE_CODE_GROUP)
+			{
+				return true;
+			}
+			$code = $type . '_' . $code;
+		}
 
 		if (array_key_exists($code, self::ADDITIONAL_RIGHTS))
 		{
 			if (!self::isFeatureOn())
 			{
 				return true;
+			}
+
+			if (!self::getContextUserId())
+			{
+				return false;
 			}
 
 			if (self::isAdmin())
@@ -864,7 +1088,7 @@ class Rights
 					],
 					'filter' => [
 						'=ACCESS_CODE' => $accessCodes,
-						'USER_ID' => Manager::getUserId()
+						'USER_ID' => self::getContextUserId()
 					]
 				]);
 

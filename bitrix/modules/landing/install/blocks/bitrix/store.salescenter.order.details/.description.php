@@ -6,33 +6,39 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 
 use \Bitrix\Main\Localization\Loc;
 
-$return = array(
-	'block' => array(
+$return = [
+	'block' => [
 		'name' => Loc::getMessage('LANDING_BLOCK_STORE_SALESCENTER_ORDER_DETAIL-NAME'),
-		'section' => array('store'),
+		'section' => ['store'],
 		'type' => 'null',
 		'namespace' => 'bitrix'
-	),
-	'nodes' => array(
-		"bitrix:salescenter.order.details" => array(
+	],
+	'nodes' => [
+		"bitrix:salescenter.order.details" => [
 			'type' => 'component',
-			'extra' => array(
-				'editable' => array(
+			'extra' => [
+				'editable' => [
 					// visual
-					'TEMPLATE_MODE' => array(
+					'TEMPLATE_MODE' => [
 						'style' => true,
-					),
-				),
-			),
-		),
-	),
-	'style' => array(
-		'block' => array(
-			'type' => array('block-default'),
-		),
-		'nodes' => array(),
-	),
-);
+					],
+					'SHOW_HEADER' => [
+						'style' => true,
+					],
+					'HEADER_TITLE' => [
+						'style' => true,
+					],
+				],
+			],
+		],
+	],
+	'style' => [
+		'block' => [
+			'type' => ['block-default', 'block-border'],
+		],
+		'nodes' => [],
+	],
+];
 
 
 return $return;

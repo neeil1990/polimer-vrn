@@ -4,16 +4,16 @@ define('BX_SECURITY_SHOW_MESSAGE', true);
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_before.php');
 
-use Bitrix\Main\Loader;
 use Bitrix\Main\Error;
 use Bitrix\Main\HttpRequest;
-use Bitrix\Sender\Internals\QueryController as Controller;
-use Bitrix\Sender\Internals\CommonAjax;
+use Bitrix\Main\Loader;
 use Bitrix\Sender\Entity;
-use Bitrix\Sender\Trigger;
+use Bitrix\Sender\Internals\CommonAjax;
+use Bitrix\Sender\Internals\QueryController as Controller;
 use Bitrix\Sender\MailingTable;
+use Bitrix\Sender\Trigger;
 
-if (!Loader::includeModule('sender'))
+if (!Bitrix\Main\Loader::includeModule('sender'))
 {
 	return;
 }
@@ -72,6 +72,7 @@ $actions[] = Controller\Action::create('createUsingPreset')->setHandler(
 			$letter = (new Entity\Letter())
 				->set('IS_TRIGGER', 'Y')
 				->set('CREATED_BY', Bitrix\Sender\Security\User::current()->getId())
+				->set('UPDATED_BY', Bitrix\Sender\Security\User::current()->getId())
 				->set('CAMPAIGN_ID', $entity->getId())
 				->set('TITLE', trim(str_replace('#SITE_NAME#:', '',$letterData['SUBJECT'])))
 				->set('TIME_SHIFT', $letterData['TIME_SHIFT'])

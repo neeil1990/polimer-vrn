@@ -57,7 +57,7 @@
 }
 
 .main-mail-form-field-spacer {
-	height: 38px;
+	height: 39px;
 }
 
 .main-mail-form-field-spacer-25 {
@@ -78,10 +78,10 @@
 	flex-wrap: wrap;
 	box-sizing: border-box;
 	background: #fff;
-	border: 1px solid rgba(83,92,105,.2);
+	border: 1px solid #c6cdd3;
 	border-radius: 2px;
 	padding: 3px;
-	min-height: 38px;
+	min-height: 39px;
 }
 
 .main-mail-form-field-value-short .main-mail-form-field-value-wrapper {
@@ -147,9 +147,9 @@
 	outline: none;
 	border: none;
 	padding: 0 5px;
-	height: 30px;
+	height: 31px;
 	width: 100%;
-	font: 15px/30px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font: 15px/31px "Helvetica Neue", Arial, Helvetica, sans-serif;
 	vertical-align: middle;
 }
 
@@ -172,6 +172,19 @@
 	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0Ny4xODgiIGhlaWdodD0iNTQuMDYzIiB2aWV3Qm94PSIwIDAgNDcuMTg4IDU0LjA2MyI+PGRlZnM+PHN0eWxlPi5jbHMtMSB7IGZpbGw6ICNmZmY7IGZpbGwtcnVsZTogZXZlbm9kZDsgfTwvc3R5bGU+PC9kZWZzPjxwYXRoIGlkPSJTaGFwZV8yX2NvcHlfNCIgZGF0YS1uYW1lPSJTaGFwZSAyIGNvcHkgNCIgY2xhc3M9ImNscy0xIiBkPSJNNDcuMTggNTQuMDYyYzAtMy4yMTctMy42MS0xNi44MjYtMy42MS0xNi44MjYgMC0xLjk5LTIuNi00LjI2LTcuNzItNS41ODVhMTcuMzk0IDE3LjM5NCAwIDAgMS00Ljg4Ny0yLjIyM2MtLjMzLS4xODgtLjI4LTEuOTI1LS4yOC0xLjkyNWwtMS42NDgtLjI1YzAtLjE0Mi0uMTQtMi4yMjUtLjE0LTIuMjI1IDEuOTcyLS42NjMgMS43Ny00LjU3NCAxLjc3LTQuNTc0IDEuMjUyLjY5NSAyLjA2OC0yLjQgMi4wNjgtMi40IDEuNDgyLTQuMy0uNzM4LTQuMDQtLjczOC00LjA0YTI3LjA1IDI3LjA1IDAgMCAwIDAtNy45MThjLS45ODctOC43MDgtMTUuODQ3LTYuMzQ0LTE0LjA4NS0zLjUtNC4zNDMtLjgtMy4zNTIgOS4wODItMy4zNTIgOS4wODJsLjk0MiAyLjU2Yy0xLjg1IDEuMi0uNTY0IDIuNjUtLjUgNC4zMi4wOSAyLjQ2NiAxLjYgMS45NTUgMS42IDEuOTU1LjA5MyA0LjA3IDIuMSA0LjYgMi4xIDQuNi4zNzcgMi41NTYuMTQyIDIuMTIuMTQyIDIuMTJsLTEuNzg2LjIxN2E3LjEgNy4xIDAgMCAxLS4xNCAxLjczMmMtMi4xLjkzNi0yLjU1MyAxLjQ4NS00LjY0IDIuNC00LjAzMiAxLjc2Ny04LjQxNCA0LjA2NS05LjE5MyA3LjE2Uy0uMDEyIDU0LjA2LS4wMTIgNTQuMDZoNDcuMTl6Ii8+PC9zdmc+);
 	background-size: 50%;
 	vertical-align: middle;
+}
+
+.main-mail-form-field-from-copy {
+	float: right;
+}
+
+.main-mail-form-field-from-copy-checkbox {
+	vertical-align: middle;
+	margin: 0px 5px;
+}
+
+.main-mail-form-field-from-copy-text {
+	color: #80868e;
 }
 
 .main-mail-form-field-value-menu {
@@ -449,4 +462,31 @@
 	right: 0;
 	height: 100%;
 	width: 32px;
+}
+
+/* version = 1 patch begin */
+.feed-add-post-destination.feed-add-post-destination-mailcontacts {
+	background-color: #ffec91;
+	color: #a26b00;
+	padding-left: 32px;
+}
+.feed-add-post-destination.feed-add-post-destination-mailcontacts:before {
+	background: url("/bitrix/components/bitrix/main.post.form/templates/.default/images/sprite_mpf_5.png?1") no-repeat 0 -92px;
+	content: "";
+	height: 13px;
+	position: absolute;
+	width: 13px;
+	left: 9px;
+	top: 8px
+}
+.feed-add-post-destination.feed-add-post-destination-mailcontacts::before {
+	background-position: -33px -92px
+}
+.feed-add-post-destination.feed-add-post-destination-mailcontacts .feed-add-post-del-but {
+	background-position: -113px -61px;
+}
+/* version = 1 patch end */
+
+.main-mail-form-field-value-rcpt .ui-tile-selector-selector-wrap {
+	padding: 2px 2px;
 }

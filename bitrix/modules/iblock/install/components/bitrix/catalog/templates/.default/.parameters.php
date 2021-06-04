@@ -91,19 +91,21 @@ $arTemplateParameters["FILTER_VIEW_MODE"] = array(
 	"TYPE" => "LIST",
 	"VALUES" => $arFilterViewModeList,
 	"DEFAULT" => "VERTICAL",
-	"HIDDEN" => (!isset($arCurrentValues['USE_FILTER']) || 'N' == $arCurrentValues['USE_FILTER'])
+	"HIDDEN" => (!isset($arCurrentValues['USE_FILTER']) || 'N' == $arCurrentValues['USE_FILTER'] ? 'Y' : 'N')
 );
 $arTemplateParameters["FILTER_HIDE_ON_MOBILE"] = array(
 	"PARENT" => "FILTER_SETTINGS",
 	"NAME" => GetMessage("CPT_BC_FILTER_HIDE_ON_MOBILE"),
 	"TYPE" => "CHECKBOX",
 	"DEFAULT" => "N",
+	"HIDDEN" => (!isset($arCurrentValues['USE_FILTER']) || 'N' == $arCurrentValues['USE_FILTER'] ? 'Y' : 'N')
 );
 $arTemplateParameters["INSTANT_RELOAD"] = array(
 	"PARENT" => "FILTER_SETTINGS",
 	"NAME" => GetMessage("CPT_BC_INSTANT_RELOAD"),
 	"TYPE" => "CHECKBOX",
 	"DEFAULT" => "N",
+	"HIDDEN" => (!isset($arCurrentValues['USE_FILTER']) || 'N' == $arCurrentValues['USE_FILTER'] ? 'Y' : 'N')
 );
 $arTemplateParameters['TEMPLATE_THEME'] = array(
 	'PARENT' => 'VISUAL',
@@ -142,6 +144,12 @@ $arTemplateParameters['SEARCH_CHECK_DATES'] = array(
 	'NAME' => GetMessage("CP_BC_TPL_SEARCH_CHECK_DATES"),
 	"TYPE" => "CHECKBOX",
 	"DEFAULT" => "Y",
+);
+$arTemplateParameters['SEARCH_USE_SEARCH_RESULT_ORDER'] = array(
+	'PARENT' => 'SEARCH_SETTINGS',
+	'NAME' => GetMessage('CP_BC_TPL_SEARCH_USE_SEARCH_RESULT_ORDER'),
+	"TYPE" => "CHECKBOX",
+	"DEFAULT" => "N"
 );
 
 $arAllPropList = array();

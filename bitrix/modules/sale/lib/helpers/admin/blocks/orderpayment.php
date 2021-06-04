@@ -5,6 +5,8 @@ namespace Bitrix\Sale\Helpers\Admin\Blocks;
 use Bitrix\Main\Entity\EntityError;
 use Bitrix\Sale\Cashbox\CheckManager;
 use Bitrix\Sale\Cashbox\Internals\CashboxTable;
+use Bitrix\Sale\Exchange\Integration\Admin\Link;
+use Bitrix\Sale\Exchange\Integration\Admin\Registry;
 use Bitrix\Sale\Helpers\Admin\OrderEdit;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\OrderStatus;
@@ -13,12 +15,12 @@ use Bitrix\Sale\PaySystem;
 use Bitrix\Sale\Services\Company;
 use Bitrix\Sale\Services\PaySystem\Restrictions;
 use Bitrix\Sale\Internals\CompanyTable;
-use Bitrix\Sale\Order;
 use Bitrix\Main\Page\Asset;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Type\Date;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Sale\Result;
+use Bitrix\Sale;
 use Bitrix\Main;
 use Bitrix\Sale\UserMessageException;
 
@@ -37,6 +39,10 @@ class OrderPayment
 		global $USER, $APPLICATION;
 		static $users = array();
 		static $userCompanyList = array();
+
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
 
 		if (is_null(self::$order))
 			self::$order = $item->getCollection()->getOrder();
@@ -63,7 +69,7 @@ class OrderPayment
 		$fields['PERSON_TYPE_ID'] = self::$order->getPersonTypeId();
 		$fields['SITE_ID'] = self::$order->getSiteId();
 		$fields['STATUS_ID'] = self::$order->getField('STATUS_ID');
-		$fields['ORDER_LOCKED'] = Order::isLocked($fields['ORDER_ID']);
+		$fields['ORDER_LOCKED'] = $orderClass::isLocked($fields['ORDER_ID']);
 
 		$saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 
@@ -107,6 +113,9 @@ class OrderPayment
 
 		$dbRes = CashboxTable::getList(array('filter' => array('=ACTIVE' => 'Y', '=ENABLED' => 'Y')));
 		$fields['HAS_ENABLED_CASHBOX'] = ($dbRes->fetch()) ? 'Y' : 'N';
+
+		$service = $item->getPaySystem();
+		$fields['HAS_PREVIEW'] = $service && $service->isAffordPdf();
 
 		return $fields;
 	}
@@ -667,6 +676,7 @@ class OrderPayment
 
 		$isUserResponsible = null;
 		$isAllowCompany = null;
+		$link = Link::getInstance();
 
 		if (array_key_exists('IS_USER_RESPONSIBLE', $data))
 		{
@@ -725,7 +735,7 @@ class OrderPayment
 		$company = $res->fetch();
 
 		$paymentStatusBlockVoucherNum = '';
-		if (strlen($data['PAY_VOUCHER_NUM']) > 0)
+		if ($data['PAY_VOUCHER_NUM'] <> '')
 		{
 			$paymentStatusBlockVoucherNum = '<tr>
 										<td class="adm-detail-content-cell-l" width="40%"><br>'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_VOUCHER_NUM').':</td>
@@ -737,7 +747,7 @@ class OrderPayment
 		}
 
 		$paymentStatusBlockVoucherDate = '';
-		if (strlen($data['PAY_VOUCHER_DATE']) > 0)
+		if ($data['PAY_VOUCHER_DATE'] <> '')
 		{
 			$paymentStatusBlockVoucherDate = '<tr>
 												<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_VOUCHER_DATE').':</td>
@@ -748,7 +758,7 @@ class OrderPayment
 		}
 
 		$paymentStatusBlockReturnNum = '';
-		if (strlen($data['PAY_RETURN_NUM']) > 0)
+		if ($data['PAY_RETURN_NUM'] <> '')
 		{
 			$paymentStatusBlockReturnNum = '<tr>
 			<td class="adm-detail-content-cell-l" width="40%"><br>'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_RETURN_NUM').':</td>
@@ -758,7 +768,7 @@ class OrderPayment
 		}
 
 		$paymentStatusBlockReturnDate = '';
-		if (strlen($data['PAY_RETURN_DATE']) > 0)
+		if ($data['PAY_RETURN_DATE'] <> '')
 		{
 			$paymentStatusBlockReturnDate = '<tr>
 				<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_RETURN_DATE').':</td>
@@ -773,8 +783,18 @@ class OrderPayment
 		$allowedOrderStatusesEdit = OrderStatus::getStatusesUserCanDoOperations($USER->GetID(), array('update'));
 		$isAllowEdit = in_array($data["STATUS_ID"], $allowedOrderStatusesEdit) && $form != 'archive';
 		$sectionEdit = '';
+		$href = $link
+			->create()
+			->setPageByType(Registry::SALE_ORDER_PAYMENT_EDIT)
+			->setFilterParams(false)
+			->fill()
+			->setField('order_id', $data['ORDER_ID'])
+			->setField('payment_id', $data['ID'])
+			->setField('backurl', $_SERVER['REQUEST_URI'])
+			->build();
+
 		if ($isAllowEdit && !$data['ORDER_LOCKED'])
-			$sectionEdit = '<div class="adm-bus-pay-section-action" id="SECTION_'.$index.'_EDIT"><a href="/bitrix/admin/sale_order_payment_edit.php?order_id='.$data['ORDER_ID'].'&payment_id='.$data['ID'].'&backurl='.urlencode($_SERVER['REQUEST_URI']).'">'.Loc::getMessage('SALE_ORDER_PAYMENT_EDIT').'</a></div>';
+			$sectionEdit = '<div class="adm-bus-pay-section-action" id="SECTION_'.$index.'_EDIT"><a href="'.$href.'">'.Loc::getMessage('SALE_ORDER_PAYMENT_EDIT').'</a></div>';
 
 		$allowedOrderStatusesDelete = OrderStatus::getStatusesUserCanDoOperations($USER->GetID(), array('delete'));
 		$isAllowDelete = in_array($data["STATUS_ID"], $allowedOrderStatusesDelete) && $form != 'archive';
@@ -792,6 +812,19 @@ class OrderPayment
 		if($form != 'archive' && $data['CAN_PRINT_CHECK'] == 'Y' && $data['HAS_ENABLED_CASHBOX'] === 'Y')
 		{
 			$checkLink .= '<tr><td class="adm-detail-content-cell-r tac"><a href="javascript:void(0);" onclick="BX.Sale.Admin.OrderPayment.prototype.showCreateCheckWindow('.$data['ID'].');">'.Loc::getMessage('SALE_ORDER_PAYMENT_CHECK_ADD').'</a></td></tr>';
+		}
+
+		if ($isAllowCompany === false && $isUserResponsible === false)
+		{
+			$psName = Loc::getMessage('SALE_ORDER_PAYMENT_HIDDEN');
+		}
+		else
+		{
+			$psName = htmlspecialcharsbx($data['PAY_SYSTEM_NAME']).' ['.$data['PAY_SYSTEM_ID'].'] '.$psResult;
+			if ($data['HAS_PREVIEW'])
+			{
+				$psName .= " (<a target='_blank' href='/bitrix/admin/sale_payment_doc_preview.php?PAYMENT_ID={$data['ID']}&ORDER_ID={$data['ORDER_ID']}'>".Loc::getMessage('SALE_ORDER_PAYMENT_DOC_PREVIEW')."</a>)";
+			}
 		}
 
 		$result = '
@@ -818,7 +851,7 @@ class OrderPayment
 										<tbody>
 											<tr>
 												<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_SYSTEM').':</td>
-												<td class="adm-detail-content-cell-r">'.($isAllowCompany === false && $isUserResponsible === false ? Loc::getMessage('SALE_ORDER_PAYMENT_HIDDEN') : htmlspecialcharsbx($data['PAY_SYSTEM_NAME']).' ['.$data['PAY_SYSTEM_ID'].'] ').$psResult.'</td>
+												<td class="adm-detail-content-cell-r">'.$psName.'</td>
 											</tr>
 										</tbody>
 									</table>
@@ -969,6 +1002,8 @@ class OrderPayment
 		$lang = Main\Application::getInstance()->getContext()->getLanguage();
 		$paidString = ($data['PAID'] == 'Y') ? 'YES' : 'NO';
 
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+
 		$isUserResponsible = null;
 		$isAllowCompany = null;
 
@@ -982,10 +1017,13 @@ class OrderPayment
 			$isAllowCompany = $data['IS_ALLOW_COMPANY'];
 		}
 
-		$allowedOrderStatusesPayment = OrderStatus::getStatusesUserCanDoOperations($USER->GetID(), array('payment'));
+		/** @var Sale\OrderStatus $orderStatusClass */
+		$orderStatusClass = $registry->getOrderStatusClassName();
+
+		$allowedOrderStatusesPayment = $orderStatusClass::getStatusesUserCanDoOperations($USER->GetID(), array('payment'));
 		$isAllowPayment = in_array($data["STATUS_ID"], $allowedOrderStatusesPayment);
 
-		$isActive = ($form != 'edit' && $form != 'archive') && !Order::isLocked($data['ORDER_ID']) && $isAllowPayment;
+		$isActive = ($form != 'edit' && $form != 'archive') && !$data['ORDER_LOCKED'] && $isAllowPayment;
 		$triangle = ($isActive) ? '<span class="triangle"> &#9662;</span>' : '';
 
 		if ($data['PAID'] == 'Y')
@@ -1011,6 +1049,19 @@ class OrderPayment
 			$checkLink .='</td>';
 		}
 
+		if ($isAllowCompany === false && $isUserResponsible === false)
+		{
+			$psName = Loc::getMessage('SALE_ORDER_PAYMENT_HIDDEN');
+		}
+		else
+		{
+			$psName = htmlspecialcharsbx($data['PAY_SYSTEM_NAME']);
+
+			if ($data['HAS_PREVIEW'])
+			{
+				$psName .= " (<a target='_blank' href='/bitrix/admin/sale_payment_doc_preview.php?PAYMENT_ID={$data['ID']}&ORDER_ID={$data['ORDER_ID']}'>".Loc::getMessage('SALE_ORDER_PAYMENT_DOC_PREVIEW')."</a>)";
+			}
+		}
 
 		$result = '
 			<div class="adm-bus-section-container-section-content" style="padding: 10px;" id="SECTION_SHORT_'.$index.'">
@@ -1019,7 +1070,7 @@ class OrderPayment
 						<td>
 							<div style="background: url(\''.$data['PAY_SYSTEM_LOGOTIP_SHORT'].'\');" class="adm-shipment-block-short-logo" id="LOGOTIP_SHORT_'.$index.'"></div>
 						</td>
-						<td class="adm-bus-section-container-section-status-service">'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_SYSTEM').': '.($isAllowCompany === false && $isUserResponsible === false ? Loc::getMessage('SALE_ORDER_PAYMENT_HIDDEN') : htmlspecialcharsbx($data['PAY_SYSTEM_NAME'])).'</td>
+						<td class="adm-bus-section-container-section-status-service">'.Loc::getMessage('SALE_ORDER_PAYMENT_PAY_SYSTEM').': '.$psName.'</td>
 						<td class="adm-bus-section-container-section-status-summ">'.Loc::getMessage('SALE_ORDER_PAYMENT_PAYABLE_SUM').': '.SaleFormatCurrency($data['SUM'], $data['CURRENCY']).'</td>
 						<td class="adm-bus-section-container-section-status-status payment-status">'.Loc::getMessage('SALE_ORDER_PAYMENT_STATUS').': '.$paymentStatus.'</td>
 						'.$checkLink.'
@@ -1054,7 +1105,7 @@ class OrderPayment
 		{
 			$result .= '<div>';
 
-			if (strlen($check['LINK']) > 0)
+			if ($check['LINK'] <> '')
 			{
 				$result .= '<a href="'.$check['LINK'].'" target="_blank">'.Loc::getMessage('SALE_ORDER_PAYMENT_CHECK_LINK', array('#CHECK_ID#' => $check['ID'])).'</a>';
 			}
@@ -1145,13 +1196,13 @@ class OrderPayment
 	 * @param $formType
 	 * @return string
 	 */
-	public static function createButtonAddPayment($formType)
+	public static function createButtonAddPayment($params=[])
 	{
-		return '<input type="button" class="adm-order-block-add-button" value="'.Loc::getMessage('SALE_ORDER_PAYMENT_BUTTON_ADD').'" onclick="BX.Sale.Admin.GeneralPayment.addNewPayment(this, \''.$formType.'\')">';
+		return '<input type="button" class="adm-order-block-add-button" value="'.Loc::getMessage('SALE_ORDER_PAYMENT_BUTTON_ADD').'" onclick="BX.Sale.Admin.GeneralPayment.addNewPayment(this,'.\CUtil::PhpToJSObject($params).')">';
 	}
 
 	/**
-	 * @param Order $order
+	 * @param Sale\Order $order
 	 * @param $payments
 	 * @param bool $canSetPaid
 	 * @return Result
@@ -1159,7 +1210,7 @@ class OrderPayment
 	 * @throws Main\ObjectNotFoundException
 	 * @throws UserMessageException
 	 */
-	public static function updateData(Order &$order, $payments, $canSetPaid = false)
+	public static function updateData(Sale\Order &$order, $payments, $canSetPaid = false)
 	{
 		global $USER, $APPLICATION;
 
@@ -1293,6 +1344,12 @@ class OrderPayment
 
 				if ($payment['ORDER_STATUS_ID'])
 					$order->setField('STATUS_ID', $payment['ORDER_STATUS_ID']);
+			}
+
+			$verify = $paymentItem->verify();
+			if (!$verify->isSuccess())
+			{
+				$result->addErrors($verify->getErrors());
 			}
 
 			$data['PAYMENT'][] = $paymentItem;

@@ -29,6 +29,11 @@ if ($USER->CanDoOperation('catalog_read') || $USER->CanDoOperation('catalog_pric
 	$bUseStoreControl = Catalog\Config\State::isUsedInventoryManagement();
 	$bEnableReservation = (COption::GetOptionString('catalog', 'enable_reservation') != 'N');
 	$enableQuantityRanges = Catalog\Config\Feature::isPriceQuantityRangesEnabled();
+	$quantityRangesHelpLink = null;
+	if (!$enableQuantityRanges)
+	{
+		$quantityRangesHelpLink = Catalog\Config\Feature::getPriceQuantityRangesHelpLink();
+	}
 
 	$availQuantityTrace = COption::GetOptionString("catalog", "default_quantity_trace");
 	$availCanBuyZero = COption::GetOptionString("catalog", "default_can_buy_zero");
@@ -432,14 +437,28 @@ function togglePriceType()
 <input type="hidden" name="price_useextform" id="price_useextform_N" value="N" />
 <table border="0" cellspacing="0" cellpadding="0" width="100%" class="edit-table" id="catalog_vat_table">
 <?
-if ($enableQuantityRanges)
+if ($enableQuantityRanges || !empty($quantityRangesHelpLink))
 {
 	?>
 	<tr>
 		<td width="40%"><label for="price_useextform"><? echo GetMessage('C2IT_PRICES_USEEXT'); ?>:</label></td>
-		<td width="60%">
+		<td width="60%"><?
+		if ($enableQuantityRanges)
+		{
+			?>
 			<input type="checkbox" name="price_useextform" id="price_useextform" value="Y" onclick="togglePriceType()" <?= $bUseExtendedPrice ? 'checked="checked"' : '' ?> <? echo($bReadOnly ? ' disabled readonly' : ''); ?>/>
-		</td>
+			<?
+		}
+		else
+		{
+			?><input type="hidden" value="N" name="price_useextform"><?
+			if ($quantityRangesHelpLink['TYPE'] == 'ONCLICK')
+			{
+				?><a href="#" onclick="<?=$quantityRangesHelpLink['LINK']; ?>"><?=GetMessage('C2IT_PRICES_EXT_TARIFF_ENABLE'); ?></a><?
+				Catalog\Config\Feature::initUiHelpScope();
+			}
+		}
+		?></td>
 	</tr>
 	<?
 }
@@ -489,7 +508,12 @@ else
 		<td width="40%">
 	<?
 	$arBaseGroup = CCatalogGroup::GetBaseGroup();
-	$arBasePrice = CPrice::GetBasePrice($PRODUCT_ID, $arPriceBoundaries[0]["FROM"], $arPriceBoundaries[0]["TO"]);
+	$arBasePrice = CPrice::GetBasePrice(
+		$PRODUCT_ID,
+		$arPriceBoundaries[0]["FROM"],
+		$arPriceBoundaries[0]["TO"],
+		false
+	);
 	echo GetMessage("BASE_PRICE")?> (<? echo GetMessage('C2IT_PRICE_TYPE'); ?> "<? echo htmlspecialcharsbx(!empty($arBaseGroup['NAME_LANG']) ? $arBaseGroup['NAME_LANG'] : $arBaseGroup["NAME"]); ?>"):
 		</td>
 		<td width="60%">
@@ -2112,6 +2136,39 @@ function CloneBarcodeField()
 	</tr>
 	<?
 	}
+
+	$arUserFields = $USER_FIELD_MANAGER->GetUserFields(Catalog\ProductTable::getUfId(), $PRODUCT_ID, LANGUAGE_ID);
+	if (!empty($arUserFields))
+	{
+		if ($arMainCatalog['SUBSCRIPTION'] == 'Y' || $productIsSet)
+		{
+			if (isset($arUserFields['UF_PRODUCT_GROUP']))
+				unset($arUserFields['UF_PRODUCT_GROUP']);
+		}
+	}
+	if (!empty($arUserFields))
+	{
+		?><tr class="heading">
+			<td colspan="2"><?echo GetMessage("C2IT_UF_FIELDS")?></td>
+		</tr><?
+
+		foreach ($arUserFields as $FIELD_NAME => $arUserField)
+		{
+			$arUserField["VALUE_ID"] = $PRODUCT_ID;
+			$strLabel = $arUserField["EDIT_FORM_LABEL"] ? $arUserField["EDIT_FORM_LABEL"] : $arUserField["FIELD_NAME"];
+			$arUserField["EDIT_FORM_LABEL"] = $strLabel;
+
+			$html = $USER_FIELD_MANAGER->GetEditFormHTML($bVarsFromForm, $GLOBALS[$FIELD_NAME], $arUserField);
+			//TODO: remove this code after refactoring UF fields
+			if ($FIELD_NAME == 'UF_PRODUCT_GROUP')
+			{
+				$html = str_replace('<select', '<select style="max-width: 300px;"', $html);
+			}
+			echo $html;
+		}
+		unset($FIELD_NAME, $arUserField);
+	}
+	unset($arUserFields);
 	?>
 </table>
 <script type="text/javascript">
@@ -2164,7 +2221,7 @@ if ('Y' == $arMainCatalog['SUBSCRIPTION']):
 
 	$arAvailContentGroups = array();
 	$availContentGroups = COption::GetOptionString("catalog", "avail_content_groups");
-	if (strlen($availContentGroups) > 0)
+	if ($availContentGroups <> '')
 		$arAvailContentGroups = explode(",", $availContentGroups);
 
 	$bNoAvailGroups = true;

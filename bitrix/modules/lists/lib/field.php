@@ -167,8 +167,12 @@ class Field
 						$field['CURRENT_VALUE'] = $value['VALUE'];
 						$html .= ' '.self::renderField($field);
 					}
-					$result['customHtml'] .= '<input type="hidden" name="'.
-						$field['FIELD_ID'].'['.$key.'][VALUE]" value="'.HtmlFilter::encode($value['VALUE']).'">';
+					$value['VALUE'] = (!is_array($value['VALUE']) ? [$value['VALUE']] : $value['VALUE']);
+					foreach ($value['VALUE'] as $innerKey => $innerValue)
+					{
+						$result['customHtml'] .= '<input type="hidden" name="'.
+							$field['FIELD_ID'].'[n'.$innerKey.'][VALUE]" value="'.HtmlFilter::encode($innerValue).'">';
+					}
 				}
 			}
 			if($field['READ'] == 'N')
@@ -379,7 +383,7 @@ class Field
 		elseif($field['TYPE'] == 'L')
 		{
 			$items = array();
-			$queryObject = \CIBlockProperty::getPropertyEnum($field['ID']);
+			$queryObject = \CIBlockProperty::getPropertyEnum($field['ID'], array('SORT' => 'ASC', 'NAME' => 'ASC'));
 			while($queryResult = $queryObject->fetch())
 				$items[$queryResult['ID']] = $queryResult['VALUE'];
 
@@ -410,7 +414,7 @@ class Field
 				array('IBLOCK_ID' => $field['LINK_IBLOCK_ID']),
 				false,
 				false,
-				array('ID', 'NAME')
+				array('ID', 'NAME', 'SORT')
 			);
 			while($queryResult = $queryObject->fetch())
 				$items[$queryResult['ID']] = $queryResult['NAME'];
@@ -428,8 +432,10 @@ class Field
 		{
 			$items = array();
 			$queryObject = \CIBlockSection::getList(
-				array('left_margin' => 'asc'),
-				array('IBLOCK_ID' => $field['LINK_IBLOCK_ID'])
+				array('LEFT_MARGIN' => 'ASC'),
+				array('IBLOCK_ID' => $field['LINK_IBLOCK_ID']),
+				false,
+				array('ID', 'IBLOCK_ID', 'NAME', 'DEPTH_LEVEL', 'LEFT_MARGIN')
 			);
 			while($queryResult = $queryObject->fetch())
 				$items[$queryResult['ID']] = str_repeat('. ', $queryResult['DEPTH_LEVEL'] - 1).$queryResult['NAME'];
@@ -877,11 +883,11 @@ class Field
 		$urlTemplate = $field['LIST_ELEMENT_URL'];
 
 		$url = str_replace(
-			array('#list_id#', '#section_id#', '#element_id#', '#group_id#'),
-			array($iblockId, $sectionId, $elementId, $socnetGroupId),
+			['#list_id#', '#section_id#', '#element_id#', '#group_id#'],
+			[$iblockId, $sectionId, $elementId, $socnetGroupId],
 			$urlTemplate
 		);
-		$url = \CHTTP::urlAddParams($url, array("list_section_id" => ""));
+		$url = \CHTTP::urlAddParams($url, ['list_section_id' => ($sectionId ? $sectionId : '')]);
 
 		$result = '<a href="'.\CHTTP::URN2URI(HtmlFilter::encode($url)).'">'.HtmlFilter::encode($field['VALUE']).'</a>';
 		return $result;
@@ -931,8 +937,6 @@ class Field
 		$urlTemplate = \CList::getUrlByIblockId($field['LINK_IBLOCK_ID']);
 		if(!$urlTemplate && !empty($field["LIST_ELEMENT_URL"]))
 			$urlTemplate = $field["LIST_ELEMENT_URL"];
-		$filter['ACTIVE'] = 'Y';
-		$filter['ACTIVE_DATE'] = 'Y';
 		$filter['CHECK_PERMISSIONS'] = 'Y';
 		if ($field['LINK_IBLOCK_ID'] > 0)
 			$filter['IBLOCK_ID'] = $field['LINK_IBLOCK_ID'];
@@ -1103,8 +1107,7 @@ class Field
 				foreach($field['VALUE'] as $key => $value)
 				{
 					$html .= '<textarea '.$disabled.' style="width:auto;height:auto;" name="'.$field['FIELD_ID'].
-						'['.$key.'][VALUE]" rows="'.intval($field["ROW_COUNT"]).'" cols="'.intval(
-							$field["COL_COUNT"]).'">'.HtmlFilter::encode($value["VALUE"]).'</textarea>';
+						'['.$key.'][VALUE]" rows="'.intval($field["ROW_COUNT"]).'" cols="'.intval($field["COL_COUNT"]).'">'.HtmlFilter::encode($value["VALUE"]).'</textarea>';
 					if($field['READ'] == 'Y')
 					{
 						if(empty($value['VALUE'])) continue;
@@ -1182,7 +1185,7 @@ class Field
 			foreach($field['VALUE'] as $key => $value)
 			{
 				$html .= '<input '.$disabled.' type="text" name="'.$field['FIELD_ID'].
-					'['.$key.'][VALUE]" value="'.$value["VALUE"].'">';
+					'['.$key.'][VALUE]" value="'.HtmlFilter::encode($value["VALUE"]).'">';
 				if($field['READ'] == 'Y')
 				{
 					if(empty($value['VALUE'])) continue;
@@ -1495,7 +1498,7 @@ class Field
 		}
 
 		$randomGenerator = new RandomSequence($field['FIELD_ID']);
-		$randString = strtolower($randomGenerator->randString(6));
+		$randString = mb_strtolower($randomGenerator->randString(6));
 
 		$html = '';
 		global $APPLICATION;
@@ -1509,7 +1512,8 @@ class Field
 				'CURRENT_ELEMENTS_ID' => $currentElements,
 				'POPUP' => 'Y',
 				'ONLY_READ' => $field['READ'],
-				'PANEL_SELECTED_VALUES' => 'Y'
+				'PANEL_SELECTED_VALUES' => 'Y',
+				'TEMPLATE_URL' => $field['LIST_ELEMENT_URL']
 			),
 			null, array('HIDE_ICONS' => 'Y')
 		);

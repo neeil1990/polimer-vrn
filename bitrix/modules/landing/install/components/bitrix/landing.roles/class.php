@@ -149,7 +149,7 @@ class LandingRolesComponent extends LandingBaseComponent
 		$init = $this->init();
 
 		// access only for admin
-		if (!\Bitrix\Landing\Rights::isAdmin())
+		if ($init && !Rights::isAdmin())
 		{
 			$init = false;
 			$this->addError(
@@ -161,7 +161,12 @@ class LandingRolesComponent extends LandingBaseComponent
 
 		if ($init)
 		{
+			$this->checkParam('TYPE', '');
 			$this->checkParam('PAGE_URL_ROLE_EDIT', '');
+
+			\Bitrix\Landing\Site\Type::setScope(
+				$this->arParams['TYPE']
+			);
 
 			$this->arResult['EXTENDED'] = Rights::isExtendedMode();
 

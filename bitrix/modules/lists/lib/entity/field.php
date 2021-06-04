@@ -18,7 +18,7 @@ class Field implements Controllable, Errorable
 	private $params = [];
 	private $fieldList = [];
 
-	private $errorCollection;
+	private $iblockId;
 
 	public function __construct(Param $param)
 	{
@@ -29,11 +29,20 @@ class Field implements Controllable, Errorable
 			"USER_TYPE_SETTINGS", "LIST_TEXT_VALUES", "LIST_DEF", "CODE", "SETTINGS", "ROW_COUNT", 
 			"COL_COUNT", "LINK_IBLOCK_ID"];
 
+		$this->iblockId = Utils::getIblockId($this->params);
+
 		$this->errorCollection = new ErrorCollection;
 	}
 	
 	public function add()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID", ["FIELDS" => ["NAME", "TYPE"]]]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$fields = $this->getFields();
 		$this->validateFields($fields);
 		if ($this->hasErrors())
@@ -41,13 +50,13 @@ class Field implements Controllable, Errorable
 			return false;
 		}
 
-		$object = new \CList(Utils::getIblockId($this->params));
+		$object = new \CList($this->iblockId);
 
 		if (!$object->is_field($fields["TYPE"]))
 		{
 			if (!empty($fields["CODE"]))
 			{
-				$property = $this->getProperty(Utils::getIblockId($this->params), $fields["CODE"]);
+				$property = $this->getProperty($this->iblockId, $fields["CODE"]);
 				if (!empty($property) && is_array($property))
 				{
 					$this->errorCollection->setError(new Error("Property already exists", self::ERROR_SAVE_FIELD));
@@ -65,7 +74,7 @@ class Field implements Controllable, Errorable
 		if ($result)
 		{
 			global $CACHE_MANAGER;
-			$CACHE_MANAGER->clearByTag("lists_list_".Utils::getIblockId($this->params));
+			$CACHE_MANAGER->clearByTag("lists_list_".$this->iblockId);
 			return $result;
 		}
 		else
@@ -77,11 +86,18 @@ class Field implements Controllable, Errorable
 
 	public function get(array $navData = [])
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return [];
+		}
+
 		$fields = [];
 
 		if (!empty($this->params["FIELD_ID"]))
 		{
-			$object = new \CListFieldList(Utils::getIblockId($this->params));
+			$object = new \CListFieldList($this->iblockId);
 			$fieldsObject = $object->getByID($this->params["FIELD_ID"]);
 			if ($fieldsObject)
 			{
@@ -91,7 +107,7 @@ class Field implements Controllable, Errorable
 		}
 		else
 		{
-			$object = new \CList(Utils::getIblockId($this->params));
+			$object = new \CList($this->iblockId);
 			$fields = $object->getFields();
 		}
 
@@ -100,6 +116,14 @@ class Field implements Controllable, Errorable
 
 	public function update()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID",
+			"FIELD_ID", ["FIELDS" => ["NAME", "TYPE"]]]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return [];
+		}
+
 		$fields = $this->getFields();
 		$this->validateFields($fields);
 		if ($this->hasErrors())
@@ -107,7 +131,7 @@ class Field implements Controllable, Errorable
 			return false;
 		}
 
-		$object = new \CList(Utils::getIblockId($this->params));
+		$object = new \CList($this->iblockId);
 		if (!$this->canChangeField($fields["TYPE"]))
 		{
 			return false;
@@ -118,7 +142,7 @@ class Field implements Controllable, Errorable
 		if ($result)
 		{
 			global $CACHE_MANAGER;
-			$CACHE_MANAGER->clearByTag("lists_list_".Utils::getIblockId($this->params));
+			$CACHE_MANAGER->clearByTag("lists_list_".$this->iblockId);
 			return $result;
 		}
 		else
@@ -130,20 +154,34 @@ class Field implements Controllable, Errorable
 
 	public function delete()
 	{
-		$object = new \CList(Utils::getIblockId($this->params));
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID", "FIELD_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return [];
+		}
+
+		$object = new \CList($this->iblockId);
 		$object->deleteField($this->params["FIELD_ID"]);
 		$object->save();
 
 		global $CACHE_MANAGER;
-		$CACHE_MANAGER->clearByTag('lists_list_'.Utils::getIblockId($this->params));
+		$CACHE_MANAGER->clearByTag('lists_list_'.$this->iblockId);
 
 		return true;
 	}
 
 	public function getAvailableTypes()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return [];
+		}
+
 		$fieldId = (!empty($this->params["FIELD_ID"]) ? $this->params["FIELD_ID"] : "");
-		$object = new \CList(Utils::getIblockId($this->params));
+		$object = new \CList($this->iblockId);
 		return $object->getAvailableTypes($fieldId);
 	}
 	
@@ -185,7 +223,7 @@ class Field implements Controllable, Errorable
 			foreach (explode("\n", $fields["LIST_TEXT_VALUES"]) as $valueLine)
 			{
 				$value = trim($valueLine, " \t\n\r");
-				if (strlen($value) > 0 && !isset($listMap[$value]))
+				if ((string) $value <> '' && !isset($listMap[$value]))
 				{
 					$maxSort += 10;
 					$listMap[$value] = "m".$maxSort;
@@ -217,7 +255,7 @@ class Field implements Controllable, Errorable
 
 	private function canChangeField($type)
 	{
-		$objectFieldList = new \CListFieldList(Utils::getIblockId($this->params));
+		$objectFieldList = new \CListFieldList($this->iblockId);
 		$fieldObject = $objectFieldList->getByID($this->params["FIELD_ID"]);
 		if ($fieldObject)
 		{
@@ -239,7 +277,7 @@ class Field implements Controllable, Errorable
 			switch ($fields["TYPE"])
 			{
 				case "SORT":
-					$defaultValueError = (strlen($fields["DEFAULT_VALUE"]) <= 0);
+					$defaultValueError = ($fields["DEFAULT_VALUE"] == '');
 					break;
 				case "L":
 					if (is_array($fields["LIST_DEF"]))
@@ -264,8 +302,7 @@ class Field implements Controllable, Errorable
 		if ($fields["TYPE"] == "PREVIEW_PICTURE")
 		{
 			$fields["DEFAULT_VALUE"]["METHOD"] = "resample";
-			$fields["DEFAULT_VALUE"]["COMPRESSION"] = intval(
-				\COption::getOptionString("main", "image_resize_quality", "95"));
+			$fields["DEFAULT_VALUE"]["COMPRESSION"] = intval(\COption::getOptionString("main", "image_resize_quality", "95"));
 		}
 		elseif ($fields["TYPE"] == "S:Date")
 		{
@@ -284,7 +321,7 @@ class Field implements Controllable, Errorable
 		if (preg_match("/^(G|G:|E|E:)/", $fields["TYPE"]))
 		{
 			$blocks = \CLists::getIBlocks($this->params["IBLOCK_TYPE_ID"], "Y", $this->params["SOCNET_GROUP_ID"]);
-			if (substr($fields["TYPE"], 0, 1) == "G")
+			if (mb_substr($fields["TYPE"], 0, 1) == "G")
 			{
 				unset($blocks[$this->params["IBLOCK_ID"]]);
 			}

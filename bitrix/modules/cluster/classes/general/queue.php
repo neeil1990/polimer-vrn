@@ -37,13 +37,13 @@ class CClusterQueue
 
 	public static function UnQuoteParam($str)
 	{
-		if(strlen($str) > 0)
+		if($str <> '')
 		{
-			$prefix = substr($str, 0, 2);
+			$prefix = mb_substr($str, 0, 2);
 			if($prefix === "s:")
-				return substr($str, 2);
+				return mb_substr($str, 2);
 			if($prefix === "b:")
-				return substr($str, 2) === "t";
+				return mb_substr($str, 2) === "t";
 		}
 		return null;
 	}

@@ -2,23 +2,23 @@
 
 namespace Sale\Handlers\PaySystem;
 
-use Bitrix\Main\ArgumentTypeException;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Request;
+use Bitrix\Main\Type;
 use Bitrix\Main\Type\Date;
-use Bitrix\Main\Web;
 use Bitrix\Sale;
+use Bitrix\Sale\Payment;
 use Bitrix\Sale\PaySystem;
-use Bitrix\DocumentGenerator;
-use Bitrix\Crm\Integration;
 
 Loc::loadMessages(__FILE__);
 /**
  * Class BillHandler
  * @package Sale\Handlers\PaySystem
  */
-class BillHandler extends PaySystem\BaseServiceHandler
+class BillHandler
+	extends PaySystem\BaseServiceHandler
+	implements PaySystem\IPdf
 {
 	/**
 	 * @param Sale\Payment $payment
@@ -42,7 +42,7 @@ class BillHandler extends PaySystem\BaseServiceHandler
 
 		return $this->showTemplate($payment, $template);
 	}
-	
+
 	/**
 	 * @param Sale\Payment|null $payment
 	 * @param string $template
@@ -108,7 +108,7 @@ class BillHandler extends PaySystem\BaseServiceHandler
 		if ($userColumns !== null)
 		{
 			$extraParams['USER_COLUMNS'] = array();
-			$userColumns = unserialize($userColumns);
+			$userColumns = unserialize($userColumns, ['allowed_classes' => false]);
 			if ($userColumns)
 			{
 				foreach ($userColumns as $id => $columns)
@@ -276,4 +276,77 @@ class BillHandler extends PaySystem\BaseServiceHandler
 
 		return $data;
 	}
+
+	/**
+	 * @param Payment $payment
+	 * @return mixed|string
+	 * @throws \Bitrix\Main\ArgumentException
+	 * @throws \Bitrix\Main\ArgumentNullException
+	 * @throws \Bitrix\Main\LoaderException
+	 * @throws \Bitrix\Main\NotImplementedException
+	 */
+	public function getContent(Payment $payment)
+	{
+		$origRequest = $_REQUEST;
+
+		$_REQUEST['GET_CONTENT'] = 'Y';
+		$_REQUEST['pdf'] = 'Y';
+
+		$prevMode = $this->initiateMode;
+
+		$this->setInitiateMode(self::STRING);
+
+		$result = $this->initiatePay($payment, null);
+
+		if ($prevMode !== self::STRING)
+		{
+			$this->setInitiateMode(self::STREAM);
+		}
+
+		foreach (['pdf', 'GET_CONTENT'] as $key)
+		{
+			if (array_key_exists($key, $origRequest))
+			{
+				$_REQUEST[$key] = $origRequest[$key];
+			}
+			else
+			{
+				unset($_REQUEST[$key]);
+			}
+		}
+
+		return $result->getTemplate();
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return array|bool|false|mixed|null
+	 * @throws \Bitrix\Main\ObjectException
+	 */
+	public function getFile(Payment $payment)
+	{
+		$order = $payment->getOrder();
+
+		$today = new Type\Date();
+		$fileName = 'invoice_'.$order->getField('ACCOUNT_NUMBER').'_'.str_replace(array('.', '\\', '/'), '-' ,$today->toString()).'.pdf';
+		$fileData = array(
+			'name' => $fileName,
+			'type' => 'application/pdf',
+			'content' => $this->getContent($payment),
+			'MODULE_ID' => 'sale'
+		);
+		$fileId = \CFile::SaveFile($fileData, 'sale');
+
+		return \CFile::GetFileArray($fileId);
+	}
+
+	/**
+	 * @param Payment $payment
+	 * @return mixed
+	 */
+	public function isGenerated(Payment $payment)
+	{
+		return true;
+	}
+
 }

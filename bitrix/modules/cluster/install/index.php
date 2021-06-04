@@ -16,9 +16,7 @@ Class cluster extends CModule
 	{
 		$arModuleVersion = array();
 
-		$path = str_replace("\\", "/", __FILE__);
-		$path = substr($path, 0, strlen($path) - strlen("/index.php"));
-		include($path."/version.php");
+		include(__DIR__.'/version.php');
 
 		$this->MODULE_VERSION = $arModuleVersion["VERSION"];
 		$this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
@@ -35,7 +33,7 @@ Class cluster extends CModule
 		// Database tables creation
 		if(!$DB->Query("SELECT 'x' FROM b_cluster_dbnode WHERE 1=0", true))
 		{
-			$this->errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/cluster/install/db/".strtolower($DB->type)."/install.sql");
+			$this->errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/cluster/install/db/".mb_strtolower($DB->type)."/install.sql");
 
 			if($DB->type == "MSSQL")
 				$DB->Query("SET IDENTITY_INSERT B_CLUSTER_GROUP ON");
@@ -90,7 +88,7 @@ Class cluster extends CModule
 
 		if(!array_key_exists("savedata", $arParams) || $arParams["savedata"] != "Y")
 		{
-			$this->errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/cluster/install/db/".strtolower($DB->type)."/uninstall.sql");
+			$this->errors = $DB->RunSQLBatch($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/cluster/install/db/".mb_strtolower($DB->type)."/uninstall.sql");
 		}
 
 		UnRegisterModule("cluster");
@@ -143,7 +141,7 @@ Class cluster extends CModule
 		global $DB, $APPLICATION, $step, $USER;
 		if($USER->IsAdmin())
 		{
-			$step = IntVal($step);
+			$step = intval($step);
 			if(!CBXFeatures::IsFeatureEditable("Cluster"))
 			{
 				$this->errors = array(GetMessage("MAIN_FEATURE_ERROR_EDITABLE"));
@@ -173,7 +171,7 @@ Class cluster extends CModule
 		global $DB, $APPLICATION, $step, $USER;
 		if($USER->IsAdmin())
 		{
-			$step = IntVal($step);
+			$step = intval($step);
 			if($step < 2)
 			{
 				$APPLICATION->IncludeAdminFile(GetMessage("CLU_UNINSTALL_TITLE"), $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/cluster/install/unstep1.php");

@@ -62,7 +62,10 @@ BX.adminPanel.prototype.setButtonMenu = function(button)
 
 BX.adminPanel.prototype.isFixed = function()
 {
-	return BX.hasClass(document.documentElement, 'adm-header-fixed');
+	return (
+		BX.type.isDomNode(this.panel)
+		&& BX.hasClass(document.documentElement, 'adm-header-fixed')
+	);
 };
 
 BX.adminPanel.prototype.Fix = function(el)
@@ -408,7 +411,7 @@ BX.adminFormTools = {
 	{
 		if ((!BX.browser.IsIE() || BX.browser.IsIE9()) && BX.type.isElementNode(el) && el.tagName.toUpperCase() == 'INPUT' && el.type.toUpperCase() == 'CHECKBOX')
 		{
-			if (!BX.hasClass(el, 'adm-designed-checkbox'))
+			if (!BX.hasClass(el, 'adm-designed-checkbox') && !BX.hasClass(el, 'ui-ctl-element'))
 			{
 				if (!el.id)
 					el.id = 'designed_checkbox_' + Math.random();
@@ -727,6 +730,11 @@ BX.adminMenu.prototype.Init = function()
 	{
 		for (var key in this.dest)
 		{
+			if (!BX('fav_dest_' + key) || !BX('fav_cont_' + key))
+			{
+				continue;
+			}
+
 			this.dest[key] = BX('fav_dest_' + key);
 			this.dest_cont[key] = BX('fav_cont_' + key);
 
@@ -807,7 +815,12 @@ BX.adminMenu.prototype.showFavorites = function(el)
 
 BX.adminMenu.prototype.itemsStretchScroll = function()
 {
-	BX.onCustomEvent(BX.adminMenu, 'onAdminMenuItemsStretchScroll');
+	this.items.forEach(function(item) {
+		if (item && item.MSOVERMIRROR)
+		{
+			item.MSOVERMIRROR.style.display = 'none';
+		}
+	});
 };
 
 BX.adminMenu.prototype.setMinimizedState = function(state)
@@ -1101,7 +1114,6 @@ BX.adminMenu.prototype._registerItem = function(i)
 		case 'submenu-item':
 			BX.bind(this.items[i].NODE, 'mouseover', BX.proxy(this._item_onmouseover, this.items[i]));
 			BX.bind(this.items[i].NODE, 'mouseout', BX.proxy(this._item_onmouseout, this.items[i]));
-			BX.addCustomEvent(this, 'onAdminMenuItemsStretchScroll', BX.proxy(this._item_onmouseout, this.items[i]));
 		break;
 	}
 };
@@ -2814,17 +2826,30 @@ BX.adminSidePanel.prototype.onMessage = function(SidePanelEvent)
 	}
 };
 
-BX.adminSidePanel.onOpenPage = BX.adminSidePanel.prototype.onOpenPage = function(url)
+BX.adminSidePanel.onOpenPage = BX.adminSidePanel.prototype.onOpenPage = function(url, skipModification)
 {
+	if (top.BX.admin && top.BX.admin.dynamic_mode_show_borders)
+	{
+		return;
+	}
+
 	if (top.BX.SidePanel.Instance)
 	{
-		var adminSidePanel = top.window["adminSidePanel"], optionsOpen = {};
-		if (adminSidePanel.publicMode)
+		if (skipModification)
 		{
-			url = BX.util.add_url_param(url, {"publicSidePanel": "Y"});
-			optionsOpen.allowChangeHistory = false;
+			top.BX.SidePanel.Instance.open(url);
 		}
-		top.BX.SidePanel.Instance.open(url, optionsOpen);
+		else
+		{
+			var adminSidePanel = top.window["adminSidePanel"], optionsOpen = {};
+			if (adminSidePanel.publicMode)
+			{
+				url = BX.util.add_url_param(url, {"publicSidePanel": "Y"});
+				optionsOpen.allowChangeHistory = false;
+			}
+
+			top.BX.SidePanel.Instance.open(url, optionsOpen);
+		}
 	}
 };
 
@@ -3077,17 +3102,25 @@ BX.adminTabControl.prototype.Init = function()
 
 BX.adminTabControl.prototype.setFormDataForSidePanel = function()
 {
-	if (!BX.SidePanel.Instance)
+	var sidePanel = top.BX.SidePanel ? top.BX.SidePanel : BX.SidePanel,
+		slider,
+		dictionary;
+	if (typeof sidePanel === 'undefined')
+	{
+		return;
+	}
+	if (!sidePanel.Instance)
 	{
 		return;
 	}
 
-	var slider = BX.SidePanel.Instance.getSliderByWindow(window);
+	slider = sidePanel.Instance.getSliderByWindow(window);
 	if (slider)
 	{
-		var dictionary = slider.getData();
+		dictionary = slider.getData();
 		dictionary.set("adminTabControlInstance", this);
 	}
+	sidePanel = null;
 };
 
 BX.adminTabControl.prototype.onClickSidePanelButtons = function(event)
@@ -3273,10 +3306,14 @@ BX.adminTabControl.prototype.setPublicMode = function(v)
 	this.bPublicMode = !!v;
 	if (this.bPublicMode)
 	{
-		var name = this.name;
-		BX.addCustomEvent(BX.WindowManager.Get(), 'onWindowClose', function(){
-			window[name] = null;
-		});
+		var currentWindow = BX.WindowManager.Get();
+		if (currentWindow)
+		{
+			var name = this.name;
+			BX.addCustomEvent(currentWindow, 'onWindowClose', function(){
+				window[name] = null;
+			});
+		}
 	}
 };
 
@@ -4947,7 +4984,7 @@ BX.AdminFilter = function(filter_id, aRows)
 
 		tab.id = "adm-filter-tab-"+this.filter_id+"-"+newId;
 
-		if(this.url)
+		if(this.url && BX.adminMenu && BX.adminMenu.registerItem)
 		{
 			var registerUrl = BX.util.remove_url_param(this.url,["adm_filter_applied","adm_filter_preset"]);
 			registerUrl += "&adm_filter_applied" + '=' + BX.util.urlencode(newId);
@@ -6212,8 +6249,15 @@ BX.admFltTab.prototype = {
 
 	_RegisterDD: function(tabId, url, name)
 	{
+		if(!BX.adminMenu || !BX.adminMenu.registerItem)
+		{
+			return;
+		}
+
 		if(!url)
-			return false;
+		{
+			return;
+		}
 
 		var registerUrl = BX.util.remove_url_param(url, ["adm_filter_applied","adm_filter_preset"]);
 		registerUrl += "&adm_filter_applied" + '=' + BX.util.urlencode(this.id);

@@ -23,33 +23,7 @@ IncludeModuleLangFile(__FILE__);
 
 $bStatistic = CModule::IncludeModule('statistic');
 
-$arAuditTypes = array(
-	"USER_AUTHORIZE" => "[USER_AUTHORIZE] ".GetMessage("MAIN_EVENTLOG_USER_AUTHORIZE"),
-	"USER_DELETE" => "[USER_DELETE] ".GetMessage("MAIN_EVENTLOG_USER_DELETE"),
-	"USER_INFO" => "[USER_INFO] ".GetMessage("MAIN_EVENTLOG_USER_INFO"),
-	"USER_LOGIN" => "[USER_LOGIN] ".GetMessage("MAIN_EVENTLOG_USER_LOGIN"),
-	"USER_LOGINBYHASH" => "[USER_LOGINBYHASH] ".GetMessage("MAIN_EVENTLOG_USER_LOGINBYHASH_FAILED"),
-	"USER_LOGOUT" => "[USER_LOGOUT] ".GetMessage("MAIN_EVENTLOG_USER_LOGOUT"),
-	"USER_PASSWORD_CHANGED" => "[USER_PASSWORD_CHANGED] ".GetMessage("MAIN_EVENTLOG_USER_PASSWORD_CHANGED"),
-	"USER_REGISTER" => "[USER_REGISTER] ".GetMessage("MAIN_EVENTLOG_USER_REGISTER"),
-	"USER_REGISTER_FAIL" => "[USER_REGISTER_FAIL] ".GetMessage("MAIN_EVENTLOG_USER_REGISTER_FAIL"),
-	"USER_GROUP_CHANGED" => "[USER_GROUP_CHANGED] ".GetMessage("MAIN_EVENTLOG_GROUP"),
-	"GROUP_POLICY_CHANGED" => "[GROUP_POLICY_CHANGED] ".GetMessage("MAIN_EVENTLOG_GROUP_POLICY"),
-	"MODULE_RIGHTS_CHANGED" => "[MODULE_RIGHTS_CHANGED] ".GetMessage("MAIN_EVENTLOG_MODULE"),
-	"FILE_PERMISSION_CHANGED" => "[FILE_PERMISSION_CHANGED] ".GetMessage("MAIN_EVENTLOG_FILE"),
-	"TASK_CHANGED" => "[TASK_CHANGED] ".GetMessage("MAIN_EVENTLOG_TASK"),
-	"MP_MODULE_INSTALLED" => "[MP_MODULE_INSTALLED] ".GetMessage("MAIN_EVENTLOG_MP_MODULE_INSTALLED"),
-	"MP_MODULE_UNINSTALLED" => "[MP_MODULE_UNINSTALLED] ".GetMessage("MAIN_EVENTLOG_MP_MODULE_UNINSTALLED"),
-	"MP_MODULE_DELETED" => "[MP_MODULE_DELETED] ".GetMessage("MAIN_EVENTLOG_MP_MODULE_DELETED"),
-	"MP_MODULE_DOWNLOADED" => "[MP_MODULE_DOWNLOADED] ".GetMessage("MAIN_EVENTLOG_MP_MODULE_DOWNLOADED"),
-);
-
-foreach(GetModuleEvents("main", "OnEventLogGetAuditTypes", true) as $arEvent)
-{
-	$ar = ExecuteModuleEventEx($arEvent);
-	if(is_array($ar))
-		$arAuditTypes = array_merge($ar, $arAuditTypes);
-}
+$arAuditTypes = CEventLog::GetEventTypes();
 
 $sTableID = "tbl_event_log";
 $oSort = new CAdminSorting($sTableID, "ID", "DESC");
@@ -76,18 +50,18 @@ $arFilterFields = array(
 function CheckFilter()
 {
 	$str = "";
-	if(strlen($_REQUEST["find_timestamp_x_1"])>0)
+	if($_REQUEST["find_timestamp_x_1"] <> '')
 	{
 		if(!CheckDateTime($_REQUEST["find_timestamp_x_1"], CSite::GetDateFormat("FULL")))
 			$str.= GetMessage("MAIN_EVENTLOG_WRONG_TIMESTAMP_X_FROM")."<br>";
 	}
-	if(strlen($_REQUEST["find_timestamp_x_2"])>0)
+	if($_REQUEST["find_timestamp_x_2"] <> '')
 	{
 		if(!CheckDateTime($_REQUEST["find_timestamp_x_2"], CSite::GetDateFormat("FULL")))
 			$str.= GetMessage("MAIN_EVENTLOG_WRONG_TIMESTAMP_X_TO")."<br>";
 	}
 
-	if(strlen($str) > 0)
+	if($str <> '')
 	{
 		global $lAdmin;
 		$lAdmin->AddFilterError($str);
@@ -127,7 +101,7 @@ if(CheckFilter())
 		$audit_type_id_filter = $find_audit_type;
 	}
 
-	if(!is_array($audit_type_id_filter) && strlen($find_audit_type_id))
+	if(!is_array($audit_type_id_filter) && mb_strlen($find_audit_type_id))
 	{
 		$audit_type_id_op = "";
 		$audit_type_id_filter = "(".$audit_type_id_filter.")|(".$find_audit_type_id.")";
@@ -240,7 +214,7 @@ while($db_res = $rsData->NavNext(true, "a_"))
 {
 	$row =& $lAdmin->AddRow($a_ID, $db_res);
 	$row->AddViewField("AUDIT_TYPE_ID", array_key_exists($a_AUDIT_TYPE_ID, $arAuditTypes)? preg_replace("/^\\[.*?\\]\\s+/", "", $arAuditTypes[$a_AUDIT_TYPE_ID]): $a_AUDIT_TYPE_ID);
-	if($bStatistic && strlen($a_GUEST_ID))
+	if($bStatistic && mb_strlen($a_GUEST_ID))
 	{
 		$row->AddViewField("GUEST_ID", '<a href="/bitrix/admin/hit_list.php?lang='.LANGUAGE_ID.'&amp;set_filter=Y&amp;find_guest_id='.$a_GUEST_ID.'&amp;find_guest_id_exact_match=Y">'.$a_GUEST_ID.'</a>');
 	}
@@ -251,7 +225,7 @@ while($db_res = $rsData->NavNext(true, "a_"))
 			$rsUser = CUser::GetByID($a_USER_ID);
 			if($arUser = $rsUser->GetNext())
 			{
-				$arUser["FULL_NAME"] = $arUser["NAME"].(strlen($arUser["NAME"])<=0 || strlen($arUser["LAST_NAME"])<=0?"":" ").$arUser["LAST_NAME"];
+				$arUser["FULL_NAME"] = $arUser["NAME"].($arUser["NAME"] == '' || $arUser["LAST_NAME"] == ''?"":" ").$arUser["LAST_NAME"];
 			}
 			$arUsersCache[$a_USER_ID] = $arUser;
 		}
@@ -270,12 +244,15 @@ while($db_res = $rsData->NavNext(true, "a_"))
 		case "USER_DELETE":
 		case "USER_GROUP_CHANGED":
 		case "USER_EDIT":
+		case "USER_BLOCKED":
+		case "USER_PERMISSIONS_FAIL":
+		case "SECURITY_OTP":
 			if(!array_key_exists($a_ITEM_ID, $arUsersCache))
 			{
 				$rsUser = CUser::GetByID($a_ITEM_ID);
 				if($arUser = $rsUser->GetNext())
 				{
-					$arUser["FULL_NAME"] = $arUser["NAME"].(strlen($arUser["NAME"])<=0 || strlen($arUser["LAST_NAME"])<=0?"":" ").$arUser["LAST_NAME"];
+					$arUser["FULL_NAME"] = $arUser["NAME"].($arUser["NAME"] == '' || $arUser["LAST_NAME"] == ''?"":" ").$arUser["LAST_NAME"];
 				}
 				$arUsersCache[$a_ITEM_ID] = $arUser;
 			}
@@ -304,7 +281,7 @@ while($db_res = $rsData->NavNext(true, "a_"))
 		case "FORUM_MESSAGE_MOVE":
 		case "FORUM_MESSAGE_EDIT":
 			if (intval($a_ITEM_ID) <= 0):
-				continue;
+				break;
 			elseif (!array_key_exists($a_ITEM_ID, $arForumCache["MESSAGE"])):
 				CModule::IncludeModule("forum");
 				$res = CForumMessage::GetByID($a_ITEM_ID);
@@ -336,7 +313,7 @@ while($db_res = $rsData->NavNext(true, "a_"))
 		case "FORUM_TOPIC_MOVE":
 		case "FORUM_TOPIC_EDIT":
 			if (intval($a_ITEM_ID) <= 0):
-				continue;
+				break;
 			elseif (!array_key_exists($a_ITEM_ID, $arForumCache["TOPIC"])):
 				CModule::IncludeModule("forum");
 				$res = CForumTopic::GetByID($a_ITEM_ID);
@@ -391,16 +368,20 @@ while($db_res = $rsData->NavNext(true, "a_"))
 			break;
 		}
 	}
-	if(strlen($a_REQUEST_URI))
+	if($a_REQUEST_URI <> '')
 	{
 		$row->AddViewField("REQUEST_URI", htmlspecialcharsbx($a_REQUEST_URI));
 	}
-	if(strlen($a_DESCRIPTION))
+	if($a_DESCRIPTION <> '')
 	{
-		if(strncmp("==", $a_DESCRIPTION, 2)===0)
-			$DESCRIPTION = htmlspecialcharsbx(base64_decode(substr($a_DESCRIPTION, 2)));
+		if(strncmp("==", $a_DESCRIPTION, 2) === 0)
+		{
+			$DESCRIPTION = htmlspecialcharsbx(base64_decode(mb_substr($a_DESCRIPTION, 2)));
+		}
 		else
+		{
 			$DESCRIPTION = $a_DESCRIPTION;
+		}
 		//htmlspecialcharsback for <br> <BR> <br/>
 		$DESCRIPTION = preg_replace("#(&lt;)(\\s*br\\s*/{0,1})(&gt;)#is", "<\\2>", $DESCRIPTION);
 		$row->AddViewField("DESCRIPTION", $DESCRIPTION);
@@ -415,7 +396,13 @@ while($db_res = $rsData->NavNext(true, "a_"))
 	}
 }
 
-$aContext = array();
+$aContext = array(
+	array(
+		"TEXT"	=> GetMessage("eventlog_notifications"),
+		"LINK"	=> "log_notifications.php?lang=".LANGUAGE_ID,
+		"TITLE"	=> GetMessage("eventlog_notifications_title"),
+	),
+);
 $lAdmin->AddAdminContextMenu($aContext);
 
 $APPLICATION->SetTitle(GetMessage("MAIN_EVENTLOG_PAGE_TITLE"));

@@ -38,7 +38,11 @@ class OrderImport extends EntityImport
 
     protected function createEntity(array $fileds)
 	{
-		return Sale\Order::create($this->settings->getSiteId(), $fileds['USER_ID'], $this->settings->getCurrency());
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
+		return $orderClass::create($this->settings->getSiteId(), $fileds['USER_ID'], $this->settings->getCurrency());
 	}
     /**
      * @param Internals\Entity $entity
@@ -330,7 +334,7 @@ class OrderImport extends EntityImport
                 "PRODUCT_ID" => $product["ID"],
                 "NAME" => $product["NAME"],
                 "MODULE" => "catalog",
-                "PRODUCT_PROVIDER_CLASS" => "CCatalogProductProvider",
+                "PRODUCT_PROVIDER_CLASS" => '\Bitrix\Catalog\Product\CatalogProvider',
                 "CATALOG_XML_ID" => $product["IBLOCK_XML_ID"],
                 "DETAIL_PAGE_URL" => $product["DETAIL_PAGE_URL"],
                 "WEIGHT" => $product["WEIGHT"],
@@ -359,6 +363,7 @@ class OrderImport extends EntityImport
         $result["CAN_BUY"] = "Y";
         $result["IGNORE_CALLBACK_FUNC"] = "Y";
         $result["PRODUCT_XML_ID"] = $productXML_ID;
+        $result["MARKING_CODE_GROUP"] = $item['MARKING_GROUP'];
 
         return $result;
     }
@@ -387,7 +392,7 @@ class OrderImport extends EntityImport
 	{
 		$result = '';
 
-		if(strpos($code, '#') !== false)
+		if(mb_strpos($code, '#') !== false)
 		{
 			$code = explode('#', $code);
 			$result = $code[1];
@@ -520,6 +525,9 @@ class OrderImport extends EntityImport
 
 						if($criterionBasketItems->equalsBasketItem($basketItem, $item))
 						{
+							if($item['MARKING_GROUP'] != $basketItem->getMarkingCodeGroup())
+								$fieldsBasket['MARKING_CODE_GROUP'] = $item['MARKING_GROUP'];
+
 							if($item['PRICE'] != $basketItem->getPrice())
 								$basketItem->setPrice($item['PRICE'], true);
 
@@ -598,14 +606,18 @@ class OrderImport extends EntityImport
             {
                 if(!empty($basketItemsIndexList) && is_array($basketItemsIndexList))
                 {
-                    foreach ($basketItemsIndexList as $basketIndexId => $basketIndexValue)
-                    {
-                        /** @var Sale\BasketItem $foundedBasketItem */
-                        if ($foundedBasketItem = $basket->getItemById($basketIndexId))
-                        {
-                            $result = $foundedBasketItem->delete();
-                        }
-                    }
+					foreach ($basketItemsIndexList as $basketIndexId => $basketIndexValue)
+					{
+						/** @var Sale\BasketItem $foundedBasketItem */
+						if ($foundedBasketItem = $basket->getItemById($basketIndexId))
+						{
+							$resultDelete = $foundedBasketItem->delete();
+							if($resultDelete->isSuccess() == false)
+							{
+								$result->addErrors($resultDelete->getErrors());
+							}
+						}
+					}
                 }
             }
             else
@@ -700,12 +712,12 @@ class OrderImport extends EntityImport
                 $code = $basketItem->getBasketCode();
                 if(isset($modifyTaxList[$code]))
                 {
-                    if($basketItem->getId()>0)
+                    /*if($basketItem->getId()>0)
                     {
                         $this->setCollisions(EntityCollisionType::OrderBasketItemTaxValueError, $this->getEntity(), $basketItem->getField('NAME'));
                     }
                     else
-                    {
+                    {*/
                         $productVatFields = $productVatData[$basketItem->getBasketCode()];
                         if(!empty($productVatFields))
                         {
@@ -714,7 +726,7 @@ class OrderImport extends EntityImport
                                 $this->setCollisions(EntityCollisionType::OrderBasketItemTaxValueError, $order, $basketItem->getField('NAME'));
                             }
                         }
-                    }
+                    //}
 
                     $basketItem->setField('VAT_RATE', $modifyTaxList[$code]['VAT_RATE']);
                     $basketItem->setField('VAT_INCLUDED', $modifyTaxList[$code]['VAT_INCLUDED']);

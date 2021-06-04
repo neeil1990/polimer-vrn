@@ -34,7 +34,7 @@ endif;
 
 if (empty($arResult["ERROR"]) && isset($_GET["success"])):
 ?>
-<div class="content-edit-form-notice-successfully"><span class="content-edit-form-notice-text"><span class="content-edit-form-notice-icon"></span><?=GetMessage("MP_APP_EDIT_SUCCESS")?></span></div>
+<div class="content-edit-form-notice-successfully"><span class="content-edit-form-notice-text"><span class="content-edit-form-notice-icon"></span><?=($_GET["success"] === "add" ? GetMessage("MP_APP_ADD_SUCCESS") :  GetMessage("MP_APP_EDIT_SUCCESS"))?></span></div>
 <?php
 endif;
 ?>
@@ -106,7 +106,7 @@ if(is_array($arResult["SCOPE"])):
 <?php
 	foreach($arResult["SCOPE"] as $scope):
 		$scopeName = GetMessage("REST_SCOPE_".toUpper($scope));
-		if(strlen($scopeName) <= 0)
+		if($scopeName == '')
 		{
 			$scopeName = $scope;
 		}

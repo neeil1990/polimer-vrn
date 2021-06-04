@@ -2,6 +2,7 @@
 namespace Bitrix\Bizproc\BaseType;
 
 use Bitrix\Bizproc\FieldType;
+use Bitrix\Main;
 
 /**
  * Class Text
@@ -27,23 +28,34 @@ class Text extends StringType
 	 */
 	protected static function renderControl(FieldType $fieldType, array $field, $value, $allowSelection, $renderMode)
 	{
+		$isPublic = ($renderMode & FieldType::RENDER_MODE_PUBLIC);
+
+		if ($allowSelection && !$isPublic)
+		{
+			return static::renderControlSelector($field, $value, 'combine', '', $fieldType);
+		}
+
 		$name = static::generateControlName($field);
 		$controlId = static::generateControlId($field);
 		$className = static::generateControlClassName($fieldType, $field);
 
-		$isPublic = ($renderMode & FieldType::RENDER_MODE_PUBLIC);
-
-		$renderResult =  '<textarea id="'.htmlspecialcharsbx($controlId).'" class="'
-			.htmlspecialcharsbx($className).'" placeholder="'.htmlspecialcharsbx($fieldType->getDescription()).'"'
-			.' rows="5" cols="40"  name="'.htmlspecialcharsbx($name).'"'
-			.($isPublic && $allowSelection ? ' data-role="inline-selector-target"' : '')
-			.'>'.htmlspecialcharsbx((string) $value).'</textarea>';
-
-		if ($allowSelection && !$isPublic)
+		$selectorAttributes = '';
+		if ($isPublic && $allowSelection)
 		{
-			$renderResult .= static::renderControlSelector($field, null, false, '', $fieldType);
+			$selectorAttributes = sprintf(
+				'data-role="inline-selector-target" data-property="%s" ',
+				htmlspecialcharsbx(Main\Web\Json::encode($fieldType->getProperty()))
+			);
 		}
 
-		return $renderResult;
+		return sprintf(
+			'<textarea id="%s" class="%s" placeholder="%s" rows="5" cols="40"  name="%s" %s>%s</textarea>',
+			htmlspecialcharsbx($controlId),
+			htmlspecialcharsbx($className),
+			htmlspecialcharsbx($fieldType->getDescription()),
+			htmlspecialcharsbx($name),
+			$selectorAttributes,
+			htmlspecialcharsbx((string)$value)
+		);
 	}
 }

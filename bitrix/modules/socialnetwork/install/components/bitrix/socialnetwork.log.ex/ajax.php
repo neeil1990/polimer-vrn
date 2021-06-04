@@ -5,7 +5,7 @@ define("NO_LANG_FILES", true);
 define("NOT_CHECK_PERMISSIONS", true);
 
 $site_id = (isset($_REQUEST["site"]) && is_string($_REQUEST["site"])) ? trim($_REQUEST["site"]): "";
-$site_id = substr(preg_replace("/[^a-z0-9_]/i", "", $site_id), 0, 2);
+$site_id = mb_substr(preg_replace("/[^a-z0-9_]/i", "", $site_id), 0, 2);
 
 define("SITE_ID", $site_id);
 
@@ -19,7 +19,7 @@ $event_id = (isset($_REQUEST["evid"]) && is_string($_REQUEST["evid"])) ? trim($_
 $transport = (isset($_REQUEST["transport"]) && is_string($_REQUEST["transport"])) ? trim($_REQUEST["transport"]): "";
 
 $lng = (isset($_REQUEST["lang"]) && is_string($_REQUEST["lang"])) ? trim($_REQUEST["lang"]): "";
-$lng = substr(preg_replace("/[^a-z0-9_]/i", "", $lng), 0, 2);
+$lng = mb_substr(preg_replace("/[^a-z0-9_]/i", "", $lng), 0, 2);
 
 $ls = isset($_REQUEST["ls"]) && !is_array($_REQUEST["ls"])? trim($_REQUEST["ls"]): "";
 $ls_arr = isset($_REQUEST["ls_arr"])? $_REQUEST["ls_arr"]: "";
@@ -46,12 +46,7 @@ if (empty($lng))
 	$lng = LANGUAGE_ID;
 }
 
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/components/bitrix/socialnetwork.log.ex/include.php");
-
 Loc::loadLanguageFile(__FILE__, $lng);
-
-if(CModule::IncludeModule("compression"))
-	CCompress::Disable2048Spaces();
 
 if(CModule::IncludeModule("socialnetwork"))
 {
@@ -76,7 +71,7 @@ if(CModule::IncludeModule("socialnetwork"))
 	{
 		$arResult[0] = "*";
 	}
-	elseif ($action == "get_raw_data")
+	elseif ($action == "get_raw_data") // deprecated, see socialnetwork.api.livefeed.getRawEntryData
 	{
 		$provider = \Bitrix\Socialnetwork\Livefeed\Provider::init(array(
 			'ENTITY_TYPE' => (isset($_REQUEST['ENTITY_TYPE']) ? preg_replace("/[^a-z0-9_]/i", "", $_REQUEST['ENTITY_TYPE']) : false),
@@ -133,7 +128,7 @@ if(CModule::IncludeModule("socialnetwork"))
 			}
 		}
 	}
-	elseif ($action == "create_task_comment")
+	elseif ($action == "create_task_comment") // deprecated, see socialnetwork.api.livefeed.createTaskComment
 	{
 		if (
 			isset($_REQUEST['ENTITY_TYPE'])
@@ -532,7 +527,7 @@ if(CModule::IncludeModule("socialnetwork"))
 
 			if (
 				array_key_exists("NAME_FORMATTED", $arEntityTmp)
-				&& strlen($arEntityTmp["NAME_FORMATTED"]) > 0
+				&& $arEntityTmp["NAME_FORMATTED"] <> ''
 			)
 			{
 				$arSubscribe["EVENT"]["TITLE_1"] = str_replace(
@@ -551,7 +546,7 @@ if(CModule::IncludeModule("socialnetwork"))
 		if (
 			array_key_exists($entity_type, $arSocNetAllowedSubscribeEntityTypesDesc)
 			&& array_key_exists("TITLE_SETTINGS_ALL", $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type])
-			&& strlen($arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["TITLE_SETTINGS_ALL"]) > 0
+			&& $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["TITLE_SETTINGS_ALL"] <> ''
 		)
 		{
 			$arSubscribe["ALL"]["TITLE"] = $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["TITLE_SETTINGS_ALL"];
@@ -560,9 +555,9 @@ if(CModule::IncludeModule("socialnetwork"))
 		if (
 			array_key_exists($entity_type, $arSocNetAllowedSubscribeEntityTypesDesc)
 			&& array_key_exists("TITLE_SETTINGS_ALL_1", $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type])
-			&& strlen($arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["TITLE_SETTINGS_ALL_1"]) > 0
+			&& $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["TITLE_SETTINGS_ALL_1"] <> ''
 			&& array_key_exists("NAME_FORMATTED", $arEntityTmp)
-			&& strlen($arEntityTmp["NAME_FORMATTED"]) > 0
+			&& $arEntityTmp["NAME_FORMATTED"] <> ''
 		)
 		{
 			$arSubscribe["ALL"]["TITLE_1"] = str_replace(
@@ -618,7 +613,7 @@ if(CModule::IncludeModule("socialnetwork"))
 
 			if (
 				array_key_exists("NAME_FORMATTED", $arCreatedByTmp)
-				&& strlen($arCreatedByTmp["NAME_FORMATTED"]) > 0
+				&& $arCreatedByTmp["NAME_FORMATTED"] <> ''
 			)
 			{
 				$arSubscribe["CB_ALL"]["TITLE_1"] = str_replace(
@@ -645,7 +640,7 @@ if(CModule::IncludeModule("socialnetwork"))
 			array_key_exists($entity_type, $arSocNetAllowedSubscribeEntityTypesDesc)
 			&& array_key_exists("HAS_SITE_ID", $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type])
 			&& $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["HAS_SITE_ID"] == "Y"
-			&& strlen($site_id) > 0
+			&& $site_id <> ''
 			?
 				$site_id
 			:
@@ -693,20 +688,20 @@ if(CModule::IncludeModule("socialnetwork"))
 			$arEventID = array("all");
 		}
 
-		if ($arFields && strlen($transport) > 0)
+		if ($arFields && $transport <> '')
 		{
 			if (
 				$arFields["ENTITY_CB"] != "Y"
 				&& array_key_exists($entity_type, $arSocNetAllowedSubscribeEntityTypesDesc)
 				&& array_key_exists("HAS_SITE_ID", $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type])
 				&& $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["HAS_SITE_ID"] == "Y"
-				&& strlen($site_id) > 0
+				&& $site_id <> ''
 			)
 				$arFieldsVal["SITE_ID"] = $site_id;
 			else
 				$arFieldsVal["SITE_ID"] = false;
 
-			if (strlen($transport) > 0)
+			if ($transport <> '')
 				$arFieldsVal["TRANSPORT"] = $transport;
 
 			foreach($arEventID as $event_id)
@@ -777,20 +772,20 @@ if(CModule::IncludeModule("socialnetwork"))
 					$arEventID = array("all");
 				}
 
-				if ($arFields && strlen($transport) > 0)
+				if ($arFields && $transport <> '')
 				{
 					if (
 						$arFields["ENTITY_CB"] != "Y"
 						&& array_key_exists($entity_type, $arSocNetAllowedSubscribeEntityTypesDesc)
 						&& array_key_exists("HAS_SITE_ID", $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type])
 						&& $arSocNetAllowedSubscribeEntityTypesDesc[$entity_type]["HAS_SITE_ID"] == "Y"
-						&& strlen($site_id) > 0
+						&& $site_id <> ''
 					)
 						$arFieldsVal["SITE_ID"] = $site_id;
 					else
 						$arFieldsVal["SITE_ID"] = false;
 
-					if (strlen($transport) > 0)
+					if ($transport <> '')
 						$arFieldsVal["TRANSPORT"] = $transport;
 
 					foreach($arEventID as $event_id)

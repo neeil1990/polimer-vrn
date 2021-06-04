@@ -13,20 +13,21 @@
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
-								your mind and changing world</div>
+						<figcaption class="g-mt-0 g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none">
+							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white g-pointer-events-all">
+								Changing your mind and changing world
+							</div>
 						</figcaption>
 						<!-- End Figure Caption -->
 					</figure>
 					<!-- End Figure -->
 
 					<!-- Figure Info -->
-					<div class="landing-block-node-employee-post d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Photographer</div>
-					<h4 class="landing-block-node-employee-name text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
+					<div class="landing-block-node-employee-post landing-semantic-subtitle-small-primary d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Photographer</div>
+					<h4 class="landing-block-node-employee-name landing-semantic-subtitle-medium text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
 						Ralf
 						Smith</h4>
-					<div class="landing-block-node-employee-subtitle g-font-size-13 g-color-gray-dark-v5 mb-0">head
+					<div class="landing-block-node-employee-subtitle landing-semantic-text-small g-font-size-13 g-color-gray-dark-v5 mb-0">head
 						photographer</div>
 					<!-- End Figure Info-->
 				</div>
@@ -42,20 +43,21 @@
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
-								your mind and changing world</div>
+						<figcaption class="g-mt-0 g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none">
+							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white g-pointer-events-all">
+								Changing your mind and changing world
+							</div>
 						</figcaption>
 						<!-- End Figure Caption -->
 					</figure>
 					<!-- End Figure -->
 
 					<!-- Figure Info -->
-					<div class="landing-block-node-employee-post d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Designer</div>
-					<h4 class="landing-block-node-employee-name text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
+					<div class="landing-block-node-employee-post landing-semantic-subtitle-small-primary d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Designer</div>
+					<h4 class="landing-block-node-employee-name landing-semantic-subtitle-medium text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
 						Monica
 						Gaudy</h4>
-					<div class="landing-block-node-employee-subtitle g-font-size-13 g-color-gray-dark-v5 mb-0">head
+					<div class="landing-block-node-employee-subtitle landing-semantic-text-small g-font-size-13 g-color-gray-dark-v5 mb-0">head
 						photographer</div>
 					<!-- End Figure Info-->
 				</div>
@@ -71,20 +73,21 @@
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
-								your mind and changing world</div>
+						<figcaption class="g-mt-0 g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none">
+							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white g-pointer-events-all">
+								Changing your mind and changing world
+							</div>
 						</figcaption>
 						<!-- End Figure Caption -->
 					</figure>
 					<!-- End Figure -->
 
 					<!-- Figure Info -->
-					<div class="landing-block-node-employee-post d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Co-founder</div>
-					<h4 class="landing-block-node-employee-name text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
+					<div class="landing-block-node-employee-post landing-semantic-subtitle-small-primary d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Co-founder</div>
+					<h4 class="landing-block-node-employee-name landing-semantic-subtitle-medium text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
 						Julia
 						Exon</h4>
-					<div class="landing-block-node-employee-subtitle g-font-size-13 g-color-gray-dark-v5 mb-0">head
+					<div class="landing-block-node-employee-subtitle landing-semantic-text-small g-font-size-13 g-color-gray-dark-v5 mb-0">head
 						photographer</div>
 					<!-- End Figure Info-->
 				</div>
@@ -100,20 +103,21 @@
 						<!-- End Figure Image -->
 
 						<!-- Figure Caption -->
-						<figcaption class="g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in">
-							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white">Changing
-								your mind and changing world</div>
+						<figcaption class="g-mt-0 g-pos-abs g-top-0 g-left-0 g-flex-middle w-100 h-100 g-bg-primary-opacity-0_8 opacity-0 g-opacity-1--parent-hover g-pa-20 g-transition-0_2 g-transition--ease-in g-pointer-events-none">
+							<div class="landing-block-node-employee-quote text-uppercase g-flex-middle-item g-line-height-1_4 g-font-weight-700 g-font-size-16 g-color-white g-pointer-events-all">
+								Changing your mind and changing world
+							</div>
 						</figcaption>
 						<!-- End Figure Caption -->
 					</figure>
 					<!-- End Figure -->
 
 					<!-- Figure Info -->
-					<div class="landing-block-node-employee-post d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Co-founder</div>
-					<h4 class="landing-block-node-employee-name text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
+					<div class="landing-block-node-employee-post landing-semantic-subtitle-small-primary d-block text-uppercase g-font-style-normal g-font-weight-700 g-font-size-11 g-color-primary g-mb-5">Co-founder</div>
+					<h4 class="landing-block-node-employee-name landing-semantic-subtitle-medium text-uppercase g-font-weight-700 g-font-size-18 g-color-gray-dark-v2 g-mb-7">
 						Jacob
 						Assange</h4>
-					<div class="landing-block-node-employee-subtitle g-font-size-13 g-color-gray-dark-v5 mb-0">head
+					<div class="landing-block-node-employee-subtitle landing-semantic-text-small g-font-size-13 g-color-gray-dark-v5 mb-0">head
 						photographer</div>
 					<!-- End Figure Info-->
 				</div>

@@ -77,7 +77,7 @@ SequenceActivity = function()
 				oSubMenu.push({
 					'ICON': 'url(/bitrix/images/bizproc/act_icon_plus.png)',
 					'TEXT': '<img src="/bitrix/images/bizproc/act_icon_plus.png" align="left" style="margin-right: 7px;margin-left: 0px">'
-					+ '<b>' + HTMLEncode(BPMESS['BPSA_MARKETPLACE_ADD_TITLE']) + '</b><br>' + HTMLEncode(BPMESS['BPSA_MARKETPLACE_ADD_DESCR']),
+					+ '<b>' + HTMLEncode(BPMESS['BPSA_MARKETPLACE_ADD_TITLE_2']) + '</b><br>' + HTMLEncode(BPMESS['BPSA_MARKETPLACE_ADD_DESCR_2']),
 					'ONCLICK': 'BX.rest.Marketplace.open({}, \'auto_pb\'); if(window.jsPopup_WFAct) {window.jsPopup_WFAct.PopupHide();}'
 				});
 			}
@@ -117,7 +117,7 @@ SequenceActivity = function()
 		else
 			window.jsPopup_WFAct = new PopupMenu('PopupWFAct', 30000);
 
-		window.jsPopup_WFAct.ShowMenu(this, jsMnu_WFAct); 
+		window.jsPopup_WFAct.ShowMenu(this, jsMnu_WFAct);
 	};
 
 	ob.lastDrop = false;
@@ -157,9 +157,8 @@ SequenceActivity = function()
 		if(ob.lastDrop)
 		{
 			var oActivity;
-			if(DragNDrop.obj.parentActivity && e.ctrlKey == false)
+			if(DragNDrop.obj.parentActivity && (e.ctrlKey == false && e.metaKey == false))
 			{
-
 				var i, pos = -1, pa = DragNDrop.obj.parentActivity;
 				for(i = 0; i<pa.childActivities.length; i++)
 				{

@@ -34,6 +34,7 @@ create table b_calendar_section
 	CAL_DAV_MOD varchar(255) null,
 	IS_EXCHANGE char(1) null,
 	SYNC_TOKEN varchar(100) null,
+	EXTERNAL_TYPE varchar(20) null,
 	primary key (ID),
 	INDEX ix_cal_sect_owner (CAL_TYPE, OWNER_ID)
 );
@@ -49,6 +50,7 @@ create table b_calendar_event
   NAME varchar(255) null,
   DATE_FROM datetime null,
   DATE_TO datetime null,
+  ORIGINAL_DATE_FROM datetime null,
   TZ_FROM varchar(50) null,
   TZ_TO varchar(50) null,
   TZ_OFFSET_FROM int null,
@@ -72,16 +74,17 @@ create table b_calendar_event
   MEETING_HOST int null,
   MEETING text null,
   LOCATION varchar(255) null,
-  REMIND varchar(255) null,
+  REMIND text null,
   COLOR varchar(10) null,
   TEXT_COLOR varchar(10) null,
   RRULE varchar(255) null,
   EXDATE text null,
   DAV_XML_ID varchar(255) null,
+  G_EVENT_ID varchar(255) null,
   DAV_EXCH_LABEL varchar(255) null,
   CAL_DAV_LABEL varchar(255) null,
   VERSION varchar(255) null,
-  ATTENDEES_CODES varchar(255) null,
+  ATTENDEES_CODES text null,
   RECURRENCE_ID int null,
   RELATIONS varchar(255) null,
   SEARCHABLE_CONTENT text null,
@@ -92,7 +95,9 @@ create table b_calendar_event
   INDEX ix_cal_event_parent_id (PARENT_ID),
   INDEX ix_cal_event_created_by (CREATED_BY),
   INDEX ix_cal_event_owner_id_accessibility (ACCESSIBILITY, DATE_FROM_TS_UTC, DATE_TO_TS_UTC),
-  INDEX ix_cal_event_recurrence_id (RECURRENCE_ID)
+  INDEX ix_cal_event_recurrence_id (RECURRENCE_ID),
+  INDEX ix_cal_google_event_id (G_EVENT_ID),
+  INDEX ix_cal_dav_xml_id (DAV_XML_ID)
 );
 
 create table b_calendar_event_sect

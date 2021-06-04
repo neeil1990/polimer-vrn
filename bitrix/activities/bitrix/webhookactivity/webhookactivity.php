@@ -30,8 +30,8 @@ class CBPWebHookActivity
 			$handlerData = parse_url($handler);
 
 			if (is_array($handlerData)
-				&& strlen($handlerData['host']) > 0
-				&& strpos($handlerData['host'], '.') > 0
+				&& $handlerData['host'] <> ''
+				&& mb_strpos($handlerData['host'], '.') > 0
 				&& ($handlerData['scheme'] == 'http' || $handlerData['scheme'] == 'https')
 			)
 			{
@@ -117,7 +117,7 @@ class CBPWebHookActivity
 	{
 		$arErrors = array();
 
-		if (strlen($arTestProperties["Handler"]) <= 0)
+		if ($arTestProperties["Handler"] == '')
 		{
 			$arErrors[] = array(
 				"code" => "emptyHandler",
@@ -144,6 +144,7 @@ class CBPWebHookActivity
 		$dialog->setMap(array(
 			'Handler' => array(
 				'Name' => GetMessage('BPWHA_HANDLER_NAME'),
+				'Description' => GetMessage('BPWHA_HANDLER_NAME'),
 				'FieldName' => 'handler',
 				'Type' => 'text',
 				'Required' => true

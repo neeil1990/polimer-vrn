@@ -10,6 +10,7 @@ namespace Bitrix\Main\Mail;
 
 use Bitrix\Main;
 use Bitrix\Main\Application;
+use Bitrix\Main\Config;
 use Bitrix\Main\EventResult;
 use Bitrix\Main\Security\Sign\BadSignatureException;
 use Bitrix\Main\Security\Sign\Signer;
@@ -27,6 +28,7 @@ class Tracking
 	const onClick = 'OnMailEventMailClick';
 	const onUnsubscribe = 'OnMailEventSubscriptionDisable';
 	const onChangeStatus = 'OnMailEventMailChangeStatus';
+	const CUSTOM_SIGNER_KEY = 'signer_sender_mail_key';
 
 	/**
 	 * Get tag.
@@ -37,6 +39,8 @@ class Tracking
 	 */
 	public static function getTag($moduleId, $fields)
 	{
+
+		$moduleId = str_replace(".", "--", $moduleId);
 		return $moduleId . "." . base64_encode(json_encode($fields));
 	}
 
@@ -49,7 +53,7 @@ class Tracking
 	public static function parseTag($tag)
 	{
 		$data = explode(".", $tag);
-		$moduleId = $data[0];
+		$moduleId = str_replace("--", ".", $data[0]);
 		unset($data[0]);
 
 		return array('MODULE_ID' => $moduleId, 'FIELDS' => (array) json_decode(base64_decode(implode('.', $data))));
@@ -80,7 +84,17 @@ class Tracking
 	 */
 	public static function parseSignedTag($signedTag)
 	{
-		$signer = new Signer;
+		try
+		{
+			$signer = new Signer;
+			$unsignedTag = $signer->unsign($signedTag, static::SIGN_SALT_ACTION);
+			return static::parseTag($unsignedTag);
+		}
+		catch (BadSignatureException $e)
+		{
+		}
+
+		$signer->setKey(self::getSignKey());
 		$unsignedTag = $signer->unsign($signedTag, static::SIGN_SALT_ACTION);
 		return static::parseTag($unsignedTag);
 	}
@@ -155,7 +169,7 @@ class Tracking
 			$uri .= "/tools/track_mail_$opCode.php";
 		}
 
-		$uri = $uri . (strpos($uri, "?") === false ? "?" : "&");
+		$uri = $uri . (mb_strpos($uri, "?") === false ? "?" : "&");
 		$uri .= 'tag=' . urlencode($tag);
 
 		return $uri;
@@ -203,12 +217,54 @@ class Tracking
 		try
 		{
 			$signer = new Signer;
+			$result = $signer->validate($value, $signature, static::SIGN_SALT_ACTION);
+		}
+		catch (BadSignatureException $exception)
+		{
+			$result = false;
+		}
+
+		if(!$result)
+		{
+			return self::validateSignWithStoredKey($value, $signature);
+		}
+
+		return $result;
+	}
+
+	private static function validateSignWithStoredKey($value, $signature)
+	{
+		try
+		{
+			$signer = new Signer;
+			$key = self::getSignKey();
+
+			if (is_string($key))
+			{
+				$signer->setKey($key);
+			}
+
 			return $signer->validate($value, $signature, static::SIGN_SALT_ACTION);
 		}
 		catch (BadSignatureException $exception)
 		{
 			return false;
 		}
+	}
+
+	private static function getSignKey()
+	{
+		$key = Config\Option::get('sender', self::CUSTOM_SIGNER_KEY, null);
+		if (!$key)
+		{
+			$key = Config\Option::get('main', 'signer_default_key', null);
+			if (is_string($key))
+			{
+				Config\Option::set('sender', self::CUSTOM_SIGNER_KEY, $key);
+			}
+		}
+
+		return $key;
 	}
 
 	/**
@@ -245,6 +301,18 @@ class Tracking
 					array($eventResult->getModuleId() => $subscriptionList['LIST'])
 				);
 			}
+		}
+
+		if (empty($data['MODULE_ID']) || $data['MODULE_ID'] === 'main')
+		{
+			if (empty($subscription['main']))
+			{
+				$subscription['main'] = [];
+			}
+			$subscription['main'] = array_merge(
+				$subscription['main'],
+				EventManager::onMailEventSubscriptionList($data)
+			);
 		}
 
 		if(array_key_exists('MODULE_ID', $data))
@@ -296,6 +364,11 @@ class Tracking
 			}
 		}
 
+		if (!empty($data['MODULE_ID']) && $data['MODULE_ID'] === 'main')
+		{
+			return EventManager::onMailEventSubscriptionDisable($data);
+		}
+
 		return true;
 	}
 
@@ -307,6 +380,11 @@ class Tracking
 	 */
 	public static function click(array $data)
 	{
+		if (Main\Config\Option::get('main', 'track_outgoing_emails_click', 'Y') != 'Y')
+		{
+			return false;
+		}
+
 		if(array_key_exists('MODULE_ID', $data))
 			$filter = array($data['MODULE_ID']);
 		else
@@ -391,6 +469,11 @@ class Tracking
 	 */
 	public static function read(array $data)
 	{
+		if (Main\Config\Option::get('main', 'track_outgoing_emails_read', 'Y') != 'Y')
+		{
+			return false;
+		}
+
 		if(array_key_exists('MODULE_ID', $data))
 			$filter = array($data['MODULE_ID']);
 		else

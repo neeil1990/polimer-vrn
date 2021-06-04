@@ -25,7 +25,7 @@ $context = $instance->getContext();
 $lang = $context->getLanguage();
 $request = $context->getRequest();
 
-$oSort = new CAdminSorting($tableId, "ID", "asc");
+$oSort = new CAdminUiSorting($tableId, "ID", "asc");
 $lAdmin = new CAdminUiList($tableId, $oSort);
 
 $filterFields = array(
@@ -81,8 +81,10 @@ if (($ids = $lAdmin->GroupAction()) && $saleModulePermissions >= "W")
 				if ($id == \Bitrix\Sale\Cashbox\Cashbox1C::getId())
 				{
 					$lAdmin->AddGroupError(GetMessage("SPSAN_ERROR_DELETE_1C"), $id);
-					continue;
+					continue 2;
 				}
+
+				$service = Cashbox\Manager::getObjectById($id);
 
 				$result = Cashbox\Manager::delete($id);
 				if (!$result->isSuccess())
@@ -91,6 +93,10 @@ if (($ids = $lAdmin->GroupAction()) && $saleModulePermissions >= "W")
 						$lAdmin->AddGroupError(join(', ', $result->getErrorMessages()), $id);
 					else
 						$lAdmin->AddGroupError(GetMessage("SPSAN_ERROR_DELETE"), $id);
+				}
+				else
+				{
+					AddEventToStatFile('sale', 'deleteCashbox', '', $service::getCode());
 				}
 
 				break;
@@ -123,12 +129,6 @@ if (($ids = $lAdmin->GroupAction()) && $saleModulePermissions >= "W")
 		$adminSidePanelHelper->sendSuccessResponse();
 	}
 }
-
-if ($publicMode)
-{
-	$filter['!ID'] = Cashbox\Cashbox1C::getId();
-}
-
 $params = array(
 	'select' => array('*'),
 	'filter' => $filter
@@ -246,60 +246,124 @@ $lAdmin->CheckListMode();
 
 $APPLICATION->SetTitle(GetMessage("SALE_CASHBOX_TITLE"));
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php");
-?>
-
-<script language="JavaScript">
-	BX.message(
-		{
-			SALE_CASHBOX_COPY: '<?=Loc::getMessage("SALE_CASHBOX_COPY")?>',
-			SALE_CASHBOX_WINDOW_TITLE: '<?=Loc::getMessage("SALE_CASHBOX_WINDOW_TITLE")?>',
-			SALE_CASHBOX_WINDOW_STEP_1: '<?=Loc::getMessage("SALE_CASHBOX_WINDOW_STEP_1")?>',
-			SALE_CASHBOX_WINDOW_STEP_2: '<?=Loc::getMessage("SALE_CASHBOX_WINDOW_STEP_2")?>',
-		}
-	);
-</script>
-<?
-
-if (!Cashbox\Manager::isSupportedFFD105())
+if (!$publicMode && \Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
 {
+	$APPLICATION->IncludeComponent("bitrix:sale.admin.page.stub", ".default");
+}
+else
+{
+	?>
+	<script language="JavaScript">
+		BX.message(
+			{
+				SALE_CASHBOX_COPY: "<?=Loc::getMessage("SALE_CASHBOX_COPY")?>",
+				SALE_CASHBOX_WINDOW_TITLE: "<?=Loc::getMessage("SALE_CASHBOX_WINDOW_TITLE")?>",
+				SALE_CASHBOX_WINDOW_STEP_1: "<?=Loc::getMessage("SALE_CASHBOX_WINDOW_STEP_1")?>",
+				SALE_CASHBOX_WINDOW_STEP_2: "<?=Loc::getMessage("SALE_CASHBOX_WINDOW_STEP_2")?>",
+			}
+		);
+	</script>
+	<?
+	$ffdCheckNeeded = true;
 	Cashbox\Cashbox::init();
 
 	$cashboxList = Cashbox\Manager::getListFromCache();
-	$cashboxFfd105 = array();
-	$cashboxNoFfd105 = array();
+	$cashboxesByCountry = [
+		'RU' => [],
+		'UA' => [],
+	];
+
 	foreach ($cashboxList as $cashbox)
 	{
-		if ($cashbox['ACTIVE'] === 'N')
-			continue;
-
-		/** @var Cashbox\Cashbox $handler */
 		$handler = $cashbox['HANDLER'];
-		if ($handler::isSupportedFFD105())
+		if ($cashbox['ACTIVE'] === 'N' || $handler === '\Bitrix\Sale\Cashbox\CashboxRest')
 		{
-			$cashboxFfd105[] = htmlspecialcharsbx($cashbox['NAME']);
+			continue;
+		}
+
+		$handler = $cashbox['HANDLER'];
+
+		if ($handler === '\Bitrix\Sale\Cashbox\CashboxCheckbox')
+		{
+			$country = 'UA';
 		}
 		else
 		{
-			$cashboxNoFfd105[] = htmlspecialcharsbx($cashbox['NAME']);
+			$country = 'RU';
 		}
+
+		$cashboxesByCountry[$country][] = $cashbox['NAME'];
 	}
 
-	if ($cashboxFfd105)
+	if (!(empty($cashboxesByCountry['RU']) || empty($cashboxesByCountry['UA'])))
 	{
+		$ffdCheckNeeded = false;
 		$note = BeginNote();
-		$note .= Loc::getMessage(
-			'SALE_CASHBOX_VERSION_CONFLICT',
-			array(
-				'#CASHBOX_FFD105#' => implode(', ', $cashboxFfd105),
-				'#CASHBOX_NO_FFD105#' => implode(', ', $cashboxNoFfd105)
-			)
-		);
+		$note .= Loc::getMessage('SALE_CASHBOX_ZONE_CONFLICT');
+		$note .= Loc::getMessage('SALE_CASHBOX_ZONE_CONFLICT_RU_LIST', ['#CASHBOXES#' => implode(', ', $cashboxesByCountry['RU'])]);
+		$note .= Loc::getMessage('SALE_CASHBOX_ZONE_CONFLICT_UA_LIST', ['#CASHBOXES#' => implode(', ', $cashboxesByCountry['UA'])]);
 		$note .= EndNote();
 		echo $note;
 	}
+
+	if ($ffdCheckNeeded && !Cashbox\Manager::isSupportedFFD105())
+	{
+		$cashboxFfd105 = array();
+		$cashboxNoFfd105 = array();
+		foreach ($cashboxList as $cashbox)
+		{
+			if ($cashbox['ACTIVE'] === 'N')
+				continue;
+
+			/** @var Cashbox\Cashbox $handler */
+			$handler = $cashbox['HANDLER'];
+			if (!class_exists($handler))
+			{
+				continue;
+			}
+
+			$isRestHandler = $handler === '\Bitrix\Sale\Cashbox\CashboxRest';
+			if ($isRestHandler)
+			{
+				$handlerCode = $cashbox['SETTINGS']['REST']['REST_CODE'];
+				$restHandlers = Cashbox\Manager::getRestHandlersList();
+				$currentHandler = $restHandlers[$handlerCode];
+				if ($currentHandler['SETTINGS']['SUPPORTS_FFD105'] !== 'Y')
+				{
+					$cashboxNoFfd105[] = htmlspecialcharsbx($cashbox['NAME']);
+				}
+				else
+				{
+					$cashboxFfd105[] = htmlspecialcharsbx($cashbox['NAME']);
+				}
+			}
+			elseif ($handler::isSupportedFFD105())
+			{
+				$cashboxFfd105[] = htmlspecialcharsbx($cashbox['NAME']);
+			}
+			else
+			{
+				$cashboxNoFfd105[] = htmlspecialcharsbx($cashbox['NAME']);
+			}
+		}
+
+		if ($cashboxFfd105)
+		{
+			$note = BeginNote();
+			$note .= Loc::getMessage(
+				'SALE_CASHBOX_VERSION_CONFLICT',
+				array(
+					'#CASHBOX_FFD105#' => implode(', ', $cashboxFfd105),
+					'#CASHBOX_NO_FFD105#' => implode(', ', $cashboxNoFfd105)
+				)
+			);
+			$note .= EndNote();
+			echo $note;
+		}
+	}
+	$lAdmin->DisplayFilter($filterFields);
+	$lAdmin->DisplayList();
 }
-$lAdmin->DisplayFilter($filterFields);
-$lAdmin->DisplayList();
 
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
 

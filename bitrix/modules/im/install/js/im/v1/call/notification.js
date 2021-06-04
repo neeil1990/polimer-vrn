@@ -96,7 +96,7 @@
 			content: content,
 			closeIcon: false,
 			noAllPaddings: true,
-			zIndex: 1200,
+			zIndex: BX.MessengerCommon.getDefaultZIndex() + 200,
 			offsetLeft: 0,
 			offsetTop: 0,
 			closeByEsc: false,
@@ -145,6 +145,7 @@
 		{
 			BX.desktop.removeCustomEvents(Events.onButtonClick);
 		}
+		this.callbacks.onDestroy();
 	};
 
 	BX.Call.Notification.prototype._onContentButtonClick = function(e)

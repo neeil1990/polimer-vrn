@@ -8,10 +8,10 @@
 
 namespace Bitrix\Sender\Message;
 
-use Bitrix\Main\Error;
-use Bitrix\Main\Result;
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Error;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Result;
 
 Loc::getMessage(__FILE__);
 
@@ -91,6 +91,7 @@ class Configuration
 	 *
 	 * @param $key
 	 * @param $value
+	 * @return mixed
 	 */
 	public function set($key, $value)
 	{
@@ -100,6 +101,8 @@ class Configuration
 		{
 			$option->setValue($value);
 		}
+
+		return $value;
 	}
 
 	/**
@@ -128,6 +131,40 @@ class Configuration
 		}
 
 		return $defaultValue;
+	}
+
+	/**
+	 * Get value.
+	 *
+	 * @param string $key Key.
+	 * @param mixed $defaultValue Default value.
+	 * @return mixed
+	 */
+	public function getReadonlyView($key, $defaultValue = null)
+	{
+		$value = $this->get($key, $defaultValue);
+		$option = $this->getOption($key);
+
+		/**
+		 * this decision was made after analysing ConfigurationOption class
+		 */
+		if(!empty($option->getItems()))
+		{
+			foreach ($option->getItems() as $item)
+			{
+				if(!empty($value) && isset($item['code']) && $item['code'] == $value)
+				{
+					return $item['value'];
+				}
+			}
+		}
+
+		if ($option)
+		{
+			return $option->getReadonlyView($value);
+		}
+
+		return $value;
 	}
 
 	/**

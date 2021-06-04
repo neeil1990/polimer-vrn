@@ -1,7 +1,6 @@
-<?
-$MESS["IM_MESSENGER_DIALOG_LOAD_MESSAGES"] = "Завантаження повідомлень";
-$MESS["IM_MESSENGER_DIALOG_READED"] = "Повідомлення переглянуто, #DATE#";
-$MESS["IM_MESSENGER_DIALOG_READED_CHAT"] = "Повідомлення переглянуто: #USERS#";
-$MESS["IM_MESSENGER_DIALOG_READED_CHAT_MORE"] = "ще #COUNT#";
-$MESS["IM_MESSENGER_DIALOG_WRITES_MESSAGE"] = "#USER# пише повідомлення…";
-?>
+<?php
+$MESS["IM_DIALOG_CLIPBOARD_COPY_SUCCESS"] = "Скопійовано в буфер обміну";
+$MESS["IM_DIALOG_EMPTY"] = "- Немає повідомлень -";
+$MESS["IM_DIALOG_ERROR_DESC"] = "Будь ласка, спробуйте відкрити чат пізніше.";
+$MESS["IM_DIALOG_ERROR_TITLE"] = "На жаль, завантажити чат не вдалося :(";
+$MESS["IM_DIALOG_LOADING"] = "Зачекайте трохи";

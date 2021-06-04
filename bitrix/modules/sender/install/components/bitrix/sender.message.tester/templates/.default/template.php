@@ -4,6 +4,8 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Web\Json;
 
+\Bitrix\Main\UI\Extension::load("sender.error_handler");
+
 /** @var CAllMain $APPLICATION */
 /** @var array $arParams */
 /** @var array $arResult */
@@ -12,10 +14,11 @@ use Bitrix\Main\Web\Json;
 $arParams['ID'] = 'def-tester';
 $containerId = 'bx-sender-message-tester-' . $arParams['ID'];
 
-$hint = Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT_' . strtoupper($arResult['MESSAGE_CODE']));
-$hint = $hint ?: Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT_' . strtoupper($arResult['TYPE_CODE']));
+$hint = Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT_'.mb_strtoupper($arResult['MESSAGE_CODE']));
+$hint = $hint ?: Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT_'.mb_strtoupper($arResult['TYPE_CODE']));
 $hint = $hint ?: Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT');
 ?>
+<? if($arParams['CAN_EDIT']): ?>
 <div id="<?=htmlspecialcharsbx($containerId)?>" class="sender-message-tester">
 	<div class="sender-message-tester-left">
 		<div class="sender-message-tester-icon sender-message-tester-icon-<?=htmlspecialcharsbx($arResult['TYPE_CODE'])?>"></div>
@@ -33,8 +36,7 @@ $hint = $hint ?: Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT');
 				'LIST' => $arResult['DEFAULT_RECIPIENTS'],
 				'SHOW_BUTTON_ADD' => false,
 				'BUTTON_SELECT_CAPTION' => Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_SPECIFY')
-			));
-			?>
+			))?>
 		</div>
 
 		<div>
@@ -73,3 +75,4 @@ $hint = $hint ?: Loc::getMessage('SENDER_MESSAGE_TESTER_TMPL_TEST_HINT');
 		))?>);
 	});
 </script>
+<? endif; ?>

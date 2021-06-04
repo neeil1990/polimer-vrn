@@ -21,7 +21,7 @@ return array(
 			'VIEW_USE' => 'N',
 			'VIEW_TYPE' => 'no',
 			'THEME_CODE' => '3corporate',
-			'THEME_CODE_TYPO' => '3corporate',
+
 		),
 	),
 	
@@ -58,15 +58,12 @@ return array(
 					),
 				),
 				'.landing-block-node-card-title' => array(
-					0 => '200+ happy clients',
-					1 => '500+ succeed deals',
+					0 => Loc::getMessage('LANDING_DEMO_STORE_CHATS_DARK-ABOUT-TEXT1'),
+					1 => Loc::getMessage('LANDING_DEMO_STORE_CHATS_DARK-ABOUT-TEXT2'),
 				),
 				'.landing-block-node-card-text' => array(
-					0 => '<p>Proin dignissim eget enim id aliquam.
-								Proin ornare dictum leo, non elementum tellus molestie et. Vivamus sit amet scelerisque
-								leo.</p>',
-					1 => '<p>Nteger commodo est id erat bibendum, eu
-								convallis dolor tempus. Fusce mollis blandit eros. Nunc quis sapien in massa varius.</p>',
+					0 => '<p>'.Loc::getMessage('LANDING_DEMO_STORE_CHATS_DARK-ABOUT-TEXT3').'</p>',
+					1 => '<p>'.Loc::getMessage('LANDING_DEMO_STORE_CHATS_DARK-ABOUT-TEXT4').'</p>',
 				),
 			),
 			'style' => array(
@@ -75,15 +72,15 @@ return array(
 					1 => 'landing-block-node-card js-animation animation-none col-md-6 col-lg-6 g-mb-40 g-mb-0--last g-px-20',
 				),
 				'.landing-block-node-card-text' => array(
-					0 => 'landing-block-node-card-text mb-0 g-color-white-opacity-0_7 g-font-size-14',
-					1 => 'landing-block-node-card-text mb-0 g-color-white-opacity-0_7 g-font-size-14',
+					0 => 'landing-block-node-card-text mb-0 g-color-white-opacity-0_8',
+					1 => 'landing-block-node-card-text mb-0 g-color-white-opacity-0_8',
 				),
 				'.landing-block-node-card-title' => array(
-					0 => 'landing-block-node-card-title h5 font-weight-bold g-color-white g-text-transform-none g-font-size-16',
-					1 => 'landing-block-node-card-title h5 font-weight-bold g-color-white g-text-transform-none g-font-size-16',
+					0 => 'landing-block-node-card-title h5 g-font-weight-700 g-color-white g-text-transform-none g-font-size-15',
+					1 => 'landing-block-node-card-title h5 g-font-weight-700 g-color-white g-text-transform-none g-font-size-15',
 				),
 				'#wrapper' => array(
-					0 => 'landing-block g-pt-20 g-pb-10 u-block-border u-block-border-margin-md g-rounded-6 g-theme-bitrix-bg-dark-v1',
+					0 => 'landing-block g-pt-20 g-pb-10 u-block-border-none g-theme-bitrix-bg-dark-v3',
 				),
 			),
 		),
@@ -92,13 +89,10 @@ return array(
 			'access' => 'X',
 			'nodes' => array(
 				'.landing-block-node-title' => array(
-					0 => '<span bxstyle="font-weight: normal;">We work online</span>',
+					0 => '<span bxstyle="font-weight: normal;">'.Loc::getMessage('LANDING_DEMO_STORE_CHATS_DARK-ABOUT-TEXT5').'</span>',
 				),
 				'.landing-block-node-text' => array(
-					0 => '<p>
-						Aliquam mattis neque justo, non maximus dui ornare nec. Praesent efficitur velit nisl, sed
-						tincidunt mi imperdiet at. Cras urna libero, fringilla vitae luctus eu, egestas eget metus. Nam
-						et massa eros. Maecenas sit amet lacinia lectus.</p>',
+					0 => '<p>'.Loc::getMessage('LANDING_DEMO_STORE_CHATS_DARK-ABOUT-TEXT6').'</p>',
 				),
 				'.landing-block-node-img' => array(
 					0 => array(
@@ -109,13 +103,13 @@ return array(
 			),
 			'style' => array(
 				'.landing-block-node-title' => array(
-					0 => 'landing-block-node-title font-weight-bold mb-0 g-mb-15 g-color-white g-text-transform-none g-font-size-28',
+					0 => 'landing-block-node-title g-font-weight-700 mb-0 g-mb-15 g-color-white g-text-transform-none g-font-size-28',
 				),
 				'.landing-block-node-text-container' => array(
 					0 => 'landing-block-node-text-container js-animation animation-none col-md-6 col-lg-6 g-pb-20 g-pb-0--md',
 				),
 				'.landing-block-node-text' => array(
-					0 => 'landing-block-node-text g-color-white-opacity-0_7',
+					0 => 'landing-block-node-text g-color-white-opacity-0_8',
 				),
 				'.landing-block-node-block' => array(
 					0 => 'row landing-block-node-block align-items-center',
@@ -124,68 +118,7 @@ return array(
 					0 => 'landing-block-node-img js-animation animation-none img-fluid',
 				),
 				'#wrapper' => array(
-					0 => 'landing-block g-pt-10 g-pb-20 u-block-border u-block-border-margin-md g-rounded-6 g-theme-bitrix-bg-dark-v1',
-				),
-			),
-		),
-		'2' => array(
-			'code' => '55.1.list_of_links',
-			'access' => 'X',
-			'cards' => array(
-				'.landing-block-node-list-item' => array(
-					'source' => array(
-						0 => array(
-							'value' => 0,
-							'type' => 'card',
-						),
-						1 => array(
-							'value' => 0,
-							'type' => 'card',
-						),
-						2 => array(
-							'value' => 0,
-							'type' => 'card',
-						),
-					),
-				),
-			),
-			'nodes' => array(
-				'.landing-block-node-link' => array(
-					0 => array(
-						'href' => '#landing@landing[store-chats-dark/contacts]',
-						'target' => '_self',
-					),
-					1 => array(
-						'href' => '#landing@landing[store-chats-dark/payinfo]',
-						'target' => '_self',
-					),
-					2 => array(
-						'href' => '#landing@landing[store-chats-dark/webform]',
-						'target' => '_self',
-					),
-				),
-				'.landing-block-node-link-text' => array(
-					0 => 'Contacts',
-					1 => 'Payment Information',
-					2 => 'Webform',
-				),
-			),
-			'style' => array(
-				'.landing-block-node-list-container' => array(
-					0 => 'landing-block-node-list-container row no-gutters justify-content-center',
-				),
-				'.landing-block-node-list-item' => array(
-					0 => 'landing-block-node-list-item g-brd-bottom g-brd-1 g-py-12 js-animation animation-none landing-card g-brd-white-opacity-0_2 g-font-size-18',
-					1 => 'landing-block-node-list-item g-brd-bottom g-brd-1 g-py-12 js-animation animation-none landing-card g-brd-white-opacity-0_2 g-font-size-18',
-					2 => 'landing-block-node-list-item g-brd-bottom g-brd-1 g-py-12 js-animation animation-none landing-card g-brd-white-opacity-0_2 g-font-size-18',
-				),
-				'.landing-block-node-link' => array(
-					0 => 'landing-block-node-link row no-gutters justify-content-between align-items-center g-text-decoration-none--hover g-color-primary--hover g-font-size-18 g-color-white',
-					1 => 'landing-block-node-link row no-gutters justify-content-between align-items-center g-text-decoration-none--hover g-color-primary--hover g-font-size-18 g-color-white',
-					2 => 'landing-block-node-link row no-gutters justify-content-between align-items-center g-text-decoration-none--hover g-color-primary--hover g-font-size-18 g-color-white',
-				),
-				'#wrapper' => array(
-					0 => 'landing-block g-pt-10 g-pb-10 g-pl-15 g-pr-15 u-block-border u-block-border-margin-md g-rounded-6 g-theme-bitrix-bg-dark-v1',
+					0 => 'landing-block g-pt-25 g-pb-25 u-block-border-none g-bg-transparent',
 				),
 			),
 		),

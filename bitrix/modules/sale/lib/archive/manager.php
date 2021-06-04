@@ -120,12 +120,12 @@ class Manager
 	{
 		$filter = Option::get('sale', 'archive_params');
 
-		if (strlen($filter) <= 0)
+		if ($filter == '')
 		{
 			throw new Main\SystemException("Settings of order's archiving are null or empty");
 		}
 
-		$filter = unserialize($filter);
+		$filter = unserialize($filter, ['allowed_classes' => false]);
 
 		if (isset($filter['PERIOD']))
 		{

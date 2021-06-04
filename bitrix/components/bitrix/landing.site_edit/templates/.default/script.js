@@ -1,17 +1,16 @@
-BX.namespace("BX.Landing");
+BX.namespace('BX.Landing');
 
 /**
- * Bbase script for component.
- * @param {Object} params Some params.
+ * Base script for component.
  * @returns {void}
  */
 BX.Landing.EditComponent = function ()
 {
-	this.actionCloseId = BX("action-close");
+	this.actionCloseId = BX('action-close');
 
 	if (this.actionCloseId)
 	{
-		BX.bind(this.actionCloseId, "click", BX.delegate(this.actionClose, this));
+		BX.bind(this.actionCloseId, 'click', BX.delegate(this.actionClose, this));
 	}
 };
 
@@ -22,18 +21,16 @@ BX.Landing.EditComponent.prototype = {
 	 */
 	actionClose: function ()
 	{
-		if (
-			typeof top.BX.Bitrix24 !== 'undefined' &&
-			typeof top.BX.Bitrix24.PageSlider !== 'undefined'
-		)
-		{
-			top.BX.Bitrix24.PageSlider.close();
-		}
-		else if (typeof top.BX.SidePanel !== 'undefined')
+		if (typeof top.BX.SidePanel !== 'undefined')
 		{
 			setTimeout(function() {
 				top.BX.SidePanel.Instance.close();
 			}, 300);
+			top.BX.SidePanel.Instance.postMessage(
+				window,
+				'landingEditClose',
+				{}
+			);
 		}
 	}
 };
@@ -122,7 +119,7 @@ BX.Landing.SelectColor.prototype = {
 			};
 
 			_this.sectionMenu = BX.PopupMenu.create(
-				"selectColor" + _this.id,
+				'selectColor' + _this.id,
 				_this.DOM.sectionSelect,
 				menuItems,
 				{
@@ -133,7 +130,7 @@ BX.Landing.SelectColor.prototype = {
 				}
 			);
 
-			_this.sectionMenu.popupWindow.contentContainer.style.maxHeight = "300px";
+			_this.sectionMenu.popupWindow.contentContainer.style.maxHeight = '300px';
 			_this.sectionMenu.popupWindow.setWidth(_this.DOM.sectionSelect.offsetWidth - 2);
 			_this.sectionMenu.show();
 
@@ -156,7 +153,7 @@ BX.Landing.SelectColor.prototype = {
 			{
 				BX.removeClass(_this.DOM.sectionSelect, 'active');
 				_this.sectionMenu = null;
-				BX.PopupMenu.destroy("selectColor" + _this.id);
+				BX.PopupMenu.destroy('selectColor' + _this.id);
 			});
 		}
 	}
@@ -228,7 +225,7 @@ BX.Landing.SelectLang.prototype = {
 			}
 
 			_this.sectionMenu = BX.PopupMenu.create(
-				"selectLang" + _this.id,
+				'selectLang' + _this.id,
 				_this.DOM.sectionSelect,
 				menuItems,
 				{
@@ -239,7 +236,7 @@ BX.Landing.SelectLang.prototype = {
 				}
 			);
 
-			_this.sectionMenu.popupWindow.contentContainer.style.maxHeight = "300px";
+			_this.sectionMenu.popupWindow.contentContainer.style.maxHeight = '300px';
 			_this.sectionMenu.popupWindow.setWidth(_this.DOM.sectionSelect.offsetWidth - 2);
 			_this.sectionMenu.show();
 
@@ -249,9 +246,57 @@ BX.Landing.SelectLang.prototype = {
 			{
 				BX.removeClass(_this.DOM.sectionSelect, 'active');
 				_this.sectionMenu = null;
-				BX.PopupMenu.destroy("selectLang" + _this.id);
+				BX.PopupMenu.destroy('selectLang' + _this.id);
 			});
 		}
 	}
 };
 
+
+// Sidepanel
+BX.ready(function()
+{
+	var domainRenameLinks = [].slice.call(
+		document.querySelectorAll('.landing-frame-btn')
+	);
+	for (var i = 0, c = domainRenameLinks.length; i < c; i++)
+	{
+		BX.bind(domainRenameLinks[i], 'click', function()
+		{
+			top.BX.SidePanel.Instance.open(
+				this.getAttribute('href'),
+				{
+					width: 1000,
+					allowChangeHistory: false,
+					events: {
+						onClose: function(event)
+						{
+							if (
+								event.slider.url.indexOf('save=Y') !== -1 ||
+								event.slider.url.indexOf('switch=Y') !== -1
+							)
+							{
+								window.location.reload();
+							}
+						}
+					}
+				}
+			);
+			BX.PreventDefault();
+		});
+	}
+});
+
+/**
+ * Show all 20 colors in setting 'corporate color'
+ */
+function showAllColors()
+{
+	var colors = document.getElementById("set-colors");
+	for (var i = 0; i < colors.childNodes.length; i++)
+	{
+		colors.childNodes[i].hidden = false;
+	}
+	var link = document.getElementById("link-all-colors");
+	link.hidden = true;
+}

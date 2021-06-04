@@ -5,8 +5,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 }
 
 ?>
-<div class="g-min-height-200 g-flex-centered">
-	<div class="g-pa-10 g-brd-html-dashed g-bg-white">
-		<?= $arParams['MESSAGE'];?>
+<div class="g-min-height-200 g-flex-centered g-height-100">
+	<div class="g-landing-alert">
+		<?= $arParams['~MESSAGE'];?>
 	</div>
 </div>

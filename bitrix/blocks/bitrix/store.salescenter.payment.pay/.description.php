@@ -6,33 +6,36 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 
 use \Bitrix\Main\Localization\Loc;
 
-$return = array(
-	'block' => array(
+$return = [
+	'block' => [
 		'name' => Loc::getMessage('LANDING_BLOCK_STORE_SALESCENTER_PAYMENT_PAY-NAME'),
-		'section' => array('store'),
+		'section' => ['store'],
 		'type' => 'null',
-		'namespace' => 'bitrix'
-	),
-	'nodes' => array(
-		'bitrix:salescenter.payment.pay' => array(
+		'namespace' => 'bitrix',
+	],
+	'nodes' => [
+		'bitrix:salescenter.payment.pay' => [
 			'type' => 'component',
-			'extra' => array(
-				'editable' => array(
+			'extra' => [
+				'editable' => [
 					// visual
-					'TEMPLATE_MODE' => array(
+					'TEMPLATE_MODE' => [
 						'style' => true,
-					),
-				),
-			),
-		),
-	),
-	'style' => array(
-		'block' => array(
-			'type' => array('block-default'),
-		),
-		'nodes' => array(),
-	),
-);
+					],
+					'ALLOW_PAYMENT_REDIRECT' => [
+						'style' => true,
+					],
+				],
+			],
+		],
+	],
+	'style' => [
+		'block' => [
+			'type' => ['block-default', 'block-border'],
+		],
+		'nodes' => [],
+	],
+];
 
 
 return $return;

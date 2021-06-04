@@ -1,23 +1,26 @@
-<?
+<?php
+
 namespace Bitrix\Bizproc;
 
-use \Bitrix\Main\Loader;
-use \Bitrix\Rest\AppLangTable;
-use \Bitrix\Rest\AppTable;
-use \Bitrix\Rest\RestException;
-use \Bitrix\Rest\AccessException;
+use Bitrix\Bizproc\Workflow\Entity\WorkflowInstanceTable;
+use Bitrix\Main\Loader;
+use Bitrix\Rest\AppLangTable;
+use Bitrix\Rest\AppTable;
+use Bitrix\Rest\HandlerHelper;
+use Bitrix\Rest\PlacementTable;
+use Bitrix\Rest\RestException;
+use Bitrix\Rest\AccessException;
 
 Loader::includeModule('rest');
 
 class RestService extends \IRestService
 {
-	const SCOPE = 'bizproc';
-	protected static $app;
-	private static $allowedOperations = array('', '!', '<', '<=', '>', '>=');//, '><', '!><', '?', '=', '!=', '%', '!%', ''); May be later?
+	public const SCOPE = 'bizproc';
+	public const PLACEMENT_ACTIVITY_PROPERTIES_DIALOG = 'BIZPROC_ACTIVITY_PROPERTIES_DIALOG';
 
-	const ERROR_UNSUPPORTED_PROTOCOL = 'ERROR_UNSUPPORTED_PROTOCOL';
-	const ERROR_WRONG_HANDLER_URL = 'ERROR_WRONG_HANDLER_URL';
-	const ERROR_HANDLER_URL_MATCH = 'ERROR_HANDLER_URL_MATCH';
+	protected static $app;
+	private static $allowedOperations = ['', '!', '<', '<=', '>', '>='];
+	//, '><', '!><', '?', '=', '!=', '%', '!%', ''); May be later?
 
 	const ERROR_ACTIVITY_ALREADY_INSTALLED = 'ERROR_ACTIVITY_ALREADY_INSTALLED';
 	const ERROR_ACTIVITY_ADD_FAILURE = 'ERROR_ACTIVITY_ADD_FAILURE';
@@ -25,7 +28,8 @@ class RestService extends \IRestService
 	const ERROR_ACTIVITY_NOT_FOUND = 'ERROR_ACTIVITY_NOT_FOUND';
 	const ERROR_EMPTY_LOG_MESSAGE = 'ERROR_EMPTY_LOG_MESSAGE';
 	const ERROR_WRONG_WORKFLOW_ID = 'ERROR_WRONG_WORKFLOW_ID';
-	const ERROR_WRONG_ACTIVITY_NAME = 'ERROR_WRONG_ACTIVITY_NAME';
+
+	const ERROR_TEMPLATE_VALIDATION_FAILURE = 'ERROR_TEMPLATE_VALIDATION_FAILURE';
 
 	const ERROR_TASK_VALIDATION = 'ERROR_TASK_VALIDATION';
 	const ERROR_TASK_NOT_FOUND = 'ERROR_TASK_NOT_FOUND';
@@ -33,59 +37,86 @@ class RestService extends \IRestService
 	const ERROR_TASK_COMPLETED = 'ERROR_TASK_COMPLETED';
 	const ERROR_TASK_EXECUTION = 'ERROR_TASK_EXECUTION';
 
+	private const ALLOWED_TASK_ACTIVITIES = [
+		'ReviewActivity',
+		'ApproveActivity',
+		'RequestInformationActivity',
+		'RequestInformationOptionalActivity'
+	];
+
 	public static function onRestServiceBuildDescription()
 	{
-		$map = array();
+		$map = [];
+
 		if (\CBPRuntime::isFeatureEnabled())
 		{
-			$map = array(
-
+			$map = [
 				//activity
-				'bizproc.activity.add' => array(__CLASS__, 'addActivity'),
-				'bizproc.activity.delete' => array(__CLASS__, 'deleteActivity'),
-				'bizproc.activity.log' => array(__CLASS__, 'writeActivityLog'),
-				'bizproc.activity.list' => array(__CLASS__, 'getActivityList'),
+				'bizproc.activity.add' => [__CLASS__, 'addActivity'],
+				'bizproc.activity.update' => [__CLASS__, 'updateActivity'],
+				'bizproc.activity.delete' => [__CLASS__, 'deleteActivity'],
+				'bizproc.activity.log' => [__CLASS__, 'writeActivityLog'],
+				'bizproc.activity.list' => [__CLASS__, 'getActivityList'],
 
 				//event
-				'bizproc.event.send' => array(__CLASS__, 'sendEvent'),
+				'bizproc.event.send' => [__CLASS__, 'sendEvent'],
 
 				//task
-				'bizproc.task.list' =>  array(__CLASS__, 'getTaskList'),
-				'bizproc.task.complete' =>  array(__CLASS__, 'completeTask'),
+				'bizproc.task.list' => [__CLASS__, 'getTaskList'],
+				'bizproc.task.complete' => [__CLASS__, 'completeTask'],
 
 				//workflow
-				'bizproc.workflow.terminate' => array(__CLASS__, 'terminateWorkflow'),
-				'bizproc.workflow.start' => array(__CLASS__, 'startWorkflow'),
+				'bizproc.workflow.terminate' => [__CLASS__, 'terminateWorkflow'],
+				'bizproc.workflow.kill' => [__CLASS__, 'killWorkflow'],
+				'bizproc.workflow.start' => [__CLASS__, 'startWorkflow'],
+
 				//workflow.instance
-				'bizproc.workflow.instance.list' => array(__CLASS__, 'getWorkflowInstances'),
+				'bizproc.workflow.instance.list' => [__CLASS__, 'getWorkflowInstances'],
+
 				//workflow.template
-				'bizproc.workflow.template.list' => array(__CLASS__, 'getWorkflowTemplates'),
+				'bizproc.workflow.template.list' => [__CLASS__, 'getWorkflowTemplates'],
+				'bizproc.workflow.template.add' => [__CLASS__, 'addWorkflowTemplate'],
+				'bizproc.workflow.template.update' => [__CLASS__, 'updateWorkflowTemplate'],
+				'bizproc.workflow.template.delete' => [__CLASS__, 'deleteWorkflowTemplate'],
 
 				//aliases
-				'bizproc.workflow.instances' => array(__CLASS__, 'getWorkflowInstances'),
-			);
+				'bizproc.workflow.instances' => [__CLASS__, 'getWorkflowInstances'],
+			];
 		}
 
-		if (\CBPRuntime::isFeatureEnabled()
+		if (
+			\CBPRuntime::isFeatureEnabled()
 			|| \CBPRuntime::isFeatureEnabled('crm_automation_lead')
 			|| \CBPRuntime::isFeatureEnabled('crm_automation_deal')
+			|| \CBPRuntime::isFeatureEnabled('crm_automation_order')
+			|| \CBPRuntime::isFeatureEnabled('tasks_automation')
 		)
 		{
 			$map = array_merge($map, array(
+				'bizproc.event.send' => [__CLASS__, 'sendEvent'],
+				'bizproc.activity.log' => [__CLASS__, 'writeActivityLog'],
 
 				//robot
 				'bizproc.robot.add' => array(__CLASS__, 'addRobot'),
+				'bizproc.robot.update' => array(__CLASS__, 'updateRobot'),
 				'bizproc.robot.delete' => array(__CLASS__, 'deleteRobot'),
 				'bizproc.robot.list' => array(__CLASS__, 'getRobotList'),
 
 				//provider
-				'bizproc.provider.add' => array(__CLASS__, 'addProvider'),
-				'bizproc.provider.delete' => array(__CLASS__, 'deleteProvider'),
-				'bizproc.provider.list' => array(__CLASS__, 'getProviderList'),
+				'bizproc.provider.add' => [__CLASS__, 'addProvider'],
+				'bizproc.provider.delete' => [__CLASS__, 'deleteProvider'],
+				'bizproc.provider.list' => [__CLASS__, 'getProviderList'],
 			));
 		}
 
-		return $map ? array(static::SCOPE => $map) : false;
+		//placements
+		$map[\CRestUtil::PLACEMENTS] = [
+			static::PLACEMENT_ACTIVITY_PROPERTIES_DIALOG => ['private' => true],
+		];
+
+		return [
+			static::SCOPE => $map,
+		];
 	}
 
 	/**
@@ -127,6 +158,8 @@ class RestService extends \IRestService
 		{
 			RestProviderTable::delete($activity['ID']);
 		}
+
+		self::deleteAppPlacement($app['ID']);
 	}
 
 	/**
@@ -186,6 +219,7 @@ class RestService extends \IRestService
 		else
 			self::validateActivity($params, $server);
 
+		$appId = self::getAppId($server->getClientId());
 		$params['APP_ID'] = $server->getClientId();
 		$params['INTERNAL_CODE'] = self::generateInternalCode($params);
 		$params['APP_NAME'] = self::getAppName($params['APP_ID']);
@@ -202,18 +236,23 @@ class RestService extends \IRestService
 
 		$params['AUTH_USER_ID'] = isset($params['AUTH_USER_ID'])? (int) $params['AUTH_USER_ID'] : 0;
 		$params['IS_ROBOT'] = $isRobot ? 'Y' : 'N';
-
-		if ($isRobot)
-		{
-			$params['USE_SUBSCRIPTION'] = 'N';
-		}
-
 		$params['USE_PLACEMENT'] = ($params['USE_PLACEMENT'] === 'Y') ? 'Y' : 'N';
+
+		if ($params['USE_PLACEMENT'] === 'Y')
+		{
+			self::validateActivityHandler($params['PLACEMENT_HANDLER'], $server);
+			self::upsertAppPlacement($appId, $params['CODE'], $params['PLACEMENT_HANDLER']);
+		}
 
 		$result = RestActivityTable::add($params);
 
 		if ($result->getErrors())
 		{
+			if ($params['USE_PLACEMENT'] === 'Y')
+			{
+				self::deleteAppPlacement($appId, $params['CODE']);
+			}
+
 			throw new RestException('Activity save error!', self::ERROR_ACTIVITY_ADD_FAILURE);
 		}
 
@@ -227,9 +266,33 @@ class RestService extends \IRestService
 	 * @return bool
 	 * @throws \Exception
 	 */
+	public static function updateActivity($params, $n, $server)
+	{
+		return self::updateActivityInternal($params, $server, false);
+	}
+
+	/**
+	 * @param array $params Input params.
+	 * @param int $n Offset.
+	 * @param \CRestServer $server Rest server instance.
+	 * @return bool
+	 * @throws \Exception
+	 */
 	public static function deleteActivity($params, $n, $server)
 	{
 		return self::deleteActivityInternal($params, $server, false);
+	}
+
+	/**
+	 * @param array $params Input params.
+	 * @param int $n Offset.
+	 * @param \CRestServer $server Rest server instance.
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public static function updateRobot($params, $n, $server)
+	{
+		return self::updateActivityInternal($params, $server, true);
 	}
 
 	/**
@@ -278,6 +341,146 @@ class RestService extends \IRestService
 			throw new RestException('Activity or Robot not found!', self::ERROR_ACTIVITY_NOT_FOUND);
 		}
 		RestActivityTable::delete($result['ID']);
+		self::deleteAppPlacement(self::getAppId($params['APP_ID']), $params['CODE']);
+
+		return true;
+	}
+
+	/**
+	 * @param array $params
+	 * @param \CRestServer $server
+	 * @param bool $isRobot
+	 * @return bool
+	 * @throws AccessException
+	 * @throws RestException
+	 * @throws \Bitrix\Main\ArgumentException
+	 * @throws \Bitrix\Main\ObjectPropertyException
+	 * @throws \Bitrix\Main\SystemException
+	 */
+	private static function updateActivityInternal($params, $server, $isRobot = false)
+	{
+		if(!$server->getClientId())
+		{
+			throw new AccessException("Application context required");
+		}
+
+		$params = self::prepareActivityData($params);
+		self::checkAdminPermissions();
+		self::validateActivityCode($params['CODE']);
+		$params['APP_ID'] = $server->getClientId();
+		$internalCode = self::generateInternalCode($params);
+
+		$iterator = RestActivityTable::getList(array(
+			'select' => array('ID'),
+			'filter' => array(
+				'=INTERNAL_CODE' => $internalCode,
+				'=IS_ROBOT' => $isRobot ? 'Y' : 'N'
+			)
+		));
+		$result = $iterator->fetch();
+		if (!$result)
+		{
+			throw new RestException('Activity or Robot not found!', self::ERROR_ACTIVITY_NOT_FOUND);
+		}
+
+		$fields = (isset($params['FIELDS']) && is_array($params['FIELDS'])) ? $params['FIELDS'] : null;
+
+		if (!$fields)
+		{
+			throw new RestException('No fields to update', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
+		}
+
+		$toUpdate = [];
+
+		if (isset($fields['HANDLER']))
+		{
+			self::validateActivityHandler($fields['HANDLER'], $server);
+			$toUpdate['HANDLER'] = $fields['HANDLER'];
+		}
+
+		if (isset($fields['AUTH_USER_ID']))
+		{
+			$toUpdate['AUTH_USER_ID'] = (int) $fields['AUTH_USER_ID'];
+		}
+
+		if (isset($fields['USE_SUBSCRIPTION']))
+		{
+			$toUpdate['USE_SUBSCRIPTION'] = (string) $fields['USE_SUBSCRIPTION'];
+		}
+
+		if (isset($fields['USE_PLACEMENT']))
+		{
+			$toUpdate['USE_PLACEMENT'] = ($fields['USE_PLACEMENT'] === 'Y') ? 'Y' : 'N';
+		}
+
+		if (!empty($fields['NAME']))
+		{
+			$toUpdate['NAME'] = $fields['NAME'];
+		}
+
+		if (isset($fields['DESCRIPTION']))
+		{
+			$toUpdate['DESCRIPTION'] = $fields['DESCRIPTION'];
+		}
+
+		if (isset($fields['PROPERTIES']))
+		{
+			self::validateActivityProperties($fields['PROPERTIES']);
+			$toUpdate['PROPERTIES'] = $fields['PROPERTIES'];
+		}
+
+		if (isset($fields['RETURN_PROPERTIES']))
+		{
+			self::validateActivityProperties($fields['RETURN_PROPERTIES']);
+			$toUpdate['RETURN_PROPERTIES'] = $fields['RETURN_PROPERTIES'];
+		}
+
+		if (isset($fields['DOCUMENT_TYPE']))
+		{
+			if (empty($fields['DOCUMENT_TYPE']))
+			{
+				$toUpdate['DOCUMENT_TYPE'] = null;
+			}
+			else
+			{
+				static::validateActivityDocumentType($fields['DOCUMENT_TYPE']);
+				$toUpdate['DOCUMENT_TYPE'] = $fields['DOCUMENT_TYPE'];
+			}
+		}
+
+		if (isset($fields['FILTER']))
+		{
+			if (empty($fields['FILTER']))
+			{
+				$toUpdate['FILTER'] = null;
+			}
+			else
+			{
+				if (!is_array($fields['FILTER']))
+				{
+					throw new RestException('Wrong activity FILTER!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
+				}
+				$toUpdate['FILTER'] = $fields['FILTER'];
+			}
+		}
+
+		if (!$toUpdate)
+		{
+			throw new RestException('No fields to update', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
+		}
+
+		if (isset($fields['PLACEMENT_HANDLER']))
+		{
+			self::validateActivityHandler($params['PLACEMENT_HANDLER'], $server);
+			self::upsertAppPlacement(self::getAppId($params['APP_ID']), $params['CODE'], $fields['PLACEMENT_HANDLER']);
+		}
+
+		if (isset($toUpdate['USE_PLACEMENT']) && $toUpdate['USE_PLACEMENT'] === 'N')
+		{
+			self::deleteAppPlacement(self::getAppId($params['APP_ID']), $params['CODE']);
+		}
+
+		RestActivityTable::update($result['ID'], $toUpdate);
 
 		return true;
 	}
@@ -293,7 +496,7 @@ class RestService extends \IRestService
 	public static function sendEvent($params, $n, $server)
 	{
 		$params = array_change_key_case($params, CASE_UPPER);
-		list($workflowId, $activityName, $eventId) = self::extractEventToken($params['EVENT_TOKEN']);
+		[$workflowId, $activityName, $eventId] = self::extractEventToken($params['EVENT_TOKEN']);
 
 		\CBPRuntime::sendExternalEvent(
 			$workflowId,
@@ -319,7 +522,7 @@ class RestService extends \IRestService
 	public static function writeActivityLog($params, $n, $server)
 	{
 		$params = array_change_key_case($params, CASE_UPPER);
-		list($workflowId, $activityName, $eventId) = self::extractEventToken($params['EVENT_TOKEN']);
+		[$workflowId, $activityName, $eventId] = self::extractEventToken($params['EVENT_TOKEN']);
 
 		$logMessage = isset($params['LOG_MESSAGE']) ? $params['LOG_MESSAGE'] : '';
 
@@ -484,13 +687,41 @@ class RestService extends \IRestService
 	 * @param array $params Input params.
 	 * @param int $n Offset.
 	 * @param \CRestServer $server Rest server instance.
+	 * @return bool True on success.
+	 * @throws AccessException
+	 * @throws RestException
+	 */
+	public static function killWorkflow($params, $n, $server)
+	{
+		self::checkAdminPermissions();
+		$params = array_change_key_case($params, CASE_UPPER);
+
+		if (empty($params['ID']))
+		{
+			throw new RestException('Empty workflow instance ID', self::ERROR_WRONG_WORKFLOW_ID);
+		}
+
+		$id = $params['ID'];
+		$errors = \CBPDocument::killWorkflow($id);
+
+		if ($errors)
+		{
+			throw new RestException($errors[0]['message']);
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param array $params Input params.
+	 * @param int $n Offset.
+	 * @param \CRestServer $server Rest server instance.
 	 * @return string Workflow ID.
 	 * @throws AccessException
 	 * @throws RestException
 	 */
 	public static function startWorkflow($params, $n, $server)
 	{
-		self::checkAdminPermissions();
 		$params = array_change_key_case($params, CASE_UPPER);
 
 		if (empty($params['TEMPLATE_ID']))
@@ -499,8 +730,9 @@ class RestService extends \IRestService
 		}
 
 		$documentId = self::validateDocumentId($params['DOCUMENT_ID']);
-
 		$templateId = (int)$params['TEMPLATE_ID'];
+		self::checkStartWorkflowPermissions($documentId, $templateId);
+
 		$workflowParameters = isset($params['PARAMETERS']) && is_array($params['PARAMETERS']) ? $params['PARAMETERS'] : [];
 
 		$workflowParameters[\CBPDocument::PARAM_TAGRET_USER] = self::getCurrentUserId();
@@ -514,6 +746,28 @@ class RestService extends \IRestService
 		}
 
 		return $workflowId;
+	}
+
+	private static function checkStartWorkflowPermissions(array $documentId, $templateId)
+	{
+		if (static::isAdmin())
+		{
+			return true;
+		}
+
+		if (
+			\CBPDocument::CanUserOperateDocument(
+				\CBPCanUserOperateOperation::StartWorkflow,
+				static::getCurrentUserId(),
+				$documentId,
+				['WorkflowTemplateId' => $templateId]
+			)
+		)
+		{
+			return true;
+		}
+
+		throw new AccessException();
 	}
 
 	/**
@@ -551,7 +805,7 @@ class RestService extends \IRestService
 
 		$select = static::getSelect($params['SELECT'], $fields, array('ID'));
 		$filter = static::getFilter($params['FILTER'], $fields, array('MODIFIED'));
-		$filter['!AUTO_EXECUTE'] = \CBPDocumentEventType::Automation;
+		$filter['<AUTO_EXECUTE'] = \CBPDocumentEventType::Automation;
 
 		$order = static::getOrder($params['ORDER'], $fields, array('ID' => 'ASC'));
 
@@ -581,6 +835,161 @@ class RestService extends \IRestService
 		}
 
 		return static::setNavData($result, ['count' => $countTotal, 'offset' => $n]);
+	}
+
+	/**
+	 * @param array $params Input params.
+	 * @param int $n Offset.
+	 * @param \CRestServer $server Rest server instance.
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public static function addWorkflowTemplate($params, $n, $server)
+	{
+		if(!$server->getClientId())
+		{
+			throw new AccessException("Application context required");
+		}
+
+		self::checkAdminPermissions();
+		$params = array_change_key_case($params, CASE_UPPER);
+
+		self::validateTemplateDocumentType($params['DOCUMENT_TYPE']);
+		self::validateTemplateName($params['NAME']);
+
+		$autoExecute = \CBPDocumentEventType::None;
+		if (isset($params['AUTO_EXECUTE']))
+		{
+			self::validateTemplateAutoExecution($params['AUTO_EXECUTE']);
+			$autoExecute = (int) $params['AUTO_EXECUTE'];
+		}
+
+		$data = self::prepareTemplateData($params['TEMPLATE_DATA']);
+
+		return \CBPWorkflowTemplateLoader::ImportTemplate(
+			0,
+			$params['DOCUMENT_TYPE'],
+			$autoExecute,
+			$params['NAME'],
+			isset($params['DESCRIPTION']) ? (string) $params['DESCRIPTION'] : '',
+			$data,
+			self::generateTemplateSystemCode($server)
+		);
+	}
+
+	/**
+	 * @param array $params Input params.
+	 * @param int $n Offset.
+	 * @param \CRestServer $server Rest server instance.
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public static function updateWorkflowTemplate($params, $n, $server)
+	{
+		if(!$server->getClientId())
+		{
+			throw new AccessException("Application context required");
+		}
+
+		self::checkAdminPermissions();
+		$params = array_change_key_case($params, CASE_UPPER);
+
+		$fields = (isset($params['FIELDS']) && is_array($params['FIELDS'])) ? $params['FIELDS'] : null;
+
+		if (!$fields)
+		{
+			throw new RestException("No fields to update.");
+		}
+
+		$tpl = WorkflowTemplateTable::getList(array(
+			'select' => ['ID', 'SYSTEM_CODE', 'NAME', 'DESCRIPTION', 'AUTO_EXECUTE', 'MODULE_ID', 'ENTITY', 'DOCUMENT_TYPE'],
+			'filter' => ['=ID' => (int) $params['ID']],
+		))->fetch();
+
+		if (!$tpl)
+		{
+			throw new RestException("Workflow template not found.");
+		}
+
+		if ($tpl['SYSTEM_CODE'] !== self::generateTemplateSystemCode($server))
+		{
+			throw new RestException("You can update ONLY templates created by current application");
+		}
+
+		if (isset($fields['NAME']))
+		{
+			self::validateTemplateName($fields['NAME']);
+			$tpl['NAME'] = $fields['NAME'];
+		}
+
+		if (isset($fields['DESCRIPTION']))
+		{
+			$tpl['DESCRIPTION'] = (string) $fields['DESCRIPTION'];
+		}
+
+		if (isset($fields['AUTO_EXECUTE']))
+		{
+			self::validateTemplateAutoExecution($fields['AUTO_EXECUTE']);
+			$tpl['AUTO_EXECUTE'] = (int) $fields['AUTO_EXECUTE'];
+		}
+
+		if (isset($fields['TEMPLATE_DATA']))
+		{
+			$data = self::prepareTemplateData($fields['TEMPLATE_DATA']);
+
+			return \CBPWorkflowTemplateLoader::ImportTemplate(
+				$tpl['ID'],
+				[$tpl['MODULE_ID'], $tpl['ENTITY'], $tpl['DOCUMENT_TYPE']],
+				$tpl['AUTO_EXECUTE'],
+				$tpl['NAME'],
+				$tpl['DESCRIPTION'],
+				$data,
+				$tpl['SYSTEM_CODE']
+			);
+		}
+		else
+		{
+			return \CBPWorkflowTemplateLoader::Update($tpl['ID'], [
+				'NAME' => $tpl['NAME'],
+				'DESCRIPTION' => $tpl['DESCRIPTION'],
+				'AUTO_EXECUTE' => $tpl['AUTO_EXECUTE'],
+			]);
+		}
+	}
+
+	/**
+	 * @param array $params Input params.
+	 * @param int $n Offset.
+	 * @param \CRestServer $server Rest server instance.
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public static function deleteWorkflowTemplate($params, $n, $server)
+	{
+		if(!$server->getClientId())
+		{
+			throw new AccessException("Application context required");
+		}
+
+		self::checkAdminPermissions();
+		$params = array_change_key_case($params, CASE_UPPER);
+
+		$tpl = WorkflowTemplateTable::getList(array(
+			'select' => ['ID', 'SYSTEM_CODE'],
+			'filter' => ['=ID' => (int) $params['ID']],
+		))->fetch();
+
+		if (!$tpl)
+		{
+			throw new RestException("Workflow template not found.");
+		}
+
+		if ($tpl['SYSTEM_CODE'] !== self::generateTemplateSystemCode($server))
+		{
+			throw new RestException("You can delete ONLY templates created by current application");
+		}
+
+		\CBPWorkflowTemplateLoader::Delete($tpl['ID']);
 	}
 
 	/**
@@ -660,7 +1069,7 @@ class RestService extends \IRestService
 
 			if (isset($row['PARAMETERS']))
 			{
-				$row['PARAMETERS'] = static::filterTaskParameters($row['PARAMETERS']);
+				$row['PARAMETERS'] = static::prepareTaskParameters($row['PARAMETERS'], $row);
 			}
 
 			$result[] = $row;
@@ -669,18 +1078,19 @@ class RestService extends \IRestService
 		return static::setNavData($result, $iterator);
 	}
 
-	private static function filterTaskParameters(array $parameters)
+	private static function prepareTaskParameters(array $parameters, array $task)
 	{
-		$whiteList = array(
-			array('CommentLabelMessage', 'CommentLabel'),
+		$whiteList = [
+			['CommentLabelMessage', 'CommentLabel'],
 			'CommentRequired', 'ShowComment',
-			array('TaskButtonMessage', 'StatusOkLabel'),
-			array('TaskButton1Message', 'StatusYesLabel'),
-			array('TaskButton2Message', 'StatusNoLabel'),
-			array('TaskButtonCancelMessage', 'StatusCancelLabel'),
-		);
+			['TaskButtonMessage', 'StatusOkLabel'],
+			['TaskButton1Message', 'StatusYesLabel'],
+			['TaskButton2Message', 'StatusNoLabel'],
+			['TaskButtonCancelMessage', 'StatusCancelLabel'],
+			['REQUEST', 'Fields'],
+		];
 
-		$filtered = array();
+		$filtered = [];
 
 		foreach ($whiteList as $whiteKey)
 		{
@@ -696,7 +1106,58 @@ class RestService extends \IRestService
 			}
 		}
 
+		if (isset($filtered['Fields']))
+		{
+			$filtered['Fields'] = self::externalizeRequestFields($task, $filtered['Fields']);
+		}
+
 		return $filtered;
+	}
+
+	private static function externalizeRequestFields($task, array $fields): array
+	{
+		$documentService = \CBPRuntime::GetRuntime(true)->getDocumentService();
+		$result = [];
+		foreach ($fields as $requestField)
+		{
+			$id = $requestField['Name'];
+			$requestField['Name'] = $requestField['Title'];
+			$property = FieldType::normalizeProperty($requestField);
+			$property['Id'] = $id;
+
+			$fieldTypeObject = $documentService->getFieldTypeObject($task["PARAMETERS"]["DOCUMENT_TYPE"], $property);
+			if ($fieldTypeObject)
+			{
+				$fieldTypeObject->setDocumentId($task["PARAMETERS"]["DOCUMENT_ID"]);
+				$property['Default'] = $fieldTypeObject->externalizeValue('rest', $property['Default']);
+			}
+
+			$result[] = $property;
+		}
+		return $result;
+	}
+
+	private static function internalizeRequestFields($task, array $values): array
+	{
+		$documentService = \CBPRuntime::GetRuntime(true)->getDocumentService();
+		$result = [];
+
+		foreach ($task['PARAMETERS']['REQUEST'] as $property)
+		{
+			if (!isset($values[$property['Name']]))
+			{
+				continue;
+			}
+
+			$property = FieldType::normalizeProperty($property);
+			$fieldTypeObject = $documentService->getFieldTypeObject($task["PARAMETERS"]["DOCUMENT_TYPE"], $property);
+			if ($fieldTypeObject)
+			{
+				$fieldTypeObject->setDocumentId($task["PARAMETERS"]["DOCUMENT_ID"]);
+				$result[$property['Name']] = $fieldTypeObject->internalizeValue('rest', $values[$property['Name']]);
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -714,15 +1175,21 @@ class RestService extends \IRestService
 		$userId = self::getCurrentUserId();
 		$task = static::getTask($params['TASK_ID'], $userId);
 
-		if ($task['ACTIVITY'] !== 'ReviewActivity' && $task['ACTIVITY'] !== 'ApproveActivity')
+		if (!in_array($task['ACTIVITY'], self::ALLOWED_TASK_ACTIVITIES))
 		{
 			throw new RestException('Incorrect task type', self::ERROR_TASK_TYPE);
+		}
+
+		if (!empty($params['FIELDS']))
+		{
+			$params['FIELDS'] = self::internalizeRequestFields($task, $params['FIELDS']);
 		}
 
 		$errors = array();
 		$request = array(
 			'INLINE_USER_STATUS' => \CBPTaskUserStatus::resolveStatus($params['STATUS']),
-			'task_comment' => !empty($params['COMMENT']) && is_string($params['COMMENT']) ? $params['COMMENT'] : null
+			'task_comment' => !empty($params['COMMENT']) && is_string($params['COMMENT']) ? $params['COMMENT'] : null,
+			'fields' => $params['FIELDS'] ?? null,
 		);
 
 		if (!\CBPDocument::postTaskForm($task, $userId, $request, $errors))
@@ -908,7 +1375,7 @@ class RestService extends \IRestService
 		{
 			foreach ($rules as $field)
 			{
-				$field = strtoupper($field);
+				$field = mb_strtoupper($field);
 				if (isset($fields[$field]) && !in_array($field, $select))
 					$select[$field] = $fields[$field];
 			}
@@ -924,8 +1391,8 @@ class RestService extends \IRestService
 		{
 			foreach ($rules as $field => $ordering)
 			{
-				$field = strtoupper($field);
-				$ordering = strtoupper($ordering);
+				$field = mb_strtoupper($field);
+				$ordering = mb_strtoupper($ordering);
 				if (isset($fields[$field]))
 					$order[$fields[$field]] = $ordering == 'DESC' ? 'DESC' : 'ASC';
 			}
@@ -1016,10 +1483,30 @@ class RestService extends \IRestService
 		));
 		while($lang = $iterator->fetch())
 		{
-			$result[strtoupper($lang['LANGUAGE_ID'])] = $lang['MENU_NAME'];
+			$result[mb_strtoupper($lang['LANGUAGE_ID'])] = $lang['MENU_NAME'];
 		}
 
 		return $result;
+	}
+
+	private static function getAppId($clientId)
+	{
+		if (!Loader::includeModule('rest'))
+		{
+			return null;
+		}
+
+		$iterator = AppTable::getList(
+			array(
+				'filter' => array(
+					'=CLIENT_ID' => $clientId
+				),
+				'select' => array('ID'),
+			)
+		);
+		$app = $iterator->fetch();
+
+		return (int) $app['ID'];
 	}
 
 	private static function prepareActivityData(array $data, $ignore = false)
@@ -1083,12 +1570,10 @@ class RestService extends \IRestService
 			throw new RestException('Empty activity NAME!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
 
 		if (isset($data['PROPERTIES']))
-			static::validateActivityProperties($data['PROPERTIES'], true);
+			static::validateActivityProperties($data['PROPERTIES']);
 
 		if (isset($data['RETURN_PROPERTIES']))
-			throw new RestException('Return properties is not supported in Robots!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
-		if (isset($data['USE_SUBSCRIPTION']) && $data['USE_SUBSCRIPTION'] !== 'N')
-			throw new RestException('USE_SUBSCRIPTION is not supported in Robots!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
+			static::validateActivityProperties($data['RETURN_PROPERTIES']);
 		if (isset($data['FILTER']) && !is_array($data['FILTER']))
 			throw new RestException('Wrong activity FILTER!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
 	}
@@ -1103,74 +1588,13 @@ class RestService extends \IRestService
 
 	private static function validateActivityHandler($handler, $server)
 	{
-		$handlerData = parse_url($handler);
-
-		if (is_array($handlerData)
-			&& strlen($handlerData['host']) > 0
-			&& strpos($handlerData['host'], '.') > 0
-		)
-		{
-			if ($handlerData['scheme'] == 'http' || $handlerData['scheme'] == 'https')
-			{
-				$host = $handlerData['host'];
-				$app = self::getApp($server);
-				if (strlen($app['URL']) > 0)
-				{
-					$urls = array($app['URL']);
-
-					if (strlen($app['URL_DEMO']) > 0)
-					{
-						$urls[] = $app['URL_DEMO'];
-					}
-					if (strlen($app['URL_INSTALL']) > 0)
-					{
-						$urls[] = $app['URL_INSTALL'];
-					}
-
-					$found = false;
-					foreach($urls as $url)
-					{
-						$a = parse_url($url);
-						if ($host == $a['host'] || $a['host'] == 'localhost')
-						{
-							$found = true;
-							break;
-						}
-					}
-
-					if(!$found)
-					{
-						throw new RestException('Handler URL host doesn\'t match application url', self::ERROR_HANDLER_URL_MATCH);
-					}
-				}
-			}
-			else
-			{
-				throw new RestException('Unsupported event handler protocol', self::ERROR_UNSUPPORTED_PROTOCOL);
-			}
-		}
-		else
-		{
-			throw new RestException('Wrong handler URL', self::ERROR_WRONG_HANDLER_URL);
-		}
+		HandlerHelper::checkCallback($handler);
 	}
 
-	private static function validateActivityProperties($properties, $isRobot = false)
+	private static function validateActivityProperties($properties)
 	{
 		if (!is_array($properties))
 			throw new RestException('Wrong properties array!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
-
-		$map = 	array(
-			FieldType::BOOL => true,
-			FieldType::DATE => true,
-			FieldType::DATETIME => true,
-			FieldType::DOUBLE => true,
-			FieldType::INT => true,
-			FieldType::SELECT => true,
-			FieldType::STRING => true,
-			FieldType::TEXT => true,
-			FieldType::USER => true,
-		);
 
 		foreach ($properties as $key => $property)
 		{
@@ -1178,13 +1602,6 @@ class RestService extends \IRestService
 				throw new RestException('Wrong property key ('.$key.')!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
 			if (empty($property['NAME']))
 				throw new RestException('Empty property NAME ('.$key.')!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
-
-			if ($isRobot)
-			{
-				$type = isset($property['TYPE']) ? $property['TYPE'] : FieldType::STRING;
-				if (!array_key_exists($type, $map))
-					throw new RestException('Unsupported property type ('.$type.')!', self::ERROR_ACTIVITY_VALIDATION_FAILURE);
-			}
 		}
 	}
 
@@ -1227,6 +1644,135 @@ class RestService extends \IRestService
 		}
 
 		return $documentId;
+	}
+
+	private static function validateTemplateName($name)
+	{
+		if (empty($name))
+		{
+			throw new RestException('Empty activity code!', self::ERROR_TEMPLATE_VALIDATION_FAILURE);
+		}
+	}
+
+	private static function upsertAppPlacement(int $appId, string $code,  string $handler)
+	{
+		$filter = [
+			'=APP_ID' => $appId,
+			'=ADDITIONAL' => $code,
+			'=PLACEMENT' => static::PLACEMENT_ACTIVITY_PROPERTIES_DIALOG,
+		];
+
+		$dbRes = PlacementTable::getList(array(
+			'filter' => $filter
+		));
+
+		$placementHandler = $dbRes->fetch();
+
+		if ($placementHandler)
+		{
+			$result = PlacementTable::update($placementHandler['ID'], ['PLACEMENT_HANDLER' => $handler]);
+		}
+		else
+		{
+			$placementBind = array(
+				'APP_ID' => $appId,
+				'ADDITIONAL' => $code,
+				'PLACEMENT' => static::PLACEMENT_ACTIVITY_PROPERTIES_DIALOG,
+				'PLACEMENT_HANDLER' => $handler,
+			);
+
+			$result = PlacementTable::add($placementBind);
+		}
+
+		if(!$result->isSuccess())
+		{
+			$errorMessage = $result->getErrorMessages();
+			throw new RestException(
+				'Unable to set placement handler: '.implode(', ', $errorMessage),
+				RestException::ERROR_CORE
+			);
+		}
+	}
+
+	private static function deleteAppPlacement(int $appId, string $code = null)
+	{
+		$filter = [
+			'=APP_ID' => $appId,
+			'=PLACEMENT' => static::PLACEMENT_ACTIVITY_PROPERTIES_DIALOG,
+		];
+
+		if ($code)
+		{
+			$filter['=ADDITIONAL'] = $code;
+		}
+
+		$dbRes = PlacementTable::getList(array(
+			'filter' => $filter
+		));
+
+		while($placementHandler = $dbRes->fetch())
+		{
+			PlacementTable::delete($placementHandler["ID"]);
+		}
+	}
+
+	private static function prepareTemplateData($data)
+	{
+		if (!empty($data))
+		{
+			$fileFields = \CRestUtil::saveFile($data);
+
+			if ($fileFields)
+			{
+				return file_get_contents($fileFields['tmp_name']);
+			}
+		}
+		throw new RestException('Incorrect field TEMPLATE_DATA!', self::ERROR_TEMPLATE_VALIDATION_FAILURE);
+	}
+
+	private static function validateTemplateDocumentType($documentType)
+	{
+		try
+		{
+			$documentService = \CBPRuntime::getRuntime(true)->getDocumentService();
+			$documentService->getDocumentFieldTypes($documentType);
+		}
+		catch (\CBPArgumentNullException $e)
+		{
+			throw new RestException('Incorrect field DOCUMENT_TYPE!', self::ERROR_TEMPLATE_VALIDATION_FAILURE);
+		}
+	}
+
+	private static function validateTemplateAutoExecution($flag)
+	{
+		if ($flag === (string) (int) $flag)
+		{
+			$flag = (int) $flag;
+
+			if (in_array(
+					$flag,
+					[
+						\CBPDocumentEventType::None,
+						\CBPDocumentEventType::Create,
+						\CBPDocumentEventType::Edit,
+						\CBPDocumentEventType::Create | \CBPDocumentEventType::Edit
+					],
+					true
+				)
+			)
+			{
+				return true;
+			}
+		}
+
+		throw new RestException('Incorrect field AUTO_EXECUTE!', self::ERROR_TEMPLATE_VALIDATION_FAILURE);
+	}
+
+	private static function generateTemplateSystemCode(\CRestServer $server)
+	{
+		$appId = self::getAppId($server->getClientId());
+
+		return 'rest_app_'.$appId;
 	}
 
 	private static function extractEventToken($token)

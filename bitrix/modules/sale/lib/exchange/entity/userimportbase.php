@@ -110,7 +110,7 @@ abstract class UserImportBase extends ImportBase
 				$r = \CSaleExport::GetList(array(), array("PERSON_TYPE_ID" => $personTypes));
 				while($ar = $r->Fetch())
 				{
-					$config[$ar["PERSON_TYPE_ID"]] = unserialize($ar["VARS"]);
+					$config[$ar["PERSON_TYPE_ID"]] = unserialize($ar["VARS"], ['allowed_classes' => false]);
 				}
 			}
 		}
@@ -127,8 +127,10 @@ abstract class UserImportBase extends ImportBase
 
 		if($personType === null)
 		{
-			$r = \CSalePersonType::GetList(array(), array("ACTIVE" => "Y", "LIDS" => $siteId));
-			while($ar = $r->Fetch())
+			$registry = \Bitrix\Sale\Registry::getInstance(\Bitrix\Sale\Registry::REGISTRY_TYPE_ORDER);
+			$class = $registry->getPersonTypeClassName();
+			$r = $class::getlist(['filter' => ["=ACTIVE" => "Y", "=PERSON_TYPE_SITE.SITE_ID" => $siteId]]);
+			while($ar = $r->fetch())
 			{
 				$personType[] = $ar["ID"];
 			}
@@ -209,22 +211,22 @@ abstract class UserImportBase extends ImportBase
 			"EMAIL" => $fields["CONTACT"]["MAIL_NEW"],
 		);
 
-		if (strlen($userFields["NAME"]) <= 0)
+		if ($userFields["NAME"] == '')
 			$userFields["NAME"] = $fields["CONTACT"]["CONTACT_PERSON"];
 
 		$userFields["NAME"] = ($this->isFiz() ? $userFields["NAME"]:array("NAME"=>$userFields["NAME"]));
 
 		$emServer = $_SERVER["SERVER_NAME"];
-		if(strpos($_SERVER["SERVER_NAME"], ".") === false)
+		if(mb_strpos($_SERVER["SERVER_NAME"], ".") === false)
 			$emServer .= ".bx";
 
-		if (strlen($userFields["EMAIL"]) <= 0)
+		if ($userFields["EMAIL"] == '')
 			$userFields["EMAIL"] = "buyer" . time() . GetRandomCode(2) . "@" . $emServer;
 
 		$id = \CSaleUser::DoAutoRegisterUser($userFields["EMAIL"], $userFields["NAME"], $this->settings->getSiteId(), $arErrors, array("XML_ID"=>$fields["XML_ID"], "EXTERNAL_AUTH_ID"=>self::EXTERNAL_AUTH_ID));
 
 		$obUser = new \CUser;
-		if(strlen($fields["CONTACT"]["PHONE"])>0)
+		if($fields["CONTACT"]["PHONE"] <> '')
 			$obUser->Update($id, array('WORK_PHONE'=>$fields["CONTACT"]["PHONE"]), true);
 
 		return $id;

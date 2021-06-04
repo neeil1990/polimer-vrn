@@ -2,6 +2,7 @@
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Application;
+use Bitrix\Main\Loader;
 use Bitrix\Sale\Cashbox;
 use Bitrix\Sale\Payment;
 use Bitrix\Sale\Order;
@@ -13,9 +14,15 @@ define("NOT_CHECK_PERMISSIONS", true);
 
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
 
+\Bitrix\Main\Loader::includeModule('sale');
+
 $instance = Application::getInstance();
 $context = $instance->getContext();
 $request = $context->getRequest();
+$registry = \Bitrix\Sale\Registry::getInstance(\Bitrix\Sale\Registry::REGISTRY_TYPE_ORDER);
+
+/** @var Order $orderClass */
+$orderClass = $registry->getOrderClassName();
 
 $lang = ($request->get('lang') !== null) ? trim($request->get('lang')) : "ru";
 \Bitrix\Main\Context::getCurrent()->setLanguage($lang);
@@ -23,9 +30,6 @@ $lang = ($request->get('lang') !== null) ? trim($request->get('lang')) : "ru";
 Loc::loadMessages(__FILE__);
 
 $arResult = array("ERROR" => "");
-
-if (!\Bitrix\Main\Loader::includeModule('sale'))
-	$arResult["ERROR"] = "Error! Can't include module \"Sale\"";
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/lib/internals/input.php");
 
@@ -56,7 +60,7 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 			foreach ($paramsStructure as $name => $param)
 			{
 				$paramsField .= "<tr>".
-					"<td>".(strlen($param["LABEL"]) > 0 ? $param["LABEL"].": " : "")."</td>".
+					"<td>".($param["LABEL"] <> '' ? $param["LABEL"].": " : "")."</td>".
 					"<td>".\Bitrix\Sale\Internals\Input\Manager::getEditHtml("RESTRICTION[".$name."]", $param, (isset($params[$name]) ? $params[$name] : null))."</td>".
 					"</tr>";
 			}
@@ -142,12 +146,46 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 			break;
 		case "generate_link":
 			$arResult["LINK"] = Cashbox\Manager::getConnectionLink();
-			break;		
-		case "reload_settings":
-			$cashbox = array('HANDLER' => $request->get('handler'), 'KKM_ID' => $request->get('kkmId'));
-			$handler = $cashbox['HANDLER'];
-			if (class_exists($handler))
+			break;
+		case "test_connect":
+			$cashboxId = $request->get('cashboxId') ? (int)$request->get('cashboxId') : 0;
+
+			$cashbox = Cashbox\Manager::getObjectById($cashboxId);
+			if ($cashbox && $cashbox instanceof Cashbox\ITestConnection)
 			{
+				$result = $cashbox->testConnection();
+				if ($result->isSuccess())
+				{
+					$arResult['STATUS'] = 'OK';
+				}
+				else
+				{
+					$arResult['STATUS'] = implode($result->getErrorMessages(), "\n");
+				}
+			}
+
+			break;
+		case "reload_settings":
+			$cashbox = [
+				'HANDLER' => $request->get('handler'),
+				'KKM_ID' => $request->get('kkmId'),
+				'SETTINGS' => [
+					"REST" => [
+						'REST_CODE' => $request->get('restCode')
+					]
+				]
+			];
+			/** @var Cashbox\Cashbox $handler */
+			$handler = $cashbox['HANDLER'];
+			if (is_subclass_of($handler, Cashbox\Cashbox::class))
+			{
+				if ($handler === '\\'.Cashbox\CashboxOrangeData::class)
+				{
+					$arResult['OFD'] = '\\'.Cashbox\TaxcomOfd::class;
+				}
+
+				$arResult['HANDLER_CODE'] = $handler::getCode();
+
 				ob_start();
 				require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/sale/admin/cashbox_settings.php");
 				$arResult["HTML"] = ob_get_contents();
@@ -155,7 +193,7 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 
 				$arResult['GENERAL_REQUIRED_FIELDS'] = $handler::getGeneralRequiredFields();
 
-				$kkmList = $cashbox['HANDLER']::getSupportedKkmModels();
+				$kkmList = $handler::getSupportedKkmModels();
 				if ($kkmList)
 				{
 					$requiredClass = '';
@@ -198,7 +236,7 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 			{
 				$saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 
-				$order = Order::load($orderId);
+				$order = $orderClass::load($orderId);
 				if ($order === null)
 				{
 					$arResult["ERROR"] = "Error! Access denied";
@@ -258,7 +296,7 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 			{
 				$saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 
-				$order = Order::load($orderId);
+				$order = $orderClass::load($orderId);
 				if ($order === null)
 				{
 					$arResult["ERROR"] = "Order not found";
@@ -277,17 +315,23 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 					}
 				}
 
-				$typeList = Cashbox\CheckManager::getCheckTypeMap();
-				/** @var Cashbox\Check $typeClass */
-				foreach ($typeList as $id => $typeClass)
+				$checkList = Cashbox\CheckManager::getSalesCheckList();
+
+				/** @var Cashbox\Check $check */
+				foreach ($checkList as $check)
 				{
 					if (
-						$typeClass::getSupportedEntityType() === $entityType ||
-						$typeClass::getSupportedEntityType() === Cashbox\Check::SUPPORTED_ENTITY_TYPE_ALL
+						class_exists($check) &&
+						(
+							$check::getSupportedEntityType() === $entityType ||
+							$check::getSupportedEntityType() === Cashbox\Check::SUPPORTED_ENTITY_TYPE_ALL
+						)
 					)
 					{
-						if (class_exists($typeClass))
-							$arResult['CHECK_TYPES'][] = array("ID" => $id, "NAME" => $typeClass::getName());
+						$arResult['CHECK_TYPES'][] = [
+							"ID" => $check::getType(),
+							"NAME" => $check::getName()
+						];
 					}
 				}
 
@@ -334,7 +378,7 @@ if($arResult["ERROR"] === '' && $saleModulePermissions >= "W" && check_bitrix_se
 			$entityCode = $formData['data']['ENTITY_CODE'];
 			list($entityType, $entityId) = explode('_', $entityCode);
 
-			$order = Order::load($orderId);
+			$order = $orderClass::load($orderId);
 
 			$userId = $USER->GetID();
 			$userCompanyList = \Bitrix\Sale\Services\Company\Manager::getUserCompanyList($userId);
@@ -405,16 +449,16 @@ else
 {
 	if ($request->get('mode') == 'settings')
 		getRestrictionHtml($request->get('ID'));
-	elseif(strlen($arResult["ERROR"]) <= 0)
+	elseif($arResult["ERROR"] == '')
 		$arResult["ERROR"] = "Error! Access denied";
 }
 
-if(strlen($arResult["ERROR"]) > 0)
+if($arResult["ERROR"] <> '')
 	$arResult["RESULT"] = "ERROR";
 else
 	$arResult["RESULT"] = "OK";
 
-if(strtolower(SITE_CHARSET) != 'utf-8')
+if(mb_strtolower(SITE_CHARSET) != 'utf-8')
 	$arResult = $APPLICATION->ConvertCharsetArray($arResult, SITE_CHARSET, 'utf-8');
 
 header('Content-Type: application/json');

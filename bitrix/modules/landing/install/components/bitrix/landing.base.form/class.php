@@ -59,7 +59,7 @@ class LandingBaseFormComponent extends LandingBaseComponent
 	 * @param bool $strict Strict check of var.
 	 * @return mixed
 	 */
-	protected function request($var, $strict = false)
+	public function request($var, $strict = false)
 	{
 		if ($this->postFields === null)
 		{
@@ -137,7 +137,11 @@ class LandingBaseFormComponent extends LandingBaseComponent
 	 */
 	protected function getAdditionalFieldsRaw()
 	{
-		return array('HEADBLOCK_CODE', 'HEADBLOCK_CSS_CODE');
+		return [
+			'HEADBLOCK_CODE', 'HEADBLOCK_CSS_CODE',
+			'METAGOOGLEVERIFICATION_META',
+			'METAYANDEXVERIFICATION_META'
+		];
 	}
 
 	/**
@@ -150,17 +154,20 @@ class LandingBaseFormComponent extends LandingBaseComponent
 		$additionalFields = $this->request('ADDITIONAL_FIELDS');
 
 		// bugfix for security waf
-		$context = \Bitrix\Main\Application::getInstance()->getContext();
-		$request = $context->getRequest();
-		$postList = $request->getPostList()->getRaw($this->postCode);
-		if (isset($postList['ADDITIONAL_FIELDS']))
+		if (is_array($additionalFields))
 		{
-			$postList = $postList['ADDITIONAL_FIELDS'];
-			foreach ($this->getAdditionalFieldsRaw() as $code)
+			$context = \Bitrix\Main\Application::getInstance()->getContext();
+			$request = $context->getRequest();
+			$postList = $request->getPostList()->getRaw($this->postCode);
+			if (isset($postList['ADDITIONAL_FIELDS']))
 			{
-				if (isset($postList[$code]))
+				$postList = $postList['ADDITIONAL_FIELDS'];
+				foreach ($this->getAdditionalFieldsRaw() as $code)
 				{
-					$additionalFields[$code] = $postList[$code];
+					if (isset($postList[$code]))
+					{
+						$additionalFields[$code] = $postList[$code];
+					}
 				}
 			}
 		}
@@ -171,7 +178,7 @@ class LandingBaseFormComponent extends LandingBaseComponent
 		{
 			foreach ($additionalFields as $key => $value)
 			{
-				$group = substr($key, 0, strpos($key, '_'));
+				$group = mb_substr($key, 0, mb_strpos($key, '_'));
 				if (
 					!in_array($group, $diffGroups) &&
 					isset($additionalFieldsParent[$key]) &&
@@ -188,7 +195,7 @@ class LandingBaseFormComponent extends LandingBaseComponent
 		{
 			foreach ($additionalFieldsParent as $key => $value)
 			{
-				$group = substr($key, 0, strpos($key, '_'));
+				$group = mb_substr($key, 0, mb_strpos($key, '_'));
 				if (
 					!in_array($group, $diffGroups) &&
 					isset($additionalFields[$key]) &&

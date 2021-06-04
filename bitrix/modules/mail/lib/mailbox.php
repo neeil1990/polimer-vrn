@@ -174,13 +174,22 @@ class MailboxTable extends Entity\DataManager
 				'data_type' => 'string',
 			),
 			'PASSWORD' => array(
-				'data_type' => 'string',
+				'data_type' => (static::cryptoEnabled('PASSWORD') ? 'crypto' : 'string'),
+				'save_data_modification' => function()
+				{
+					return array(
+						function ($value)
+						{
+							return static::cryptoEnabled('PASSWORD') ? $value : \CMailUtil::crypt($value);
+						}
+					);
+				},
 				'fetch_data_modification' => function()
 				{
 					return array(
 						function ($value)
 						{
-							return \CMailUtil::decrypt($value);
+							return static::cryptoEnabled('PASSWORD') ? $value : \CMailUtil::decrypt($value);
 						}
 					);
 				}
@@ -240,10 +249,6 @@ class MailboxTable extends Entity\DataManager
 					return array(
 						function ($options)
 						{
-							if (!empty($options['imap']['dirsMd5']) && is_array($options['imap']['dirsMd5']))
-							{
-								unset($options['imap']['dirsMd5']);
-							}
 							return serialize($options);
 						}
 					);
@@ -253,16 +258,7 @@ class MailboxTable extends Entity\DataManager
 					return array(
 						function ($values)
 						{
-							$values = unserialize($values);
-							if (!empty($values['imap']['dirs']) && is_array($values['imap']['dirs']))
-							{
-								foreach ($values['imap']['dirs'] as $name => $dir)
-								{
-									$values['imap']['dirsMd5'][$name] = md5($name);
-								}
-							}
-
-							return $values;
+							return unserialize($values);
 						}
 					);
 				}

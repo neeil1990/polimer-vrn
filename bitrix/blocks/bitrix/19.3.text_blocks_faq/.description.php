@@ -9,7 +9,7 @@ use \Bitrix\Main\Localization\Loc;
 return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_19.3.TEXT_BLOCKS_FAQ_NAME'),
-		'section' => array('tiles'),
+		'section' => array('tiles', 'news'),
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
@@ -70,7 +70,7 @@ return array(
 		),
 		'.landing-block-node-card-link' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_19.3.TEXT_BLOCKS_FAQ_NODES_LANDINGBLOCKNODECARD_LINK'),
-			'type' => 'typo',
+			'type' => 'typo-link',
 		),
 	),
 );

@@ -56,6 +56,10 @@ return array(
 			'name' => Loc::getMessage('LANDING_BLOCK_4_FEATURES_4_COLS_WITH_TITLE_NODES_LANDING_CARD_ELEMENT'),
 			'type' => array('columns', 'box', 'animation'),
 		),
+		'.landing-block-node-row' => array(
+			'name' => Loc::getMessage('LANDING_BLOCK_5_FEATURES_4_COLS-ROW'),
+			'type' => array('row-align'),
+		),
 		'.landing-block-node-element-title' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_4_FEATURES_4_COLS_WITH_TITLE_NODES_LANDINGBLOCKNODEELEMENTTITLE'),
 			'type' => 'typo',

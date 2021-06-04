@@ -78,7 +78,7 @@ if(!defined("B_PROLOG_INCLUDED")||B_PROLOG_INCLUDED!==true)die();
 										array('SORT' => 'ASC'),
 										array(
 											'ACTIVE' => 'Y',
-											'ID' => array(8,10,12,9,4,7)
+											'ID' => array(8,10,12,9,4,7,19)
 										),
 										false,
 										false,

@@ -53,7 +53,12 @@ if (CModule::IncludeModule("sale"))
 {
 	if ($arOrder = CSaleOrder::GetByID($ORDER_ID))
 	{
-		$order = \Bitrix\Sale\Order::load($ORDER_ID);
+		$registry = \Bitrix\Sale\Registry::getInstance(\Bitrix\Sale\Registry::REGISTRY_TYPE_ORDER);
+
+		/** @var \Bitrix\Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
+		$order = $orderClass::load($ORDER_ID);
 		$allowedStatusesView = \Bitrix\Sale\OrderStatus::getStatusesUserCanDoOperations($USER->GetID(), array('view'));
 
 
@@ -107,7 +112,7 @@ if (CModule::IncludeModule("sale"))
 		}
 
 		$rep_file_name = GetRealPath2Report($doc.".php");
-		if (strlen($rep_file_name)<=0)
+		if ($rep_file_name == '')
 		{
 			ShowError("PRINT TEMPLATE NOT FOUND");
 			die();
@@ -138,12 +143,12 @@ if (CModule::IncludeModule("sale"))
 
 		if(CSaleLocation::isLocationProMigrated())
 		{
-			if(strlen($arOrderProps['LOCATION_VILLAGE']) && !strlen($arOrderProps['LOCATION_CITY']))
+			if(mb_strlen($arOrderProps['LOCATION_VILLAGE']) && !mb_strlen($arOrderProps['LOCATION_CITY']))
 				$arOrderProps['LOCATION_CITY'] = $arOrderProps['LOCATION_VILLAGE'];
 
 			// street added to the beginning of address, as it used to be before
-			if(strlen($arOrderProps['LOCATION_STREET']) && isset($arOrderProps['ADDRESS']))
-				$arOrderProps['ADDRESS'] = $arOrderProps['LOCATION_STREET'].(strlen($arOrderProps['ADDRESS']) ? ', '.$arOrderProps['ADDRESS'] : '');
+			if(mb_strlen($arOrderProps['LOCATION_STREET']) && isset($arOrderProps['ADDRESS']))
+				$arOrderProps['ADDRESS'] = $arOrderProps['LOCATION_STREET'].($arOrderProps['ADDRESS'] <> ''? ', '.$arOrderProps['ADDRESS'] : '');
 		}
 
 		$arBasketIDs = array();
@@ -157,9 +162,9 @@ if (CModule::IncludeModule("sale"))
 			if (count($arBasketIDs_tmp)!=count($arQuantities_tmp)) die("INVALID PARAMS");
 			for ($i = 0, $countBasket = count($arBasketIDs_tmp); $i < $countBasket; $i++)
 			{
-				if (IntVal($arBasketIDs_tmp[$i])>0 && doubleVal($arQuantities_tmp[$i])>0)
+				if (intval($arBasketIDs_tmp[$i])>0 && doubleVal($arQuantities_tmp[$i])>0)
 				{
-					$arBasketIDs[] = IntVal($arBasketIDs_tmp[$i]);
+					$arBasketIDs[] = intval($arBasketIDs_tmp[$i]);
 					$arQuantities[] = doubleVal($arQuantities_tmp[$i]);
 				}
 			}
@@ -189,7 +194,7 @@ if (CModule::IncludeModule("sale"))
 		$arUser = $dbUser->Fetch();
 
 		$report = "";
-		$serCount = IntVal(COption::GetOptionInt("sale", "reports_count"));
+		$serCount = intval(COption::GetOptionInt("sale", "reports_count"));
 		if($serCount > 0)
 		{
 			for($i=1; $i <= $serCount; $i++)
@@ -200,13 +205,13 @@ if (CModule::IncludeModule("sale"))
 		else
 			$report = COption::GetOptionString("sale", "reports");
 
-		$arOptions = unserialize($report);
+		$arOptions = unserialize($report, ['allowed_classes' => false]);
 
 		if(!empty($arOptions))
 		{
 			foreach($arOptions as $key => $val)
 			{
-				if(strlen($val["VALUE"]) > 0)
+				if($val["VALUE"] <> '')
 				{
 					if($val["TYPE"] == "USER")
 						$arParams[$key] = $arUser[$val["VALUE"]];

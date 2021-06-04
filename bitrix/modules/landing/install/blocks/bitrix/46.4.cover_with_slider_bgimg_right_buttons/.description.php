@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_46.4.COVER_WITH_SLIDER_BGIMG_RIGHT_BUTTONS_NAME'),
 		'section' => array('cover'),
+		'dynamic' => false,
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
@@ -60,7 +61,7 @@ return array(
 			),
 			'.landing-block-node-card-bgimg' => array(
 				'name' => Loc::getMessage('LANDING_BLOCK_46.4.COVER_WITH_SLIDER_BGIMG_RIGHT_BUTTONS_NODES_LANDINGBLOCKNODECARDBGIMG'),
-				'type' => array('background-overlay', 'height-vh'),
+				'type' => array('align-items', 'background-overlay', 'height-vh'),
 			),
 		),
 	),

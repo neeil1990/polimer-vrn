@@ -11,6 +11,7 @@ use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketItem;
 use Bitrix\Sale\Discount\Analyzer;
 use Bitrix\Sale\Order;
+use Bitrix\Sale\Registry;
 use CCatalogSKU;
 use CSaleDiscountActionApply;
 use SplObjectStorage;
@@ -298,7 +299,7 @@ final class Manager
 		$checkProductInBasket = $this->checkProductInBasket($product, $pseudoBasket);
 		if($checkProductInBasket)
 		{
-			$this->deleteProductFromBasket($pseudoBasket, $product);
+			$this->deleteProductFromBasket($pseudoBasket, $product, false);
 		}
 		else
 		{
@@ -434,12 +435,19 @@ final class Manager
 			throw new SystemException('Could not get discounts by basket which has order.');
 		}
 
-		$order = Order::create($basket->getSiteId(), $this->userId);
+		$registry = Registry::getInstance(Registry::REGISTRY_TYPE_ORDER);
+		/** @var Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
+		$order = $orderClass::create($basket->getSiteId(), $this->userId);
 		if(!$order->setBasket($basket)->isSuccess())
 		{
 			return null;
 		}
-		$calcResults = $order->getDiscount()->getApplyResult(true);
+		$discount = $order->getDiscount();
+		$discount->calculate();
+		$calcResults = $discount->getApplyResult(true);
+		unset($discount);
 
 		$appliedDiscounts = array();
 		foreach($calcResults['DISCOUNT_LIST'] as $discountData)
@@ -509,10 +517,10 @@ final class Manager
 		}
 	}
 
-	private function deleteProductFromBasket(Basket $basket, array $product)
+	private function deleteProductFromBasket(Basket $basket, array $product, bool $checkQuantity = true)
 	{
 		$item = $this->getItemFromBasket($product, $basket);
-		if($item && $item->getQuantity() == $product['QUANTITY'])
+		if($item && (!$checkQuantity || $item->getQuantity() == $product['QUANTITY']))
 		{
 			$item->delete();
 		}

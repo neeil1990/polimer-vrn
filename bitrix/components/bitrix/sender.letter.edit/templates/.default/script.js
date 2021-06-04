@@ -24,7 +24,6 @@
 		this.actionUri = params.actionUri;
 		this.isFrame = params.isFrame || false;
 		this.prettyDateFormat = params.prettyDateFormat;
-		this.isFrame = params.isFrame || false;
 		this.isSaved = params.isSaved || false;
 		this.isOutside = params.isOutside || false;
 		this.mess = params.mess;
@@ -59,6 +58,8 @@
 				disabled: params.isTemplateShowed,
 				defaultTitle: this.getPatternTitle(this.mess.name)
 			});
+
+			BX.addCustomEvent("SidePanel.Slider:onClose", this.onPopupClose.bind(this));
 		}
 
 		Page.initButtons();
@@ -82,6 +83,60 @@
 			this.context.classList.add('bx-sender-letter-ms-ie');
 		}
 	};
+	Letter.prototype.onPopupClose = function(event) {
+		var slider = event.getSlider();
+		var _this = this;
+
+		if(!this.isSaved)
+		{
+			self.popupWindow = BX.PopupWindowManager.create(
+				'sender-letter-on-slider-close',
+				null,
+				{
+					content: this.mess.applyClose,
+					titleBar: this.mess.applyCloseTitle,
+					width: 400,
+					height: 200,
+					padding: 10,
+					closeByEsc: true,
+					contentColor: 'white',
+					angle: false,
+					buttons: [
+						new BX.PopupWindowButton({
+							text: this.mess.applyYes,
+							className: "popup-window-button-accept",
+							events: {
+								click: function() {
+									BX.removeCustomEvent("SidePanel.Slider::onClose", _this.onPopupClose);
+									event.allowAction();
+									slider.close();
+									setTimeout(function() {
+										slider.destroy();
+									}, 500);
+								}
+							}
+						}),
+						new BX.PopupWindowButton({
+							text: this.mess.applyCancel,
+							className: "popup-window-button-cancel",
+							events: {
+								click: function() {
+									this.popupWindow.close();
+								}
+							}
+						})
+					]
+				}
+			).show();
+
+
+			if(typeof slider.data.close === 'undefined' || slider.data.close === false)
+			{
+				event.denyAction();
+			}
+		}
+	};
+
 	Letter.prototype.isMSBrowser = function ()
 	{
 		return window.navigator.userAgent.match(/(Trident\/|MSIE|Edge\/)/) !== null;
@@ -150,6 +205,20 @@
 		Helper.changeDisplay(this.buttonsNode, !isShow);
 
 		isShow ? Helper.titleEditor.disable() : Helper.titleEditor.enable();
+	};
+	Letter.prototype.applyChanges = function()
+	{
+		var form = this.context.getElementsByTagName('form');
+		if (form && form[0])
+		{
+			form[0].appendChild(BX.create('input', {
+				attrs: {
+					type: "hidden",
+					name: "apply",
+					value: "Y"
+				}
+			}));
+		}
 	};
 
 	BX.Sender.Letter = new Letter();

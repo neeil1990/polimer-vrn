@@ -1,15 +1,52 @@
-<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
-<?
+<?php
+if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
+	die();
+
+use Bitrix\Main\Loader;
+use Bitrix\Tasks\Copy\Integration\Group;
+
 $pageId = "group_tasks";
 include("util_group_menu.php");
 include("util_group_profile.php");
 
 if (CSocNetFeatures::IsActiveFeature(SONET_ENTITY_GROUP, $arResult["VARIABLES"]["group_id"], "tasks"))
 {
+
+	if (Loader::includeModule("tasks"))
+	{
+		$APPLICATION->includeComponent(
+			"bitrix:socialnetwork.copy.checker",
+			"",
+			[
+				"moduleId" => Group::MODULE_ID,
+				"queueId" => $arResult["VARIABLES"]["group_id"],
+				"stepperClassName" => Group::STEPPER_CLASS,
+				"checkerOption" => Group::CHECKER_OPTION,
+				"errorOption" => Group::ERROR_OPTION,
+				"titleMessage" => GetMessage("TASKS_STEPPER_PROGRESS_TITLE"),
+				"errorMessage" => GetMessage("TASKS_STEPPER_PROGRESS_ERROR"),
+			],
+			$component,
+			["HIDE_ICONS" => "Y"]
+		);
+	}
+
+	$sprintId = -1;
+	$kanbanIsTimelineMode = 'N';
+	$isPersonalKanban = 'N';
+	$groupId = $arResult['VARIABLES']['group_id'];
+
 	if(class_exists('Bitrix\Tasks\Ui\Filter\Task'))
 	{
 		\Bitrix\Tasks\Ui\Filter\Task::setGroupId($arResult[ "VARIABLES" ][ "group_id" ]);
 		$state = \Bitrix\Tasks\Ui\Filter\Task::listStateInit()->getState();
+
+		// temporary we show agile parts only by option
+		$scrumBacklog = \Bitrix\Main\Config\Option::get(
+			'tasks',
+			'agile_enabled_group_' . $groupId,
+			'N'
+		);
 
 		switch ($state[ 'VIEW_SELECTED' ][ 'CODENAME' ])
 		{
@@ -17,12 +54,25 @@ if (CSocNetFeatures::IsActiveFeature(SONET_ENTITY_GROUP, $arResult["VARIABLES"][
 				$componentName = 'bitrix:tasks.task.gantt';
 				break;
 			case 'VIEW_MODE_PLAN':
+				$componentName = 'bitrix:tasks.kanban';
+				$isPersonalKanban = 'Y';
+				break;
 			case 'VIEW_MODE_KANBAN':
 				$componentName = 'bitrix:tasks.kanban';
 				break;
-//			case 'VIEW_MODE_TIMELINE':
-//				$componentName = 'bitrix:tasks.timeline';
-//				break;
+			case 'VIEW_MODE_TIMELINE':
+				$componentName = 'bitrix:tasks.kanban';
+				$kanbanIsTimelineMode = 'Y';
+				$isPersonalKanban = 'Y';
+				break;
+			case 'VIEW_MODE_SPRINT':
+				$componentName = 'bitrix:tasks.kanban';
+				$sprintId = 0;
+				break;
+			case 'VIEW_MODE_CALENDAR':
+				$componentName = 'bitrix:tasks.task.calendar';
+				break;
+
 			default:
 				$componentName = 'bitrix:tasks.task.list';
 				break;
@@ -33,14 +83,22 @@ if (CSocNetFeatures::IsActiveFeature(SONET_ENTITY_GROUP, $arResult["VARIABLES"][
 		$componentName = 'bitrix:tasks.list';
 	}
 
+	$group = Bitrix\Socialnetwork\Item\Workgroup::getById($groupId);
+	if ($group->isScrumProject())
+	{
+		$componentName = 'bitrix:tasks.scrum';
+	}
+
 	$APPLICATION->IncludeComponent(
 		$componentName,
 		".default",
 		Array(
 			"INCLUDE_INTERFACE_HEADER" => "Y",
-			"PERSONAL" => $state["VIEW_SELECTED"]["CODENAME"] == "VIEW_MODE_PLAN" ? "Y" : "N",
+			"PERSONAL" => $isPersonalKanban,
+			"TIMELINE_MODE" => $kanbanIsTimelineMode,
 			"KANBAN_SHOW_VIEW_MODE"=>'Y',
-			"GROUP_ID" => $arResult["VARIABLES"]["group_id"],
+			"SPRINT_ID" => $sprintId,
+			"GROUP_ID" => $groupId,
 			"ITEMS_COUNT" => "50",
 			"PAGE_VAR" => $arResult["ALIASES"]["page"],
 			"GROUP_VAR" => $arResult["ALIASES"]["group_id"],
@@ -69,7 +127,8 @@ if (CSocNetFeatures::IsActiveFeature(SONET_ENTITY_GROUP, $arResult["VARIABLES"][
 			"USE_THUMBNAIL_LIST" => "N",
 			"INLINE" => "Y",
 			"HIDE_OWNER_IN_TITLE" => $arParams['HIDE_OWNER_IN_TITLE'],
-			"TASKS_ALWAYS_EXPANDED" => 'Y'
+			"TASKS_ALWAYS_EXPANDED" => 'Y',
+			"SCRUM_BACKLOG" => $scrumBacklog
 		),
 		$component,
 		array("HIDE_ICONS" => "Y")

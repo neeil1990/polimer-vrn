@@ -36,6 +36,10 @@ return array(
 		),
 	),
 	'style' => array(
+		'.landing-block-node-row' => array(
+			'name' => Loc::getMessage('LANDING_BLOCK_6_1_COLS-ROW'),
+			'type' => array('row-align'),
+		),
 		'.landing-block-node-element' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_4_FEATURES_3_COLS_STYLE_LANDINGBLOCKNODEELEMENT'),
 			'type' => array('columns', 'box', 'animation'),

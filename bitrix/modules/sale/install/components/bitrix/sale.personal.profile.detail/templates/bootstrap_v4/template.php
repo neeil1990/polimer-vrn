@@ -21,7 +21,7 @@ if (!empty($arResult['ERRORS']))
 
 	return;
 }
-
+CJSCore::Init(array('date'));
 ?>
 <div class="row mb-3">
 	<div class="col">
@@ -30,7 +30,7 @@ if (!empty($arResult['ERRORS']))
 </div>
 
 <?
-if(strlen($arResult["ID"])>0)
+if($arResult["ID"] <> '')
 {
 	ShowError($arResult["ERROR_MESSAGE"]);
 	?>
@@ -382,7 +382,44 @@ if(strlen($arResult["ID"])>0)
 								</div>
 								<?
 							}
-							if (strlen($property["DESCRIPTION"]) > 0)
+							elseif ($property["TYPE"] === 'DATE')
+							{
+								if ($property["MULTIPLE"] === 'Y')
+								{
+									$name .= '[]';
+								}
+								$currentValue = is_array($currentValue) ? $currentValue : [$currentValue];
+								?>
+								<div class="form-group row mb-2">
+									<label class="col-sm-3 text-right col-form-label <?=$alignTop?>" for="sppd-property-<?=$key?>">
+										<?= $property["NAME"]?>:
+										<? if ($property["REQUIED"] === "Y")
+										{
+											?><span class="req">*</span><?
+										}
+										?>
+									</label>
+									<div class='col-sm-9 sale-personal-profile-detail-form-date'>
+										<?
+										foreach ($currentValue as $dataInputValue)
+										{
+											?>
+											<div class="form-group">
+												<div class='input-group date'>
+													<input class="form-control mb-1" type="text" name="<?=$name?>" maxlength="50" value="<?=$dataInputValue?>"/>
+													<span class="input-group-addon">
+														<i class="bx-calendar"></i>
+													</span>
+												</div>
+											</div>
+											<?
+										}
+										?>
+									</div>
+								</div>
+								<?
+							}
+							if ($property["DESCRIPTION"] <> '')
 							{
 								?>
 								<br /><small><?= $property["DESCRIPTION"] ?></small>

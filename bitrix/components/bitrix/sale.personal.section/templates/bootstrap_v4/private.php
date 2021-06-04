@@ -8,7 +8,7 @@ if ($arParams['SHOW_PRIVATE_PAGE'] !== 'Y' && $arParams['USE_PRIVATE_PAGE_TO_AUT
 	LocalRedirect($arParams['SEF_FOLDER']);
 }
 
-if (strlen($arParams["MAIN_CHAIN_NAME"]) > 0)
+if ($arParams["MAIN_CHAIN_NAME"] <> '')
 {
 	$APPLICATION->AddChainItem(htmlspecialcharsbx($arParams["MAIN_CHAIN_NAME"]), $arResult['SEF_FOLDER']);
 }
@@ -65,7 +65,8 @@ if (!$USER->IsAuthorized() || $arResult['SHOW_LOGIN_FORM'] === 'Y')
 				array(
 					'AUTH_FORGOT_PASSWORD_URL' => $arResult['PATH_TO_PASSWORD_RESTORE'],
 //					'AUTH_REGISTER_URL' => 'register.php',
-					'AUTH_SUCCESS_URL' => $arResult['AUTH_SUCCESS_URL']
+					'AUTH_SUCCESS_URL' => $arResult['AUTH_SUCCESS_URL'],
+					'DISABLE_SOCSERV_AUTH' => $arParams['DISABLE_SOCSERV_AUTH'],
 				),
 				false
 			);
@@ -102,6 +103,7 @@ else
 			"SEND_INFO" => $arParams["SEND_INFO_PRIVATE"],
 			"CHECK_RIGHTS" => $arParams['CHECK_RIGHTS_PRIVATE'],
 			"EDITABLE_EXTERNAL_AUTH_ID" => $arParams['EDITABLE_EXTERNAL_AUTH_ID'],
+			"DISABLE_SOCSERV_AUTH" => $arParams['DISABLE_SOCSERV_AUTH']
 		),
 		$component
 	);

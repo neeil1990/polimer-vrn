@@ -19,8 +19,6 @@ class PaymentCollection extends Internals\EntityCollection
 	/** @var Order */
 	protected $order;
 
-	private static $eventClassName = null;
-
 	/**
 	 * @return Order
 	 */
@@ -227,6 +225,8 @@ class PaymentCollection extends Internals\EntityCollection
 	/**
 	 * @param Order $order
 	 * @return PaymentCollection
+	 * @throws Main\ArgumentException
+	 * @throws Main\ArgumentNullException
 	 */
 	public static function load(Order $order)
 	{
@@ -429,19 +429,12 @@ class PaymentCollection extends Internals\EntityCollection
 				unset($itemsFromDb[$payment->getId()]);
 		}
 
-		if (self::$eventClassName === null)
-		{
-			/** @var Payment $paymentClassName */
-			$paymentClassName = static::getItemCollectionClassName();
-			self::$eventClassName = $paymentClassName::getEntityEventName();
-		}
-
 		foreach ($itemsFromDb as $k => $v)
 		{
 			$v['ENTITY_REGISTRY_TYPE'] = static::getRegistryType();
 
 			/** @var Main\Event $event */
-			$event = new Main\Event('sale', "OnBefore".self::$eventClassName."Deleted", array(
+			$event = new Main\Event('sale', "OnBeforeSalePaymentDeleted", array(
 					'VALUES' => $v,
 			));
 			$event->send();
@@ -449,7 +442,7 @@ class PaymentCollection extends Internals\EntityCollection
 			static::deleteInternal($k);
 
 			/** @var Main\Event $event */
-			$event = new Main\Event('sale', "On".self::$eventClassName."Deleted", array(
+			$event = new Main\Event('sale', "OnSalePaymentDeleted", array(
 					'VALUES' => $v,
 			));
 			$event->send();

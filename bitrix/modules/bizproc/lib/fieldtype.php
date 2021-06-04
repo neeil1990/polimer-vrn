@@ -322,6 +322,24 @@ class FieldType
 	}
 
 	/**
+	 * @param array $baseValue Base value.
+	 * @param mixed $appendValue Value to append.
+	 * @return mixed Merge result.
+	 */
+	public function mergeValue($baseValue, $appendValue): array
+	{
+		$typeClass = $this->typeClass;
+		$baseValue = (array) $baseValue;
+
+		if ($this->isMultiple() && !\CBPHelper::isEmptyValue($appendValue))
+		{
+			return $typeClass::mergeValue($this, $baseValue, $appendValue);
+		}
+
+		return $baseValue;
+	}
+
+	/**
 	 * @param int $renderMode Control render mode.
 	 * @return bool
 	 */
@@ -405,6 +423,44 @@ class FieldType
 	}
 
 	/**
+	 * @param string $context Context identification (Document, Variable etc.)
+	 * @param mixed $value Field value.
+	 * @return mixed
+	 */
+	public function internalizeValue($context, $value)
+	{
+		$typeClass = $this->typeClass;
+
+		if ($this->isMultiple())
+		{
+			return $typeClass::internalizeValueMultiple($this, $context, $value);
+		}
+		else
+		{
+			return $typeClass::internalizeValueSingle($this, $context, $value);
+		}
+	}
+
+	/**
+	 * @param string $context Context identification (Document, Variable etc.)
+	 * @param mixed $value Field value.
+	 * @return mixed
+	 */
+	public function externalizeValue($context, $value)
+	{
+		$typeClass = $this->typeClass;
+
+		if ($this->isMultiple())
+		{
+			return $typeClass::externalizeValueMultiple($this, $context, $value);
+		}
+		else
+		{
+			return $typeClass::externalizeValueSingle($this, $context, $value);
+		}
+	}
+
+	/**
 	 * Get list of supported base types.
 	 * @return array
 	 */
@@ -450,11 +506,11 @@ class FieldType
 		{
 			foreach ($property as $key => $val)
 			{
-				switch (strtoupper($key))
+				switch(mb_strtoupper($key))
 				{
 					case 'TYPE':
 					case '0':
-						$normalized['Type'] = (string) $val;
+						$normalized['Type'] = (string)$val;
 						break;
 					case 'MULTIPLE':
 					case '1':
@@ -466,7 +522,7 @@ class FieldType
 						break;
 					case 'OPTIONS':
 					case '3':
-						$normalized['Options'] = is_array($val) ? $val : (string)$val;
+						$normalized['Options'] = is_array($val)? $val : (string)$val;
 						break;
 					case 'SETTINGS':
 						{
@@ -478,12 +534,12 @@ class FieldType
 						break;
 					case 'NAME':
 						{
-							$normalized['Name'] = (string) $val;
+							$normalized['Name'] = (string)$val;
 						}
 						break;
 					case 'DESCRIPTION':
 						{
-							$normalized['Description'] = (string) $val;
+							$normalized['Description'] = (string)$val;
 						}
 						break;
 					case 'DEFAULT':

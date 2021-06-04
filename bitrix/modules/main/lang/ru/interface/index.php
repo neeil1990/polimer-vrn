@@ -1,6 +1,7 @@
 <?
 $MESS["admin_index_product_name_1c_bitrix"] = "1С-Битрикс: Управление сайтом";
 $MESS["admin_index_product_name_1c_bitrix_portal"] = "1С-Битрикс: Корпоративный портал";
+$MESS["admin_index_product_name_ua_bitrix_portal"] = "Битрикс: Корпоративный портал";
 $MESS["admin_index_product_name_1c_bitrix_eduportal"] = "1С-Битрикс: Внутренний портал учебного заведения";
 $MESS["admin_index_product_name_1c_bitrix_gosportal"] = "1С-Битрикс: Внутренний портал органа власти";
 $MESS["admin_index_product_name_1c_bitrix_gossite"] = "1С-Битрикс: Официальный сайт органа власти";
@@ -14,8 +15,8 @@ $MESS["admin_index_sec"] = "Проактивная защита";
 $MESS["admin_index_sec_on"] = "Включено";
 $MESS["admin_index_sec_check"] = "Проверьте параметры";
 $MESS["admin_index_sec_off"] = "Выключено";
-$MESS["admin_index_sec_filter_on"] = "Проактивный фильтр (Web Application Firewall) включен.";
-$MESS["admin_index_sec_filter_off"] = "Проактивный фильтр (Web Application Firewall) выключен.";
+$MESS["admin_index_sec_filter_on"] = "Проактивный фильтр включен.";
+$MESS["admin_index_sec_filter_off"] = "Проактивный фильтр выключен.";
 $MESS["admin_index_sec_filter_desc"] = "Проактивный фильтр обеспечивает защиту от большинства известных атак на веб-приложения. В потоке внешних запросов пользователей фильтр распознает большинство опасных угроз и блокирует вторжения на сайт. Рекомендуется включить проактивный фильтр.";
 $MESS["admin_index_sec_filter_turn_on"] = "Включить";
 $MESS["admin_index_sec_module"] = "Модуль проактивной защиты не установлен.";

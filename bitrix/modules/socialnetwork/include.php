@@ -193,7 +193,10 @@ if (
 
 	CJSCore::RegisterExt('socnetlogdest', array(
 		'js' => '/bitrix/js/socialnetwork/log-destination.js',
-		'css' => '/bitrix/js/main/core/css/core_finder.css',
+		'css' => [
+			'/bitrix/js/intranet/intranet-common.css',
+			'/bitrix/js/main/core/css/core_finder.css'
+		],
 		'lang_additional' => array(
 			'LM_POPUP_TITLE' => GetMessage("LM_POPUP_TITLE"),
 			'LM_POPUP_TAB_LAST' => GetMessage("LM_POPUP_TAB_LAST"),
@@ -247,7 +250,10 @@ if(
 IncludeModuleLangFile($_SERVER["DOCUMENT_ROOT"].'/bitrix/modules/socialnetwork/install/js/video_recorder.php');
 CJSCore::RegisterExt('videorecorder', array(
 	'js' => '/bitrix/js/socialnetwork/video_recorder.js',
-	'css' => '/bitrix/js/socialnetwork/css/video_recorder.css',
+	'css' => [
+		'/bitrix/js/intranet/intranet-common.css',
+		'/bitrix/js/socialnetwork/css/video_recorder.css'
+	],
 	'lang_additional' => array(
 		'BLOG_VIDEO_RECORD_BUTTON' => GetMessage('BLOG_VIDEO_RECORD_BUTTON'),
 		'BLOG_VIDEO_RECORD_CANCEL_BUTTON' => GetMessage('BLOG_VIDEO_RECORD_CANCEL_BUTTON'),
@@ -294,7 +300,7 @@ CJSCore::RegisterExt('content_view', array(
 	'lang_additional' => array(
 		'SONET_CONTENTVIEW_JS_HIDDEN_COUNT' => GetMessage("SONET_CONTENTVIEW_JS_HIDDEN_COUNT"),
 	),
-	'rel' => array('ajax', 'popup')
+	'rel' => [ 'ajax', 'popup', 'main.polyfill.intersectionobserver' ]
 ));
 
 $arLogEvents = array(

@@ -15,25 +15,29 @@ BX.namespace("BX.SidePanel");
  */
 BX.SidePanel.Slider = function(url, options)
 {
-	this.url = BX.util.remove_url_param(url, ["IFRAME", "IFRAME_TYPE"]);
 	options = BX.type.isPlainObject(options) ? options : {};
 	this.options = options;
 
 	this.contentCallback = BX.type.isFunction(options.contentCallback) ? options.contentCallback : null;
 	this.contentCallbackInvoved = false;
+	this.contentClassName = BX.type.isNotEmptyString(options.contentClassName) ? options.contentClassName : null;
 
-	this.zIndex = 3000;
+	this.url = this.contentCallback ? url : this.refineUrl(url);
+
 	this.offset = null;
 	this.width = BX.type.isNumber(options.width) ? options.width : null;
 	this.cacheable = options.cacheable !== false;
 	this.autoFocus = options.autoFocus !== false;
 	this.printable = options.printable === true;
 	this.allowChangeHistory = options.allowChangeHistory !== false;
+	this.allowChangeTitle = BX.type.isBoolean(options.allowChangeTitle) ? options.allowChangeTitle : null;
 	this.data = new BX.SidePanel.Dictionary(BX.type.isPlainObject(options.data) ? options.data : {});
 
 	this.customLeftBoundary = null;
 	this.setCustomLeftBoundary(options.customLeftBoundary);
 
+	this.title = null;
+	this.setTitle(options.title);
 	/**
 	 *
 	 * @type {HTMLIFrameElement}
@@ -55,10 +59,11 @@ BX.SidePanel.Slider = function(url, options)
 
 	this.handleFrameKeyDown = this.handleFrameKeyDown.bind(this);
 	this.handleFrameFocus = this.handleFrameFocus.bind(this);
+	this.handlePopupInit = this.handlePopupInit.bind(this);
 
 	/**
 	 *
-	 * @type {{overlay: Element, container: Element, loader: Element, content: Element, closeBtn: Element}}
+	 * @type {{overlay: Element, container: Element, loader: Element, content: Element, label: Element, closeBtn: Element}}
 	 */
 	this.layout = {
 		overlay: null,
@@ -81,6 +86,13 @@ BX.SidePanel.Slider = function(url, options)
 	this.endParams = { translateX: 0, opacity: 40 };
 	this.currentParams = null;
 	this.overlayAnimation = false;
+
+	this.label = new BX.SidePanel.Label(this);
+
+	var labelOptions = BX.type.isPlainObject(options.label) ? options.label : {};
+	this.label.setText(labelOptions.text);
+	this.label.setColor(labelOptions.color);
+	this.label.setBgColor(labelOptions.bgColor, labelOptions.opacity);
 
 	//Compatibility
 	if (
@@ -142,10 +154,21 @@ BX.SidePanel.Slider.prototype =
 			return false;
 		}
 
+		if (this.isDestroyed())
+		{
+			return false;
+		}
+
 		this.createLayout();
+		BX.addClass(this.getOverlay(), "side-panel-overlay-open side-panel-overlay-opening");
 		this.adjustLayout();
 
+		BX.ZIndexManager.bringToFront(this.getOverlay());
+
 		this.opened = true;
+
+		this.fireEvent("onOpenStart");
+
 		this.animateOpening();
 
 		return true;
@@ -169,7 +192,14 @@ BX.SidePanel.Slider.prototype =
 			return false;
 		}
 
+		this.fireEvent("onCloseStart");
+
 		this.opened = false;
+
+		if (this.isDestroyed())
+		{
+			return false;
+		}
 
 		if (this.animation)
 		{
@@ -234,14 +264,12 @@ BX.SidePanel.Slider.prototype =
 
 	/**
 	 * @public
+	 * @deprecated
 	 * @param {number} zIndex
 	 */
 	setZindex: function(zIndex)
 	{
-		if (BX.type.isNumber(zIndex))
-		{
-			this.zIndex = zIndex;
-		}
+
 	},
 
 	/**
@@ -250,7 +278,9 @@ BX.SidePanel.Slider.prototype =
 	 */
 	getZindex: function()
 	{
-		return this.zIndex;
+		var component = BX.ZIndexManager.getComponent(this.getOverlay());
+
+		return component.getZIndex();
 	},
 
 	/**
@@ -293,6 +323,27 @@ BX.SidePanel.Slider.prototype =
 	getWidth: function()
 	{
 		return this.width;
+	},
+
+	/**
+	 * @public
+	 * @param {string} title
+	 */
+	setTitle: function(title)
+	{
+		if (BX.type.isNotEmptyString(title))
+		{
+			this.title = title;
+		}
+	},
+
+	/**
+	 * @public
+	 * @returns {null|string}
+	 */
+	getTitle: function()
+	{
+		return this.title;
 	},
 
 	/**
@@ -426,6 +477,21 @@ BX.SidePanel.Slider.prototype =
 		);
 	},
 
+	canChangeTitle: function()
+	{
+		if (this.allowChangeTitle === null)
+		{
+			if (this.getTitle() !== null)
+			{
+				return true;
+			}
+
+			return this.canChangeHistory();
+		}
+
+		return this.allowChangeTitle;
+	},
+
 	/**
 	 * @public
 	 * @param {boolean} [cacheable=true]
@@ -492,7 +558,7 @@ BX.SidePanel.Slider.prototype =
 	 */
 	showCloseBtn: function()
 	{
-		this.getCloseBtn().style.removeProperty("opacity");
+		this.getLabel().showCloseBtn();
 	},
 
 	/**
@@ -500,7 +566,37 @@ BX.SidePanel.Slider.prototype =
 	 */
 	hideCloseBtn: function()
 	{
-		this.getCloseBtn().style.opacity = 0;
+		this.getLabel().hideCloseBtn();
+	},
+
+	/**
+	 * @public
+	 */
+	showOrLightenCloseBtn: function()
+	{
+		if (BX.Type.isStringFilled(this.getLabel().getText()))
+		{
+			this.getLabel().showCloseBtn();
+		}
+		else
+		{
+			this.getLabel().lightenCloseBtn();
+		}
+	},
+
+	/**
+	 * @public
+	 */
+	hideOrDarkenCloseBtn: function()
+	{
+		if (BX.Type.isStringFilled(this.getLabel().getText()))
+		{
+			this.getLabel().hideCloseBtn();
+		}
+		else
+		{
+			this.getLabel().darkenCloseBtn();
+		}
 	},
 
 	/**
@@ -517,6 +613,32 @@ BX.SidePanel.Slider.prototype =
 	hidePrintBtn: function()
 	{
 		this.getPrintBtn().classList.remove("side-panel-print-visible");
+	},
+
+	/**
+	 * @public
+	 * @param {string} className
+	 */
+	setContentClass: function(className)
+	{
+		if (BX.type.isNotEmptyString(className))
+		{
+			this.removeContentClass();
+			this.contentClassName = className;
+			this.getContentContainer().classList.add(className);
+		}
+	},
+
+	/**
+	 * @public
+	 */
+	removeContentClass: function()
+	{
+		if (this.contentClassName !== null)
+		{
+			this.getContentContainer().classList.remove(this.contentClassName);
+			this.contentClassName = null;
+		}
 	},
 
 	/**
@@ -599,6 +721,17 @@ BX.SidePanel.Slider.prototype =
 	},
 
 	/**
+	 * @internal
+	 * @returns {number}
+	 */
+	getLeftBoundaryOffset: function()
+	{
+		var offset = this.getOffset() !== null ? this.getOffset() : 0;
+
+		return Math.max(this.calculateLeftBoundary(), this.getMinLeftBoundary()) + offset;
+	},
+
+	/**
 	 * @public
 	 * @param {number} boundary
 	 */
@@ -643,6 +776,9 @@ BX.SidePanel.Slider.prototype =
 			frameWindow.removeEventListener("keydown", this.handleFrameKeyDown);
 			frameWindow.removeEventListener("focus", this.handleFrameFocus);
 		}
+
+		BX.Event.EventEmitter.unsubscribe('BX.Main.Popup:onInit', this.handlePopupInit);
+		BX.ZIndexManager.unregister(this.layout.overlay);
 
 		BX.remove(this.layout.overlay);
 
@@ -690,6 +826,23 @@ BX.SidePanel.Slider.prototype =
 	/**
 	 * @public
 	 */
+	reload: function()
+	{
+		if (this.isSelfContained())
+		{
+			this.contentCallbackInvoved = false;
+			this.setContent();
+		}
+		else
+		{
+			this.showLoader();
+			this.getFrameWindow().location.reload();
+		}
+	},
+
+	/**
+	 * @public
+	 */
 	adjustLayout: function()
 	{
 		var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -700,9 +853,7 @@ BX.SidePanel.Slider.prototype =
 		topBoundary = isTopBoundaryVisible ? topBoundary : scrollTop;
 
 		var height = isTopBoundaryVisible > 0 ? windowHeight - topBoundary + scrollTop : windowHeight;
-		var offset = this.getOffset() !== null ? this.getOffset() : 0;
-
-		var leftBoundary = Math.max(this.calculateLeftBoundary(), this.getMinLeftBoundary()) + offset;
+		var leftBoundary = this.getLeftBoundaryOffset();
 
 		this.getOverlay().style.left = window.pageXOffset + "px";
 		this.getOverlay().style.top = topBoundary + "px";
@@ -716,6 +867,8 @@ BX.SidePanel.Slider.prototype =
 		{
 			this.getContainer().style.maxWidth = this.getWidth() + "px";
 		}
+
+		this.getLabel().adjustLayout();
 	},
 
 	/**
@@ -733,6 +886,8 @@ BX.SidePanel.Slider.prototype =
 			this.getContentContainer().style.overflow = "auto";
 			document.body.appendChild(this.getOverlay());
 			this.setContent();
+
+			BX.Event.EventEmitter.subscribe('BX.Main.Popup:onInit', this.handlePopupInit);
 		}
 		else
 		{
@@ -740,6 +895,8 @@ BX.SidePanel.Slider.prototype =
 			document.body.appendChild(this.getOverlay());
 			this.setFrameSrc(); //setFrameSrc must be below than appendChild, otherwise POST method fails.
 		}
+
+		BX.ZIndexManager.register(this.getOverlay());
 	},
 
 	/**
@@ -787,10 +944,7 @@ BX.SidePanel.Slider.prototype =
 				className: "side-panel side-panel-overlay"
 			},
 			events: {
-				click: this.handleOverlayClick.bind(this)
-			},
-			style: {
-				zIndex: this.getZindex()
+				mousedown: this.handleOverlayClick.bind(this)
 			},
 			children: [
 				this.getContainer()
@@ -808,6 +962,16 @@ BX.SidePanel.Slider.prototype =
 	hideOverlay: function()
 	{
 		this.getOverlay().classList.add("side-panel-overlay-hidden");
+	},
+
+	hideShadow: function()
+	{
+		this.getContainer().classList.remove("side-panel-show-shadow");
+	},
+
+	showShadow: function()
+	{
+		this.getContainer().classList.add("side-panel-show-shadow");
 	},
 
 	setOverlayAnimation: function(animate)
@@ -838,12 +1002,9 @@ BX.SidePanel.Slider.prototype =
 			props: {
 				className: "side-panel side-panel-container"
 			},
-			style: {
-				zIndex: this.getZindex() + 1
-			},
 			children: [
 				this.getContentContainer(),
-				this.getCloseBtn(),
+				this.getLabel().getContainer(),
 				this.getPrintBtn()
 			]
 		});
@@ -864,7 +1025,9 @@ BX.SidePanel.Slider.prototype =
 
 		this.layout.content = BX.create("div", {
 			props: {
-				className: "side-panel-content-container"
+				className:
+					"side-panel-content-container" +
+					(this.contentClassName !== null ? " " + this.contentClassName : "")
 			}
 		});
 
@@ -877,29 +1040,16 @@ BX.SidePanel.Slider.prototype =
 	 */
 	getCloseBtn: function()
 	{
-		if (this.layout.closeBtn !== null)
-		{
-			return this.layout.closeBtn;
-		}
+		return this.getLabel().getCloseBtn();
+	},
 
-		this.layout.closeBtn = BX.create("span", {
-			props: {
-				className: "side-panel-close",
-				title: BX.message("MAIN_SIDEPANEL_CLOSE")
-			},
-			children : [
-				BX.create("span", {
-					props: {
-						className: "side-panel-close-inner"
-					}
-				})
-			],
-			events: {
-				click: this.handleCloseBtnClick.bind(this)
-			}
-		});
-
-		return this.layout.closeBtn;
+	/**
+	 * @public
+	 * @returns {BX.SidePanel.Label}
+	 */
+	getLabel: function()
+	{
+		return this.label;
 	},
 
 	/**
@@ -938,20 +1088,48 @@ BX.SidePanel.Slider.prototype =
 
 		this.contentCallbackInvoved = true;
 
+		BX.cleanNode(this.getContentContainer());
 		this.showLoader();
 
-		var promise = new BX.Promise();
+		var promise = this.contentCallback(this);
+		var isPromiseReturned =
+				promise &&
+				(
+					Object.prototype.toString.call(promise) === "[object Promise]" ||
+					promise.toString() === "[object BX.Promise]"
+				)
+		;
 
-		promise
-			.then(this.contentCallback)
-			.then(
-				function(result)
+		if (!isPromiseReturned)
+		{
+			promise = Promise.resolve(promise);
+		}
+
+		promise.then(
+			function(result)
+			{
+				if (this.isDestroyed())
 				{
-					if (this.isDestroyed())
-					{
-						return;
-					}
+					return;
+				}
 
+				if (BX.type.isPlainObject(result) && BX.type.isNotEmptyString(result.html))
+				{
+					BX.html(this.getContentContainer(), result.html).then(
+						function() {
+							this.removeLoader();
+							this.loaded = true;
+							this.firePageEvent("onLoad");
+						}.bind(this),
+
+						function(reason) {
+							this.removeLoader();
+							this.getContentContainer().innerHTML = reason;
+						}.bind(this)
+					);
+				}
+				else
+				{
 					if (BX.type.isDomNode(result))
 					{
 						this.getContentContainer().appendChild(result);
@@ -961,20 +1139,17 @@ BX.SidePanel.Slider.prototype =
 						this.getContentContainer().innerHTML = result;
 					}
 
+					this.removeLoader();
 					this.loaded = true;
 					this.firePageEvent("onLoad");
-
-					this.closeLoader();
-
-				}.bind(this),
-				function(reason)
-				{
-					this.destroy();
-					BX.debug("error", reason);
 				}
-			);
-
-		promise.fulfill(this);
+			}.bind(this),
+			function(reason)
+			{
+				this.removeLoader();
+				this.getContentContainer().innerHTML = reason;
+			}.bind(this)
+		);
 	},
 
 	/**
@@ -1058,18 +1233,25 @@ BX.SidePanel.Slider.prototype =
 		}
 
 		this.layout.loader.dataset.loader = loader;
-		this.getContentContainer().appendChild(this.layout.loader);
+		this.getContainer().appendChild(this.layout.loader);
 	},
 
 	createSvgLoader: function(svg)
 	{
 		return BX.create("div", {
 			props: {
-				className: "side-panel-loader-container"
+				className: "side-panel-loader"
 			},
-			style: {
-				backgroundImage: 'url("' + svg +'")'
-			}
+			children: [
+				BX.create("div", {
+					props: {
+						className: "side-panel-loader-container"
+					},
+					style: {
+						backgroundImage: 'url("' + svg +'")'
+					}
+				})
+			]
 		});
 	},
 
@@ -1077,15 +1259,22 @@ BX.SidePanel.Slider.prototype =
 	{
 		return BX.create("div", {
 			props: {
-				className: "side-panel-default-loader-container"
+				className: "side-panel-loader"
 			},
-			html:
-				'<svg class="side-panel-default-loader-circular" viewBox="25 25 50 50">' +
-					'<circle ' +
-						'class="side-panel-default-loader-path" ' +
-						'cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"' +
-					'/>' +
-				'</svg>'
+			children: [
+				BX.create("div", {
+					props: {
+						className: "side-panel-default-loader-container"
+					},
+					html:
+						'<svg class="side-panel-default-loader-circular" viewBox="25 25 50 50">' +
+							'<circle ' +
+								'class="side-panel-default-loader-path" ' +
+								'cx="50" cy="50" r="20" fill="none" stroke-miterlimit="10"' +
+							'/>' +
+						'</svg>'
+				})
+			]
 		});
 	},
 
@@ -1215,10 +1404,17 @@ BX.SidePanel.Slider.prototype =
 	/**
 	 * @private
 	 */
+	removeLoader: function()
+	{
+		BX.remove(this.layout.loader);
+		this.layout.loader = null;
+	},
+
+	/**
+	 * @private
+	 */
 	animateOpening: function()
 	{
-		BX.addClass(this.getOverlay(), "side-panel-overlay-open side-panel-overlay-opening");
-
 		if (this.isPrintable())
 		{
 			this.showPrintBtn();
@@ -1262,6 +1458,10 @@ BX.SidePanel.Slider.prototype =
 	animateStep: function(state)
 	{
 		this.getContainer().style.transform = "translateX(" + state.translateX + "%)";
+		if(state.translateX === 0 && BX.browser.IsIE10())
+		{
+			this.getContainer().style.transform = 'none';
+		}
 		if (this.getOverlayAnimation())
 		{
 			this.getOverlay().style.backgroundColor = "rgba(0, 0, 0, " + state.opacity / 100 + ")";
@@ -1361,7 +1561,7 @@ BX.SidePanel.Slider.prototype =
 		}
 
 		var frameWindow = this.getFrameWindow();
-		if (frameWindow && frameWindow.BX)
+		if (frameWindow && frameWindow.BX && frameWindow.BX.onCustomEvent)
 		{
 			frameWindow.BX.onCustomEvent(this, event.getFullName(), [event]);
 
@@ -1374,6 +1574,12 @@ BX.SidePanel.Slider.prototype =
 		}
 
 		return event;
+	},
+
+	fireEvent: function(eventName)
+	{
+		this.firePageEvent(eventName);
+		this.fireFrameEvent(eventName);
 	},
 
 	/**
@@ -1468,7 +1674,7 @@ BX.SidePanel.Slider.prototype =
 		}
 
 		var iframeUrl = iframeLocation.pathname + iframeLocation.search + iframeLocation.hash;
-		this.iframeSrc = BX.util.remove_url_param(iframeUrl, ["IFRAME", "IFRAME_TYPE"]);
+		this.iframeSrc = this.refineUrl(iframeUrl);
 		this.url = this.iframeSrc;
 
 		if (this.isPrintable())
@@ -1540,6 +1746,25 @@ BX.SidePanel.Slider.prototype =
 
 	/**
 	 * @private
+	 * @param {BaseEvent} event
+	 */
+	handlePopupInit: function(event)
+	{
+		var data = event.getCompatData();
+		var bindElement = data[1];
+		var params = data[2];
+
+		if (!BX.Type.isElementNode(params.targetContainer) && BX.Type.isElementNode(bindElement))
+		{
+			if (this.getContentContainer().contains(bindElement))
+			{
+				params.targetContainer = this.getContentContainer();
+			}
+		}
+	},
+
+	/**
+	 * @private
 	 * @param {Event} event
 	 */
 	handleFrameFocus: function(event)
@@ -1558,16 +1783,6 @@ BX.SidePanel.Slider.prototype =
 			return;
 		}
 
-		this.close();
-		event.stopPropagation();
-	},
-
-	/**
-	 * @private
-	 * @param {MouseEvent} event
-	 */
-	handleCloseBtnClick: function(event)
-	{
 		this.close();
 		event.stopPropagation();
 	},
@@ -1658,7 +1873,22 @@ BX.SidePanel.Slider.prototype =
 		}
 
 		frameDocument.head.appendChild(style);
-	}
+	},
+
+	/**
+	 * @public
+	 * @param {string} url
+	 * @returns {string}
+	 */
+	refineUrl: function(url)
+	{
+		if (BX.type.isNotEmptyString(url) && url.match(/IFRAME/))
+		{
+			return BX.util.remove_url_param(url, ["IFRAME", "IFRAME_TYPE"]);
+		}
+
+		return url;
+	},
 };
 
 /**
@@ -1910,5 +2140,259 @@ BX.SidePanel.Dictionary.prototype =
 		return this.data;
 	}
 };
+
+/**
+ * @internal
+ * @param {BX.SidePanel.Slider} slider
+ * @constructor
+ */
+BX.SidePanel.Label = function(slider)
+{
+	/** @type {BX.SidePanel.Slider} */
+	this.slider = slider;
+
+	this.layout = {
+		label: null,
+		closeBtn: null,
+		text: null
+	};
+
+	this.color = null;
+	this.bgColor = null;
+	this.text = null;
+};
+
+BX.SidePanel.Label.MIN_LEFT_OFFSET = 25;
+BX.SidePanel.Label.MIN_TOP_OFFSET = 17;
+BX.SidePanel.Label.INTERVAL_TOP_OFFSET = 50;
+
+BX.SidePanel.Label.prototype =
+{
+	/**
+	 *
+	 * @returns {Element}
+	 */
+	getContainer: function()
+	{
+		if (this.layout.label !== null)
+		{
+			return this.layout.label;
+		}
+
+		this.layout.label = BX.create("div", {
+			props: {
+				className: "side-panel-label",
+			},
+			children : [
+				this.getCloseBtn(),
+				this.getTextContainer(),
+			],
+			events: {
+				click: this.handleClick.bind(this)
+			}
+		});
+
+		return this.layout.label;
+	},
+
+	adjustLayout: function()
+	{
+		var maxWidth = this.getSlider().getOverlay().offsetWidth - this.getSlider().getContainer().offsetWidth;
+		if (maxWidth <= this.getSlider().getMinLeftBoundary())
+		{
+			this.hideText();
+		}
+		else
+		{
+			this.showText();
+		}
+
+		this.getContainer().style.maxWidth = (maxWidth - BX.SidePanel.Label.MIN_LEFT_OFFSET) + "px";
+	},
+
+	/**
+	 * @public
+	 * @returns {Element}
+	 */
+	getCloseBtn: function()
+	{
+		if (this.layout.closeBtn !== null)
+		{
+			return this.layout.closeBtn;
+		}
+
+		this.layout.closeBtn = BX.create("div", {
+			props: {
+				className: "side-panel-close-btn",
+				title: BX.message("MAIN_SIDEPANEL_CLOSE")
+			},
+			children : [
+				BX.create("div", {
+					props: {
+						className: "side-panel-close-btn-inner"
+					}
+				})
+			]
+		});
+
+		return this.layout.closeBtn;
+	},
+
+	/**
+	 * @private
+	 * @param {MouseEvent} event
+	 */
+	handleClick: function(event)
+	{
+		this.getSlider().close();
+		event.stopPropagation();
+	},
+
+	/**
+	 * @public
+	 */
+	showCloseBtn: function()
+	{
+		this.getContainer().classList.remove("side-panel-hide-close-btn");
+	},
+
+	/**
+	 * @public
+	 */
+	hideCloseBtn: function()
+	{
+		this.getContainer().classList.add("side-panel-hide-close-btn");
+	},
+
+	/**
+	 * @public
+	 */
+	darkenCloseBtn: function()
+	{
+		this.getContainer().classList.add("side-panel-darken-close-btn");
+	},
+
+	/**
+	 * @public
+	 */
+	lightenCloseBtn: function()
+	{
+		this.getContainer().classList.remove("side-panel-darken-close-btn");
+	},
+
+	hideText: function()
+	{
+		this.getTextContainer().classList.add("side-panel-label-text-hidden");
+	},
+
+	showText: function()
+	{
+		this.getTextContainer().classList.remove("side-panel-label-text-hidden");
+	},
+
+	isTextHidden: function()
+	{
+		return this.getTextContainer().classList.contains("side-panel-label-text-hidden");
+	},
+
+	getTextContainer: function()
+	{
+		if (this.layout.text === null)
+		{
+			this.layout.text = BX.create("span", {
+				props: {
+					className: "side-panel-label-text"
+				}
+			})
+		}
+
+		return this.layout.text;
+	},
+
+	setColor: function(color)
+	{
+		if (BX.type.isNotEmptyString(color))
+		{
+			this.color = color;
+			this.getTextContainer().style.color = color;
+		}
+	},
+
+	getColor: function()
+	{
+		return this.color;
+	},
+
+	setBgColor: function(bgColor, opacity)
+	{
+		if (BX.type.isNotEmptyString(bgColor))
+		{
+			var matches = bgColor.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
+			if (matches)
+			{
+				var hex = matches[1];
+				if (hex.length === 3)
+				{
+					hex = hex.replace(/([a-f0-9])/gi, "$1$1");
+				}
+
+				opacity = BX.type.isNumber(opacity) && opacity >= 0 && opacity <= 100 ? opacity : 95;
+				var rgb = BX.util.hex2rgb(hex);
+				bgColor = "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," +  (opacity / 100) + ")";
+			}
+
+			this.bgColor = bgColor;
+			this.getContainer().style.backgroundColor = bgColor;
+		}
+		else if (bgColor === null)
+		{
+			this.bgColor = bgColor;
+			this.getContainer().style.removeProperty("backgroundColor");
+		}
+	},
+
+	getBgColor: function()
+	{
+		return this.bgColor;
+	},
+
+	setText: function(text)
+	{
+		if (BX.type.isNotEmptyString(text))
+		{
+			this.text = text;
+			this.getTextContainer().textContent = text;
+		}
+		else if (text === null)
+		{
+			this.text = text;
+			this.getTextContainer().textContent = "";
+		}
+	},
+
+	getText: function()
+	{
+		return this.text;
+	},
+
+	/**
+	 *
+	 * @returns {BX.SidePanel.Slider}
+	 */
+	getSlider: function()
+	{
+		return this.slider;
+	},
+
+	moveAt: function(position)
+	{
+		if (BX.type.isNumber(position) && position >= 0)
+		{
+			this.getContainer().style.top =
+				BX.SidePanel.Label.MIN_TOP_OFFSET + (position * BX.SidePanel.Label.INTERVAL_TOP_OFFSET) + "px";
+		}
+	},
+};
+
 
 })();

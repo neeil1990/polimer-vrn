@@ -458,6 +458,19 @@
 					}
 					if (this.params["name"])
 						result.name = this.params["name"];
+
+					if (result.type === 'image/png'
+						&& (result.name || '').substr(-4, 4).toLowerCase() !== '.png')
+					{
+						var name = (result.name || 'image');
+
+						if (name.lastIndexOf('.') > 0
+							&& BX.UploaderUtils.isImageExt(name.substr(name.lastIndexOf('.') + 1).toLowerCase()))
+						{
+							result.name = name.substr(0, name.lastIndexOf('.'));
+						}
+						result.name = result.name + '.png';
+					}
 				}
 				return result;
 			}
@@ -821,14 +834,14 @@
 					n.innerHTML = textMessage;
 				}, this));
 
-				var n = BX.findChild(node, {attribute : { "data-bx-role"  : "canvas-button" } }, true);
-				if (n)
+				var n1 = BX.findChild(node, {attribute : { "data-bx-role"  : "canvas-button" } }, true);
+				if (n1)
 				{
-					BX.bind(n, "click", BX.proxy(function() { if (this.canvas.canvasIsSet === true){ this.tabs.show('canvas'); } }, this));
-					BX.addCustomEvent(this.canvas, "onChangeCanvas", BX.proxy(function(){ BX.addClass(n, "active") }, this));
-					BX.addCustomEvent(this.canvas, "onResetCanvas", BX.proxy(function(){ BX.removeClass(n, "active") }, this));
+					BX.bind(n1, "click", function() { if (this.canvas.canvasIsSet === true) { this.tabs.show('canvas'); } }.bind(this));
+					BX.addCustomEvent(this.canvas, "onChangeCanvas", function() { BX.addClass(n1, "active"); }.bind(this));
+					BX.addCustomEvent(this.canvas, "onResetCanvas", function() { BX.removeClass(n1, "active"); }.bind(this));
 				}
-				n = BX.findChild(node, {attribute : { "data-bx-role"  : "try-again-button" } }, true);
+				var n = BX.findChild(node, {attribute : { "data-bx-role"  : "try-again-button" } }, true);
 				if (n)
 				{
 					BX.bind(n, "click", BX.proxy(function(){

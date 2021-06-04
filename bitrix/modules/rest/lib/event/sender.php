@@ -10,7 +10,7 @@ use Bitrix\Rest\AppTable;
 use Bitrix\Rest\OAuth\Auth;
 use Bitrix\Rest\OAuthService;
 use Bitrix\Rest\Sqs;
-use Bitrix\Rest\StatTable;
+use Bitrix\Rest\UsageStatTable;
 
 /**
  * Class Sender
@@ -201,9 +201,9 @@ class Sender
 					);
 				}
 
-				if(strlen($handler['EVENT_HANDLER']) > 0)
+				if($handler['EVENT_HANDLER'] <> '')
 				{
-					StatTable::logEvent($application['CLIENT_ID'], $handler['EVENT_NAME']);
+					UsageStatTable::logEvent($application['CLIENT_ID'], $handler['EVENT_NAME']);
 				}
 			}
 			else
@@ -219,7 +219,7 @@ class Sender
 
 			if($authData)
 			{
-				if(strlen($handler['EVENT_HANDLER']) > 0)
+				if($handler['EVENT_HANDLER'] <> '')
 				{
 					self::$queryData[] = Sqs::queryItem(
 						$application['CLIENT_ID'],
@@ -252,14 +252,8 @@ class Sender
 
 		if(count(static::$queryData) > 0 && !static::$forkSet)
 		{
-			if(\CMain::forkActions(array(__CLASS__, "send"), array()))
-			{
-				static::$forkSet = true;
-			}
-			else
-			{
-				static::send();
-			}
+			\Bitrix\Main\Application::getInstance()->addBackgroundJob(array(__CLASS__, "send"));
+			static::$forkSet = true;
 		}
 	}
 
@@ -270,7 +264,7 @@ class Sender
 	{
 		if(count(self::$queryData) > 0)
 		{
-			StatTable::finalize();
+			UsageStatTable::finalize();
 			static::getProvider()->send(self::$queryData);
 			self::$queryData = array();
 		}
@@ -346,7 +340,7 @@ class Sender
 	protected static function getHandlerName($moduleId, $eventName)
 	{
 		// \Bitrix\Rest\EventTable::on
-		if(strpos($eventName, '::') >= 0)
+		if(mb_strpos($eventName, '::') >= 0)
 		{
 			$handlerName = $moduleId.'__'.ToUpper(str_replace(array("\\", '::'), array('_0_', '_1_'), $eventName));
 		}

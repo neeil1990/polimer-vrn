@@ -1,60 +1,71 @@
 <?
 
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\ErrorCollection;
-use Bitrix\Main\Web\Uri;
-use Bitrix\Main\UI\Filter\Options as FilterOptions;
 use Bitrix\Main\Grid\Options as GridOptions;
-use Bitrix\Main\Loader;
-use Bitrix\Main\Error;
-
-use Bitrix\Sender\UI\PageNavigation;
-use Bitrix\Sender\Message;
-use Bitrix\Sender\Entity;
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\UI\Filter\Options as FilterOptions;
+use Bitrix\Main\Web\Uri;
+use Bitrix\Sender\Access\ActionDictionary;
+use Bitrix\Sender\Access\Map\AdsAction;
 use Bitrix\Sender\Dispatch;
+use Bitrix\Sender\Entity;
 use Bitrix\Sender\Integration;
-use Bitrix\Sender\Security;
 use Bitrix\Sender\Internals\PrettyDate;
+use Bitrix\Sender\Message;
+use Bitrix\Sender\UI\PageNavigation;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 {
 	die();
 }
 
+if (!Bitrix\Main\Loader::includeModule('sender'))
+{
+	ShowError('Module `sender` not installed');
+	die();
+}
+
 Loc::loadMessages(__FILE__);
 
-class SenderAdsListComponent extends CBitrixComponent
+class SenderAdsListComponent extends Bitrix\Sender\Internals\CommonSenderComponent
 {
-	/** @var ErrorCollection $errors */
-	protected $errors;
-
-	protected function checkRequiredParams()
-	{
-		return true;
-	}
-
+	private const ADS_MANAGER_URL = 'https://www.facebook.com/adsmanager/manage/campaigns';
 	protected function initParams()
 	{
-		$this->arParams['PATH_TO_LIST'] = isset($this->arParams['PATH_TO_LIST']) ? $this->arParams['PATH_TO_LIST'] : '';
-		$this->arParams['PATH_TO_USER_PROFILE'] = isset($this->arParams['PATH_TO_USER_PROFILE']) ? $this->arParams['PATH_TO_USER_PROFILE'] : '';
-		$this->arParams['NAME_TEMPLATE'] = empty($this->arParams['NAME_TEMPLATE']) ? \CAllSite::GetNameFormat(false) : str_replace(array("#NOBR#","#/NOBR#"), array("",""), $this->arParams["NAME_TEMPLATE"]);
+		$this->arParams['GRID_ID'] = isset($this->arParams['GRID_ID']) ?
+			$this->arParams['GRID_ID'] : 'SENDER_ADS_GRID';
+		parent::initParams();
 
-		$this->arParams['GRID_ID'] = isset($this->arParams['GRID_ID']) ? $this->arParams['GRID_ID'] : 'SENDER_ADS_GRID';
-		$this->arParams['FILTER_ID'] = isset($this->arParams['FILTER_ID']) ? $this->arParams['FILTER_ID'] : $this->arParams['GRID_ID'] . '_FILTER';
+		$this->arParams['CAN_PAUSE_START_STOP'] = $this->arParams['CAN_PAUSE_STOP_START'] ??
+			$this->getAccessController()->check(ActionDictionary::ACTION_ADS_PAUSE_START_STOP);
 
-		$this->arParams['SET_TITLE'] = isset($this->arParams['SET_TITLE']) ? $this->arParams['SET_TITLE'] == 'Y' : true;
-		$this->arParams['CAN_EDIT'] = isset($this->arParams['CAN_EDIT'])
-			?
-			$this->arParams['CAN_EDIT']
-			:
-			Security\Access::current()->canModifyAds();
+		$this->arParams['CAN_EDIT_ADV'] = $this->arParams['CAN_EDIT_ADV'] ?? $this->getEditList();
 
+		$this->arParams['CAN_VIEW_CLIENT'] = $this->arParams['CAN_VIEW_CLIENT'] ??
+			$this->getAccessController()->check(ActionDictionary::ACTION_ADS_CLIENT_VIEW);
+
+		$this->arParams['CAN_CONNECT_CABINET'] = $this->arParams['CAN_CONNECT_CABINET'] ??
+			$this->getAccessController()->check(
+			ActionDictionary::ACTION_ADS_CONNECT_CABINET
+			);
+
+	}
+	private function getEditList(): array
+	{
+		$result = [];
+		$map = AdsAction::getMap();
+		foreach ($map as $code => $item)
+		{
+			$result[$code] = $this->getAccessController()
+								->check($item);
+		}
+
+		return $result;
 	}
 
 	protected function getSenderMessages()
 	{
 		$list = array();
-		$messages = Message\Factory::getAdsMessages();
+		$messages = array_merge(Message\Factory::getAdsMessages(), Message\Factory::getMarketingMessages());
 		$pathToAdd = $this->arParams['PATH_TO_ADD'];
 		$uri = new Uri($pathToAdd);
 		$uri->addParams(array('code' => '#code#'));
@@ -63,6 +74,12 @@ class SenderAdsListComponent extends CBitrixComponent
 		foreach ($messages as $message)
 		{
 			$message = new Message\Adapter($message);
+			$permissionEntity = $this->arParams['CAN_EDIT_ADV'][$message->getCode()];
+			if(isset($permissionEntity) && !$permissionEntity)
+			{
+				continue;
+			}
+
 			$list[] = array(
 				'CODE' => $message->getCode(),
 				'NAME' => $message->getName(),
@@ -106,13 +123,6 @@ class SenderAdsListComponent extends CBitrixComponent
 			/**@var CAllMain*/
 			$GLOBALS['APPLICATION']->SetTitle(Loc::getMessage('SENDER_LETTER_LIST_COMP_TITLE'));
 		}
-
-		if (!Security\Access::current()->canViewAds())
-		{
-			Security\AccessChecker::addError($this->errors);
-			return false;
-		}
-
 		$this->arResult['ERRORS'] = array();
 		$this->arResult['ROWS'] = array();
 
@@ -134,7 +144,6 @@ class SenderAdsListComponent extends CBitrixComponent
 			$this->preparePost();
 		}
 
-
 		// set ui filter
 		$this->setUiFilter();
 		$this->setUiFilterPresets();
@@ -143,8 +152,19 @@ class SenderAdsListComponent extends CBitrixComponent
 		$this->setUiGridColumns();
 
 		// create nav
+		$pageSizes = [];
+		foreach ([5, 10, 20, 30, 50, 100] as $index)
+		{
+			$pageSizes[] = ['NAME' => $index, 'VALUE' => $index];
+		}
+
+		$gridOptions = new GridOptions($this->arParams['GRID_ID']);
+		$navData = $gridOptions->getNavParams(['nPageSize' => 10]);
 		$nav = new PageNavigation("page-sender-ads");
-		$nav->allowAllRecords(true)->setPageSize(10)->initFromUri();
+		$nav->allowAllRecords(true)
+			->setPageSize($navData['nPageSize'])
+			->setPageSizes($pageSizes)
+			->initFromUri();
 
 		// get rows
 		$selectParameters = array(
@@ -184,8 +204,11 @@ class SenderAdsListComponent extends CBitrixComponent
 			{
 				$item['DATE_INSERT'] = clone $item['DATE_INSERT'];
 			}
+			$isError = ($item['ERROR_MESSAGE'] <> '');
+
 			$item['DURATION'] = $letter->getDuration()->getFormattedInterval();
-			$item['STATE_NAME'] = $letter->getState()->getName();
+			$item['STATE_NAME'] = $isError ? Loc::getMessage('SENDER_LETTER_LIST_STATE_ERROR') : $letter->getState()->getName();
+
 			$item['STATE'] = array(
 				'dateSend' => $this->formatDate($letter->getState()->getDateSend()),
 				'datePause' => $this->formatDate($letter->getState()->getDatePause()),
@@ -198,6 +221,7 @@ class SenderAdsListComponent extends CBitrixComponent
 				'isFinished' => $letter->getState()->isFinished(),
 				'isStopped' => $letter->getState()->isStopped(),
 				'isSent' => $letter->getState()->isSent(),
+				'isError' => $isError,
 				'wasStartedSending' => $letter->getState()->wasStartedSending(),
 				'canSend' => $letter->getState()->canSend(),
 				'canPause' => $letter->getState()->canPause(),
@@ -207,7 +231,13 @@ class SenderAdsListComponent extends CBitrixComponent
 			);
 
 			$item['URLS'] = array(
-				'EDIT' => str_replace('#id#', $item['ID'], $this->arParams['PATH_TO_EDIT']),
+				'EDIT' => in_array(
+					$letter->getMessage()->getCode(),
+					['facebook', 'instagram']
+				) ? [
+						'EXTERNAL' => self::ADS_MANAGER_URL
+					] :
+					str_replace('#id#', $item['ID'], $this->arParams['PATH_TO_EDIT']),
 				'STAT' => str_replace('#id#', $item['ID'], $this->arParams['PATH_TO_STAT']),
 				'RECIPIENT' => str_replace('#id#', $item['ID'], $this->arParams['PATH_TO_RECIPIENT']),
 			);
@@ -234,7 +264,7 @@ class SenderAdsListComponent extends CBitrixComponent
 		}
 
 		$dateTime = clone $dateTime;
-		return PrettyDate::formatDateTime($dateTime->toUserTime());
+		return PrettyDate::formatDateTime($dateTime);
 	}
 
 	protected function getDataFilter()
@@ -272,7 +302,14 @@ class SenderAdsListComponent extends CBitrixComponent
 		{
 			$filter['<=DATE_INSERT'] = $requestFilter['DATE_INSERT_to'];
 		}
-
+		if (isset($requestFilter['POSTING_DATE_SENT_from']) && $requestFilter['POSTING_DATE_SENT_from'])
+		{
+			$filter['>=POSTING.DATE_SENT'] = $requestFilter['POSTING_DATE_SENT_from'];
+		}
+		if (isset($requestFilter['POSTING_DATE_SENT_to']) && $requestFilter['POSTING_DATE_SENT_to'])
+		{
+			$filter['<=POSTING.DATE_SENT'] = $requestFilter['POSTING_DATE_SENT_to'];
+		}
 		return $filter;
 	}
 
@@ -284,7 +321,7 @@ class SenderAdsListComponent extends CBitrixComponent
 		$sorting = $gridOptions->getSorting(array('sort' => $defaultSort));
 
 		$by = key($sorting['sort']);
-		$order = strtoupper(current($sorting['sort'])) === 'ASC' ? 'ASC' : 'DESC';
+		$order = mb_strtoupper(current($sorting['sort'])) === 'ASC' ? 'ASC' : 'DESC';
 
 		$list = array();
 		foreach ($this->getUiGridColumns() as $column)
@@ -389,6 +426,18 @@ class SenderAdsListComponent extends CBitrixComponent
 					'cache' => array('ttl' => 3600),
 				))->fetchAll())
 			),
+			array(
+				"id" => "DATE_INSERT",
+				"name" => Loc::getMessage('SENDER_LETTER_LIST_COMP_UI_COLUMN_DATE_INSERT2'),
+				"type" => "date",
+				"default" => true,
+			),
+			array(
+				"id" => "POSTING_DATE_SENT",
+				"name" => Loc::getMessage('SENDER_LETTER_LIST_COMP_UI_COLUMN_DATE_SENT'),
+				"type" => "date",
+				"default" => true,
+			),
 		);
 	}
 
@@ -481,27 +530,17 @@ class SenderAdsListComponent extends CBitrixComponent
 
 	public function executeComponent()
 	{
-		$this->errors = new \Bitrix\Main\ErrorCollection();
-		if (!Loader::includeModule('sender'))
-		{
-			$this->errors->setError(new Error('Module `sender` is not installed.'));
-			$this->printErrors();
-			return;
-		}
+		parent::executeComponent();
+		$this->prepareResultAndTemplate();
+	}
 
-		$this->initParams();
-		if (!$this->checkRequiredParams())
-		{
-			$this->printErrors();
-			return;
-		}
+	public function getEditAction()
+	{
+		return ActionDictionary::ACTION_ADS_VIEW;
+	}
 
-		if (!$this->prepareResult())
-		{
-			$this->printErrors();
-			return;
-		}
-
-		$this->includeComponentTemplate();
+	public function getViewAction()
+	{
+		return ActionDictionary::ACTION_ADS_VIEW;
 	}
 }

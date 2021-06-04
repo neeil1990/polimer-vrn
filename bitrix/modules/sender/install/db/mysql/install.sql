@@ -47,8 +47,10 @@ CREATE TABLE b_sender_group
   USE_COUNT INT(11) DEFAULT 0 NOT NULL,
   USE_COUNT_EXCLUDE INT(11) DEFAULT 0 NOT NULL,
   DATE_INSERT	DATETIME NULL,
+  DATE_UPDATE	DATETIME NULL,
   DATE_USE DATETIME NULL,
   DATE_USE_EXCLUDE DATETIME NULL,
+  STATUS varchar(1) default 'N' null,
   UNIQUE UK_SENDER_GROUP_CODE (CODE),
   PRIMARY KEY (ID)
 );
@@ -57,7 +59,8 @@ CREATE TABLE b_sender_group_connector
   GROUP_ID int(11) NOT NULL,
   NAME		VARCHAR(100)	NULL,
   ENDPOINT	LONGTEXT	NULL,
-  ADDRESS_COUNT	INT(11)		DEFAULT 0 NOT NULL
+  ADDRESS_COUNT	INT(11)		DEFAULT 0 NOT NULL,
+  FILTER_ID varchar(256)
 );
 CREATE INDEX IX_SENDER_GROUP_CONNECTOR on b_sender_group_connector(GROUP_ID);
 CREATE TABLE b_sender_group_counter
@@ -91,12 +94,14 @@ CREATE TABLE b_sender_mailing_chain
   STATUS		CHAR(1)		NOT NULL,
   POSTING_ID	INT(11) NULL,
   CREATED_BY	INT(11) NULL,
+  UPDATED_BY	INT(11) NULL,
   PARENT_ID int(11) NULL,
   MESSAGE_CODE VARCHAR(20) NOT NULL DEFAULT 'mail',
   MESSAGE_ID VARCHAR(20) NOT NULL,
   IS_TRIGGER char(1) default 'N'  NOT NULL,
   IS_ADS char(1) default 'N'  NOT NULL,
   DATE_INSERT DATETIME NULL,
+  DATE_UPDATE DATETIME NULL,
   TIME_SHIFT int(11) default 0 NOT NULL,
   LAST_EXECUTED	datetime	NULL,
   AUTO_SEND_TIME	datetime	NULL,
@@ -113,7 +118,9 @@ CREATE TABLE b_sender_mailing_chain
   DAYS_OF_MONTH	VARCHAR(100)	NULL,
   DAYS_OF_WEEK	VARCHAR(15)	NULL,
   TIMES_OF_DAY	VARCHAR(255)	NULL,
+  ERROR_MESSAGE	TEXT	NULL,
   SEARCH_CONTENT longtext,
+  WAITING_RECIPIENT CHAR(1) default 'N'  NOT NULL,
   PRIMARY KEY (ID)
 );
 CREATE INDEX IX_SENDER_MAILING_CHAIN_MAILING on b_sender_mailing_chain(MAILING_ID, STATUS);
@@ -174,7 +181,7 @@ CREATE TABLE b_sender_posting_recipient
   DATE_SENT	DATETIME	NULL,
   USER_ID INT(11) NULL,
   DATE_DENY DATETIME  NULL,
-  FIELDS VARCHAR(2000) NULL,
+  FIELDS LONGTEXT NULL,
   ROOT_ID int(11) NULL,
 
   IS_READ   char(1) DEFAULT 'N' NOT NULL,
@@ -269,7 +276,7 @@ CREATE TABLE IF NOT EXISTS b_sender_agreement (
   ID INT(11) NOT NULL auto_increment,
   USER_ID int(10) unsigned NOT NULL,
   `NAME` varchar(100) NOT NULL,
-  EMAIL varchar(255) NOT NULL,
+  EMAIL varchar(255) NULL,
   `DATE` datetime NOT NULL,
   IP_ADDRESS varchar(39) NOT NULL COMMENT 'ipv4 or ipv6',
   PRIMARY KEY (ID)
@@ -308,6 +315,7 @@ CREATE TABLE IF NOT EXISTS b_sender_role
 (
   ID int(11) NOT NULL auto_increment,
   NAME varchar(255) NOT NULL,
+  DEAL_CATEGORY_ID INT(10) DEFAULT -1,
   XML_ID varchar(255) NULL,
   PRIMARY KEY PK_B_SENDER_ROLE (ID),
   KEY IX_SENDER_ROLE_XML_ID (XML_ID)
@@ -321,9 +329,8 @@ CREATE TABLE IF NOT EXISTS b_sender_role_permission
   ENTITY varchar(50) NOT NULL,
   ACTION varchar(50) NOT NULL,
   PERMISSION char(1) NULL,
-  PRIMARY KEY PK_B_SENDER_ROLE_PERMISSION (ID),
-  KEY IX_SENDER_ROLE_PERM_ROLE_ID (ROLE_ID)
-);
+  PRIMARY KEY PK_B_SENDER_ROLE_PERMISSION (ID)
+  );
 
 CREATE TABLE IF NOT EXISTS b_sender_role_access
 (
@@ -341,3 +348,111 @@ CREATE TABLE IF NOT EXISTS b_sender_counter
   DATE_UPDATE DATETIME NOT NULL,
   PRIMARY KEY PK_SENDER_COUNDER_CODE (CODE)
 );
+
+CREATE TABLE IF NOT EXISTS `b_sender_role_relation` (
+	`ID` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`ROLE_ID` INT UNSIGNED NOT NULL,
+	`RELATION` VARCHAR(8) NOT NULL DEFAULT '',
+	PRIMARY KEY (`ID`),
+	INDEX `IX_SENDER_ROLE_REL_ROLE_ID` (`ROLE_ID`),
+	INDEX `IX_SENDER_ROLE_REL_RELATION` (`RELATION`)
+);
+
+CREATE TABLE `b_sender_permission` (
+	`ID` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`ROLE_ID` INT UNSIGNED NOT NULL,
+	`PERMISSION_ID` VARCHAR(32) NOT NULL DEFAULT '0',
+	`VALUE` TINYINT(3) UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (`ID`),
+	CONSTRAINT `IX_SENDER_PERMISSION_ROLE_ID_PERMISSION_ID` UNIQUE
+					(`ROLE_ID`, `PERMISSION_ID`)
+);
+
+
+CREATE TABLE `b_sender_group_deal_category` (
+	`GROUP_ID` INT UNSIGNED NOT NULL,
+	`DEAL_CATEGORY_ID` INT UNSIGNED NOT NULL,
+	INDEX `IX_SENDER_GROUP_CATEGORY_GROUP_ID` (`GROUP_ID`),
+	INDEX `IX_SENDER_GROUP_CATEGORY_DEAL_CATEGORY_ID` (`DEAL_CATEGORY_ID`)
+);
+
+CREATE TABLE `b_sender_posting_thread`
+(
+	`THREAD_ID`   INT UNSIGNED NOT NULL,
+	`POSTING_ID`  INT UNSIGNED NOT NULL,
+	`STATUS`      VARCHAR(1)   NOT NULL DEFAULT 'N',
+	`THREAD_TYPE` TEXT         NOT NULL,
+	`EXPIRE_AT`   DATETIME     NOT NULL,
+	CONSTRAINT `IX_SENDER_THREAD_INFO_POSTING_ID_THREAD_ID` UNIQUE (`THREAD_ID`, `POSTING_ID`)
+);
+
+CREATE TABLE `b_sender_message_utm`
+	(
+		`MESSAGE_ID`  INT UNSIGNED NOT NULL,
+		`CODE`      VARCHAR(70)   NOT NULL,
+		`VALUE`     VARCHAR(512)  NOT NULL,
+		CONSTRAINT `IX_SENDER_MESSAGE_UTM_MESSAGE_ID_CODE` UNIQUE
+			(`MESSAGE_ID`, `CODE`)
+	);
+
+
+create table b_sender_timeline_queue
+(
+	ID              int unsigned auto_increment
+		primary key,
+	POSTING_ID      int unsigned           not null,
+	RECIPIENT_ID    int unsigned           null,
+	FIELDS          longtext               null,
+	ENTITY_ID       int unsigned           null,
+	CONTACT_TYPE_ID int unsigned           null,
+	CONTACT_CODE    varchar(255)           not null,
+	STATUS          varchar(1) default 'N' not null,
+	DATE_INSERT     datetime               not null
+);
+
+create table b_sender_group_data
+(
+	ID int auto_increment primary key,
+	GROUP_ID int not null,
+	DATE_INSERT DATETIME default NOW() not null,
+	FILTER_ID varchar(256) not null,
+	CRM_ENTITY_ID int,
+	CRM_ENTITY_TYPE_ID int,
+	NAME varchar(511),
+	CRM_ENTITY_TYPE varchar(128),
+	CONTACT_ID int,
+	COMPANY_ID int,
+	EMAIL varchar(511),
+	IM varchar(511),
+	PHONE varchar(128),
+	HAS_EMAIL varchar(1),
+	HAS_IMOL varchar(1),
+	HAS_PHONE varchar(1)
+);
+create index IX_SENDER_GROUP_DATA_GROUP_ID_FILTER_ID
+	on b_sender_group_data (GROUP_ID, FILTER_ID);
+
+create table b_sender_group_state
+(
+	`ID` int auto_increment primary key,
+	`GROUP_ID` int not null,
+	`DATE_INSERT` datetime default NOW(),
+	`FILTER_ID` varchar(256) not null,
+	`STATE` int,
+	`ENDPOINT` LONGTEXT,
+	`OFFSET` INT
+);
+
+create index IX_SENDER_GROUP_STATE_GROUP_ID_FILTER_ID on b_sender_group_state (GROUP_ID, FILTER_ID);
+
+create table b_sender_group_queue
+(
+    `ID` bigint auto_increment primary key,
+    `DATE_INSERT` DATETIME default NOW() not null,
+    `GROUP_ID` int not null,
+    `ENTITY_ID` int not null,
+    `TYPE` int not null
+);
+
+create index IX_SENDER_GROUP_QUEUE_TYPE_ENTITY_ID_GROUP_ID
+    on b_sender_group_queue (TYPE, ENTITY_ID, GROUP_ID);

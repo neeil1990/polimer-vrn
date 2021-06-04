@@ -51,7 +51,6 @@ $MESS["F_RSS_PAGE"] = "RSS Seite";
 $MESS["F_RSS"] = "RSS Einstellungen";
 $MESS["RSS_TITLE"] = "RSS Überschrift (für Standardüberschrift leer lassen)";
 $MESS["USER_PROPERTY"] = "Zusätzliche Eigenschaften im Profil anzeigen";
-$MESS["F_SET_NAVIGATION"] = "Breadcrumb-Navigation anzeigen";
 $MESS["F_FID"] = "Nur die gewählten Foren anzeigen";
 $MESS["F_TIME_INTERVAL_FOR_USER_STAT"] = "Zeitraum zur Anzeige der Statistik (Sek.)";
 $MESS["F_SHOW_USER_STATUS"] = "Userstatus in der Userliste anzeigen";

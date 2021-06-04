@@ -10,13 +10,14 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_32.5.IMG_GRID_3_COLS_1_WO_GUTTERS_NAME'),
 		'section' => array('image'),
+		'dynamic' => false,
 	),
 	'cards' => array(),
 	'nodes' => array(
 		'.landing-block-node-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_32.5.IMG_GRID_3_COLS_1_WO_GUTTERS_NODES_LANDINGBLOCKNODEIMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 960, 'height' => 960),
+			'dimensions' => array('width' => 1080),
 			'allowInlineEdit' => false,
 		),
 	),

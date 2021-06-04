@@ -44,7 +44,7 @@ class Converter
 			if (!$optionString)
 				continue;
 
-			$options = unserialize($optionString);
+			$options = unserialize($optionString, ['allowed_classes' => false]);
 			if (!is_array($options))
 				continue;
 
@@ -100,7 +100,7 @@ class Converter
 
 		foreach ($langFields['NAME'] as $langId => $langName)
 		{
-			$langCode = strtolower($langId);
+			$langCode = mb_strtolower($langId);
 			if ($langCode === '*')
 				$langCode = '**';
 

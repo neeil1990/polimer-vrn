@@ -1,17 +1,17 @@
 <?
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--NAME"] = "Головна сторінка";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_1"] = "Цінопад! Встигніть купити на цьому тижні!";
-$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_10"] = "Детальніше…";
+$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_10"] = "Детальніше...";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_2"] = "Нова колекція взуття";
-$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_3"] = "Детальніше…";
+$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_3"] = "Детальніше...";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_4"] = "Чому ми?";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_5"] = "Тренди сезону";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_6"] = "Популярне<br />";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_7"] = "Сезонний розпродаж";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_8"] = "Доставка швидко та зручним для вас способом!";
 $MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_9"] = "Новини<br />";
-$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE—DESC"] = "Шаблон магазину одягу, який просто підлаштувати під свій бізнес і почати продавати!";
-$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE—TITLE"] = "Одяг";
+$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--DESC"] = "Шаблон магазину одягу, який просто підлаштувати під свій бізнес і почати продавати!";
+$MESS["LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TITLE"] = "Одяг";
 $MESS["NOTTRANSLATE--LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_1"] = "<span style=\"font-weight: normal;\">Наступила осінь. Жовтіє і опадає листя, навіваючи смуток та тугу про що літо, яке закінчилось. Розфарбуйте похмурі будні, поспішайте на осінню акцію Цінопад! Кращі ціни осені, тільки якісні товари!</span>";
 $MESS["NOTTRANSLATE--LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_10"] = "Отримано міцне водостійке з'єднання";
 $MESS["NOTTRANSLATE--LANDING_DEMO_STORE_CLOTHES-MAINPAGE--TEXT_11"] = "Міжнародна виставка одягу Salon De Fashion";

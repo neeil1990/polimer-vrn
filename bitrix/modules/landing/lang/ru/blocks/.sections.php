@@ -2,6 +2,7 @@
 
 $MESS['LD_BLOCK_SECTION_OTHER'] = 'Другое';
 $MESS['LD_BLOCK_SECTION_MENU_NEW'] = 'Меню и шапка сайта';
+$MESS['LD_BLOCK_SECTION_SIDEBAR'] = 'Сайдбар';
 $MESS['LD_BLOCK_SECTION_FOOTER'] = 'Подвал сайта';
 $MESS['LD_BLOCK_SECTION_COVER'] = 'Обложка';
 $MESS['LD_BLOCK_SECTION_ABOUT'] = 'О проекте';
@@ -19,11 +20,13 @@ $MESS['LD_BLOCK_SECTION_PARTNERS'] = 'Партнеры';
 $MESS['LD_BLOCK_SECTION_FEEDBACK'] = 'Отзывы';
 $MESS['LD_BLOCK_SECTION_TILES_NEW2'] = 'Кнопки и ссылки';
 $MESS['LD_BLOCK_SECTION_COUNTDOWNS'] = 'Таймеры для акций';
-$MESS['LD_BLOCK_SECTION_SEPARATOR'] = 'Разделитель';
+$MESS['LD_BLOCK_SECTION_TRANSITIONS_SEPARATORS'] = 'Переходы и разделители';
 $MESS['LD_BLOCK_SECTION_TEAM'] = 'Команда';
 $MESS['LD_BLOCK_SECTION_SCHEDULE'] = 'Расписание';
 $MESS['LD_BLOCK_SECTION_FORMS'] = 'CRM-форма';
+$MESS['LD_BLOCK_SECTION_NEWS'] = 'Новостная лента';
 $MESS['LD_BLOCK_SECTION_LAST'] = 'Последние';
+$MESS['LD_BLOCK_SECTION_RECOMMENDED'] = 'Рекомендуемые';
 $MESS['LD_BLOCK_SECTION_STORE_NEW'] = 'Интернет-магазин';
 
 $MESS['LD_BLOCK_SECTION_GALLERY'] = 'Галерея';

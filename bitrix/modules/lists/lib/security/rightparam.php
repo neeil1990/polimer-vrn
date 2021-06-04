@@ -1,6 +1,7 @@
 <?php
 namespace Bitrix\Lists\Security;
 
+use Bitrix\Lists\Entity\Utils;
 use Bitrix\Lists\Service\Param;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
@@ -18,7 +19,7 @@ class RightParam
 		$params = $param->getParams();
 
 		$this->setIblockTypeId($params["IBLOCK_TYPE_ID"]);
-		$this->setIblockId($params["IBLOCK_ID"]);
+		$this->setIblockId(Utils::getIblockId($params));
 		$this->setSocnetGroupId($params["SOCNET_GROUP_ID"]);
 	}
 

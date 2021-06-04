@@ -1,5 +1,6 @@
 <?
 namespace Bitrix\Main\Update;
+use Bitrix\Main\HttpApplication;
 use \Bitrix\Main\Web\Json;
 use \Bitrix\Main\Config\Option;
 use \Bitrix\Main\Context;
@@ -23,10 +24,12 @@ abstract class Stepper
 {
 	protected static $moduleId = "main";
 	protected $deleteFile = false;
+	protected $outerParams = [];
 	private static $filesToUnlink = array();
 	private static $countId = 0;
 	const CONTINUE_EXECUTION = true;
 	const FINISH_EXECUTION = false;
+
 	/**
 	 * Returns HTML to show updates.
 	 * @param array|string $ids
@@ -35,18 +38,20 @@ abstract class Stepper
 	 */
 	public static function getHtml($ids = array(), $title = "")
 	{
+		if (static::class !== __CLASS__)
+		{
+			$title = static::getTitle();
+			$ids = [static::$moduleId => [ static::class ]];
+			return call_user_func(array(__CLASS__, "getHtml"), $ids, $title);
+		}
+
 		$return = array();
 		$count = 0;
 		$steps = 0;
+
 		if (is_string($ids))
 		{
-			if (is_array($title))
-			{
-				$ids = array($ids => $title);
-				$title = "";
-			}
-			else
-				$ids = array($ids => null);
+			$ids = array($ids => null);
 		}
 
 		foreach($ids as $moduleId => $classesId)
@@ -59,12 +64,13 @@ abstract class Stepper
 				{
 					if (($option = Option::get("main.stepper.".$moduleId, $classId, "")) !== "")
 					{
-						$option = unserialize($option);
+						$option = unserialize($option, ['allowed_classes' => false]);
 						if (is_array($option))
 						{
 							$return[] = array(
 								"moduleId" => $moduleId,
 								"class" => $classId,
+								"title" => $option["title"],
 								"steps" => $option["steps"],
 								"count" => $option["count"]
 							);
@@ -79,12 +85,13 @@ abstract class Stepper
 				$options = Option::getForModule("main.stepper.".$moduleId);
 				foreach($options as $classId => $option)
 				{
-					$option = unserialize($option);
+					$option = unserialize($option, ['allowed_classes' => false]);
 					if (is_array($option))
 					{
 						$return[] = array(
 							"moduleId" => $moduleId,
 							"class" => $classId,
+							"title" => $option["title"],
 							"steps" => $option["steps"],
 							"count" => $option["count"]
 						);
@@ -94,15 +101,16 @@ abstract class Stepper
 				}
 			}
 		}
+
 		$result = '';
-		if (!empty($return) && $count > 0)
+		if (!empty($return))
 		{
 			$id = ++self::$countId;
 			\CJSCore::Init(array('update_stepper'));
-			$title = empty($title) ? Loc::getMessage("STEPPER_TITLE") : $title;
-			$progress = intval( $steps * 100 / $count);
+			$title = empty($title) ? self::getTitle() : $title;
+			$progress = $count > 0 ? intval($steps * 100 / $count) : 0;
 			$result .= <<<HTML
-<div class="main-stepper main-stepper-show" id="{$id}-container">
+<div class="main-stepper main-stepper-show" id="{$id}-container" data-bx-steps-count="{$count}">
 	<div class="main-stepper-info" id="{$id}-title">{$title}</div>
 	<div class="main-stepper-inner">
 		<div class="main-stepper-bar">
@@ -122,6 +130,11 @@ HTML;
 		}
 		return $result;
 	}
+
+	public static function getTitle()
+	{
+		return Loc::getMessage("STEPPER_TITLE");
+	}
 	/**
 	 * Execute an agent
 	 * @return string
@@ -133,15 +146,17 @@ HTML;
 
 		$option = Option::get("main.stepper.".$updater->getModuleId(), $className, "");
 		if ($option !== "" )
-			$option = unserialize($option);
+			$option = unserialize($option, ['allowed_classes' => false]);
 		$option = is_array($option) ? $option : array();
+		$updater->setOuterParams(func_get_args());
 		if ($updater->execute($option) === self::CONTINUE_EXECUTION)
 		{
 			$option["steps"] = (array_key_exists("steps", $option) ? intval($option["steps"]) : 0);
 			$option["count"] = (array_key_exists("count", $option) ? intval($option["count"]) : 0);
+			$option["title"] = $updater::getTitle();
 
 			Option::set("main.stepper.".$updater->getModuleId(), $className, serialize($option));
-			return $className . '::execAgent();';
+			return $className . '::execAgent('.$updater::makeArguments($updater->getOuterParams()).');';
 		}
 		if ($updater->deleteFile === true && \Bitrix\Main\ModuleManager::isModuleInstalled("bitrix24") !== true)
 		{
@@ -163,14 +178,14 @@ HTML;
 
 				$langDir = $fileName = "";
 				$filePath = $file->GetPathWithName();
-				while(($slashPos = strrpos($filePath, "/")) !== false)
+				while(($slashPos = mb_strrpos($filePath, "/")) !== false)
 				{
-					$filePath = substr($filePath, 0, $slashPos);
+					$filePath = mb_substr($filePath, 0, $slashPos);
 					$langPath = $filePath."/lang";
 					if(is_dir($langPath))
 					{
 						$langDir = $langPath;
-						$fileName = substr($file->GetPathWithName(), $slashPos);
+						$fileName = mb_substr($file->GetPathWithName(), $slashPos);
 						break;
 					}
 				}
@@ -200,6 +215,41 @@ HTML;
 	 * @return boolean
 	 */
 	abstract function execute(array &$option);
+
+	public function setOuterParams(array $outerParams): void
+	{
+		$this->outerParams = $outerParams;
+	}
+
+	public function getOuterParams(): array
+	{
+		return $this->outerParams;
+	}
+
+	/**
+	 * It is possible to pass only integer and string values for now. But you can make your own method or extend this one.
+	 * @param array $arguments
+	 * @return string
+	 */
+	public static function makeArguments($arguments = []): string
+	{
+		if (is_array($arguments))
+		{
+			foreach ($arguments as $key=> $val)
+			{
+				if (is_string($val))
+				{
+					$arguments[$key] = "'".str_replace("'", "", $val)."'";
+				}
+				else
+				{
+					$arguments[$key] = intval($val);
+				}
+			}
+			return implode(", ", $arguments);
+		}
+		return "";
+	}
 	/**
 	 * Just fabric method.
 	 * @return Stepper
@@ -219,58 +269,71 @@ HTML;
 	/**
 	 * Adds agent for current class.
 	 * @param int $delay Delay for running agent
+	 * @param array $withArguments Data that will available in $stepper->outerParams
 	 * @return void
 	 */
-	public static function bind($delay = 120)
+	public static function bind($delay = 300, $withArguments = [])
 	{
 		/** @var Stepper $c */
 		$c = get_called_class();
-		self::bindClass($c, $c::getModuleId(), $delay);
+		self::bindClass($c, $c::getModuleId(), $delay, $withArguments);
 	}
 
 	/**
 	 * Adds agent for class $className for $moduleId module. Example for updater: \Bitrix\Main\Stepper::bindClass('\Bitrix\SomeModule\SomeClass', 'somemodule').
-	 * @param string $className Class like \Bitrix\SomeModule\SomeClass.
+	 * @param string $className Class like \Bitrix\SomeModule\SomeClass extends Stepper.
 	 * @param string $moduleId Module ID like somemodule.
 	 * @param int $delay Delay for running agent
+	 * @param array $withArguments
 	 * @return void
 	 */
-	public static function bindClass($className, $moduleId, $delay = 120)
+	public static function bindClass($className, $moduleId, $delay = 300, $withArguments = [])
 	{
 		if (class_exists("\CAgent"))
 		{
 			$addAgent = true;
+			$withArguments = is_array($withArguments) ? $withArguments : [];
 
+			$delay = (int)$delay;
 			if ($delay <= 0)
 			{
 				/** @var Stepper $className */
-				$addAgent = $className::execAgent() !== '';
+				$addAgent = ('' !== call_user_func_array([$className, "execAgent"], $withArguments));
 			}
 
 			if ($addAgent)
 			{
+				if (Option::get("main.stepper.".$moduleId, $className, "") === "")
+					Option::set("main.stepper.".$moduleId, $className, serialize([]));
+				\CTimeZone::Disable();
 				\CAgent::AddAgent(
-					$className.'::execAgent();',
+					$className.'::execAgent('.(empty($withArguments) ? '' : call_user_func_array([$className, "makeArguments"], [$withArguments])).');',
 					$moduleId,
 					"Y",
 					1,
 					"",
 					"Y",
-					\ConvertTimeStamp(time()+\CTimeZone::GetOffset() + (int) $delay, "FULL"),
+					\ConvertTimeStamp(time() + $delay, "FULL"),
 					100,
 					false,
 					false
 				);
+				\CTimeZone::Enable();
 			}
 		}
 		else
 		{
 			global $DB;
-			$name = $DB->ForSql($className.'::execAgent();', 2000);
+			$name = $DB->ForSql($className.'::execAgent('.(empty($withArguments) ? '' : call_user_func_array([$className, "makeArguments"], [$withArguments])).');', 2000);
+			$className = $DB->ForSql($className);
 			$moduleId = $DB->ForSql($moduleId);
 			if (!(($agent = $DB->Query("SELECT ID FROM b_agent WHERE MODULE_ID='".$moduleId."' AND NAME = '".$name."' AND USER_ID IS NULL")->Fetch()) && $agent))
 			{
-				$DB->Query("INSERT INTO b_agent (MODULE_ID, SORT, NAME, ACTIVE, AGENT_INTERVAL, IS_PERIOD, NEXT_EXEC) VALUES ('".$moduleId."', 100, '".$name."', 'Y', 1, 'Y', ".($delay > 0 ? "DATE_ADD(now(), INTERVAL ". ((int) $delay)." SECOND)" : $DB->GetNowFunction()).")");
+				$DB->Query("INSERT INTO b_agent (MODULE_ID, SORT, NAME, ACTIVE, AGENT_INTERVAL, IS_PERIOD, NEXT_EXEC) VALUES ('".$moduleId."', 100, '".$name."', 'Y', 1, 'Y', ".($delay > 0 ? "DATE_ADD(now(), INTERVAL ".$delay." SECOND)" : $DB->GetNowFunction()).")");
+				$DB->Query("INSERT INTO b_option (`MODULE_ID`, `NAME`, `VALUE`)".
+					"VALUES ('main.stepper.{$moduleId}', '".$className."', 'a:0:{}')".
+					"ON DUPLICATE KEY UPDATE `VALUE` = 'a:0:{}'"
+				);
 			}
 		}
 	}
@@ -287,7 +350,7 @@ HTML;
 			foreach ($data as $stepper)
 			{
 				if (($option = Option::get("main.stepper.".$stepper["moduleId"], $stepper["class"], "")) !== "" &&
-					($res = unserialize($option)) && is_array($res))
+					($res = unserialize($option, ['allowed_classes' => false])) && is_array($res))
 				{
 					$r = array(
 						"moduleId" => $stepper["moduleId"],
@@ -310,7 +373,6 @@ HTML;
 	{
 		global $APPLICATION;
 		$APPLICATION->RestartBuffer();
-		while(ob_end_clean());
 
 		header('Content-Type:application/json; charset=UTF-8');
 
@@ -318,5 +380,11 @@ HTML;
 		\CMain::finalActions();
 		die;
 	}
+
+	protected function writeToLog(\Exception $exception)
+	{
+		$application = HttpApplication::getInstance();
+		$exceptionHandler = $application->getExceptionHandler();
+		$exceptionHandler->writeToLog($exception);
+	}
 }
-?>

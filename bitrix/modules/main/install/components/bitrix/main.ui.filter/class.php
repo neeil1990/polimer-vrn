@@ -1,5 +1,6 @@
 <?
 
+use Bitrix\Main\Loader;
 use Bitrix\Main\UI\Filter\Type;
 use Bitrix\Main\UI\Filter\FieldAdapter;
 use Bitrix\Main\UI\Filter\DateType;
@@ -19,9 +20,6 @@ class CMainUiFilter extends CBitrixComponent
 {
 	protected $defaultViewSort = 500;
 	protected $options;
-	protected $jsFolder = "/js/";
-	protected $blocksFolder = "/blocks/";
-	protected $cssFolder = "/css/";
 	protected $themesFolder = "/themes/";
 	protected $configName = "config.json";
 	protected $commonOptions;
@@ -44,6 +42,12 @@ class CMainUiFilter extends CBitrixComponent
 		$this->arResult["ENABLE_LIVE_SEARCH"] = $this->prepareEnableLiveSearch();
 		$this->arResult["DISABLE_SEARCH"] = $this->prepareDisableSearch();
 		$this->arResult["COMPACT_STATE"] = $this->prepareCompactState();
+		$this->arResult["LIMITS_ENABLED"] = $this->prepareLimits();
+		if ($this->arResult["LIMITS_ENABLED"])
+		{
+			$this->arResult["DISABLE_SEARCH"] = true;
+		}
+
 		$this->arResult["MAIN_UI_FILTER__AND"] = Loc::getMessage('MAIN_UI_FILTER__AND');
 		$this->arResult["MAIN_UI_FILTER__MORE"] = Loc::getMessage('MAIN_UI_FILTER__MORE');
 		$this->arResult["MAIN_UI_FILTER__BEFORE"] = Loc::getMessage("MAIN_UI_FILTER__BEFORE");
@@ -53,6 +57,7 @@ class CMainUiFilter extends CBitrixComponent
 		$this->arResult["MAIN_UI_FILTER__PLACEHOLDER_DEFAULT"] = Loc::getMessage("MAIN_UI_FILTER__PLACEHOLDER_DEFAULT");
 		$this->arResult["MAIN_UI_FILTER__PLACEHOLDER_WITH_FILTER"] = Loc::getMessage("MAIN_UI_FILTER__PLACEHOLDER_WITH_FILTER");
 		$this->arResult["MAIN_UI_FILTER__PLACEHOLDER"] = Loc::getMessage("MAIN_UI_FILTER__PLACEHOLDER");
+		$this->arResult["MAIN_UI_FILTER__PLACEHOLDER_LIMITS_EXCEEDED"] = Loc::getMessage("MAIN_UI_FILTER__PLACEHOLDER_LIMITS_EXCEEDED");
 		$this->arResult["MAIN_UI_FILTER__QUARTER"] = Loc::getMessage("MAIN_UI_FILTER__QUARTER");
 		$this->arResult["MAIN_UI_FILTER__IS_SET_AS_DEFAULT_PRESET"] = Loc::getMessage("MAIN_UI_FILTER__IS_SET_AS_DEFAULT_PRESET");
 		$this->arResult["MAIN_UI_FILTER__SET_AS_DEFAULT_PRESET"] = Loc::getMessage("MAIN_UI_FILTER__SET_AS_DEFAULT_PRESET");
@@ -67,6 +72,7 @@ class CMainUiFilter extends CBitrixComponent
 		$this->arResult["MAIN_UI_FILTER__DATE_PREV_DAYS_LABEL"] = Loc::getMessage("MAIN_UI_FILTER__DATE_PREV_DAYS_LABEL");
 		$this->arResult["MAIN_UI_FILTER__DATE_ERROR_TITLE"] = Loc::getMessage("MAIN_UI_FILTER__DATE_ERROR_TITLE");
 		$this->arResult["MAIN_UI_FILTER__DATE_ERROR_LABEL"] = Loc::getMessage("MAIN_UI_FILTER__DATE_ERROR_LABEL");
+		$this->arResult["MAIN_UI_FILTER__VALUE_REQUIRED"] = Loc::getMessage("MAIN_UI_FILTER__VALUE_REQUIRED");
 		$this->arResult["CLEAR_GET"] = $this->prepareClearGet();
 		$this->arResult["VALUE_REQUIRED_MODE"] = $this->prepareValueRequiredMode();
 		$this->arResult["THEME"] = $this->getTheme();
@@ -75,13 +81,15 @@ class CMainUiFilter extends CBitrixComponent
 		$this->arResult["IS_AUTHORIZED"] = $this->prepareIsAuthorized();
 		$this->arResult["LAZY_LOAD"] = $this->arParams["LAZY_LOAD"];
 		$this->arResult["VALUE_REQUIRED"] = $this->arParams["VALUE_REQUIRED"];
+		$this->arResult["FIELDS_STUBS"] = static::getFieldsStubs();
+		$this->arResult["INITIAL_FILTER"] = $this->getFilter();
 
 		if (isset($this->arParams["MESSAGES"]) && is_array($this->arParams["MESSAGES"]))
 		{
 			foreach ($this->arParams["MESSAGES"] as $key => $message)
 			{
 				if (
-					strpos($key, "MAIN_UI_FILTER__") !== false
+					mb_strpos($key, "MAIN_UI_FILTER__") !== false
 					&& isset($this->arResult[$key])
 				)
 				{
@@ -168,6 +176,45 @@ class CMainUiFilter extends CBitrixComponent
 		return $this->arResult["ENABLE_LABEL"];
 	}
 
+	protected function prepareLimits()
+	{
+		$this->arResult["LIMITS"] = [
+			"TITLE" => "",
+			"DESCRIPTION" => "",
+			"BUTTONS" => []
+		];
+
+		if (isset($this->arParams["LIMITS"]) && is_array($this->arParams["LIMITS"]))
+		{
+			if (isset($this->arParams["LIMITS"]["TITLE"]) && !empty($this->arParams["LIMITS"]["TITLE"]))
+			{
+				$this->arResult["LIMITS"]["TITLE"] = htmlspecialcharsback($this->arParams["LIMITS"]["TITLE"]);
+			}
+
+			if (isset($this->arParams["LIMITS"]["DESCRIPTION"]) && !empty($this->arParams["LIMITS"]["DESCRIPTION"]))
+			{
+				$this->arResult["LIMITS"]["DESCRIPTION"] = htmlspecialcharsback($this->arParams["LIMITS"]["DESCRIPTION"]);
+			}
+
+			if (
+				isset($this->arParams["LIMITS"]["BUTTONS"]) &&
+				is_array($this->arParams["LIMITS"]["BUTTONS"]) &&
+				Loader::includeModule("ui")
+			)
+			{
+				foreach ($this->arParams["LIMITS"]["BUTTONS"] as $button)
+				{
+					if (is_string($button) && !empty($button))
+					{
+						$this->arResult["LIMITS"]["BUTTONS"][] = htmlspecialcharsback($button);
+					}
+				}
+			}
+		}
+
+		return !empty($this->arResult["LIMITS"]["TITLE"]);
+	}
+
 	protected function getUserOptions()
 	{
 		if (!($this->options instanceof \Bitrix\Main\UI\Filter\Options))
@@ -180,6 +227,11 @@ class CMainUiFilter extends CBitrixComponent
 		}
 
 		return $this->options;
+	}
+
+	public function getFilter()
+	{
+		return $this->getUserOptions()->getFilter($this->arParams["FILTER"]);
 	}
 
 	protected function prepareParams()
@@ -221,8 +273,6 @@ class CMainUiFilter extends CBitrixComponent
 		return $this->arParams["FILTER_ROWS"];
 	}
 
-
-
 	protected static function prepareSelectValue(Array $items = array(), $value = "", $strictMode = false)
 	{
 		foreach ($items as $key => $item)
@@ -258,7 +308,7 @@ class CMainUiFilter extends CBitrixComponent
 	protected static function prepareValue(Array $field, Array $presetFields = array(), $prefix)
 	{
 		$fieldValuesKeys = array_keys($field["VALUES"]);
-		$fieldName = strpos($field["NAME"], $prefix) !== false ? str_replace($prefix, "", $field["NAME"]) : $field["NAME"];
+		$fieldName = mb_strpos($field["NAME"], $prefix) !== false ? str_replace($prefix, "", $field["NAME"]) : $field["NAME"];
 		$result = array();
 
 		foreach ($fieldValuesKeys as $key => $keyName)
@@ -278,7 +328,7 @@ class CMainUiFilter extends CBitrixComponent
 	protected static function prepareSubtype(Array $field, Array $presetFields = array(), $prefix)
 	{
 		$subTypes = $field["SUB_TYPES"];
-		$dateselName = strpos($field["NAME"], $prefix) === false ? $field["NAME"].$prefix : $field["NAME"];
+		$dateselName = mb_strpos($field["NAME"], $prefix) === false ? $field["NAME"].$prefix : $field["NAME"];
 		$result = $subTypes[0];
 
 		if (array_key_exists($dateselName, $presetFields))
@@ -374,30 +424,71 @@ class CMainUiFilter extends CBitrixComponent
 
 		if (!empty($result["_value"]) && empty($result["_label"]))
 		{
+			$fieldData = [];
+			foreach($params as $paramsItem)
+			{
+				if (
+					!empty($paramsItem['id'])
+					&& $paramsItem['id'] == $field['NAME']
+				)
+				{
+					$fieldData = $paramsItem;
+					break;
+				}
+			}
+
 			$value = (
-				!empty($params[$field['NAME']])
-				&& !empty($params[$field['NAME']]['params'])
-				&& !empty($params[$field['NAME']]['params']['isNumeric'])
-				&& $params[$field['NAME']]['params']['isNumeric'] == 'Y'
-				&& !empty($params[$field['NAME']]['params']['prefix'])
-					? $params[$field['NAME']]['params']['prefix'].$result["_value"]
+				!empty($fieldData)
+				&& !empty($fieldData['params'])
+				&& !empty($fieldData['params']['isNumeric'])
+				&& $fieldData['params']['isNumeric'] == 'Y'
+				&& !empty($fieldData['params']['prefix'])
+					? $fieldData['params']['prefix'].$result["_value"]
 					: $result["_value"]
 			);
 
-			$entityType = Bitrix\Main\UI\Selector\Entities::getEntityType(array(
-				'itemCode' => $value
-			));
-			if (!empty($entityType))
+			if (is_array($value))
 			{
-				if ($entityType == 'department')
-				{
-					$entityType = 'departments';
-				}
+				$result["_label"] = [];
 
-				$provider = \Bitrix\Main\UI\Selector\Entities::getProviderByEntityType(strtoupper($entityType));
-				if ($provider !== false)
+				foreach($value as $val)
 				{
-					$result["_label"] = $provider->getItemName($value);
+					$entityType = Bitrix\Main\UI\Selector\Entities::getEntityType(array(
+						'itemCode' => $val
+					));
+					if (!empty($entityType))
+					{
+						if ($entityType == 'department')
+						{
+							$entityType = 'departments';
+						}
+
+						$provider = \Bitrix\Main\UI\Selector\Entities::getProviderByEntityType(mb_strtoupper($entityType));
+						if ($provider !== false)
+						{
+							$result["_label"][] = $provider->getItemName($val);
+						}
+					}
+				}
+			}
+			else
+			{
+				$entityType = Bitrix\Main\UI\Selector\Entities::getEntityType(array(
+					'itemCode' => $value
+				));
+
+				if (!empty($entityType))
+				{
+					if ($entityType == 'department')
+					{
+						$entityType = 'departments';
+					}
+
+					$provider = \Bitrix\Main\UI\Selector\Entities::getProviderByEntityType(mb_strtoupper($entityType));
+					if ($provider !== false)
+					{
+						$result["_label"] = $provider->getItemName($value);
+					}
 				}
 			}
 		}
@@ -550,6 +641,12 @@ class CMainUiFilter extends CBitrixComponent
 						$field["VALUE"] = $value;
 						break;
 					}
+
+					case Type::TEXTAREA :
+						{
+							$field["VALUE"] = $value;
+							break;
+						}
 
 				}
 
@@ -883,6 +980,58 @@ class CMainUiFilter extends CBitrixComponent
 		return $resultField;
 	}
 
+	static function prepareField($field, $filterId = '')
+	{
+		return array_merge(
+			FieldAdapter::adapt($field, $filterId),
+			array("STRICT" => $field["strict"] === true),
+			array("REQUIRED" => $field["required"] === true),
+			array("VALUE_REQUIRED" => $field["valueRequired"] === true)
+		);
+	}
+
+	static function getFieldsStubs()
+	{
+		return [
+			static::prepareField([
+				'id' => 'string',
+				'type' => 'string',
+				'name' => 'string',
+			]),
+			static::prepareField([
+				'id' => 'list',
+				'type' => 'list',
+				'name' => 'list',
+				'items' => [],
+			]),
+			static::prepareField([
+				'id' => 'date',
+				'type' => 'date',
+				'name' => 'date',
+			]),
+			static::prepareField([
+				'id' => 'custom_date',
+				'type' => 'custom_date',
+				'name' => 'custom_date',
+			]),
+			static::prepareField([
+				'id' => 'number',
+				'type' => 'number',
+				'name' => 'number',
+			]),
+			static::prepareField([
+				'id' => 'checkbox',
+				'type' => 'checkbox',
+				'name' => 'checkbox',
+			]),
+			static::prepareField([
+				'id' => 'custom_entity',
+				'type' => 'custom_entity',
+				'name' => 'custom_entity',
+			]),
+		];
+	}
+
 	protected function prepareFields()
 	{
 		if (!is_array($this->arResult["FIELDS"]))
@@ -894,10 +1043,7 @@ class CMainUiFilter extends CBitrixComponent
 			{
 				foreach ($sourceFields as $sourceFieldKey => $sourceField)
 				{
-					$this->arResult["FIELDS"][] = array_merge(
-						FieldAdapter::adapt($sourceField),
-						array("STRICT" => $sourceField["strict"] === true)
-					);
+					$this->arResult["FIELDS"][] = static::prepareField($sourceField, $this->arParams['FILTER_ID']);
 				}
 			}
 		}
@@ -930,21 +1076,6 @@ class CMainUiFilter extends CBitrixComponent
 		return $errors->count() === 0;
 	}
 
-	protected function getJsFolder()
-	{
-		return $this->jsFolder;
-	}
-
-	protected function getBlocksFolder()
-	{
-		return $this->blocksFolder;
-	}
-
-	protected function getCssFolder()
-	{
-		return $this->cssFolder;
-	}
-
 	protected function includeScripts($folder)
 	{
 		$tmpl = $this->getTemplate();
@@ -961,7 +1092,7 @@ class CMainUiFilter extends CBitrixComponent
 				{
 					$ext = getFileExtension($file);
 
-					if ($ext === 'js' && !(strpos($file, 'map.js') !== false || strpos($file, 'min.js') !== false))
+					if ($ext === 'js' && !(mb_strpos($file, 'map.js') !== false || mb_strpos($file, 'min.js') !== false))
 					{
 						$tmpl->addExternalJs($relPath.$file);
 					}
@@ -988,7 +1119,7 @@ class CMainUiFilter extends CBitrixComponent
 				{
 					$ext = getFileExtension($file);
 
-					if ($ext === 'css' && !(strpos($file, 'map.css') !== false || strpos($file, 'min.css') !== false))
+					if ($ext === 'css' && !(mb_strpos($file, 'map.css') !== false || mb_strpos($file, 'min.css') !== false))
 					{
 						$tmpl->addExternalCss($relPath.$file);
 					}
@@ -997,18 +1128,6 @@ class CMainUiFilter extends CBitrixComponent
 				closedir($dir);
 			}
 		}
-	}
-
-	protected function includeComponentBlocks()
-	{
-		$blocksFolder = $this->getBlocksFolder();
-		$this->includeScripts($blocksFolder);
-	}
-
-	protected function includeComponentScripts()
-	{
-		$scriptsFolder = $this->getJsFolder();
-		$this->includeScripts($scriptsFolder);
 	}
 
 	protected function saveOptions()
@@ -1103,7 +1222,7 @@ class CMainUiFilter extends CBitrixComponent
 		$theme = $this->getTheme();
 		if ($theme !== Theme::DEFAULT_FILTER)
 		{
-			$themePath = strtolower($theme);
+			$themePath = mb_strtolower($theme);
 			$themePath = $this->themesFolder.$themePath."/";
 
 			$this->includeStyles($themePath);
@@ -1141,7 +1260,7 @@ class CMainUiFilter extends CBitrixComponent
 	{
 		$themesPath = $this->getAbsoluteThemesPath();
 		$themeId = $this->getTheme();
-		$themeFolder = strtolower($themeId);
+		$themeFolder = mb_strtolower($themeId);
 		$defaultConfigPath = $themesPath."/".$this->configName;
 		$themeConfigPath = $themesPath."/".$themeFolder."/".$this->configName;
 		$defaultConfig = $this->getConfig($defaultConfigPath);
@@ -1161,8 +1280,6 @@ class CMainUiFilter extends CBitrixComponent
 			$this->prepareResult();
 			$this->applyOptions();
 			$this->includeComponentTemplate();
-			$this->includeComponentScripts();
-			$this->includeComponentBlocks();
 			$this->includeTheme();
 		}
 	}

@@ -124,7 +124,8 @@ BX.adminSubList.prototype.ExecuteFormAction = function(id)
 		bAttr,
 		cutname,
 		j,
-		multiCheck;
+		multiCheck,
+		actions;
 
 	if (!!id && !!this[id] && typeof this[id] === 'object')
 	{
@@ -153,6 +154,20 @@ BX.adminSubList.prototype.ExecuteFormAction = function(id)
 						reqdata.SUB_ID[reqdata.SUB_ID.length] = obj[i].value;
 					}
 				}
+
+				if (BX.type.isElementNode(this.FOOTER))
+				{
+					actions = BX.findChild(this.FOOTER, { attr: {'data-action-item' : 'Y'} }, true, true);
+					if (BX.type.isArray(actions))
+					{
+						for (i = 0; i < actions.length; i++)
+						{
+							reqdata[actions[i].name] = actions[i].value;
+						}
+					}
+					actions = null;
+				}
+
 				reqdata.action_button = this.ACTION_VALUE_BUTTON.value;
 				reqdata.sessid = BX('sessid').value;
 				boolSend = true;
@@ -278,6 +293,8 @@ BX.adminSubList.prototype.Init = function()
 	BX.bind(this.ACTION_SELECTOR, 'change', BX.proxy(this.UpdateCheckboxCounter, this));
 	BX.bind(this.ACTION_TARGET, 'click', BX.proxy(this.UpdateCheckboxCounter, this));
 
+	BX.bindDelegate(this.FOOTER, 'change', { tagName: 'select', attr: {'data-use-actions' : 'Y'} }, BX.proxy(this.CheckGroupActions, this));
+
 	if (!!this.TABLE && this.TABLE.tBodies[0] && this.TABLE.tBodies[0].rows.length > 0)
 	{
 		for (i = 0; i < this.TABLE.tBodies[0].rows.length; i++)
@@ -361,14 +378,31 @@ BX.adminSubList.prototype.Init = function()
 	this.MAIN_BUTTON_CANCEL = BX('cancel');
 	this.MAIN_BUTTON_SAVE_ADD = BX('save_and_add');
 
-	if (!this.MAIN_BUTTON_SAVE && !this.MAIN_BUTTON_APPLY && !this.MAIN_BUTTON_CANCEL && !this.MAIN_BUTTON_SAVE_ADD)
+	if (!(
+		BX.type.isElementNode(this.MAIN_BUTTON_SAVE)
+		&& BX.type.isElementNode(this.MAIN_BUTTON_APPLY)
+		&& BX.type.isElementNode(this.MAIN_BUTTON_CANCEL)
+		&& BX.type.isElementNode(this.MAIN_BUTTON_SAVE_ADD)
+	))
 	{
-		if (!!this.PARENT_FORM)
+		if (BX.type.isElementNode(this.PARENT_FORM))
 		{
 			this.MAIN_BUTTON_SAVE = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'submit', name: 'save' }}, true, false);
+			if (!BX.type.isElementNode(this.MAIN_BUTTON_SAVE))
+			{
+				this.MAIN_BUTTON_SAVE = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'button', name: 'save' }}, true, false);
+			}
 			this.MAIN_BUTTON_APPLY = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'submit', name: 'apply' }}, true, false);
+			if (!BX.type.isElementNode(this.MAIN_BUTTON_APPLY))
+			{
+				this.MAIN_BUTTON_APPLY = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'button', name: 'apply' }}, true, false);
+			}
 			this.MAIN_BUTTON_CANCEL = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'button', name: 'cancel' }}, true, false);
 			this.MAIN_BUTTON_SAVE_ADD = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'submit', name: 'save_and_add' }}, true, false);
+			if (!BX.type.isElementNode(this.MAIN_BUTTON_SAVE_ADD))
+			{
+				this.MAIN_BUTTON_SAVE_ADD = BX.findChild(this.PARENT_FORM, { tag: 'input', attribute: { type: 'button', name: 'save_and_add' }}, true, false);
+			}
 		}
 	}
 };
@@ -450,7 +484,14 @@ BX.adminSubList.prototype.SaveSettings =  function()
 		BX.closeWait();
 		this.GetAdminList(
 			url,
-			function(){top.BX.WindowManager.Get().Close();}
+			function(){
+				var wnd = top.BX.WindowManager.Get() || BX.WindowManager.Get();
+				if (wnd !== null)
+				{
+					wnd.Close();
+				}
+				wnd = null;
+			}
 		);
 	}, this));
 };
@@ -463,7 +504,14 @@ BX.adminSubList.prototype.DeleteSettings = function(bCommon)
 		BX.closeWait();
 		this.GetAdminList(
 			url,
-			function(){top.BX.WindowManager.Get().Close();}
+			function(){
+				var wnd = top.BX.WindowManager.Get() || BX.WindowManager.Get();
+				if (wnd !== null)
+				{
+					wnd.Close();
+				}
+				wnd = null;
+			}
 		);
 	}, this));
 };
@@ -471,5 +519,33 @@ BX.adminSubList.prototype.DeleteSettings = function(bCommon)
 BX.adminSubList.ShowMenu = function(el, menu, el_row)
 {
 	BX.adminList.ShowMenu.apply(this,[ el, menu, el_row]);
+};
+
+BX.adminSubList.prototype.CheckGroupActions = function()
+{
+	var target = BX.proxy_context,
+		data,
+		list,
+		i,
+		block;
+
+	if (!target.hasAttribute('data-actions'))
+		return;
+	data = target.getAttribute('data-actions');
+	if (!BX.type.isNotEmptyString(data))
+		return;
+	list = JSON.parse(data);
+	for (i = 0; i < list.length; i++)
+	{
+		block = BX(list[i].BLOCK);
+		if (BX.type.isElementNode(block))
+		{
+			block.style.display = (target.value === list[i].VALUE ? 'inline-block' : 'none');
+		}
+		block = null;
+	}
+	list = null;
+	data = null;
+	target = null;
 };
 })(window);

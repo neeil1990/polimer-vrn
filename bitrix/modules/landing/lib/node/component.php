@@ -64,7 +64,7 @@ class Component extends \Bitrix\Landing\Node
 					"\t" . ')' : '') . PHP_EOL .
 					');';
 				$componentCode = str_replace(array('<?', '?>'), array('< ?', '? >'), $componentCode);
-				$content = substr($content, 0, $component['START']) . $componentCode . substr($content, $component['END']);
+				$content = mb_substr($content, 0, $component['START']).$componentCode.mb_substr($content, $component['END']);
 				break;
 			}
 		}
@@ -94,9 +94,9 @@ class Component extends \Bitrix\Landing\Node
 		}
 		else{
 			if (
-				substr($code, 0, 2) == '={' &&
-				substr($code, -1, 1) == '}' &&
-				strlen($code) > 3
+				mb_substr($code, 0, 2) == '={' &&
+				mb_substr($code, -1, 1) == '}' &&
+				mb_strlen($code) > 3
 			)
 			{
 				return true;
@@ -108,12 +108,12 @@ class Component extends \Bitrix\Landing\Node
 
 	/**
 	 * Save data for this node.
-	 * @param \Bitrix\Landing\Block &$block Block instance.
+	 * @param \Bitrix\Landing\Block $block Block instance.
 	 * @param string $selector Selector.
 	 * @param array $data Data array.
 	 * @return void
 	 */
-	public static function saveNode(\Bitrix\Landing\Block &$block, $selector, array $data)
+	public static function saveNode(\Bitrix\Landing\Block $block, $selector, array $data)
 	{
 		//$data = array_pop($data);// we allow one type of component per block
 		$manifest = $block->getManifest();
@@ -466,7 +466,7 @@ class Component extends \Bitrix\Landing\Node
 							$item['items'][] = array(
 								'name' => $val,
 								'value' => $code,
-								'preview' => '/bitrix/images/landing/catalog_images/preview/' . strtolower($code) . '.svg?v3'
+								'preview' => '/bitrix/images/landing/catalog_images/preview/'.mb_strtolower($code) . '.svg?v3'
 							);
 						}
 					}
@@ -638,7 +638,9 @@ class Component extends \Bitrix\Landing\Node
 							{
 								if (preg_match('/^#landing([\d]+)$/', $value, $matches))
 								{
-									$lansing = \Bitrix\Landing\Landing::createInstance($matches[1]);
+									$lansing = \Bitrix\Landing\Landing::createInstance($matches[1], [
+										'skip_blocks' => true
+									]);
 									if ($lansing->exist())
 									{
 										$value = $lansing->getPublicUrl();
@@ -700,11 +702,11 @@ class Component extends \Bitrix\Landing\Node
 
 	/**
 	 * Get data for this node.
-	 * @param \Bitrix\Landing\Block &$block Block instance.
+	 * @param \Bitrix\Landing\Block $block Block instance.
 	 * @param string $selector Selector.
 	 * @return array
 	 */
-	public static function getNode(\Bitrix\Landing\Block &$block, $selector)
+	public static function getNode(\Bitrix\Landing\Block $block, $selector)
 	{
 		$data = array();
 		$manifest = $block->getManifest();

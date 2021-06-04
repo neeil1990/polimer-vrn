@@ -42,19 +42,22 @@ if (is_array($arResult["ITEMS"])):
 
 ?>
 				<li>
-					<span class="mp_sc_ls_img">
+
 <?php
-				if($app["ICON"]):
+				if(!empty($app["ICON"])):
 ?>
+					<span class="mp_sc_ls_img">
 						<span><img src="<?=htmlspecialcharsbx($app["ICON"])?>" alt="" /></span>
+					</span>
 <?php
 				else:
 ?>
+					<span class="mp_sc_ls_img">
 						<span class="mp_empty_icon"></span>
+					</span>
 <?php
 				endif;
 ?>
-					</span>
 					<a href="<?=$appUrl?>" class="mp_sc_ls_shadow">
 <?php
 				if ($app["PROMO"] == "Y"):
@@ -73,7 +76,7 @@ endif;
 ?>
 
 					<div class="mp_sc_ls_container">
-						<a class="mp_sc_ls_title crop" href="<?=$appUrl;?>"><?=htmlspecialcharsbx(strlen($app["NAME"]) <= 25 ? $app["NAME"] :  substr($app["NAME"], 0, 25)."...")?></a>
+						<a class="mp_sc_ls_title crop" href="<?=$appUrl;?>"><?=htmlspecialcharsbx(mb_strlen($app["NAME"]) <= 25 ? $app["NAME"] : mb_substr($app["NAME"], 0, 25)."...")?></a>
 						<span class="mp_sc_ls_price">
 <?php
 				if (is_array($app["PRICE"]) && !empty($app["PRICE"][1])):

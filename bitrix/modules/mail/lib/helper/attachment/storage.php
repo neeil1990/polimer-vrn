@@ -99,14 +99,16 @@ class Storage
 	 */
 	public static function getObjectsByFileId($fileId, $limit = 0)
 	{
-		if (!Main\Loader::includeModule('disk'))
+		$storage = static::getStorage();
+
+		if (!$storage)
 		{
-			return false;
+			return array();
 		}
 
 		return \Bitrix\Disk\File::getModelList(array(
 			'filter' => array(
-				'=STORAGE_ID' => static::getStorage()->getId(),
+				'=STORAGE_ID' => $storage->getId(),
 				'=TYPE' => \Bitrix\Disk\Internals\ObjectTable::TYPE_FILE,
 				'=FILE_ID' => $fileId,
 			),
@@ -123,7 +125,8 @@ class Storage
 	 */
 	public static function getObjectByAttachment(array $attachment, $create = false)
 	{
-		$object = reset(static::getObjectsByFileId($attachment['FILE_ID'], 1));
+		$list = static::getObjectsByFileId($attachment['FILE_ID'], 1);
+		$object = reset($list);
 
 		if (empty($object) && $create)
 		{
@@ -141,12 +144,12 @@ class Storage
 	 */
 	public static function registerAttachment(array $attachment)
 	{
-		if (!Main\Loader::includeModule('disk'))
+		$storage = static::getStorage();
+
+		if (!$storage)
 		{
 			return false;
 		}
-
-		$storage = static::getStorage();
 
 		$folder = $storage->getChild(array(
 			'=NAME' => date('Y-m'),

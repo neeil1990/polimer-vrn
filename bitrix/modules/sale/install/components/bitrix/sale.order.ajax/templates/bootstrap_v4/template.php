@@ -1,7 +1,7 @@
 <? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
-use Bitrix\Main,
-	Bitrix\Main\Localization\Loc;
+use Bitrix\Main;
+use Bitrix\Main\Localization\Loc;
 
 /**
  * @var array $arParams
@@ -287,7 +287,7 @@ $this->addExternalJs($templateFolder.'/script.js');
 	</NOSCRIPT>
 <?
 
-if (strlen($request->get('ORDER_ID')) > 0)
+if ($request->get('ORDER_ID') <> '')
 {
 	include(Main\Application::getDocumentRoot().$templateFolder.'/confirm.php');
 }
@@ -297,14 +297,17 @@ elseif ($arParams['DISABLE_BASKET_REDIRECT'] === 'Y' && $arResult['SHOW_EMPTY_BA
 }
 else
 {
+	Main\UI\Extension::load('phone_auth');
+
 	$themeClass = !empty($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_THEME'] : '';
 	$hideDelivery = empty($arResult['DELIVERY']);
+	$hidePaySystem = empty($arResult['PAY_SYSTEM']);
 	?>
 	<form action="<?=POST_FORM_ACTION_URI?>" method="POST" name="ORDER_FORM" class="bx-soa-wrapper mb-4<?=$themeClass?>" id="bx-soa-order-form" enctype="multipart/form-data">
 		<?
 		echo bitrix_sessid_post();
 
-		if (strlen($arResult['PREPAY_ADIT_FIELDS']) > 0)
+		if ($arResult['PREPAY_ADIT_FIELDS'] <> '')
 		{
 			echo $arResult['PREPAY_ADIT_FIELDS'];
 		}
@@ -360,7 +363,7 @@ else
 
 				<? if ($arParams['DELIVERY_TO_PAYSYSTEM'] === 'p2d'): ?>
 					<!--	PAY SYSTEMS BLOCK	-->
-					<div id="bx-soa-paysystem" data-visited="false" class="bx-soa-section bx-active">
+					<div id="bx-soa-paysystem" data-visited="false" class="bx-soa-section bx-active" <?=($hidePaySystem ? 'style="display:none"' : '')?>>
 						<div class="bx-soa-section-title-container d-flex justify-content-between align-items-center flex-nowrap">
 							<div class="bx-soa-section-title" data-entity="section-title">
 								<span class="bx-soa-section-title-count"></span><?=$arParams['MESS_PAYMENT_BLOCK_NAME']?>
@@ -411,7 +414,7 @@ else
 						<div class="bx-soa-section-content"></div>
 					</div>
 					<!--	PAY SYSTEMS BLOCK	-->
-					<div id="bx-soa-paysystem" data-visited="false" class="bx-soa-section bx-active">
+					<div id="bx-soa-paysystem" data-visited="false" class="bx-soa-section bx-active" <?=($hidePaySystem ? 'style="display:none"' : '')?>>
 						<div class="bx-soa-section-title-container d-flex justify-content-between align-items-center flex-nowrap">
 							<div class="bx-soa-section-title" data-entity="section-title">
 								<span class="bx-soa-section-title-count"></span><?=$arParams['MESS_PAYMENT_BLOCK_NAME']?>
@@ -618,8 +621,9 @@ else
 		if ($arParams['PICKUP_MAP_TYPE'] === 'yandex')
 		{
 			$this->addExternalJs($templateFolder.'/scripts/yandex_maps.js');
+			$apiKey = htmlspecialcharsbx(Main\Config\Option::get('fileman', 'yandex_map_api_key', ''));
 			?>
-			<script src="<?=$scheme?>://api-maps.yandex.ru/2.1.50/?load=package.full&lang=<?=$locale?>"></script>
+			<script src="<?=$scheme?>://api-maps.yandex.ru/2.1.50/?apikey=<?=$apiKey?>&load=package.full&lang=<?=$locale?>"></script>
 			<script>
 				(function bx_ymaps_waiter(){
 					if (typeof ymaps !== 'undefined' && BX.Sale && BX.Sale.OrderAjaxComponent)
@@ -670,4 +674,3 @@ else
 		<?
 	}
 }
-?>

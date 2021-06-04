@@ -1534,7 +1534,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 						);
 
 						/** @var Sale\ShipmentItemStore $shipmentItemStore */
-						$shipmentItemStore = $shipmentItemStoreCollection->getItemByBarcode($saveBarcodeData['BARCODE'],$basketItem->getBasketCode(), $barcodeData['STORE_ID']);
+						$shipmentItemStore = $shipmentItemStoreCollection->getItemByBarcode($saveBarcodeData['BARCODE']);
 
 						if (!$shipmentItemStore)
 						{
@@ -1745,7 +1745,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 					if (intval($fUserId) > 0 && intval($fUserIdByUserId) > 0
 						&& intval($fUserId) != intval($fUserIdByUserId))
 					{
-						// TODO: ... [SALE_BASKET_001] - вызов старого метода переноса корзины
+						// TODO: ... [SALE_BASKET_001] - the call of old method of the basket
 						\CSaleBasket::TransferBasket($fUserId, $fUserIdByUserId);
 					}
 
@@ -2476,24 +2476,29 @@ class OrderCompatibility extends Internals\EntityCompatibility
 			return $result;
 		}
 
-		/** @var Sale\PaymentCollection $paymentCollection */
-		if ($paymentCollection = $order->getPaymentCollection())
+		/** @var Sale\Payment $payment */
+		foreach ($order->getPaymentCollection() as $payment)
 		{
-			/** @var Sale\Payment $payment */
-			foreach ($paymentCollection as $payment)
+			if ($payment->isPaid())
 			{
-				if ($payment->isPaid())
-				{
-					$payment->setPaid('N');
-				}
+				$payment->setPaid('N');
 			}
-			/** @var Sale\Result $r */
-			$r = $order->save();
-			if (!$r->isSuccess())
+		}
+
+		/** @var Sale\Shipment $shipment */
+		foreach ($order->getShipmentCollection() as $shipment)
+		{
+			if ($shipment->isShipped())
 			{
-				$result->addErrors($r->getErrors());
-				return $result;
+				$shipment->setField('DEDUCTED', 'N');
 			}
+		}
+
+		$r = $order->save();
+		if (!$r->isSuccess())
+		{
+			$result->addErrors($r->getErrors());
+			return $result;
 		}
 
 		try
@@ -3142,33 +3147,6 @@ class OrderCompatibility extends Internals\EntityCompatibility
 	{
 		$result = new Sale\Result();
 
-		$paymentSystemId = false;
-		$deliveryId = false;
-
-		/** @var Sale\PaymentCollection $paymentCollection */
-		if ($paymentCollection = $order->getPaymentCollection())
-		{
-			/** @var Sale\Payment $payment */
-			if ($payment = $paymentCollection->rewind())
-			{
-				$paymentSystemId = $payment->getPaymentSystemId();
-			}
-		}
-
-		/** @var Sale\ShipmentCollection $shipe */
-		if ($shipmentCollection = $order->getShipmentCollection())
-		{
-			/** @var Sale\Shipment $shipment */
-			foreach ($shipmentCollection as $shipment)
-			{
-				if ($shipment->getDeliveryId() > 0)
-				{
-					$deliveryId = $shipment->getDeliveryId();
-					break;
-				}
-			}
-		}
-
 		$fields = array(
 			"SITE_ID" => $order->getSiteId(),
 			"LID" => $order->getSiteId(),
@@ -3176,9 +3154,9 @@ class OrderCompatibility extends Internals\EntityCompatibility
 			"PRICE" => $order->getPrice(),
 			"CURRENCY" => $order->getCurrency(),
 			"USER_ID" => $order->getUserId(),
-			"PAY_SYSTEM_ID" => $paymentSystemId,
+			"PAY_SYSTEM_ID" => (int)$order->getField('PAY_SYSTEM_ID'),
 			"PRICE_DELIVERY" => $order->getDeliveryPrice(),
-			"DELIVERY_ID" => $deliveryId,
+			"DELIVERY_ID" => (int)$order->getField('DELIVERY_ID'),
 			"DISCOUNT_VALUE" => $order->getDiscountPrice(),
 			"TAX_VALUE" => $order->getTaxValue(),
 			"TRACKING_NUMBER" => $order->getField('TRACKING_NUMBER'),
@@ -3298,7 +3276,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 		static $propIndex = 0;
 
 		$propIDTmp = false;
-		if (strpos($key, "PROPERTY_ID_") === 0)
+		if (mb_strpos($key, "PROPERTY_ID_") === 0)
 		{
 			$propIndex++;
 			$this->addPropertyRuntime($propIndex);
@@ -3307,7 +3285,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 				return null;
 			}
 
-			$propIDTmp = intval(substr($key, strlen("PROPERTY_ID_")));
+			$propIDTmp = intval(mb_substr($key, mb_strlen("PROPERTY_ID_")));
 
 			$this->query->addFilter('='.$propRuntimeName.'.ORDER_PROPS_ID', $propIDTmp);
 			if(isset($locationPropInfo['ID'][$propIDTmp]))
@@ -3322,7 +3300,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 			$output = 'PROPERTY_ID_'.$propIDTmp;
 
 		}
-		elseif (strpos($key, "PROPERTY_ORDER_PROPS_ID_") === 0)
+		elseif (mb_strpos($key, "PROPERTY_ORDER_PROPS_ID_") === 0)
 		{
 			$propIndex++;
 			$this->addPropertyRuntime($propIndex);
@@ -3331,7 +3309,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 				return null;
 			}
 
-			$propIDTmp = intval(substr($key, strlen("PROPERTY_ORDER_PROPS_ID_")));
+			$propIDTmp = intval(mb_substr($key, mb_strlen("PROPERTY_ORDER_PROPS_ID_")));
 
 			$this->query->addFilter('='.$propRuntimeName.'.ORDER_PROPS_ID', $propIDTmp);
 			if(isset($locationPropInfo['ID'][$propIDTmp]))
@@ -3345,7 +3323,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 
 			$output = 'PROPERTY_ORDER_PROPS_ID_'.$propIDTmp;
 		}
-		elseif (strpos($key, "PROPERTY_NAME_") === 0)
+		elseif (mb_strpos($key, "PROPERTY_NAME_") === 0)
 		{
 			$propIndex++;
 			$this->addPropertyRuntime($propIndex);
@@ -3354,14 +3332,14 @@ class OrderCompatibility extends Internals\EntityCompatibility
 				return null;
 			}
 
-			$propIDTmp = intval(substr($key, strlen("PROPERTY_NAME_")));
+			$propIDTmp = intval(mb_substr($key, mb_strlen("PROPERTY_NAME_")));
 
 			$this->addQueryAlias('PROPERTY_NAME_'.$propIDTmp, $propRuntimeName.'.NAME');
 			$this->query->addFilter('='.$propRuntimeName.'.ORDER_PROPS_ID', $propIDTmp);
 
 			$output = 'PROPERTY_NAME_'.$propIDTmp;
 		}
-		elseif (strpos($key, "PROPERTY_VALUE_") === 0)
+		elseif (mb_strpos($key, "PROPERTY_VALUE_") === 0)
 		{
 			$propIndex++;
 			$this->addPropertyRuntime($propIndex);
@@ -3370,7 +3348,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 				return null;
 			}
 
-			$propIDTmp = intval(substr($key, strlen("PROPERTY_VALUE_")));
+			$propIDTmp = intval(mb_substr($key, mb_strlen("PROPERTY_VALUE_")));
 
 			if(isset($locationPropInfo['ID'][$propIDTmp]))
 			{
@@ -3383,7 +3361,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 
 			$output = 'PROPERTY_ID_'.$propIDTmp;
 		}
-		elseif (strpos($key, "PROPERTY_CODE_") === 0)
+		elseif (mb_strpos($key, "PROPERTY_CODE_") === 0)
 		{
 			$propIndex++;
 			$this->addPropertyRuntime($propIndex);
@@ -3392,13 +3370,13 @@ class OrderCompatibility extends Internals\EntityCompatibility
 				return null;
 			}
 
-			$propIDTmp = intval(substr($key, strlen("PROPERTY_CODE_")));
+			$propIDTmp = intval(mb_substr($key, mb_strlen("PROPERTY_CODE_")));
 			$this->addQueryAlias('PROPERTY_CODE_'.$propIDTmp, $propRuntimeName.'.CODE');
 			$this->query->addFilter('='.$propRuntimeName.'.ORDER_PROPS_ID', $propIDTmp);
 
 			$output = 'PROPERTY_CODE_'.$propIDTmp;
 		}
-		elseif (strpos($key, "PROPERTY_VAL_BY_CODE_") === 0)
+		elseif (mb_strpos($key, "PROPERTY_VAL_BY_CODE_") === 0)
 		{
 			$propIndex++;
 			$this->addPropertyRuntime($propIndex);
@@ -3407,7 +3385,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 				return null;
 			}
 
-			$propIDTmp = preg_replace("/[^a-zA-Z0-9_-]/is", "", trim(substr($key, strlen("PROPERTY_VAL_BY_CODE_"))));
+			$propIDTmp = preg_replace("/[^a-zA-Z0-9_-]/is", "", trim(mb_substr($key, mb_strlen("PROPERTY_VAL_BY_CODE_"))));
 
 			$this->addQueryAlias('PROPERTY_VAL_BY_CODE_'.$propIDTmp, $propRuntimeName.'.VALUE');
 			if(isset($locationPropInfo['CODE'][$propIDTmp]))
@@ -3423,7 +3401,7 @@ class OrderCompatibility extends Internals\EntityCompatibility
 
 			$output = 'PROPERTY_VAL_BY_CODE_'.$propIDTmp;
 		}
-		elseif (strpos($key, "BASKET_") === 0)
+		elseif (mb_strpos($key, "BASKET_") === 0)
 		{
 			$output = static::addBasketRuntime($key);
 		}

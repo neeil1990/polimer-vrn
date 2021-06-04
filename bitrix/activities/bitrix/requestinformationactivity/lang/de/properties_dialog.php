@@ -1,16 +1,6 @@
 <?
-$MESS["BPRIA_PD_APPROVERS"] = "Wird von den Mitarbeitern ausgefüllt";
-$MESS["BPRIA_PD_TYPE"] = "Genehmigungstyp";
-$MESS["BPRIA_PD_TYPE_ALL"] = "Alle Mitarbeiter";
-$MESS["BPRIA_PD_TYPE_ANY"] = "Beliebiger Mitarbeiter";
-$MESS["BPRIA_PD_TYPE_VOTE"] = "Abstimmen";
-$MESS["BPRIA_PD_NAME"] = "Aufgabenname";
-$MESS["BPRIA_PD_DESCR"] = "Aufgabenbeschreibung";
-$MESS["BPRIA_PD_PERCENT"] = "Mindestprozentsatz der Stimmen, die für die Entscheidung erforderlich sind";
-$MESS["BPRIA_PD_WAIT"] = "Auf die Abstimmung von allen erforderlichen Mitarbeitern warten";
 $MESS["BPSFA_PD_YES"] = "Ja";
 $MESS["BPSFA_PD_NO"] = "Nein";
-$MESS["BPSFA_PD_CHANGE"] = "Bearbeiten";
 $MESS["BPSFA_PD_DELETE"] = "Löschen";
 $MESS["BPSFA_PD_EMPTY_TITLE"] = "Der Feldname ist nicht vorhanden";
 $MESS["BPSFA_PD_EMPTY_NAME"] = "Das Feldcode ist nicht vorhanden";
@@ -33,19 +23,4 @@ $MESS["BPSFA_PD_SAVE_HINT"] = "Feld speichern";
 $MESS["BPSFA_PD_CANCEL_HINT"] = "Beenden ohne Abspeichern";
 $MESS["BP_WF_UP"] = "Nach oben";
 $MESS["BP_WF_DOWN"] = "Nach unten";
-$MESS["BPAR_PD_TASK_BUTTON_MESSAGE"] = "Schaltflächentext in der Aufgabe";
-$MESS["BPAR_PD_SHOW_COMMENT"] = "Feld zur Kommentarangabe anzeigen";
-$MESS["BPAR_PD_COMMENT_LABEL_MESSAGE"] = "Label für das Feld zur Kommentarangabe";
-$MESS["BPSFA_PD_SET_STATUS_MESSAGE"] = "Nachricht zum Status festlegen";
-$MESS["BPSFA_PD_STATUS_MESSAGE"] = "Statustext";
-$MESS["BPRIA_PD_ACCESS_CONTROL"] = "Kurzbeschreibung anzeigen für alle bis auf den Verantwortlichen";
-$MESS["BPSFA_PD_TIMEOUT_DURATION"] = "Informationen werden erwartet für";
-$MESS["BPSFA_PD_TIMEOUT_DURATION_HINT"] = "Aktion wird automatisch abgeschlossen, nachdem der angegebene Zeitraum abläuft. Ein leerer Wert bzw. eine Null bedeuten, dass kein Zeitraum angegeben ist.";
-$MESS["BPSFA_PD_TIME_D"] = "Tage";
-$MESS["BPSFA_PD_TIME_H"] = "Stunden";
-$MESS["BPSFA_PD_TIME_M"] = "Minuten";
-$MESS["BPSFA_PD_TIME_S"] = "Sekunden";
 $MESS["BPSFA_PD_TIMEOUT_LIMIT"] = "Minimale Wartezeit";
-$MESS["BPAR_PD_COMMENT_REQUIRED"] = "Kommentar ist erforderlich";
-$MESS["BPSFA_PD_DELEGATION_TYPE"] = "Delegieren an";
-?>

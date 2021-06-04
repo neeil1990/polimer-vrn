@@ -233,6 +233,7 @@
 				});
 			}
 
+			//UserSelectorFieldEditControl
 			this.userList = new BX.Calendar.UserField.ResourceBooking.UserSelector({
 				shown: fieldSettings.USE_USERS === 'Y',
 				outerWrap: this.userSelectorWrap,
@@ -257,7 +258,7 @@
 			this.timezoneSettingsWrap = optionWrapper.appendChild(
 				BX.create("div", {props: {
 					className: "calendar-resourcebook-content-block-control-field calendar-resourcebook-content-block-options" },
-					style: {display: fieldSettings.USE_USER_TIMEZONE === 'Y' ? 'none' : ''}
+					style: {display: fieldSettings.FULL_DAY === 'Y' ? 'none' : ''}
 				}));
 
 			this.timezoneSettingsWrap.appendChild(BX.create("hr", {props: {className: "crm-entity-widget-hr"}}));
@@ -273,8 +274,7 @@
 				.appendChild(BX.create(
 					"div",
 					{
-						props: { className: "calendar-resourcebook-content-block-field" },
-						children: [this.timezoneSelect]
+						props: { className: "calendar-resourcebook-content-block-field" }
 					}
 				));
 

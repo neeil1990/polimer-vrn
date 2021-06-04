@@ -109,7 +109,7 @@ class CBitrixSocialnetworkLogEntryMailComponent extends CBitrixComponent
 		);
 		$arParams["URL"] = (
 			isset($arParams["URL"])
-			&& strlen($arParams["URL"]) > 0
+			&& $arParams["URL"] <> ''
 				? $arParams["URL"]
 				: CComponentEngine::MakePathFromTemplate(
 					'/pub/log_entry.php?log_id=#log_id#',
@@ -165,7 +165,6 @@ class CBitrixSocialnetworkLogEntryMailComponent extends CBitrixComponent
 						"PATH_TO_GROUP" => Config\Option::get("socialnetwork", "workgroups_page", false, $arResult["SITE"]["ID"])."group/#group_id#/",
 						"PATH_TO_CONPANY_DEPARTMENT" => Config\Option::get("main", "TOOLTIP_PATH_TO_CONPANY_DEPARTMENT", false, $arResult["SITE"]["ID"]),
 					),
-					false,
 					false
 				);
 
@@ -278,7 +277,7 @@ class CBitrixSocialnetworkLogEntryMailComponent extends CBitrixComponent
 						unset($comment["UF"]["UF_SONET_COM_URL_PRV"]);
 					}
 
-					$commentFormatted = __SLEGetLogCommentRecord($comment, array(
+					$commentFormatted = \Bitrix\Socialnetwork\Component\LogEntry::getLogCommentRecord($comment, array(
 						"MAIL" => "Y",
 						"AVATAR_SIZE" => $this->arParams["AVATAR_SIZE_COMMENT"],
 						"NAME_TEMPLATE" => \CSite::getNameFormat(false, $arResult["SITE"]["ID"]),
@@ -369,7 +368,7 @@ class CBitrixSocialnetworkLogEntryMailComponent extends CBitrixComponent
 		{
 			foreach ($arResult["LOG_ENTRY"]["EVENT_FORMATTED"]["DESTINATION"] as $destination)
 			{
-				if (strpos($destination["TYPE"], "CRM") !== 0)
+				if (mb_strpos($destination["TYPE"], "CRM") !== 0)
 				{
 					$arResult["DESTINATIONS"][] = $destination;
 				}

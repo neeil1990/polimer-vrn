@@ -90,7 +90,7 @@ class CAllIMContactList
 
 					foreach ($arStructureName as $key => $value)
 					{
-						if (strlen($value) > 0)
+						if ($value <> '')
 						{
 							$arGroups[$key] = Array('id' => $key, 'name' => $value);
 						}
@@ -132,7 +132,7 @@ class CAllIMContactList
 			{
 				while ($arFriends = $dbFriends->GetNext(true, false))
 				{
-					$friendId = $pref = (IntVal($USER->GetID()) == $arFriends["FIRST_USER_ID"]) ? $arFriends["SECOND_USER_ID"] : $arFriends["FIRST_USER_ID"];
+					$friendId = $pref = (intval($USER->GetID()) == $arFriends["FIRST_USER_ID"]) ? $arFriends["SECOND_USER_ID"] : $arFriends["FIRST_USER_ID"];
 					$arFriendUsers[$friendId] = $friendId;
 
 					/*
@@ -205,7 +205,7 @@ class CAllIMContactList
 
 			$nameTemplate = self::GetUserNameTemplate(SITE_ID);
 			$nameTemplateSite = CSite::GetNameFormat(false);
-			$cache_id = 'im_contact_list_v23_'.$nameTemplate.'_'.$nameTemplateSite.(!empty($arExtranetUsers)? '_'.$USER->GetID(): '').$bVoximplantEnable.$bColorEnabled.$bOpenChatEnabled;
+			$cache_id = 'im_contact_list_v28_'.$nameTemplate.'_'.$nameTemplateSite.(!empty($arExtranetUsers)? '_'.$USER->GetID(): '').$bVoximplantEnable.$bColorEnabled.$bOpenChatEnabled;
 			$obCLCache = new CPHPCache;
 			$cache_dir = '/bx/imc/contact';
 
@@ -228,6 +228,7 @@ class CAllIMContactList
 					$arUsers[$userId]['status'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['status']: 'offline';
 					$arUsers[$userId]['idle'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['idle']: false;
 					$arUsers[$userId]['mobile_last_date'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['mobile_last_date']: false;
+					$arUsers[$userId]['desktop_last_date'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['desktop_last_date']: false;
 					$arUsers[$userId]['last_activity_date'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['last_activity_date']: false;
 					$arUsers[$userId]['absent'] = self::formatAbsentResult($userId);
 					if ($arOnline['users'][$userId]['color'])
@@ -240,10 +241,13 @@ class CAllIMContactList
 			{
 				$select = array(
 					"ID", "LAST_NAME", "NAME", "LOGIN", "PERSONAL_PHOTO", "SECOND_NAME", "PERSONAL_BIRTHDAY", "WORK_POSITION", "PERSONAL_GENDER", "EXTERNAL_AUTH_ID", "WORK_PHONE", "PERSONAL_PHONE", "PERSONAL_MOBILE", "TIME_ZONE_OFFSET", "ACTIVE", "LAST_ACTIVITY_DATE",
-					"COLOR" => "ST.COLOR", "STATUS" =>	"ST.STATUS", "IDLE" => "ST.IDLE", "MOBILE_LAST_DATE" => "ST.MOBILE_LAST_DATE",
+					"COLOR" => "ST.COLOR", "STATUS" =>	"ST.STATUS", "IDLE" => "ST.IDLE", "MOBILE_LAST_DATE" => "ST.MOBILE_LAST_DATE", "DESKTOP_LAST_DATE" => "ST.DESKTOP_LAST_DATE",
 				);
 				if($bIntranetEnable)
 				{
+					$select[] = 'UF_ZOOM';
+					$select[] = 'UF_SKYPE';
+					$select[] = 'UF_SKYPE_LINK';
 					$select[] = 'UF_PHONE_INNER';
 					$select[] = 'UF_DEPARTMENT';
 				}
@@ -272,6 +276,8 @@ class CAllIMContactList
 
 				while ($arUser = $orm->fetch())
 				{
+					$arUser = CIMStatus::prepareLastDate($arUser);
+
 					$skipUser = false;
 					if(is_array($arUser["UF_DEPARTMENT"]) && !empty($arUser["UF_DEPARTMENT"]))
 					{
@@ -296,7 +302,9 @@ class CAllIMContactList
 					else
 					{
 						$skipUser = true;
-						if (isset($arExtranetUsers[$arUser["ID"]]))
+						if ($arUser['EXTERNAL_AUTH_ID'] == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID)
+							$skipUser = false;
+						else if (isset($arExtranetUsers[$arUser["ID"]]))
 							$skipUser = false;
 						elseif (isset($arFriendUsers[$arUser["ID"]]))
 							$skipUser = false;
@@ -311,17 +319,8 @@ class CAllIMContactList
 							$arUser[$key] = !is_array($value) && !is_object($value)? htmlspecialcharsEx($value): $value;
 						}
 
-						$arFileTmp = CFile::ResizeImageGet(
-							$arUser["PERSONAL_PHOTO"],
-							array('width' => 100, 'height' => 100),
-							BX_RESIZE_IMAGE_EXACT,
-							false,
-							false,
-							true
-						);
-
 						$color = self::GetUserColor($arUser["ID"], $arUser['PERSONAL_GENDER'] == 'M'? 'M': 'F');
-						if (isset($arUser['COLOR']) && strlen($arUser['COLOR']) > 0)
+						if (isset($arUser['COLOR']) && $arUser['COLOR'] <> '')
 						{
 							$color = IM\Color::getColor($arUser['COLOR']);
 						}
@@ -332,9 +331,20 @@ class CAllIMContactList
 
 						$arUsersToGroup[$arUser['ID']] = $arUser["UF_DEPARTMENT"];
 						$arUser['PERSONAL_BIRTHDAY'] = $arUser['PERSONAL_BIRTHDAY'] instanceof \Bitrix\Main\Type\Date? $arUser['PERSONAL_BIRTHDAY']->format('d-m'): false;
-						$arUser['IDLE'] = $arUser['IDLE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['IDLE']: false;
-						$arUser['MOBILE_LAST_DATE'] = $arUser['MOBILE_LAST_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['MOBILE_LAST_DATE']: false;
 						$arUser['LAST_ACTIVITY_DATE'] = $arUser['LAST_ACTIVITY_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['LAST_ACTIVITY_DATE']: false;
+
+						$userExternalAuthId = $arUser['EXTERNAL_AUTH_ID']? $arUser['EXTERNAL_AUTH_ID']: 'default';
+						if (
+							$userExternalAuthId == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID
+							&& $bots[$arUser["ID"]]['TYPE'] == \Bitrix\Im\Bot::TYPE_NETWORK
+							&& (
+								$bots[$arUser["ITEM_ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Support24'
+								|| $bots[$arUser["ITEM_ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Partner24'
+							)
+						)
+						{
+							$userExternalAuthId = 'support24';
+						}
 
 						$arUsers[$arUser["ID"]] = Array(
 							'id' => $arUser["ID"],
@@ -344,7 +354,7 @@ class CAllIMContactList
 							'last_name' => $arUser['LAST_NAME'],
 							'work_position' => $arUser['WORK_POSITION'],
 							'color' => $color,
-							'avatar' => empty($arFileTmp['src'])? '/bitrix/js/im/images/blank.gif': $arFileTmp['src'],
+							'avatar' => CIMChat::GetAvatarImage($arUser["PERSONAL_PHOTO"]),
 							'birthday' => $arUser['PERSONAL_BIRTHDAY'],
 							'gender' => $arUser['PERSONAL_GENDER'] == 'F'? 'F': 'M',
 							'phone_device' => $bVoximplantEnable && $arUser['UF_VI_PHONE'] == 'Y',
@@ -353,13 +363,30 @@ class CAllIMContactList
 							'network' => $arUser['EXTERNAL_AUTH_ID'] == self::NETWORK_AUTH_ID || $arUser['EXTERNAL_AUTH_ID'] == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID && $bots[$arUser["ID"]]['TYPE'] == \Bitrix\Im\Bot::TYPE_NETWORK,
 							'bot' => $arUser['EXTERNAL_AUTH_ID'] == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID,
 							'profile' => CIMContactList::GetUserPath($arUser["ID"]),
-							'external_auth_id' => $arUser['EXTERNAL_AUTH_ID']? $arUser['EXTERNAL_AUTH_ID']: 'default',
+							'external_auth_id' => $userExternalAuthId,
 							'status' => $arUser['STATUS'],
 							'idle' => $arUser['IDLE'],
 							'last_activity_date' => $arUser['LAST_ACTIVITY_DATE'],
 							'mobile_last_date' => $arUser['MOBILE_LAST_DATE'],
+							'desktop_last_date' => $arUser['DESKTOP_LAST_DATE'],
 							'absent' => self::formatAbsentResult($arUser["ID"]),
 						);
+
+						$services = [];
+						if (!empty($arUser['UF_ZOOM']))
+						{
+							$services['zoom'] = $arUser['UF_ZOOM'];
+						}
+						if (!empty($arUser['UF_SKYPE_LINK']))
+						{
+							$services['skype'] = $arUser['UF_SKYPE_LINK'];
+						}
+						else if (!empty($arUser['UF_SKYPE']))
+						{
+							$services['skype'] = 'skype://'.$arUser['UF_SKYPE'];
+						}
+
+						$arUsers[$arUser["ID"]]['services'] = empty($services)? null: array_change_key_case($services, CASE_LOWER);
 
 						if ($bVoximplantEnable)
 						{
@@ -521,7 +548,7 @@ class CAllIMContactList
 	function SearchUsers($searchText)
 	{
 		$searchText = trim($searchText);
-		if (strlen($searchText) < 3)
+		if (mb_strlen($searchText) < 3)
 		{
 			$GLOBALS["APPLICATION"]->ThrowException(GetMessage("IM_CL_SEARCH_EMPTY"), "ERROR_SEARCH_EMPTY");
 			return false;
@@ -549,7 +576,7 @@ class CAllIMContactList
 
 		$select = Array(
 			"ID", "LAST_NAME", "NAME", "SECOND_NAME", "LOGIN", "PERSONAL_PHOTO", "PERSONAL_BIRTHDAY", "WORK_POSITION", "PERSONAL_GENDER", "EXTERNAL_AUTH_ID", "TIME_ZONE_OFFSET", "ACTIVE", "UF_IM_SEARCH", "LAST_ACTIVITY_DATE",
-			"COLOR" => "ST.COLOR", "STATUS" =>	"ST.STATUS", "IDLE" => "ST.IDLE", "MOBILE_LAST_DATE" => "ST.MOBILE_LAST_DATE",
+			"COLOR" => "ST.COLOR", "STATUS" =>	"ST.STATUS", "IDLE" => "ST.IDLE", "MOBILE_LAST_DATE" => "ST.MOBILE_LAST_DATE", "DESKTOP_LAST_DATE" => "ST.DESKTOP_LAST_DATE",
 		);
 		if($bIntranetEnable)
 			$select[] = 'UF_DEPARTMENT';
@@ -576,19 +603,23 @@ class CAllIMContactList
 		$arUsers = Array();
 		while ($arUser = $orm->fetch())
 		{
-			$arFileTmp = CFile::ResizeImageGet(
-				$arUser["PERSONAL_PHOTO"],
-				array('width' => 100, 'height' => 100),
-				BX_RESIZE_IMAGE_EXACT,
-				false,
-				false,
-				true
-			);
-
 			$arUser['PERSONAL_BIRTHDAY'] = $arUser['PERSONAL_BIRTHDAY'] instanceof \Bitrix\Main\Type\Date? $arUser['PERSONAL_BIRTHDAY']->format('d-m'): false;
-			$arUser['IDLE'] = $arUser['IDLE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['IDLE']: false;
-			$arUser['MOBILE_LAST_DATE'] = $arUser['MOBILE_LAST_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['MOBILE_LAST_DATE']: false;
 			$arUser['LAST_ACTIVITY_DATE'] = $arUser['LAST_ACTIVITY_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['LAST_ACTIVITY_DATE']: false;
+
+			$arUser = CIMStatus::prepareLastDate($arUser);
+
+			$userExternalAuthId = $arUser['EXTERNAL_AUTH_ID']? $arUser['EXTERNAL_AUTH_ID']: 'default';
+			if (
+				$userExternalAuthId == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID
+				&& $bots[$arUser["ID"]]['TYPE'] == \Bitrix\Im\Bot::TYPE_NETWORK
+				&& (
+					$bots[$arUser["ITEM_ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Support24'
+					|| $bots[$arUser["ITEM_ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Partner24'
+				)
+			)
+			{
+				$userExternalAuthId = 'support24';
+			}
 
 			$arUsers[$arUser["ID"]] = Array(
 				'id' => $arUser["ID"],
@@ -598,7 +629,7 @@ class CAllIMContactList
 				'last_name' => $arUser['LAST_NAME'],
 				'work_position' => $arUser['WORK_POSITION'],
 				'color' => self::GetUserColor($arUser["ID"], $arUser['PERSONAL_GENDER'] == 'M'? 'M': 'F'),
-				'avatar' => empty($arFileTmp['src'])? '/bitrix/js/im/images/blank.gif': $arFileTmp['src'],
+				'avatar' => CIMChat::GetAvatarImage($arUser["PERSONAL_PHOTO"]),
 				'birthday' => $arUser['PERSONAL_BIRTHDAY'],
 				'gender' => $arUser['PERSONAL_GENDER'] == 'F'? 'F': 'M',
 				'phone_device' => $bVoximplantEnable && $arUser['UF_VI_PHONE'] == 'Y',
@@ -608,11 +639,12 @@ class CAllIMContactList
 				'tz_offset' => intval($arUser['TIME_ZONE_OFFSET']),
 				'profile' => CIMContactList::GetUserPath($arUser["ID"]),
 				'search_mark' => $searchText,
-				'external_auth_id' => $arUser['EXTERNAL_AUTH_ID']? $arUser['EXTERNAL_AUTH_ID']: 'default',
+				'external_auth_id' => $userExternalAuthId,
 				'status' => $arUser['STATUS'],
 				'idle' => $arUser['IDLE'],
 				'last_activity_date' => $arUser['LAST_ACTIVITY_DATE'],
 				'mobile_last_date' => $arUser['MOBILE_LAST_DATE'],
+				'desktop_last_date' => $arUser['DESKTOP_LAST_DATE'],
 				'absent' => self::formatAbsentResult($arUser["ID"]),
 			);
 		}
@@ -648,6 +680,7 @@ class CAllIMContactList
 						'idle' => false,
 						'last_activity_date' => false,
 						'mobile_last_date' => false,
+						'desktop_last_date' => false,
 						'absent' => false,
 					);
 				}
@@ -675,7 +708,7 @@ class CAllIMContactList
 							'last_name' => $arUser['LAST_NAME'],
 							'work_position' => $arUser['CLIENT_DOMAIN'],
 							'color' => IM\Color::getColor('GRAY'),
-							'avatar' => empty($arUser['PERSONAL_PHOTO'])? '/bitrix/js/im/images/blank.gif': $arUser['PERSONAL_PHOTO'],
+							'avatar' => empty($arUser['PERSONAL_PHOTO'])? '': $arUser['PERSONAL_PHOTO'],
 							'birthday' => false,
 							'gender' => $arUser['PERSONAL_GENDER'] == 'F'? 'F': 'M',
 							'phone_device' => false,
@@ -692,6 +725,7 @@ class CAllIMContactList
 							'idle' => false,
 							'last_activity_date' => false,
 							'mobile_last_date' => false,
+							'desktop_last_date' => false,
 							'absent' => false,
 						);
 						$arIntersectUserIds[$arUser['XML_ID']] = $id;
@@ -908,18 +942,23 @@ class CAllIMContactList
 			if ($cache_ttl <= 0)
 				$cache_ttl = defined("BX_COMP_MANAGED_CACHE") ? 18144000 : 1800;
 
-			$uid = (is_object($USER)? $USER->GetID(): 'AGENT');
-            $cache_id = 'user_data_v31_'.$uid.'_'.implode('|', $arFilter['=ID']).'_'.$nameTemplate.'_'.$nameTemplateSite.'_'.$extraFields.'_'.$getPhones.'_'.$getDepartment.'_'.$bIntranetEnable.'_'.$bVoximplantEnable.'_'.LANGUAGE_ID.'_'.$bColorEnabled;
+			$uid = (is_object($USER)? (int)$USER->GetID(): 'AGENT');
+            $cache_id = 'user_data_v38_'.$uid.'_'.implode('|', $arFilter['=ID']).'_'.$nameTemplate.'_'.$nameTemplateSite.'_'.$extraFields.'_'.$getPhones.'_'.$getDepartment.'_'.$bIntranetEnable.'_'.$bVoximplantEnable.'_'.LANGUAGE_ID.'_'.$bColorEnabled;
 
-     		$userHash = md5($uid);
-            $cache_dir = '/bx/imc/userdata/'.substr($userHash, 0, 2).'/'.substr($userHash, 2, 2);
-
+            $userHash = md5($uid);
+            $cache_dir = '/bx/imc/userdata/'.mb_substr($userHash, 0, 2).'/'.mb_substr($userHash, 2, 2);
 			if($obCache->InitCache($cache_ttl, $cache_id, $cache_dir))
 			{
 				$arCacheResult = $obCache->GetVars();
 				if ($showOnline)
 				{
-					$arOnline = CIMStatus::GetList(Array('ID' => array_keys($arCacheResult['users'])));
+					$onlineUserId = array_keys(array_filter($arCacheResult['users'], function($user) {
+						return !$user['bot'];
+					}));
+					if (!empty($onlineUserId))
+					{
+						$arOnline = CIMStatus::GetList(Array('ID' => $onlineUserId));
+					}
 				}
 
 				foreach ($arCacheResult['users'] as $userId => $value)
@@ -929,21 +968,14 @@ class CAllIMContactList
 						$arCacheResult['users'][$userId]['status'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['status']: 'offline';
 						$arCacheResult['users'][$userId]['idle'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['idle']: false;
 						$arCacheResult['users'][$userId]['mobile_last_date'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['mobile_last_date']: false;
+						$arCacheResult['users'][$userId]['desktop_last_date'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['desktop_last_date']: false;
 						$arCacheResult['users'][$userId]['last_activity_date'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['last_activity_date']: false;
-						$arCacheResult['users'][$userId]['absent'] = self::formatAbsentResult($userId);
+						$arCacheResult['users'][$userId]['absent'] = isset($arOnline['users'][$userId])? $arOnline['users'][$userId]['absent']: false;
 					}
 
 					if ($getHrPhoto && !isset($arCacheResult['hrphoto']))
 					{
-						$arPhotoHrTmp = CFile::ResizeImageGet(
-							$arCacheResult['source'][$userId]["PERSONAL_PHOTO"],
-							array('width' => 200, 'height' => 200),
-							BX_RESIZE_IMAGE_EXACT,
-							false,
-							false,
-							true
-						);
-						$arCacheResult['hrphoto'][$userId] = empty($arPhotoHrTmp['src'])? '/bitrix/js/im/images/hidef-avatar-v3.png': $arPhotoHrTmp['src']; // TODO REMOVE DEFAULT
+						$arCacheResult['hrphoto'][$userId] = $arCacheResult['users'][$userId]['avatar'];
 					}
 				}
 				return $arCacheResult;
@@ -959,6 +991,9 @@ class CAllIMContactList
 		}
 		if($bIntranetEnable)
 		{
+			$arSelect[] = 'UF_ZOOM';
+			$arSelect[] = 'UF_SKYPE';
+			$arSelect[] = 'UF_SKYPE_LINK';
 			$arSelect[] = 'UF_PHONE_INNER';
 			$arSelect[] = 'UF_DEPARTMENT';
 		}
@@ -979,7 +1014,8 @@ class CAllIMContactList
 		$query->addSelect('ref.COLOR', 'COLOR')
 			->addSelect('ref.STATUS', 'STATUS')
 			->addSelect('ref.IDLE', 'IDLE')
-			->addSelect('ref.MOBILE_LAST_DATE', 'MOBILE_LAST_DATE');
+			->addSelect('ref.MOBILE_LAST_DATE', 'MOBILE_LAST_DATE')
+			->addSelect('ref.DESKTOP_LAST_DATE', 'DESKTOP_LAST_DATE');
 
 		foreach ($arSelect as $value)
 		{
@@ -995,6 +1031,8 @@ class CAllIMContactList
 
 		while ($arUser = $resultQuery->fetch())
 		{
+			$arUser = CIMStatus::prepareLastDate($arUser);
+
 			foreach ($arUser as $key => $value)
 			{
 				$arUser[$key] = !is_array($value) && !is_object($value)? htmlspecialcharsEx($value): $value;
@@ -1002,17 +1040,8 @@ class CAllIMContactList
 
 			$arSource[$arUser["ID"]]["PERSONAL_PHOTO"] = $arUser["PERSONAL_PHOTO"];
 
-			$arPhotoTmp = CFile::ResizeImageGet(
-				$arUser["PERSONAL_PHOTO"],
-				array('width' => 100, 'height' => 100),
-				BX_RESIZE_IMAGE_EXACT,
-				false,
-				false,
-				true
-			);
-
 			$color = self::GetUserColor($arUser["ID"], $arUser['PERSONAL_GENDER'] == 'M'? 'M': 'F');
-			if (isset($arUser['COLOR']) && strlen($arUser['COLOR']) > 0)
+			if (isset($arUser['COLOR']) && $arUser['COLOR'] <> '')
 			{
 				$color = IM\Color::getColor($arUser['COLOR']);
 			}
@@ -1022,9 +1051,20 @@ class CAllIMContactList
 			}
 
 			$arUser['PERSONAL_BIRTHDAY'] = $arUser['PERSONAL_BIRTHDAY'] instanceof \Bitrix\Main\Type\Date? $arUser['PERSONAL_BIRTHDAY']->format('d-m'): false;
-			$arUser['IDLE'] = $arUser['IDLE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['IDLE']: false;
-			$arUser['MOBILE_LAST_DATE'] = $arUser['MOBILE_LAST_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['MOBILE_LAST_DATE']: false;
 			$arUser['LAST_ACTIVITY_DATE'] = $arUser['LAST_ACTIVITY_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arUser['LAST_ACTIVITY_DATE']: false;
+
+			$userExternalAuthId = $arUser['EXTERNAL_AUTH_ID']? $arUser['EXTERNAL_AUTH_ID']: 'default';
+			if (
+				$userExternalAuthId == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID
+				&& $bots[$arUser["ID"]]['TYPE'] == \Bitrix\Im\Bot::TYPE_NETWORK
+				&& (
+					$bots[$arUser["ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Support24'
+					|| $bots[$arUser["ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Partner24'
+				)
+			)
+			{
+				$userExternalAuthId = 'support24';
+			}
 
 			$arUsers[$arUser["ID"]] = Array(
 				'id' => $arUser["ID"],
@@ -1034,7 +1074,7 @@ class CAllIMContactList
 				'last_name' => $arUser['LAST_NAME'],
 				'work_position' => $arUser['WORK_POSITION'],
 				'color' => $color,
-				'avatar' => empty($arPhotoTmp['src'])? '/bitrix/js/im/images/blank.gif': $arPhotoTmp['src'],
+				'avatar' => CIMChat::GetAvatarImage($arUser["PERSONAL_PHOTO"]),
 				'avatar_id' => $arUser["PERSONAL_PHOTO"],
 				'birthday' => $arUser['PERSONAL_BIRTHDAY'],
 				'gender' => $arUser['PERSONAL_GENDER'] == 'F'? 'F': 'M',
@@ -1046,14 +1086,31 @@ class CAllIMContactList
 				'bot' => $arUser['EXTERNAL_AUTH_ID'] == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID,
 				'connector' => $arUser['EXTERNAL_AUTH_ID'] == "imconnector",
 				'profile' => CIMContactList::GetUserPath($arUser["ID"]),
-				'external_auth_id' => $arUser['EXTERNAL_AUTH_ID']? $arUser['EXTERNAL_AUTH_ID']: 'default',
+				'external_auth_id' => $userExternalAuthId,
 				'status' => $arUser['STATUS'],
 				'idle' => $arUser['IDLE'],
 				'last_activity_date' => $arUser['LAST_ACTIVITY_DATE'],
 				'mobile_last_date' => $arUser['MOBILE_LAST_DATE'],
+				'desktop_last_date' => $arUser['DESKTOP_LAST_DATE'],
 				'departments' => $getDepartment && is_array($arUser["UF_DEPARTMENT"]) && !empty($arUser["UF_DEPARTMENT"])? array_values($arUser["UF_DEPARTMENT"]): Array(),
 				'absent' => self::formatAbsentResult($arUser["ID"]),
 			);
+
+			$services = [];
+			if (!empty($arUser['UF_ZOOM']))
+			{
+				$services['zoom'] = $arUser['UF_ZOOM'];
+			}
+			if (!empty($arUser['UF_SKYPE_LINK']))
+			{
+				$services['skype'] = $arUser['UF_SKYPE_LINK'];
+			}
+			else if (!empty($arUser['UF_SKYPE']))
+			{
+				$services['skype'] = 'skype://'.$arUser['UF_SKYPE'];
+			}
+
+			$arUsers[$arUser["ID"]]['services'] = empty($services)? null: array_change_key_case($services, CASE_LOWER);
 
 			if ($extraFields)
 			{
@@ -1071,15 +1128,7 @@ class CAllIMContactList
 
 			if ($getHrPhoto)
 			{
-				$arPhotoHrTmp = CFile::ResizeImageGet(
-					$arUser["PERSONAL_PHOTO"],
-					array('width' => 200, 'height' => 200),
-					BX_RESIZE_IMAGE_EXACT,
-					false,
-					false,
-					true
-				);
-				$arHrPhoto[$arUser["ID"]] = empty($arPhotoHrTmp['src'])? '/bitrix/js/im/images/hidef-avatar-v3.png': $arPhotoHrTmp['src']; // TODO REMOVE DEFAULT
+				$arHrPhoto[$arUser["ID"]] = $arUsers[$arUser["ID"]]['avatar'];
 			}
 
 			if ($getPhones)
@@ -1114,6 +1163,7 @@ class CAllIMContactList
 					$arPhones[$arUser["ID"]]['PERSONAL_PHONE'] = $arUser['PERSONAL_PHONE'];
 					$arPhones[$arUser["ID"]]['INNER_PHONE'] = $arUser['UF_PHONE_INNER'];
 				}
+
 				if (isset($arPhones[$arUser["ID"]]))
 				{
 					$arUsers[$arUser["ID"]]['phones'] = array_change_key_case($arPhones[$arUser["ID"]], CASE_LOWER);
@@ -1177,12 +1227,11 @@ class CAllIMContactList
 		}
 
 		$sqlDateFunction = 'NULL';
-		$dbType = strtolower($DB->type);
-		if ($dbType== "mysql")
+		if ($DB->type == "MYSQL")
 			$sqlDateFunction = "DATE_SUB(NOW(), INTERVAL 120 SECOND)";
-		else if ($dbType == "mssql")
+		elseif ($DB->type == "MSSQL")
 			$sqlDateFunction = "dateadd(SECOND, -120, getdate())";
-		else if ($dbType == "oracle")
+		elseif ($DB->type == "ORACLE")
 			$sqlDateFunction = "SYSDATE-(1/24/60/60*120)";
 
 		$DB->Query("UPDATE b_user SET LAST_ACTIVITY_DATE = ".$sqlDateFunction." WHERE ID = ".$userId);
@@ -1247,21 +1296,27 @@ class CAllIMContactList
 
 	public static function SetRecent($arParams)
 	{
-		global $USER;
-
+		$userId = intval($arParams['USER_ID']);
 		$itemId = intval($arParams['ENTITY_ID']);
-		$messageId = intval($arParams['MESSAGE_ID']);
 		$chatId = intval($arParams['CHAT_ID']);
 		$relationId = intval($arParams['RELATION_ID']);
 		$sessionId = intval($arParams['SESSION_ID']);
+		$pinned = $arParams['PINNED'] === 'Y'? 'Y': 'N';
+		$messageId = intval($arParams['MESSAGE_ID']);
+		$dateMessage = $arParams['MESSAGE_DATE'] instanceof \Bitrix\Main\Type\DateTime? $arParams['MESSAGE_DATE']: new \Bitrix\Main\Type\DateTime();
+		$dateUpdate = new \Bitrix\Main\Type\DateTime();
 
-		if (in_array($arParams['CHAT_TYPE'], Array(IM_MESSAGE_OPEN, IM_MESSAGE_CHAT, IM_MESSAGE_OPEN_LINE)))
+		$arParams['ENTITY_TYPE'] = $arParams['CHAT_TYPE'] ?? $arParams['ENTITY_TYPE'];
+		if (in_array(
+			$arParams['ENTITY_TYPE'],
+			[IM_MESSAGE_OPEN, IM_MESSAGE_CHAT, IM_MESSAGE_OPEN_LINE, IM_MESSAGE_SYSTEM]
+		))
 		{
-			$chatType = $arParams['CHAT_TYPE'];
+			$itemType = $arParams['ENTITY_TYPE'];
 		}
 		else
 		{
-			$chatType = IM_MESSAGE_PRIVATE;
+			$itemType = IM_MESSAGE_PRIVATE;
 		}
 
 		if ($itemId <= 0)
@@ -1269,36 +1324,33 @@ class CAllIMContactList
 			return false;
 		}
 
-		$userId = intval($arParams['USER_ID']);
-		if ($userId <= 0)
-			$userId = (int)$USER->GetID();
-
-		$isChat = $chatType != IM_MESSAGE_PRIVATE;
-
 		$connection = \Bitrix\Main\Application::getInstance()->getConnection();
 
 		$isUserAlreadyInRecent = $connection->queryScalar("SELECT 1 FROM b_im_recent WHERE USER_ID = ".$userId);
 
 		$merge = $connection->getSqlHelper()->prepareMerge(
 			"b_im_recent",
-			array('USER_ID', 'ITEM_TYPE', 'ITEM_ID'),
-			array(
+			['USER_ID', 'ITEM_TYPE', 'ITEM_ID'],
+			[
 				'USER_ID' => $userId,
-				'ITEM_TYPE' => $chatType,
+				'ITEM_TYPE' => $itemType,
 				'ITEM_ID' => $itemId,
 				'ITEM_MID' => $messageId,
 				'ITEM_CID' => $chatId,
 				'ITEM_RID' => $relationId,
 				'ITEM_OLID' => $sessionId,
-				'DATE_UPDATE' => new \Bitrix\Main\Type\DateTime(),
-			),
-			array(
+				'PINNED' => $pinned,
+				'DATE_MESSAGE' => $dateMessage,
+				'DATE_UPDATE' => $dateUpdate,
+			],
+			[
 				'ITEM_MID' => $messageId,
 				'ITEM_CID' => $chatId,
 				'ITEM_RID' => $relationId,
 				'ITEM_OLID' => $sessionId,
-				'DATE_UPDATE' => new \Bitrix\Main\Type\DateTime(),
-			)
+				'DATE_MESSAGE' => $dateMessage,
+				'DATE_UPDATE' => $dateUpdate,
+			]
 		);
 		if ($merge && $merge[0] != "")
 		{
@@ -1307,11 +1359,6 @@ class CAllIMContactList
 
 		$obCache = new CPHPCache();
 		$obCache->CleanDir('/bx/imc/recent'.CIMMessenger::GetCachePath($userId));
-
-		if ($isChat)
-			CIMMessenger::SpeedFileDelete($userId, IM_SPEED_GROUP);
-		else
-			CIMMessenger::SpeedFileDelete($userId, IM_SPEED_MESSAGE);
 
 		if (!$isUserAlreadyInRecent)
 		{
@@ -1324,7 +1371,7 @@ class CAllIMContactList
 		return true;
 	}
 
-	public static function DeleteRecent($entityId, $isChat = false, $userId = false)
+	public static function DeleteRecent($entityId, $isChat = false, $userId = false, $isNotification = false)
 	{
 		global $DB;
 
@@ -1347,11 +1394,24 @@ class CAllIMContactList
 		}
 
 		if (intval($userId) <= 0)
-			$userId = $GLOBALS['USER']->GetID();
+		{
+			if ($GLOBALS['USER'] instanceof \CUser && $GLOBALS['USER']->getId() > 0)
+			{
+				$userId = $GLOBALS['USER']->getId();
+			}
+			else
+			{
+				return false;
+			}
+		}
 
 		if ($isChat)
 		{
 			$itemType = "ITEM_TYPE IN ('".implode("','", \Bitrix\Im\Chat::getTypes())."')";
+		}
+		else if ($isNotification)
+		{
+			$itemType = "ITEM_TYPE = '".IM_MESSAGE_SYSTEM."'";
 		}
 		else
 		{
@@ -1412,15 +1472,19 @@ class CAllIMContactList
 
 		$pullInclude = \Bitrix\Main\Loader::includeModule("pull");
 
-		if (substr($dialogId, 0, 4) == 'chat')
+		if (mb_substr($dialogId, 0, 4) == 'chat')
 		{
-			$chatId = substr($dialogId, 4);
+			$chatId = mb_substr($dialogId, 4);
 			CIMContactList::DeleteRecent($chatId, true);
+		}
+		else if ($dialogId === 'notify')
+		{
+			CIMContactList::DeleteRecent($userId, false, false ,true);
 		}
 		else
 		{
 			$dialogId = intval($dialogId);
-			CIMContactList::DeleteRecent($dialogId);
+			\CIMContactList::DeleteRecent($dialogId, false, $userId);
 		}
 
 		if ($pullInclude)
@@ -1471,7 +1535,7 @@ class CAllIMContactList
 		$isOperator = \Bitrix\Im\Integration\Imopenlines\User::isOperator();
 
 		$cache_ttl = 2592000;
-		$cache_id = 'im_recent_v17_'.$userId.'_'.$bColorEnabled.'_'.$bOpenChatEnabled.'_'.($isOperator? 1: 0);
+		$cache_id = 'im_recent_v19_'.$userId.'_'.$bColorEnabled.'_'.$bOpenChatEnabled.'_'.($isOperator? 1: 0);
 		$cache_dir = '/bx/imc/recent'.CIMMessenger::GetCachePath($userId);
 		$obCache = new CPHPCache();
 
@@ -1493,6 +1557,7 @@ class CAllIMContactList
 					$arRecent[$key]['USER']['status'] = $arOnline['users'][$value['USER']['id']]['status'];
 					$arRecent[$key]['USER']['idle'] = $arOnline['users'][$value['USER']['id']]['idle'];
 					$arRecent[$key]['USER']['mobile_last_date'] = $arOnline['users'][$value['USER']['id']]['mobile_last_date'];
+					$arRecent[$key]['USER']['desktop_last_date'] = $arOnline['users'][$value['USER']['id']]['desktop_last_date'];
 					$arRecent[$key]['USER']['last_activity_date'] = isset($arOnline['users'][$value['USER']['id']]['last_activity_date'])? $arOnline['users'][$value['USER']['id']]['last_activity_date']: false;
 					$arRecent[$key]['USER']['absent'] = self::formatAbsentResult($value['USER']['id']);
 				}
@@ -1509,7 +1574,7 @@ class CAllIMContactList
 					R.ITEM_MID M_ID, M.AUTHOR_ID M_AUTHOR_ID, M.ID M_ID, M.CHAT_ID M_CHAT_ID, M.MESSAGE M_MESSAGE, ".$DB->DatetimeToTimestampFunction('R.DATE_UPDATE')." M_DATE_CREATE,
 					C.TITLE C_TITLE, C.AUTHOR_ID C_OWNER_ID, C.ENTITY_TYPE CHAT_ENTITY_TYPE, C.ENTITY_ID CHAT_ENTITY_ID, C.ENTITY_DATA_1 CHAT_ENTITY_DATA_1, C.ENTITY_DATA_2 CHAT_ENTITY_DATA_2, C.ENTITY_DATA_3 CHAT_ENTITY_DATA_3, C.AVATAR C_AVATAR, C.CALL_NUMBER C_CALL_NUMBER, C.EXTRANET CHAT_EXTRANET, C.COLOR CHAT_COLOR, C.TYPE CHAT_TYPE,
 					U.LOGIN, U.NAME, U.LAST_NAME, U.PERSONAL_PHOTO, U.SECOND_NAME, ".$DB->DatetimeToTimestampFunction('U.PERSONAL_BIRTHDAY')." PERSONAL_BIRTHDAY, ".$DB->DatetimeToTimestampFunction('U.LAST_ACTIVITY_DATE')." LAST_ACTIVITY_DATE, U.PERSONAL_GENDER, U.EXTERNAL_AUTH_ID, U.WORK_POSITION, U.TIME_ZONE_OFFSET, U.ACTIVE,
-					ST.COLOR, ST.STATUS, ".$DB->DatetimeToTimestampFunction('ST.IDLE')." IDLE, ".$DB->DatetimeToTimestampFunction('ST.MOBILE_LAST_DATE')." MOBILE_LAST_DATE, 
+					ST.COLOR, ST.STATUS, ".$DB->DatetimeToTimestampFunction('ST.IDLE')." IDLE, ".$DB->DatetimeToTimestampFunction('ST.MOBILE_LAST_DATE')." MOBILE_LAST_DATE, ".$DB->DatetimeToTimestampFunction('ST.DESKTOP_LAST_DATE')." DESKTOP_LAST_DATE, 
 					C1.USER_ID RID, C1.NOTIFY_BLOCK RELATION_NOTIFY_BLOCK, C1.USER_ID RELATION_USER_ID
 					".($isOperator? ", S.ID LINES_ID, S.STATUS LINES_STATUS": "")."
 				FROM
@@ -1527,7 +1592,6 @@ class CAllIMContactList
 			$enableOpenChat = CIMMessenger::CheckEnableOpenChat();
 			$bots = \Bitrix\Im\Bot::getListCache();
 
-			$toDelete = Array();
 			$arMessageId = Array();
 
 			$dbRes = $DB->Query($strSql, false, "File: ".__FILE__."<br>Line: ".__LINE__);
@@ -1555,12 +1619,15 @@ class CAllIMContactList
 						continue;
 					}
 				}
+				else if ($arRes['ITEM_TYPE'] === IM_MESSAGE_SYSTEM)
+				{
+					continue;
+				}
 
 				$arMessageId[] = $arRes['M_ID'];
 
 				if ($arRes['M_ID'] > 0 && $arRes['M_DATE_CREATE']+2592000 < time())
 				{
-					$toDelete[$arRes['ITEM_TYPE']][] = $arRes['ITEM_ID'];
 					continue;
 				}
 
@@ -1583,19 +1650,22 @@ class CAllIMContactList
 				{
 					$arUsers[] = $arRes['ITEM_ID'];
 
-					$arFileTmp = CFile::ResizeImageGet(
-						$arRes["PERSONAL_PHOTO"],
-						array('width' => 100, 'height' => 100),
-						BX_RESIZE_IMAGE_EXACT,
-						false,
-						false,
-						true
-					);
-
 					$arRes['PERSONAL_BIRTHDAY'] = $arRes['PERSONAL_BIRTHDAY']? \Bitrix\Main\Type\DateTime::createFromTimestamp($arRes['PERSONAL_BIRTHDAY'])->format('d-m'): false;
-					$arRes['IDLE'] = $arRes['IDLE']? \Bitrix\Main\Type\DateTime::createFromTimestamp($arRes['IDLE']): false;
-					$arRes['MOBILE_LAST_DATE'] = $arRes['MOBILE_LAST_DATE']? \Bitrix\Main\Type\DateTime::createFromTimestamp($arRes['MOBILE_LAST_DATE']): false;
 					$arRes['LAST_ACTIVITY_DATE'] = $arRes['LAST_ACTIVITY_DATE']? \Bitrix\Main\Type\DateTime::createFromTimestamp($arRes['LAST_ACTIVITY_DATE']): false;
+					$arRes = CIMStatus::prepareLastDate($arRes);
+
+					$userExternalAuthId = $arRes['EXTERNAL_AUTH_ID']? $arRes['EXTERNAL_AUTH_ID']: 'default';
+					if (
+						$userExternalAuthId == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID
+						&& $bots[$arRes["ITEM_ID"]]['TYPE'] == \Bitrix\Im\Bot::TYPE_NETWORK
+						&& (
+							$bots[$arRes["ITEM_ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Support24'
+							|| $bots[$arRes["ITEM_ID"]]['CLASS'] == 'Bitrix\ImBot\Bot\Partner24'
+						)
+					)
+					{
+						$userExternalAuthId = 'support24';
+					}
 
 					$item['USER'] = Array(
 						'id' => $arRes['ITEM_ID'],
@@ -1605,7 +1675,7 @@ class CAllIMContactList
 						'last_name' => $arRes['LAST_NAME'],
 						'work_position' => $arRes['WORK_POSITION'],
 						'color' => self::GetUserColor($arRes["ID"], $arRes['PERSONAL_GENDER'] == 'M'? 'M': 'F'),
-						'avatar' => empty($arFileTmp['src'])? '/bitrix/js/im/images/blank.gif': $arFileTmp['src'],
+						'avatar' => CIMChat::GetAvatarImage($arRes["PERSONAL_PHOTO"]),
 						'birthday' => $arRes['PERSONAL_BIRTHDAY'],
 						'gender' => $arRes['PERSONAL_GENDER'] == 'F'? 'F': 'M',
 						'extranet' => false,
@@ -1614,11 +1684,12 @@ class CAllIMContactList
 						'tz_offset' => intval($arRes['TIME_ZONE_OFFSET']),
 						'phone_device' => false,
 						'profile' => CIMContactList::GetUserPath($arRes["ITEM_ID"]),
-						'external_auth_id' => $arRes['EXTERNAL_AUTH_ID']? $arRes['EXTERNAL_AUTH_ID']: 'default',
+						'external_auth_id' => $userExternalAuthId,
 						'status' => $arRes['STATUS'],
 						'idle' => $arRes['IDLE'],
 						'last_activity_date' => $arRes['LAST_ACTIVITY_DATE'],
 						'mobile_last_date' => $arRes['MOBILE_LAST_DATE'],
+						'desktop_last_date' => $arRes['DESKTOP_LAST_DATE'],
 						'absent' => self::formatAbsentResult($arRes["ITEM_ID"]),
 					);
 					if (!$item['MESSAGE']['text'])
@@ -1678,24 +1749,12 @@ class CAllIMContactList
 			{
 				if (isset($params[$value['MESSAGE']['id']]) && is_array($params[$value['MESSAGE']['id']]['FILE_ID']))
 				{
-					if (count($params[$value['MESSAGE']['id']]['FILE_ID']) > 0 && strlen(trim($arRecent[$key]['MESSAGE']['text'])) <= 0)
+					if (count($params[$value['MESSAGE']['id']]['FILE_ID']) > 0 && trim($arRecent[$key]['MESSAGE']['text']) == '')
 					{
 						$arRecent[$key]['MESSAGE']['text'] = "[".GetMessage('IM_FILE')."]";
 					}
-					$arRecent[$key]['MESSAGE']['params'] = $params[$value['MESSAGE']['id']];
 				}
-			}
-
-			if (!empty($toDelete))
-			{
-				if (isset($toDelete[IM_MESSAGE_PRIVATE]))
-					self::DeleteRecent($toDelete[IM_MESSAGE_PRIVATE]);
-				if (isset($toDelete[IM_MESSAGE_CHAT]))
-					self::DeleteRecent($toDelete[IM_MESSAGE_CHAT], true);
-				if (isset($toDelete[IM_MESSAGE_OPEN_LINE]))
-					self::DeleteRecent($toDelete[IM_MESSAGE_OPEN_LINE], true);
-				if (isset($toDelete[IM_MESSAGE_OPEN]))
-					self::DeleteRecent($toDelete[IM_MESSAGE_OPEN], true);
+				$arRecent[$key]['MESSAGE']['params'] = $params[$value['MESSAGE']['id']];
 			}
 
 			$bIntranetEnable = IsModuleInstalled('intranet');
@@ -1838,7 +1897,14 @@ class CAllIMContactList
 		$result = false;
 
 		if (!IsModuleInstalled('intranet'))
+		{
 			return false;
+		}
+
+		if ($arUser['EXTERNAL_AUTH_ID'] == \Bitrix\Im\Bot::EXTERNAL_AUTH_ID)
+		{
+			return false;
+		}
 
 		if (array_key_exists('UF_DEPARTMENT', $arUser))
 		{
@@ -1957,15 +2023,7 @@ class CAllIMContactList
 			return false;
 		}
 
-		if (method_exists('\Bitrix\Intranet\UserAbsence', 'isAbsentOnVacation'))
-		{
-			$result = \Bitrix\Intranet\UserAbsence::isAbsentOnVacation($userId, true);
-		}
-		else
-		{
-			$result = \Bitrix\Intranet\UserAbsence::isAbsent($userId, true);
-		}
-
+		$result = \Bitrix\Intranet\UserAbsence::isAbsentOnVacation($userId, true);
 		if ($result)
 		{
 			$result = \Bitrix\Main\Type\DateTime::createFromTimestamp($result['DATE_TO_TS']+86400);
@@ -1985,21 +2043,21 @@ class CAllIMContactList
 		$structureId = Array();
 		foreach ($userIds as $userId)
 		{
-			if (substr($userId, 0, 7) == 'network')
+			if (mb_substr($userId, 0, 7) == 'network')
 			{
-				$networkId[$userId] = substr($userId, 7);
+				$networkId[$userId] = mb_substr($userId, 7);
 			}
-			elseif (substr($userId, 0, 10) == 'department')
+			elseif (mb_substr($userId, 0, 10) == 'department')
 			{
-				$sid = intval(substr($userId, 10));
+				$sid = intval(mb_substr($userId, 10));
 				if ($sid > 0)
 				{
 					$structureId[$userId] = $sid;
 				}
 			}
-			elseif (substr($userId, 0, 9) == 'structure')
+			elseif (mb_substr($userId, 0, 9) == 'structure')
 			{
-				$sid = intval(substr($userId, 9));
+				$sid = intval(mb_substr($userId, 9));
 				if ($sid > 0)
 				{
 					$structureId[$userId] = $sid;

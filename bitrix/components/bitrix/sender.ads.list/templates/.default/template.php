@@ -4,6 +4,8 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Web\Json;
 
+\Bitrix\Main\UI\Extension::load(['ui.hint', 'sender.error_handler']);
+
 /** @var CAllMain $APPLICATION */
 /** @var array $arParams */
 /** @var array $arResult */
@@ -13,9 +15,13 @@ foreach ($arResult['ERRORS'] as $error)
 	ShowError($error);
 }
 
+$canEdit = $arParams['CAN_EDIT'];
+$canPauseStartStop = $arParams['CAN_PAUSE_START_STOP'];
+$canViewClient = $arParams['CAN_VIEW_CLIENT'];
+$canEditAdv = $arParams['CAN_EDIT_ADV'];
+
 foreach ($arResult['ROWS'] as $index => $data)
 {
-	$canEdit = $arParams['CAN_EDIT'];
 
 	// user
 	if ($data['USER'] && $data['USER_PATH'])
@@ -29,8 +35,19 @@ foreach ($arResult['ROWS'] as $index => $data)
 	if ($data['TITLE'] && $data['URLS']['EDIT'])
 	{
 		ob_start();
+		$editUrl = $data['URLS']['EDIT']['EXTERNAL']??$data['URLS']['EDIT'];
 		?>
-		<a class="sender-letter-list-link" onclick="BX.Sender.Page.open('<?=CUtil::JSEscape($data['URLS']['EDIT'])?>'); return false;" href="<?=htmlspecialcharsbx($data['URLS']['EDIT'])?>">
+		<a class="sender-letter-list-link"
+			onclick="<?php if (isset($data['URLS']['EDIT']['EXTERNAL'])):?>
+				BX.Sender.Page.redirect('<?=CUtil::JSEscape($editUrl)?>');
+				<?php else:?>
+				BX.Sender.Page.open('<?=CUtil::JSEscape($editUrl)?>');
+				<?php endif?>
+				return false;
+		"
+			href="<?=htmlspecialcharsbx($editUrl)?>"
+
+		>
 			<?=htmlspecialcharsbx($data['TITLE'])?>
 		</a>
 		<div class="sender-letter-list-desc-small-black">
@@ -54,7 +71,7 @@ foreach ($arResult['ROWS'] as $index => $data)
 			$dateCaption = Loc::getMessage('SENDER_LETTER_LIST_STATE_IS_SENT');
 			$date = $data['STATE']['dateSent'];
 		}
-		elseif ($data['STATE']['isStopped'])
+		elseif ($data['STATE']['isStopped'] || $data['STATE']['isError'])
 		{
 			$dateCaption = Loc::getMessage('SENDER_LETTER_LIST_STATE_IS_STOPPED');
 			$date = $data['STATE']['dateSent'];
@@ -119,7 +136,7 @@ foreach ($arResult['ROWS'] as $index => $data)
 		$buttonAction = htmlspecialcharsbx($buttonAction);
 		?>
 		<div class="sender-letter-list-block-flexible">
-			<?if ($buttonCaption):?>
+			<?if ($buttonCaption && $canPauseStartStop):?>
 			<div onclick="<?=$buttonAction?> event.stopPropagation(); return false;" class="sender-letter-list-button sender-letter-list-button-<?=$buttonColor?>" title="<?=htmlspecialcharsbx($buttonTitle)?>">
 				<span class="sender-letter-list-button-icon sender-letter-list-button-icon-<?=$buttonIcon?>"></span>
 					<span class="sender-letter-list-button-name">
@@ -150,6 +167,9 @@ foreach ($arResult['ROWS'] as $index => $data)
 			<?if ($data['STATE']['isSendingLimitExceeded']):?>
 				<span class="sender-letter-list-icon-speedo" title="<?=Loc::getMessage('SENDER_LETTER_LIST_SPEED_TITLE')?>"></span>
 			<?endif;?>
+			<?if ($data['STATE']['isError']):?>
+				<span data-hint="<?=$data['ERROR_MESSAGE']?>" class="ui-hint"></span>
+			<?endif?>
 		</div>
 		<div class="sender-letter-list-desc-normal-grey">
 			<?
@@ -211,7 +231,7 @@ foreach ($arResult['ROWS'] as $index => $data)
 
 	// statistics
 	ob_start();
-	if ($data['POSTING_ID'])
+	if ($data['POSTING_ID'] && $canViewClient)
 	{
 
 		?>
@@ -230,16 +250,21 @@ foreach ($arResult['ROWS'] as $index => $data)
 	$actions[] = array(
 		'TITLE' => $arParams['CAN_EDIT'] ? Loc::getMessage('SENDER_LETTER_LIST_ACT_EDIT') : Loc::getMessage('SENDER_LETTER_LIST_ACT_VIEW'),
 		'TEXT' => $arParams['CAN_EDIT'] ? Loc::getMessage('SENDER_LETTER_LIST_ACT_EDIT') : Loc::getMessage('SENDER_LETTER_LIST_ACT_VIEW'),
-		'ONCLICK' => "BX.Sender.Page.open('".CUtil::JSEscape($data['URLS']['EDIT'])."')",
+		'ONCLICK' => !isset($data['URLS']['EDIT']['EXTERNAL']) ? "BX.Sender.Page.open('".CUtil::JSEscape
+			($data['URLS']['EDIT'])."')"
+			: "BX.Sender.Page.redirect('".CUtil::JSEscape($data['URLS']['EDIT']['EXTERNAL'])."')",
 		'DEFAULT' => true
 	);
 	if ($arParams['CAN_EDIT'])
 	{
-		$actions[] = array(
-			'TITLE' => Loc::getMessage('SENDER_LETTER_LIST_ACT_COPY'),
-			'TEXT' => Loc::getMessage('SENDER_LETTER_LIST_ACT_COPY'),
-			'ONCLICK' => "BX.Sender.LetterList.copy({$data['ID']});"
-		);
+		if(!isset($data['URLS']['EDIT']['EXTERNAL']))
+		{
+			$actions[] = array(
+				'TITLE' => Loc::getMessage('SENDER_LETTER_LIST_ACT_COPY'),
+				'TEXT' => Loc::getMessage('SENDER_LETTER_LIST_ACT_COPY'),
+				'ONCLICK' => "BX.Sender.LetterList.copy({$data['ID']});"
+			);
+		}
 
 		$actions[] = array(
 			'TITLE' => Loc::getMessage('SENDER_LETTER_LIST_ACT_REMOVE'),
@@ -347,6 +372,7 @@ if ($arParams['CAN_EDIT'])
 	$controlPanel['GROUPS'][0]['ITEMS'][] = $snippet->getRemoveButton();
 }
 
+$navigation =  $arResult['NAV_OBJECT'];
 
 $APPLICATION->IncludeComponent(
 	"bitrix:main.ui.grid",
@@ -355,15 +381,20 @@ $APPLICATION->IncludeComponent(
 		"GRID_ID" => $arParams['GRID_ID'],
 		"COLUMNS" => $arResult['COLUMNS'],
 		"ROWS" => $arResult['ROWS'],
-		"NAV_OBJECT" => $arResult['NAV_OBJECT'],
-		"~NAV_PARAMS" => array('SHOW_ALWAYS' => false),
+		'NAV_OBJECT' => $navigation,
+		'PAGE_SIZES' => $navigation->getPageSizes(),
+		'DEFAULT_PAGE_SIZE' => $navigation->getPageSize(),
+		'TOTAL_ROWS_COUNT' => $navigation->getRecordCount(),
+		'NAV_PARAM_NAME' => $navigation->getId(),
+		'CURRENT_PAGE' => $navigation->getCurrentPage(),
+		'PAGE_COUNT' => $navigation->getPageCount(),
+		'SHOW_PAGESIZE' => true,
 		'SHOW_ROW_CHECKBOXES' => $arParams['CAN_EDIT'],
 		'SHOW_GRID_SETTINGS_MENU' => true,
 		'SHOW_PAGINATION' => true,
 		'SHOW_SELECTED_COUNTER' => true,
 		'SHOW_TOTAL_COUNTER' => true,
 		'ACTION_PANEL' => $controlPanel,
-		"TOTAL_ROWS_COUNT" => $arResult['TOTAL_ROWS_COUNT'],
 		'ALLOW_COLUMNS_SORT' => true,
 		'ALLOW_COLUMNS_RESIZE' => true,
 		"AJAX_MODE" => "Y",

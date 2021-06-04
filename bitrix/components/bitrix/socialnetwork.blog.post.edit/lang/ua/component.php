@@ -8,7 +8,6 @@ $MESS['BLOG_EMPTY_TITLE_PLACEHOLDER'] = "Зображення";
 $MESS['BLOG_EMPTY_TITLE_PLACEHOLDER2'] = "Файл";
 $MESS['BLOG_EMPTY_TITLE_PLACEHOLDER3'] = "Заголовок";
 $MESS['BLOG_ERR_NO_RIGHTS'] = "Помилка! Немає прав на запис блогу";
-$MESS['BLOG_GRAT_IBLOCKELEMENT_NAME'] = "Подяка #GRAT_NAME#";
 $MESS['BLOG_MODULE_NOT_INSTALL'] = "Модуль блогів не встановлений.";
 $MESS['BLOG_NEW_MESSAGE'] = "Створення нового повідомлення";
 $MESS['BLOG_POST_EDIT'] = "Редагування повідомлення";

@@ -1,8 +1,11 @@
-<?
+<?php
+$MESS["INTERFACE_MAIL_CHECK_ALL"] = "Позначити все / Зняти позначку у всіх";
 $MESS["MAIL_CLIENT_AJAX_ERROR"] = "Помилка при обробці запиту";
-$MESS["MAIL_CLIENT_CANCELATION_WARNING"] = "З 1 травня на безкоштовному тарифі синхронізація пошти зупиниться (нові листи не потраплятимуть в Бітрікс24).
-Листи, пов'язані з CRM або із Завданнями, збережуться, інші листи будуть видалені.
-Тим, хто планує працювати з Поштою й надалі, пропонуємо <a href=\"/settings/license_all.php\" target=\"_blank\">перейти на комерційні тарифи</a>.";
+$MESS["MAIL_CLIENT_BUTTON_LOADING"] = "Завантаження...";
+$MESS["MAIL_CLIENT_CANCELATION_WARNING_3"] = "На вашому тарифі синхронізація пошти недоступна (нові листи не потраплятимуть у Бітрікс24).
+Листи, пов'язані із Завданнями, збережуться. Решта листів будуть видалені.<br>
+Переходьте на <a href=\"/settings/license_all.php\" target=\"_blank\">розширений тариф</a>, щоб підключити пошту та користуватися іншими зручними інструментами.";
+$MESS["MAIL_CLIENT_CONFIG_DIRS_SYNC_EMPTY_WARNING"] = "Оберіть, будь ласка, папки для синхронізації з поштовим сервісом.";
 $MESS["MAIL_CLIENT_DENIED"] = "Доступ заборонений";
 $MESS["MAIL_CLIENT_ELEMENT_DENIED"] = "Доступ заборонений";
 $MESS["MAIL_CLIENT_ELEMENT_NOT_FOUND"] = "Елемент не знайдений";
@@ -11,7 +14,11 @@ $MESS["MAIL_CLIENT_HOME_TITLE"] = "Пошта";
 $MESS["MAIL_CLIENT_MAILBOX_ADD"] = "Підключити нову";
 $MESS["MAIL_CLIENT_MAILBOX_INDEX_BAR"] = "Індексація";
 $MESS["MAIL_CLIENT_MAILBOX_SYNC_BAR"] = "Синхронізація";
+$MESS["MAIL_CLIENT_MAILBOX_SYNC_BAR_COMPLETED"] = "Синхронізація завершена";
+$MESS["MAIL_CLIENT_MAILBOX_SYNC_BAR_INTERRUPTED"] = "Синхронізація перервана";
 $MESS["MAIL_CLIENT_SAVE_ERROR"] = "Помилка при збереженні даних";
+$MESS["MAIL_DISK_ACTION_SAVE_TO_OWN_FILES"] = "Зберегти на Бітрікс24.Диск";
+$MESS["MAIL_DISK_FILE_DOWNLOAD_ARCHIVE"] = "Завантажити всі файли одним архівом";
 $MESS["MAIL_MAILBOX_LICENSE_CONNECTED_MAILBOXES_LIMIT_BODY"] = "Кількість поштових скриньок на співробітника залежить від тарифного плану Бітрікс24.
 <br><br>
 На вашому тарифі доступно поштових скриньок для кожного співробітника: #LIMIT#
@@ -37,20 +44,32 @@ $MESS["MAIL_MESSAGE_EMPTY_SENDER"] = "Вкажіть відправника";
 $MESS["MAIL_MESSAGE_EMPTY_SUBJECT_PLACEHOLDER"] = "(без теми)";
 $MESS["MAIL_MESSAGE_EXT_BIND_CRM_EMPTY_TITLE"] = "Елемент";
 $MESS["MAIL_MESSAGE_EXT_BIND_CRM_TITLE"] = "CRM";
+$MESS["MAIL_MESSAGE_EXT_BIND_POSTS_EMPTY_TITLE"] = "Повідомлення";
+$MESS["MAIL_MESSAGE_EXT_BIND_POSTS_TITLE"] = "Повідомлення";
 $MESS["MAIL_MESSAGE_EXT_BIND_TASKS_EMPTY_TITLE"] = "Завдання";
 $MESS["MAIL_MESSAGE_EXT_BIND_TASKS_TITLE"] = "Завдання";
 $MESS["MAIL_MESSAGE_EXT_BLOCK_LINK"] = "Ще";
 $MESS["MAIL_MESSAGE_EXT_BLOCK_TITLE"] = "Додатково";
+$MESS["MAIL_MESSAGE_ICAL_ACCEPT"] = "Прийняти";
+$MESS["MAIL_MESSAGE_ICAL_INVITATION"] = "Запрошення";
+$MESS["MAIL_MESSAGE_ICAL_MAYBE"] = "Можливо";
+$MESS["MAIL_MESSAGE_ICAL_NOTIFY_ACCEPT"] = "Запрошення прийнято";
+$MESS["MAIL_MESSAGE_ICAL_NOTIFY_ERROR"] = "Помилка при обробці запиту";
+$MESS["MAIL_MESSAGE_ICAL_NOTIFY_REJECT"] = "Приглашение відхилено";
+$MESS["MAIL_MESSAGE_ICAL_REJECT"] = "Відмовитися";
+$MESS["MAIL_MESSAGE_LIST_ADDRESSBOOK_LINK"] = "Адресна книга";
 $MESS["MAIL_MESSAGE_LIST_ATTACH_ICON_HINT"] = "Лист із вкладеннями";
 $MESS["MAIL_MESSAGE_LIST_BLACKLIST_LINK"] = "Чорний список";
 $MESS["MAIL_MESSAGE_LIST_BTN_DELETE"] = "Видалити";
 $MESS["MAIL_MESSAGE_LIST_BTN_MOVE"] = "Перемістити у папку";
 $MESS["MAIL_MESSAGE_LIST_BTN_NOT_SPAM"] = "Не спам";
 $MESS["MAIL_MESSAGE_LIST_BTN_SEEN"] = "Прочитано";
+$MESS["MAIL_MESSAGE_LIST_BTN_SEEN_ALL"] = "Все прочитано";
 $MESS["MAIL_MESSAGE_LIST_BTN_SPAM"] = "Це спам";
 $MESS["MAIL_MESSAGE_LIST_BTN_UNSEEN"] = "Не прочитано";
 $MESS["MAIL_MESSAGE_LIST_BTN_VIEW"] = "Відкрити";
 $MESS["MAIL_MESSAGE_LIST_COLUMN_BIND"] = "Оброблено";
+$MESS["MAIL_MESSAGE_LIST_COLUMN_BIND_BLOG_POST"] = "Повідомлення";
 $MESS["MAIL_MESSAGE_LIST_COLUMN_BIND_CRM_ACTIVITY"] = "CRM";
 $MESS["MAIL_MESSAGE_LIST_COLUMN_BIND_EVENT"] = "Подія";
 $MESS["MAIL_MESSAGE_LIST_COLUMN_BIND_IM"] = "Чат";
@@ -61,8 +80,13 @@ $MESS["MAIL_MESSAGE_LIST_COLUMN_FROM"] = "Від кого";
 $MESS["MAIL_MESSAGE_LIST_COLUMN_SUBJECT"] = "Тема";
 $MESS["MAIL_MESSAGE_LIST_CONFIRM_CANCEL_BTN"] = "Скасувати";
 $MESS["MAIL_MESSAGE_LIST_CONFIRM_DELETE"] = "Листи будуть безповоротно видалені. <br>Ви ніяк не зможете їх відновити.";
+$MESS["MAIL_MESSAGE_LIST_CONFIRM_DELETE_ALL"] = "Ви дійсно хочете видалити всі листи? <br>Вони будуть безповоротно видалені. Ви ніяк не зможете їх відновити.";
 $MESS["MAIL_MESSAGE_LIST_CONFIRM_DELETE_BTN"] = "Видалити";
+$MESS["MAIL_MESSAGE_LIST_CONFIRM_MOVE_ALL"] = "Ви дійсно хочете перемістити всі листи?";
+$MESS["MAIL_MESSAGE_LIST_CONFIRM_READ_ALL"] = "Ви дійсно хочете відзначити як прочитані всі листи в папці?";
+$MESS["MAIL_MESSAGE_LIST_CONFIRM_SPAM_ALL"] = "Ви дійсно хочете відзначити всі листи як спам?";
 $MESS["MAIL_MESSAGE_LIST_CONFIRM_TITLE"] = "Підтвердіть дію";
+$MESS["MAIL_MESSAGE_LIST_CONFIRM_TRASH_ALL"] = "Ви дійсно хочете перемістити всі листи в кошик?";
 $MESS["MAIL_MESSAGE_LIST_COUNTERS_EMPTY"] = "Немає листів, що потребують реакції";
 $MESS["MAIL_MESSAGE_LIST_COUNTERS_TITLE"] = "Листи";
 $MESS["MAIL_MESSAGE_LIST_COUNTERS_UNBIND"] = "не оброблено";
@@ -75,6 +99,7 @@ $MESS["MAIL_MESSAGE_LIST_FILTER_OPTION_ANY"] = "Не важливо";
 $MESS["MAIL_MESSAGE_LIST_FILTER_OPTION_N"] = "Ні";
 $MESS["MAIL_MESSAGE_LIST_FILTER_OPTION_Y"] = "Так";
 $MESS["MAIL_MESSAGE_LIST_FILTER_PRESET_BIND_CRM"] = "CRM";
+$MESS["MAIL_MESSAGE_LIST_FILTER_PRESET_BIND_POST"] = "Повідомлення";
 $MESS["MAIL_MESSAGE_LIST_FILTER_PRESET_BIND_TASK"] = "Завдання";
 $MESS["MAIL_MESSAGE_LIST_FILTER_PRESET_INCOME"] = "Вхідні";
 $MESS["MAIL_MESSAGE_LIST_FILTER_PRESET_OUTCOME"] = "Відправлені";
@@ -88,6 +113,7 @@ $MESS["MAIL_MESSAGE_LIST_NOTIFY_SUCCESS"] = "Успішно";
 $MESS["MAIL_MESSAGE_LIST_SETTINGS_LINK"] = "Налаштування скриньки";
 $MESS["MAIL_MESSAGE_LIST_SIGNATURE_LINK"] = "Налаштувати підпис";
 $MESS["MAIL_MESSAGE_LOG_MORE"] = "Показати ще";
+$MESS["MAIL_MESSAGE_MAX_SIZE_EXCEED"] = "Перевищено максимальний розмір вкладень (#SIZE#)";
 $MESS["MAIL_MESSAGE_NEW_ADD_RCPT"] = "Добавить одержувача";
 $MESS["MAIL_MESSAGE_NEW_BCC"] = "Прихована
 копія";
@@ -101,6 +127,7 @@ $MESS["MAIL_MESSAGE_NEW_SUBJECT"] = "Тема";
 $MESS["MAIL_MESSAGE_NEW_SUBJECT_PH"] = "Введіть тему повідомлення";
 $MESS["MAIL_MESSAGE_NEW_TO"] = "Кому";
 $MESS["MAIL_MESSAGE_NEW_UPLOADING"] = "Будь ласка, дочекайтеся закінчення завантаження вкладень";
+$MESS["MAIL_MESSAGE_POST_TITLE"] = "Лист: #SUBJECT#";
 $MESS["MAIL_MESSAGE_RCPT"] = "Кому";
 $MESS["MAIL_MESSAGE_RCPT_BCC"] = "Прихована копія";
 $MESS["MAIL_MESSAGE_RCPT_CC"] = "Копія";
@@ -116,4 +143,5 @@ $MESS["MAIL_MESSAGE_SENT"] = "відправлено #DATETIME#";
 $MESS["MAIL_MESSAGE_SPAM_CONFIRM"] = "Ви дійсно хочете видалити цей лист і додати відправника в чорний список?";
 $MESS["MAIL_MESSAGE_SYNC_BTN_HINT"] = "Синхронізація";
 $MESS["MAIL_MESSAGE_TASK_TITLE"] = "Лист: #SUBJECT#";
-?>
+$MESS["MAIL_MODULE_NOT_INSTALLED"] = "Модуль mail не встановлений.";
+$MESS["MAIL_NEW_MESSAGE_TITLE"] = "Новий лист";

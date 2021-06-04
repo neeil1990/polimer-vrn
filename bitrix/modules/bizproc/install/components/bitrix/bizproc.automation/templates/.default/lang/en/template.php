@@ -1,4 +1,8 @@
-<?
+<?php
+$MESS["BIZPROC_AUTOMATION_ASK_CONSTANT"] = "Provided by administrator before launch";
+$MESS["BIZPROC_AUTOMATION_ASK_MANUAL"] = "Select now";
+$MESS["BIZPROC_AUTOMATION_ASK_PARAMETER"] = "Ask before launch";
+$MESS["BIZPROC_AUTOMATION_CLOSE_CAPTION"] = "Close";
 $MESS["BIZPROC_AUTOMATION_CMP_ADD"] = "add";
 $MESS["BIZPROC_AUTOMATION_CMP_AFTER"] = "after";
 $MESS["BIZPROC_AUTOMATION_CMP_AFTER_PREVIOUS"] = "after previous";
@@ -17,6 +21,8 @@ $MESS["BIZPROC_AUTOMATION_CMP_CANCEL"] = "Cancel";
 $MESS["BIZPROC_AUTOMATION_CMP_CHOOSE"] = "select";
 $MESS["BIZPROC_AUTOMATION_CMP_CHOOSE_DATE_FIELD"] = "select date field";
 $MESS["BIZPROC_AUTOMATION_CMP_CHOOSE_TIME"] = "set time";
+$MESS["BIZPROC_AUTOMATION_CMP_CONSTANTS_EDIT"] = "Edit constants";
+$MESS["BIZPROC_AUTOMATION_CMP_CONSTANTS_LIST"] = "Constants";
 $MESS["BIZPROC_AUTOMATION_CMP_COPY"] = "copy";
 $MESS["BIZPROC_AUTOMATION_CMP_COPY_CAPTION"] = "(Copy)";
 $MESS["BIZPROC_AUTOMATION_CMP_DAY1"] = "day";
@@ -28,7 +34,7 @@ $MESS["BIZPROC_AUTOMATION_CMP_DELAY_IN_HELP"] = "Automation rule will be trigger
 $MESS["BIZPROC_AUTOMATION_CMP_DELAY_LOCALTIME_HELP"] = "Respect time zone when calculating automation rule time";
 $MESS["BIZPROC_AUTOMATION_CMP_DELAY_NOW_HELP"] = "Automation rule will be triggered immediately after the entity has moved to the selected status";
 $MESS["BIZPROC_AUTOMATION_CMP_DELAY_NOW_HELP_2"] = "The actual current time will be set at the instant the automation rule is executed";
-$MESS["BIZPROC_AUTOMATION_CMP_DELAY_WORKTIME_HELP"] = "Track working hours only; skip holidays and weekends";
+$MESS["BIZPROC_AUTOMATION_CMP_DELAY_WORKTIME_HELP_2"] = "Skip weekends and holidays; account for the responsible person's time";
 $MESS["BIZPROC_AUTOMATION_CMP_DISK_ATTACHED_FILES"] = "Attachments";
 $MESS["BIZPROC_AUTOMATION_CMP_DISK_ATTACH_FILE"] = "Attach files";
 $MESS["BIZPROC_AUTOMATION_CMP_DISK_SELECT_FILE"] = "Search Bitrix24";
@@ -46,8 +52,10 @@ Upgrade to enjoy other useful business tools:<br>
 </ul>
 See the plan comparison chart and full feature description <a href=\"/settings/license_all.php\" target=\"_blank\">here</a>.";
 $MESS["BIZPROC_AUTOMATION_CMP_EXTERNAL_EDIT_TEXT"] = "Automation rules can be configured in Workflow Designer only.";
+$MESS["BIZPROC_AUTOMATION_CMP_FILES_LINKS"] = "File link";
 $MESS["BIZPROC_AUTOMATION_CMP_FOR_TIME_1"] = " ";
 $MESS["BIZPROC_AUTOMATION_CMP_FOR_TIME_3"] = " ";
+$MESS["BIZPROC_AUTOMATION_CMP_GLOB_CONSTANTS_LIST"] = "Global constants";
 $MESS["BIZPROC_AUTOMATION_CMP_HOUR1"] = "hour";
 $MESS["BIZPROC_AUTOMATION_CMP_HOUR2"] = "hours";
 $MESS["BIZPROC_AUTOMATION_CMP_HOUR3"] = "hours";
@@ -62,8 +70,12 @@ $MESS["BIZPROC_AUTOMATION_CMP_LOCAL_TIME"] = "local time";
 $MESS["BIZPROC_AUTOMATION_CMP_MIN1"] = "minute";
 $MESS["BIZPROC_AUTOMATION_CMP_MIN2"] = "minutes";
 $MESS["BIZPROC_AUTOMATION_CMP_MIN3"] = "minutes";
+$MESS["BIZPROC_AUTOMATION_CMP_MOD_DATE_BY_RESPONSIBLE"] = "(responsible person's time)";
+$MESS["BIZPROC_AUTOMATION_CMP_MOD_DATE_BY_SERVER"] = "(server time)";
 $MESS["BIZPROC_AUTOMATION_CMP_MOD_PRINTABLE_PREFIX"] = "(text)";
 $MESS["BIZPROC_AUTOMATION_CMP_NEED_SAVE"] = "The changes have not been saved.";
+$MESS["BIZPROC_AUTOMATION_CMP_PARAMETERS_EDIT"] = "Edit parameters";
+$MESS["BIZPROC_AUTOMATION_CMP_PARAMETERS_LIST"] = "Parameters";
 $MESS["BIZPROC_AUTOMATION_CMP_RESPONSIBLE"] = "Responsible person";
 $MESS["BIZPROC_AUTOMATION_CMP_ROBOT_HELP"] = "Use automation rules to streamline client management process and help employees adhere to lead processing algorithm. Automation rules will perform actions in an unattended manner: send e-mails, make calls etc.
 
@@ -89,11 +101,14 @@ $MESS["BIZPROC_AUTOMATION_CMP_WEBHOOK_ID"] = "{{ID}} is the entity ID";
 $MESS["BIZPROC_AUTOMATION_CMP_WORK_TIME"] = "working hours only";
 $MESS["BIZPROC_AUTOMATION_NOT_SELECTED"] = "[not set]";
 $MESS["BIZPROC_AUTOMATION_NO_FIELDS"] = "No suitable fields found";
+$MESS["BIZPROC_AUTOMATION_ROBOTS_LIMIT_ALERT_TITLE"] = "Attention!";
+$MESS["BIZPROC_AUTOMATION_ROBOTS_LIMIT_MAIN_ALERT"] = "You can use up to <strong>#LIMIT#</strong> automation rules and triggers on your current plan.";
+$MESS["BIZPROC_AUTOMATION_ROBOTS_LIMIT_SAVE_ALERT"] = "You can use up to <strong>#LIMIT#</strong> automation rules and triggers on your current plan.<br><br> You are currently using <b>#SUM#</b> of them.<br><br>Please delete one or more rules and/or triggers and try saving the changes again.";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CATEGORY_ADS"] = "Advertising";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CATEGORY_CLIENT"] = "Client communications";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CATEGORY_EMPLOYEE"] = "For employee";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CATEGORY_OTHER"] = "Custom automation rules";
-$MESS["BIZPROC_AUTOMATION_ROBOT_CATEGORY_OTHER_MARKETPLACE"] = "Marketplace";
+$MESS["BIZPROC_AUTOMATION_ROBOT_CATEGORY_OTHER_MARKETPLACE_2"] = "Bitrix24.Market";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION"] = "Condition";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_AND"] = "and";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_CONTAIN"] = "contains";
@@ -105,12 +120,14 @@ $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_IN"] = "is in";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_LT"] = "less than";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_LTE"] = "not more than";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_NE"] = "not equal to";
+$MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_NOT_CONTAIN"] = "doesn't contain";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_NOT_EMPTY"] = "selected";
+$MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_NOT_IN"] = "isn't part of";
 $MESS["BIZPROC_AUTOMATION_ROBOT_CONDITION_OR"] = "or";
+$MESS["BIZPROC_AUTOMATION_ROBOT_SETTINGS_TITLE"] = "Automation rule settings";
 $MESS["BIZPROC_AUTOMATION_TRIGGER_CALL_LABEL"] = "Select a Channel";
 $MESS["BIZPROC_AUTOMATION_TRIGGER_EMAIL_LINK_URL"] = "Tracking link";
 $MESS["BIZPROC_AUTOMATION_TRIGGER_OPENLINE_LABEL"] = "Select Open Channel";
 $MESS["BIZPROC_AUTOMATION_TRIGGER_STATUS_ANY"] = "any";
 $MESS["BIZPROC_AUTOMATION_TRIGGER_WEBFORM_ANY"] = "all";
 $MESS["BIZPROC_AUTOMATION_TRIGGER_WEBFORM_LABEL"] = "Select form";
-?>

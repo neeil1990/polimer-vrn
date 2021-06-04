@@ -5,8 +5,9 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 }
 
 use \Bitrix\Main\Localization\Loc;
+use Bitrix\Landing\Manager;
 
-return [
+$result = [
 	'facebook' => [
 		'name' => '<span class="fa fa-facebook"></span> Facebook',
 		'html' => '<li class="landing-block-node-list-item col g-pl-0 g-pr-0 g-pt-0 g-pb-0 g-min-width-110 list-inline-item g-mr-0"
@@ -196,48 +197,6 @@ return [
 		],
 	],
 	
-	'vine' => [
-		'name' => '<span class="fa fa-vine"></span> Vine',
-		'html' => '<li class="landing-block-node-list-item col g-pl-0 g-pr-0 g-pt-0 g-pb-0 g-min-width-110 list-inline-item g-mr-0"
-			data-card-preset="vine">
-			<a class="landing-block-node-list-item-link d-block g-py-15 g-px-30 g-bg-vine--hover g-bg-vine g-color-white text-center" href="https://vine.co/" target="_blank">
-				<i class="landing-block-node-list-item-icon fa fa-vine"></i>
-			</a>
-		</li>',
-		'disallow' => ['.landing-block-node-list-item-icon'],
-		'values' => [
-			'.landing-block-node-list-item-link' => [
-				'href' => 'https://vine.co/',
-				'target' => '_blank',
-			],
-			'.landing-block-node-list-item-icon' => [
-				'type' => 'icon',
-				'classList' => ['fa', 'fa-vine'],
-			],
-		],
-	],
-	
-	'google-plus' => [
-		'name' => '<span class="fa fa-google-plus"></span> Google Plus',
-		'html' => '<li class="landing-block-node-list-item col g-pl-0 g-pr-0 g-pt-0 g-pb-0 g-min-width-110 list-inline-item g-mr-0"
-			data-card-preset="google-plus">
-			<a class="landing-block-node-list-item-link d-block g-py-15 g-px-30 g-bg-google-plus--hover g-bg-google-plus g-color-white text-center" href="https://plus.google.com/" target="_blank">
-				<i class="landing-block-node-list-item-icon fa fa-google-plus"></i>
-			</a>
-		</li>',
-		'disallow' => ['.landing-block-node-list-item-icon'],
-		'values' => [
-			'.landing-block-node-list-item-link' => [
-				'href' => 'https://plus.google.com/',
-				'target' => '_blank',
-			],
-			'.landing-block-node-list-item-icon' => [
-				'type' => 'icon',
-				'classList' => ['fa', 'fa-google-plus'],
-			],
-		],
-	],
-	
 	'dribbble' => [
 		'name' => '<span class="fa fa-dribbble"></span> Dribbble',
 		'html' => '<li class="landing-block-node-list-item col g-pl-0 g-pr-0 g-pt-0 g-pb-0 g-min-width-110 list-inline-item g-mr-0"
@@ -322,3 +281,10 @@ return [
 		],
 	],
 ];
+
+if (!in_array(Manager::getZone(), ['ru', 'kz', 'by']))
+{
+	unset($result['vk'], $result['odnoklassniki']);
+}
+
+return $result;

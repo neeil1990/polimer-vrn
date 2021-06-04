@@ -6,7 +6,6 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 /** @var array $arParams*/
 
 use Bitrix\Main\Localization\Loc;
-use Bitrix\Sender\Security;
 
 Loc::loadMessages(__FILE__);
 
@@ -26,15 +25,16 @@ $componentParameters = array(
 	'PATH_TO_CAMPAIGN_EDIT' => $arParams['PATH_TO_CAMPAIGN_EDIT'],
 	'SHOW_CAMPAIGNS' => $arParams['SHOW_CAMPAIGNS'],
 	'SET_TITLE' => 'Y',
-	'CAN_VIEW' => Security\Access::current()->canViewAds(),
-	'CAN_EDIT' => Security\Access::current()->canModifyAds(),
+	'CAN_VIEW' => $arParams['CAN_VIEW'],
+	'CAN_EDIT' => $arParams['CAN_EDIT'],
 	'MESS' => [
 		'SENDER_SEGMENT_SELECTOR_INCLUDE_EDIT_TITLE' => Loc::getMessage('SENDER_RC_SEGMENT_SELECTOR_INCLUDE_EDIT_TITLE'),
 		'SENDER_SEGMENT_SELECTOR_RECIPIENT_COUNT' => Loc::getMessage('SENDER_RC_SEGMENT_SELECTOR_RECIPIENT_COUNT'),
 		'SENDER_SEGMENT_SELECTOR_RECIPIENT_COUNT_HINT' => Loc::getMessage('SENDER_RC_SEGMENT_SELECTOR_RECIPIENT_COUNT_HINT'),
 		'SENDER_SEGMENT_SELECTOR_RECIPIENT_COUNT_EXACT_HINT1' => Loc::getMessage('SENDER_RC_SEGMENT_SELECTOR_RECIPIENT_COUNT_EXACT_HINT1'),
 	],
-	'MESSAGE_CODE_LIST' => \Bitrix\Sender\Message\Factory::getAdsMessageCodes(),
+	'MESSAGE_CODE_LIST' => array_merge(\Bitrix\Sender\Message\Factory::getAdsMessageCodes(),
+		\Bitrix\Sender\Message\Factory::getMarketingMessageCodes()) ,
 );
 if ($_REQUEST['IFRAME'] == 'Y')
 {

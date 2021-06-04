@@ -1,7 +1,7 @@
 <?
 $MESS['BPGLDA_DOC_TYPE'] = "Тип документа";
 $MESS['BPGLDA_DT_LISTS'] = "Списки";
-$MESS['BPGLDA_DT_LISTS_SOCNET'] = "Списки груп та проектів";
+$MESS['BPGLDA_DT_LISTS_SOCNET'] = "Списки груп та проєктів";
 $MESS['BPGLDA_DT_PROCESSES'] = "Процеси";
 $MESS['BPGLDA_ELEMENT_ID'] = "ID елемента";
 $MESS['BPGLDA_ERROR_DT'] = "Некоректний тип документа.";

@@ -48,8 +48,6 @@ $MESS["MESS_BTN_DETAIL_TIP"] = "Text zum Anzeigen auf der Schaltfläche";
 $MESS["MESS_BTN_SUBSCRIBE_TIP"] = "Text zum Anzeigen auf der Schaltfläche";
 $MESS["MESS_NOT_AVAILABLE_TIP"] = "Nachricht über nicht verfügbares Produkt";
 $MESS["MESS_BTN_COMPARE_TIP"] = "Text zum Anzeigen auf der Schaltfläche";
-$MESS["CP_BCS_TPL_CUSTOM_FILTER"] = "Produktfilter";
-$MESS["CP_BCS_TPL_SETTINGS_INVALID_CONDITION"] = "Bedingung ist nicht korrekt";
 $MESS["CP_BCS_TPL_PRODUCT_BLOCKS_ORDER"] = "Reihenfolge der Ansicht der Produktblöcke";
 $MESS["PRODUCT_BLOCKS_ORDER_TIP"] = "Einige Blöcke können wegen der Vorlagenlogik die Reihenfolge nicht berücksichtigen. Ein Block kann nicht sichtbar sein, wenn er deaktiviert wurde oder nicht verfügbar ist.";
 $MESS["CP_BCS_TPL_PRODUCT_BLOCK_PRICE"] = "Preis";
@@ -107,4 +105,3 @@ $MESS["CP_BCS_TPL_USE_ENHANCED_ECOMMERCE"] = "E-commerce Daten an Google senden"
 $MESS["USE_ENHANCED_ECOMMERCE_TIP"] = "Die Optionen von Google Analytics Enhanced Ecommerce müssen dafür konfiguriert werden";
 $MESS["CP_BCS_TPL_DATA_LAYER_NAME"] = "Name des Datencontainers";
 $MESS["CP_BCS_TPL_BRAND_PROPERTY"] = "Eigenschaft der Handelsmarken";
-?>

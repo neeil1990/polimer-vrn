@@ -14,7 +14,6 @@ use Bitrix\Lists\Security\Right;
 use Bitrix\Lists\Security\RightParam;
 use Bitrix\Lists\Security\SectionRight;
 use Bitrix\Main\Error;
-use Bitrix\Main\Errorable;
 use Bitrix\Main\Loader;
 use Bitrix\Rest\RestException;
 
@@ -58,30 +57,26 @@ class RestService extends \IRestService
 	public static function getIblockTypeId(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblockType = new IblockType($param);
 
-		return $iblockType->getIblockTypeId();
+		$iblockTypeId = $iblockType->getIblockTypeId();
+		if ($iblockType->hasErrors())
+		{
+			self::throwError($iblockType->getErrors());
+		}
+
+		return $iblockTypeId;
 	}
 
 	public static function addLists(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", ["FIELDS" => ["NAME"]]]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if ($iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock already exists", Iblock::ERROR_IBLOCK_ALREADY_EXISTS);
+			self::throwError($iblock->getErrors(), "Iblock already exists", Iblock::ERROR_IBLOCK_ALREADY_EXISTS);
 		}
 
 		global $USER;
@@ -92,13 +87,13 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$iblockId = $iblock->add();
 		if ($iblock->hasErrors())
 		{
-			self::throwError($iblock);
+			self::throwError($iblock->getErrors());
 		}
 
 		return $iblockId;
@@ -107,11 +102,6 @@ class RestService extends \IRestService
 	public static function getLists(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		global $USER;
 		$rightParam = new RightParam($param);
@@ -121,7 +111,7 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::READ);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$iblock = new Iblock($param);
@@ -139,16 +129,11 @@ class RestService extends \IRestService
 	public static function updateLists(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -159,7 +144,7 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		if ($iblock->update())
@@ -168,23 +153,18 @@ class RestService extends \IRestService
 		}
 		else
 		{
-			self::throwError($iblock);
+			self::throwError($iblock->getErrors());
 		}
 	}
 
 	public static function deleteLists(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -195,21 +175,23 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
-		return $iblock->delete();
+		if ($iblock->delete())
+		{
+			return true;
+		}
+		else
+		{
+			self::throwError($iblock->getErrors());
+		}
 	}
 
 	public static function addSection(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams([
-			"IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "SECTION_CODE", ["FIELDS" => ["NAME"]]]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
+		$params = $param->getParams();
 
 		global $USER;
 		$rightParam = new RightParam($param);
@@ -220,14 +202,14 @@ class RestService extends \IRestService
 		$right->checkPermission(SectionRight::ADD);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$section = new Section($param);
 		$sectionId = $section->add();
 		if ($section->hasErrors())
 		{
-			self::throwError($section);
+			self::throwError($section->getErrors());
 		}
 
 		return $sectionId;
@@ -236,11 +218,7 @@ class RestService extends \IRestService
 	public static function getSection(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
+		$params = $param->getParams();
 
 		global $USER;
 		$rightParam = new RightParam($param);
@@ -251,7 +229,7 @@ class RestService extends \IRestService
 		$right->checkPermission(SectionRight::READ);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$section = new Section($param);
@@ -269,17 +247,12 @@ class RestService extends \IRestService
 	public static function updateSection(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams([
-			"IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "SECTION_ID", "SECTION_CODE", ["FIELDS" => ["NAME"]]]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
+		$params = $param->getParams();
 
 		$section = new Section($param);
 		if (!$section->isExist())
 		{
-			self::throwError($section, "Section not found", Section::ERROR_SECTION_NOT_FOUND);
+			self::throwError($section->getErrors(), "Section not found", Section::ERROR_SECTION_NOT_FOUND);
 		}
 
 		global $USER;
@@ -291,7 +264,7 @@ class RestService extends \IRestService
 		$right->checkPermission(SectionRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		if ($section->update())
@@ -300,23 +273,19 @@ class RestService extends \IRestService
 		}
 		else
 		{
-			self::throwError($section);
+			self::throwError($section->getErrors());
 		}
 	}
 
 	public static function deleteSection(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "SECTION_ID", "SECTION_CODE"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
+		$params = $param->getParams();
 
 		$section = new Section($param);
 		if (!$section->isExist())
 		{
-			self::throwError($section, "Section not found", Section::ERROR_SECTION_NOT_FOUND);
+			self::throwError($section->getErrors(), "Section not found", Section::ERROR_SECTION_NOT_FOUND);
 		}
 
 		global $USER;
@@ -328,27 +297,27 @@ class RestService extends \IRestService
 		$right->checkPermission(SectionRight::DELETE);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
-		return $section->delete();
+		if ($section->delete())
+		{
+			return true;
+		}
+		else
+		{
+			self::throwError($section->getErrors());
+		}
 	}
 
 	public static function addField(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams([
-			"IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", ["FIELDS" => ["NAME", "TYPE"]]
-		]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -359,14 +328,14 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$field = new Field($param);
 		$fieldId = $field->add();
 		if ($field->hasErrors())
 		{
-			self::throwError($field);
+			self::throwError($field->getErrors());
 		}
 		else
 		{
@@ -377,16 +346,11 @@ class RestService extends \IRestService
 	public static function getFields(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -397,7 +361,7 @@ class RestService extends \IRestService
 		$right->checkPermission();
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$field = new Field($param);
@@ -407,18 +371,11 @@ class RestService extends \IRestService
 	public static function updateField(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams([
-			"IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "FIELD_ID", ["FIELDS" => ["NAME", "TYPE"]]
-		]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -429,7 +386,7 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$field = new Field($param);
@@ -439,23 +396,18 @@ class RestService extends \IRestService
 		}
 		else
 		{
-			self::throwError($field);
+			self::throwError($field->getErrors());
 		}
 	}
 
 	public static function deleteField(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "FIELD_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -466,7 +418,7 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$field = new Field($param);
@@ -478,16 +430,11 @@ class RestService extends \IRestService
 	public static function getFieldTypes(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -498,7 +445,7 @@ class RestService extends \IRestService
 		$right->checkPermission(IblockRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$field = new Field($param);
@@ -508,17 +455,12 @@ class RestService extends \IRestService
 	public static function addElement(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams([
-			"IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "ELEMENT_CODE", ["FIELDS" => ["NAME"]]]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
+		$params = $param->getParams();
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -531,19 +473,19 @@ class RestService extends \IRestService
 		$right->checkPermission(ElementRight::ADD);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$element = new Element($param);
 		if ($element->isExist())
 		{
-			self::throwError($element, "Element already exists", Element::ERROR_ELEMENT_ALREADY_EXISTS);
+			self::throwError($element->getErrors(), "Element already exists", Element::ERROR_ELEMENT_ALREADY_EXISTS);
 		}
 
 		$elementId = $element->add();
 		if ($element->hasErrors())
 		{
-			self::throwError($element);
+			self::throwError($element->getErrors());
 		}
 
 		return $elementId;
@@ -552,16 +494,12 @@ class RestService extends \IRestService
 	public static function getElement(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
+		$params = $param->getParams();
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -576,7 +514,7 @@ class RestService extends \IRestService
 		$right->checkPermission(ElementRight::READ);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$element = new Element($param);
@@ -600,16 +538,11 @@ class RestService extends \IRestService
 	public static function updateElement(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "ELEMENT_CODE", "ELEMENT_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -622,37 +555,33 @@ class RestService extends \IRestService
 		$right->checkPermission(ElementRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$element = new Element($param);
 		if (!$element->isExist())
 		{
-			self::throwError($element, "Element not found", Element::ERROR_ELEMENT_NOT_FOUND);
+			self::throwError($element->getErrors(), "Element not found", Element::ERROR_ELEMENT_NOT_FOUND);
 		}
+
 		if ($element->update())
 		{
 			return true;
 		}
 		else
 		{
-			self::throwError($element);
+			self::throwError($element->getErrors());
 		}
 	}
 
 	public static function deleteElement(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "ELEMENT_CODE", "ELEMENT_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -665,19 +594,19 @@ class RestService extends \IRestService
 		$right->checkPermission(ElementRight::EDIT);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$element = new Element($param);
 		if (!$element->isExist())
 		{
-			self::throwError($element, "Element not found", Element::ERROR_ELEMENT_NOT_FOUND);
+			self::throwError($element->getErrors(), "Element not found", Element::ERROR_ELEMENT_NOT_FOUND);
 		}
 
 		$elementRight->canDelete();
 		if ($elementRight->hasErrors())
 		{
-			self::throwError($elementRight);
+			self::throwError($elementRight->getErrors());
 		}
 
 		if ($element->delete())
@@ -686,24 +615,18 @@ class RestService extends \IRestService
 		}
 		else
 		{
-			self::throwError($element);
+			self::throwError($element->getErrors());
 		}
 	}
 
 	public static function getFileUrl(array $params, $n, \CRestServer $server)
 	{
 		$param = new Param($params);
-		$param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID", "ELEMENT_CODE",
-			"ELEMENT_ID", "FIELD_ID"]);
-		if ($param->hasErrors())
-		{
-			self::throwError($param);
-		}
 
 		$iblock = new Iblock($param);
 		if (!$iblock->isExist())
 		{
-			self::throwError($iblock, "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
+			self::throwError($iblock->getErrors(), "Iblock not found", Iblock::ERROR_IBLOCK_NOT_FOUND);
 		}
 
 		global $USER;
@@ -716,21 +639,22 @@ class RestService extends \IRestService
 		$right->checkPermission(ElementRight::READ);
 		if ($right->hasErrors())
 		{
-			self::throwError($right);
+			self::throwError($right->getErrors());
 		}
 
 		$element = new Element($param);
 		if (!$element->isExist())
 		{
-			self::throwError($element, "Element not found", Element::ERROR_ELEMENT_NOT_FOUND);
+			self::throwError($element->getErrors(), "Element not found", Element::ERROR_ELEMENT_NOT_FOUND);
 		}
 
 		return $element->getFileUrl();
 	}
 
-	private static function throwError(Errorable $object, $message = "", $code = "")
+	private static function throwError(array $errors, $message = "", $code = "")
 	{
-		$error = end($object->getErrors());
+		$error = end($errors);
+
 		if ($error instanceof Error)
 		{
 			$message = $error->getMessage();
@@ -740,14 +664,19 @@ class RestService extends \IRestService
 			}
 			else
 			{
-				$message = "Unknown error";
+				$message = $message ?: "Unknown error";
 			}
 			throw new RestException($message, $error->getCode());
+		}
+		elseif ($error)
+		{
+			throw new RestException($error, RestException::ERROR_CORE);
 		}
 		elseif ($message && $code)
 		{
 			throw new RestException($message, $code);
 		}
+
 		throw new RestException("Unknown error", RestException::ERROR_NOT_FOUND);
 	}
 

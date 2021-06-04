@@ -1,4 +1,5 @@
 <?
+/** @global CUserTypeManager $USER_FIELD_MANAGER */
 use Bitrix\Main,
 	Bitrix\Main\Loader,
 	Bitrix\Main\Localization\Loc,
@@ -10,6 +11,11 @@ global $APPLICATION;
 global $DB;
 global $USER;
 global $USER_FIELD_MANAGER;
+
+/** @global CAdminPage $adminPage */
+global $adminPage;
+/** @global CAdminSidePanelHelper $adminSidePanelHelper */
+global $adminSidePanelHelper;
 
 $publicMode = $adminPage->publicMode;
 $selfFolderUrl = $adminPage->getSelfFolderUrl();
@@ -67,7 +73,7 @@ function getSiteTitle($siteId)
 $sTableID = "b_catalog_store";
 $entityId = Catalog\StoreTable::getUfId();
 
-$oSort = new CAdminSorting($sTableID, "SORT", "ASC");
+$oSort = new CAdminUiSorting($sTableID, "SORT", "ASC");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
 $listSite = array();
@@ -175,6 +181,7 @@ if($lAdmin->EditAction() && !$bReadOnly)
 			$arFields['GPS_N'] = str_replace(',', '.', $arFields['GPS_N']);
 		if (isset($arFields['GPS_S']))
 			$arFields['GPS_S'] = str_replace(',', '.', $arFields['GPS_S']);
+		$USER_FIELD_MANAGER->AdminListPrepareFields($entityId, $arFields);
 
 		$DB->StartTransaction();
 		if(!CCatalogStore::Update($ID, $arFields))
@@ -206,7 +213,7 @@ if(($arID = $lAdmin->GroupAction()) && !$bReadOnly)
 
 	foreach ($arID as $ID)
 	{
-		if(strlen($ID) <= 0)
+		if($ID == '')
 			continue;
 
 		switch ($_REQUEST['action'])
@@ -475,9 +482,10 @@ while ($arRes = $dbResultList->Fetch())
 			$arUserID[$arRes['MODIFIED_BY']] = true;
 	}
 
-	$arRows[$arRes['ID']] = $row =& $lAdmin->AddRow($arRes['ID'], $arRes, "cat_store_edit.php?ID=".$arRes['ID']."&lang=".LANGUAGE_ID);
 	$editUrl = $selfFolderUrl."cat_store_edit.php?ID=".$arRes['ID']."&lang=".LANGUAGE_ID;
 	$editUrl = $adminSidePanelHelper->editUrlToPublicPage($editUrl);
+	$arRows[$arRes['ID']] = $row =& $lAdmin->AddRow($arRes['ID'], $arRes, $editUrl);
+	$USER_FIELD_MANAGER->AddUserFields($entityId, $arRes, $row);
 	$row->AddField("ID", "<a href=\"".$editUrl."\">".$arRes['ID']."</a>");
 	if($bReadOnly)
 	{
@@ -625,27 +633,48 @@ if($arSelectFieldsMap['USER_ID'] || $arSelectFieldsMap['MODIFIED_BY'])
 
 if (!$bReadOnly)
 {
-	$lAdmin->AddGroupActionTable([
-		'edit' => true,
-		'delete' => true
-	]);
+	$actions = [];
+	if (!Catalog\Config\State::isExceededStoreLimit())
+	{
+		$actions['edit'] = true;
+	}
+	$actions['delete'] = true;
+	$lAdmin->AddGroupActionTable($actions);
+	unset($actions);
 }
 
-if(!$bReadOnly && Catalog\Config\State::isAllowedNewStore())
+$aContext = [];
+if(!$bReadOnly)
 {
-	$addUrl = $selfFolderUrl."cat_store_edit.php?lang=".LANGUAGE_ID;
-	$addUrl = $adminSidePanelHelper->editUrlToPublicPage($addUrl);
-	$aContext = array(
-		array(
+	if (Catalog\Config\State::isAllowedNewStore())
+	{
+		$addUrl = $selfFolderUrl."cat_store_edit.php?lang=".LANGUAGE_ID;
+		$addUrl = $adminSidePanelHelper->editUrlToPublicPage($addUrl);
+		$aContext[] = [
 			"TEXT" => Loc::getMessage("STORE_ADD_NEW"),
 			"ICON" => "btn_new",
 			"LINK" => $addUrl,
 			"TITLE" => Loc::getMessage("STORE_ADD_NEW_ALT")
-		),
-	);
-	$lAdmin->setContextSettings(array("pagePath" => $selfFolderUrl."cat_store_list.php"));
-	$lAdmin->AddAdminContextMenu($aContext);
+		];
+	}
+	else
+	{
+		$helpLink = Catalog\Config\Feature::getMultiStoresHelpLink();
+		if (!empty($helpLink))
+		{
+			$aContext[] = [
+				'TEXT' => Loc::getMessage('STORE_ADD_NEW'),
+				'ICON' => 'btn_lock',
+				$helpLink['TYPE'] => $helpLink['LINK'],
+				'TITLE' => Loc::getMessage('STORE_ADD_NEW_ALT')
+			];
+		}
+		unset($helpLink);
+	}
 }
+$lAdmin->setContextSettings(array("pagePath" => $selfFolderUrl."cat_store_list.php"));
+$lAdmin->AddAdminContextMenu($aContext);
+unset($aContext);
 
 $lAdmin->CheckListMode();
 

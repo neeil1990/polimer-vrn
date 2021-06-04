@@ -5,9 +5,9 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
 }
 
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\UI\Extension;
 use Bitrix\Main\Web\Json;
 use Bitrix\Sender\Internals\PrettyDate;
-use Bitrix\Main\UI\Extension;
 
 Loc::loadMessages(__FILE__);
 
@@ -20,6 +20,13 @@ $containerId = 'bx-sender-letter-edit';
 Extension::load("ui.buttons");
 Extension::load("ui.buttons.icons");
 Extension::load("ui.notification");
+CJSCore::Init(array('admin_interface'));
+
+if($arParams['IFRAME'] === 'Y')
+{
+	\Bitrix\UI\Toolbar\Facade\Toolbar::deleteFavoriteStar();
+}
+
 ?>
 <script type="text/javascript">
 	BX.ready(function () {
@@ -27,7 +34,7 @@ Extension::load("ui.notification");
 		BX.Sender.Letter.init(<?=Json::encode(array(
 			'containerId' => $containerId,
 			'actionUrl' => $arResult['ACTION_URL'],
-			'isFrame' => $arParams['IFRAME'] == 'Y',
+			'isFrame' => $arParams['IFRAME'] === 'Y',
 			'isSaved' => $arResult['IS_SAVED'],
 			'isOutside' => $arParams['IS_OUTSIDE'],
 			'isTemplateShowed' => $arResult['SHOW_TEMPLATE_SELECTOR'],
@@ -36,6 +43,10 @@ Extension::load("ui.notification");
 			'mess' => array(
 				'patternTitle' => Loc::getMessage('SENDER_COMP_TMPL_LETTER_PATTERN_TITLE'),
 				'name' => $arResult['MESSAGE_NAME'],
+				'applyClose' => $component->getLocMessage('SENDER_LETTER_APPLY_CLOSE'),
+				'applyCloseTitle' => $component->getLocMessage('SENDER_LETTER_APPLY_CLOSE_TITLE'),
+				'applyYes' => $component->getLocMessage('SENDER_LETTER_APPLY_YES'),
+				'applyCancel' => $component->getLocMessage('SENDER_LETTER_APPLY_CANCEL'),
 				'outsideSaveSuccess' => $component->getLocMessage(
 					'SENDER_LETTER_EDIT_OUTSIDE_ADD_SUCCESS',
 					['%path%' => $arParams['PATH_TO_LIST']]
@@ -76,7 +87,7 @@ Extension::load("ui.notification");
 					"bitrix:sender.template.selector",
 					"",
 					array(
-						"MESSAGE_CODE" => $arParams['MESSAGE_CODE'],
+						"MESSAGE_CODE" => $arResult['MESSAGE_CODE'],
 						"IS_TRIGGER" => $arParams['IS_TRIGGER'],
 						"CACHE_TIME" => "60",
 						"CACHE_TYPE" => "N",
@@ -116,7 +127,7 @@ Extension::load("ui.notification");
 			<div class="bx-sender-letter-field sender-letter-edit-row" style="<?=($arParams['IFRAME'] == 'Y' ? 'display: none;' : '')?>">
 				<div class="bx-sender-caption sender-letter-edit-title"><?=Loc::getMessage('SENDER_LETTER_EDIT_FIELD_NAME')?>:</div>
 				<div class="bx-sender-value">
-					<input data-role="letter-title" type="text" name="TITLE" value="<?=htmlspecialcharsbx($arResult['ROW']['TITLE'])?>" class="bx-sender-letter-form-control bx-sender-letter-field-input">
+					<input data-role="letter-title" type="text" name="TITLE" value="<?=htmlspecialcharsbx($arResult['ROW']['TITLE'])?>" class="bx-sender-letter-form-control bx-sender-letter-field-input" <?if(!$arParams['CAN_EDIT']):?>disabled="disabled"<?endif;?>>
 				</div>
 			</div>
 
@@ -173,30 +184,37 @@ Extension::load("ui.notification");
 					"MESSAGE" => $arResult['MESSAGE'],
 					"TEMPLATE_TYPE" => $arResult['ROW']['TEMPLATE_TYPE'],
 					"TEMPLATE_ID" => $arResult['ROW']['TEMPLATE_ID'],
+					"CAN_EDIT" => $arParams['CAN_EDIT'],
+					"IS_TRIGGER" => $arParams['IS_TRIGGER'],
 				),
 				false
 			);
 			?>
 		</div>
 
-		<div data-role="letter-buttons" style="<?=($arResult['SHOW_TEMPLATE_SELECTOR'] ? 'display: none;' : '')?>">
+		<div data-role="letter-buttons"
+			style="<?=($arResult['SHOW_TEMPLATE_SELECTOR'] || !$arResult['SHOW_BUTTONS'] ? 'display: none;' : '')?>">
 			<?
+			$buttons = [];
+			if ($arParams['CAN_EDIT'])
+			{
+				if ( $arResult['CAN_SAVE_AS_TEMPLATE'])
+				{
+					$buttons[] = [
+						'TYPE' => 'checkbox',
+						'CAPTION' => Loc::getMessage('SENDER_LETTER_EDIT_BTN_SAVE_AS_TEMPLATE'),
+						'NAME' => 'save_as_template'
+					];
+				}
+				$buttons[] = ['TYPE' => 'save'];
+				$buttons[] = ['TYPE' => 'apply', 'ONCLICK' => 'BX.Sender.Letter.applyChanges()'];
+			}
+			$buttons[] = ['TYPE' => 'cancel', 'LINK' => $arParams['PATH_TO_LIST']];
 			$APPLICATION->IncludeComponent(
-				"bitrix:sender.ui.button.panel",
+				"bitrix:ui.button.panel",
 				"",
 				array(
-					'CHECKBOX' => ($arParams['CAN_EDIT'] && $arResult['CAN_SAVE_AS_TEMPLATE'])
-						?
-						[
-							'NAME' =>  'save_as_template',
-							'CAPTION' =>  Loc::getMessage('SENDER_LETTER_EDIT_BTN_SAVE_AS_TEMPLATE')
-						]
-						:
-						null,
-					'SAVE' => $arParams['CAN_EDIT'] ? [] : null,
-					'CANCEL' => array(
-						'URL' => $arParams['PATH_TO_LIST']
-					),
+					'BUTTONS' => $buttons
 				),
 				false
 			);

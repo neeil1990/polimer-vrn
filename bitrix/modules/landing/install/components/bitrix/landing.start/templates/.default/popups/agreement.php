@@ -14,22 +14,21 @@ use \Bitrix\Main\Localization\Loc;
 $id = 'landing-agreement-popup';
 ?>
 
-<div class="landing-agreement-shadow">
-	<div id="<?= $id;?>" style="display: none;">
-		<div class="landing-agreement-popup-content">
-			<form method="POST" action="<?= POST_FORM_ACTION_URI;?>" id="<?= $id;?>-form">
-				<input type="hidden" name="action" value="accept_agreement" />
-				<?= bitrix_sessid_post();?>
-				<?= $arResult['AGREEMENT']['TEXT'];?>
-			</form>
-		</div>
+<div id="<?= $id;?>" style="display: none;">
+	<div class="<?= $id;?>-content">
+		<form method="POST" action="<?= str_replace('IS_AJAX=Y', '', POST_FORM_ACTION_URI);?>" id="<?= $id;?>-form">
+			<input type="hidden" name="action" value="accept_agreement" />
+			<?= bitrix_sessid_post();?>
+			<?= $arResult['AGREEMENT']['TEXT'];?>
+		</form>
 	</div>
 </div>
 
 <script type="text/javascript">
-	BX.ready(function()
+	var landingAgreementPopup = function(params)
 	{
-		var accept = false;
+		params = params || {};
+
 		var oPopup = BX.PopupWindowManager.create('<?= $id;?>', null, {
 			content: BX('<?= $id;?>'),
 			titleBar: {content: BX.create('span', {html: ''})},
@@ -38,32 +37,28 @@ $id = 'landing-agreement-popup';
 			draggable: true,
 			lightShadow: true,
 			overlay: true,
-			className: 'landing-agreement-popup-wrapper',
+			className: '<?= $id;?>-wrapper',
 			buttons: [
 				new BX.PopupWindowButton({
-					text: '<?= \CUtil::jsEscape(Loc::getMessage('LANDING_TPL_ACCEPT'));?>',
-					className: 'popup-window-button-accept',
+					text: '<?= \CUtil::jsEscape(Loc::getMessage($arResult['AGREEMENT_ACCEPTED'] ? 'LANDING_TPL_ACCEPTED' : 'LANDING_TPL_ACCEPT'));?>',
+					className: '<?= $arResult['AGREEMENT_ACCEPTED'] ? 'popup-window-button-cancel' : 'popup-window-button-accept';?>',
 					events: {
 						click: function()
 						{
-							accept = true;
 							BX.PopupWindowManager.getCurrentPopup().close();
+							<?if (!$arResult['AGREEMENT_ACCEPTED']):?>
+							if (typeof params.success !== 'undefined')
+							{
+								params.success();
+							}
 							BX('<?= $id;?>-form').submit();
+							<?endif;?>
 						}
 					}
 				})
-			],
-			events: {
-				onPopupClose: function()
-				{
-					if (!accept)
-					{
-						top.window.location.href = '<?= \CUtil::jsEscape(SITE_DIR);?>';
-					}
-				}
-			}
+			]
 		});
 		oPopup.setTitleBar('<?= \CUtil::jsEscape($arResult['AGREEMENT']['NAME']);?>');
 		oPopup.show();
-	});
+	};
 </script>

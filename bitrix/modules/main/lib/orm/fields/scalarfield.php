@@ -15,7 +15,7 @@ use Bitrix\Main\ORM\Fields\FieldTypeMask;
  * @package bitrix
  * @subpackage main
  */
-abstract class ScalarField extends Field implements IStorable
+abstract class ScalarField extends Field implements IStorable, ITypeHintable
 {
 	protected $is_primary;
 
@@ -24,6 +24,9 @@ abstract class ScalarField extends Field implements IStorable
 	protected $is_required;
 
 	protected $is_autocomplete;
+
+	/** @var boolean Permission to use in filter */
+	protected $is_private;
 
 	protected $column_name = '';
 
@@ -46,6 +49,7 @@ abstract class ScalarField extends Field implements IStorable
 		$this->is_unique = (isset($parameters['unique']) && $parameters['unique']);
 		$this->is_required = (isset($parameters['required']) && $parameters['required']);
 		$this->is_autocomplete = (isset($parameters['autocomplete']) && $parameters['autocomplete']);
+		$this->is_private = (isset($parameters['private']) && $parameters['private']);
 
 		$this->column_name = isset($parameters['column_name']) ? $parameters['column_name'] : $this->name;
 		$this->default_value = isset($parameters['default_value']) ? $parameters['default_value'] : null;
@@ -64,7 +68,7 @@ abstract class ScalarField extends Field implements IStorable
 	 *
 	 * @return $this
 	 */
-	public function configurePrimary($value)
+	public function configurePrimary($value = true)
 	{
 		$this->is_primary = (bool) $value;
 		return $this;
@@ -80,7 +84,7 @@ abstract class ScalarField extends Field implements IStorable
 	 *
 	 * @return $this
 	 */
-	public function configureRequired($value)
+	public function configureRequired($value = true)
 	{
 		$this->is_required = (bool) $value;
 		return $this;
@@ -96,7 +100,7 @@ abstract class ScalarField extends Field implements IStorable
 	 *
 	 * @return $this
 	 */
-	public function configureUnique($value)
+	public function configureUnique($value = true)
 	{
 		$this->is_unique = (bool) $value;
 		return $this;
@@ -112,7 +116,7 @@ abstract class ScalarField extends Field implements IStorable
 	 *
 	 * @return $this
 	 */
-	public function configureAutocomplete($value)
+	public function configureAutocomplete($value = true)
 	{
 		$this->is_autocomplete = (bool) $value;
 		return $this;
@@ -121,6 +125,26 @@ abstract class ScalarField extends Field implements IStorable
 	public function isAutocomplete()
 	{
 		return $this->is_autocomplete;
+	}
+
+
+	/**
+	 * @param bool $value
+	 *
+	 * @return ScalarField
+	 */
+	public function configurePrivate($value = true)
+	{
+		$this->is_private = (bool) $value;
+		return $this;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isPrivate()
+	{
+		return $this->is_private;
 	}
 
 	/**
@@ -183,5 +207,21 @@ abstract class ScalarField extends Field implements IStorable
 		}
 
 		return (strval($value) === '');
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getGetterTypeHint()
+	{
+		return '\\string';
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSetterTypeHint()
+	{
+		return '\\string';
 	}
 }

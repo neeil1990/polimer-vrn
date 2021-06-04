@@ -91,13 +91,20 @@ class PostTable extends Entity\DataManager
 			),
 			'TITLE' => array(
 				'data_type' => 'string',
+				'save_data_modification' => array('\Bitrix\Main\Text\Emoji', 'getSaveModificator'),
+				'fetch_data_modification' => array('\Bitrix\Main\Text\Emoji', 'getFetchModificator'),
 			),
 			'DETAIL_TEXT' => array(
 				'data_type' => 'text',
+				'save_data_modification' => array('\Bitrix\Main\Text\Emoji', 'getSaveModificator'),
+				'fetch_data_modification' => array('\Bitrix\Main\Text\Emoji', 'getFetchModificator'),
 			),
 			'CATEGORY_ID' => array(
 				'data_type' => 'string',
 			),
+			'BACKGROUND_CODE' => [
+				'data_type' => 'string'
+			],
 		);
 
 		return $fieldsMap;

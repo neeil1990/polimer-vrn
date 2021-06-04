@@ -17,10 +17,13 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 $arDefaultUrlTemplates404 = array(
 	"category" => "category/#category#/",
 	"detail" => "detail/#app#/",
+	"placement_view" => "view/#APP#/",
+	"placement" => "placement/#PLACEMENT_ID#/",
 	"search" => "search/",
 	"buy" => "buy/",
 	"updates" => "updates/",
 	"installed" => "installed/",
+	"booklet" => "booklet/#CODE#/",
 );
 
 $arDefaultVariableAliases404 = array();
@@ -48,7 +51,7 @@ if($arParams["SEF_MODE"] == "Y")
 		$arVariables
 	);
 
-	if(strlen($componentPage) <= 0)
+	if($componentPage == '')
 	{
 		$componentPage = "category";
 	}
@@ -68,10 +71,19 @@ if($arParams["SEF_MODE"] == "Y")
 	$arParams["BUY_URL"] = CComponentEngine::MakePathFromTemplate($arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["buy"], $arVariables);
 	$arParams["UPDATES_URL"] = CComponentEngine::MakePathFromTemplate($arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["updates"], $arVariables);
 	$arParams["INSTALLED_URL"] = CComponentEngine::MakePathFromTemplate($arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["installed"], $arVariables);
-
+	$arParams["PLACEMENT_VIEW"] = CComponentEngine::MakePathFromTemplate($arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["placement_view"], $arVariables);
+	$arParams["PLACEMENT"] = CComponentEngine::MakePathFromTemplate($arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["placement"], $arVariables);
+	$arParams["BOOKLET"] = CComponentEngine::MakePathFromTemplate($arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["booklet"], $arVariables);
 
 	$arParams["CATEGORY_URL_TPL"] = $arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["category"];
 	$arParams["DETAIL_URL_TPL"] = $arParams["SEF_FOLDER"].$arParams["SEF_URL_TEMPLATES"]["detail"];
+	if (\CRestUtil::isSlider())
+	{
+		$request = \Bitrix\Main\Context::getCurrent()->getRequest();
+		$arParams["DETAIL_URL_TPL"] .= "?".(new \Bitrix\Main\Web\Uri($arParams["DETAIL_URL_TPL"]))
+				->addParams(["IFRAME" => $request->get("IFRAME"), "IFRAME_TYPE" => $request->get("IFRAME_TYPE")])
+				->getQuery();
+	}
 }
 else
 {
@@ -80,11 +92,11 @@ else
 	CComponentEngine::InitComponentVariables(false, $arComponentVariables, $arVariableAliases, $arVariables);
 
 	$componentPage = "";
-	if(strlen($arVariables["app"]) > 0)
+	if($arVariables["app"] <> '')
 	{
 		$componentPage = "detail";
 	}
-	elseif(strlen($arVariables["category"]) > 0)
+	elseif($arVariables["category"] <> '')
 	{
 		$componentPage = "category";
 	}
@@ -93,16 +105,45 @@ else
 		$componentPage = "top";
 	}
 
-	$arParams['DETAIL_URL_TPL'] = $APPLICATION->GetCurPageParam('app=#app#', array('IFRAME', 'IFRAME_TYPE'));
+	if (\CRestUtil::isSlider())
+		$arParams['DETAIL_URL_TPL'] = $APPLICATION->GetCurPageParam('app=#app#');
+	else
+		$arParams['DETAIL_URL_TPL'] = $APPLICATION->GetCurPageParam('app=#app#', array('IFRAME', 'IFRAME_TYPE'));
 }
 
+
+if (!empty($this->request->get('from')))
+{
+	$from = htmlspecialcharsbx($this->request->get('from'));
+	if (mb_strpos($arParams["DETAIL_URL_TPL"], '?') === false)
+	{
+		$arParams["DETAIL_URL_TPL"] .= '?from=' . $from;
+	}
+	else
+	{
+		$arParams["DETAIL_URL_TPL"] .= '&from=' . $from;
+	}
+
+	if (mb_strpos($arParams["CATEGORY_URL_TPL"], '?') === false)
+	{
+		$arParams["CATEGORY_URL_TPL"] .= '?from=' . $from;
+	}
+	else
+	{
+		$arParams["CATEGORY_URL_TPL"] .= '&from=' . $from;
+	}
+}
+
+if($componentPage == 'placement_view')
+{
+	$componentPage = 'placement';
+}
 $arResult = array(
 	"FOLDER" => $SEF_FOLDER,
 	"URL_TEMPLATES" => $arUrlTemplates,
 	"VARIABLES" => $arVariables,
 	"ALIASES" => $arVariableAliases
 );
-
 
 $arParams["COMPONENT_PAGE"] = $componentPage;
 

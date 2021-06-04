@@ -25,7 +25,7 @@ if (typeof(BX.Report.rebuildSelect) === "undefined")
 			{
 				el = document.createElement("option");
 				el.value = items[i]['id'];
-				el.innerHTML = items[i]['title'];
+				el.innerText = items[i]['title'];
 				try
 				{
 					// for IE earlier than version 8
@@ -783,96 +783,6 @@ function rebuildSortSelect()
 	}
 
 	rebuildReportPreviewTable();
-	//rebuildFilterResultColumns();
-}
-
-function rebuildFilterResultColumns()
-{
-	BX('report-filter-result-columns-cont').innerHTML = '';
-
-	var columnList = BX.findChildren(BX('reports-add-columns-block'), {tag:'input', attr:{type:'hidden'}}, true);
-	var columnInfoList = {}, columnInfo = null, i;
-
-	for (i in columnList)
-	{
-		if (!columnList.hasOwnProperty(i))
-			continue;
-
-		if (columnList[i].value != '')
-		{
-			// build items for popup
-			var columnContainer = columnList[i].parentNode;
-
-
-			columnInfo = parseSelectColumnInfo(columnContainer);
-
-			// rewrite data type
-			if (columnInfo.prcnt)
-			{
-				columnInfo.data_type = 'float';
-			}
-			else if (columnInfo.calc == 'COUNT_DISTINCT')
-			{
-				columnInfo.data_type = 'integer';
-			}
-			else if (columnInfo.calc == 'GROUP_CONCAT')
-			{
-				// no filter for grc
-				continue;
-			}
-
-			columnInfoList[columnInfo.num] = columnInfo;
-
-			var elemHtml = '<div class="reports-add-popup-item">'
-				+ '<span class="reports-add-pop-left-bord"></span>'
-				+ '<span class="reports-add-popup-checkbox-block">'
-					+ '<input class="reports-add-popup-checkbox" type="checkbox" fieldtype="'+columnInfo.data_type+'" '
-					+ 'title="'+columnInfo.title+'" name="__COLUMN__'+columnInfo.num+'">'
-					+ '</span>'
-					+ '<span class="reports-add-popup-it-text">'+columnInfo.title+'</span>'
-				+ '</div>';
-
-
-			BX('report-filter-result-columns-cont').innerHTML += elemHtml;
-		}
-	}
-
-	// bind click event for new result columns in filter
-	var fList = BX.findChildren(BX('report-filter-result-columns-cont'), {className:'reports-add-popup-it-text'}, true);
-
-	for (i in fList)
-	{
-		if (fList.hasOwnProperty(i))
-			BX.bind(fList[i], 'click', fillFilterColumnEvent);
-	}
-
-	// remove filters for non existing or data-type-changed result columns
-	// also update column titles on filters for existing columns
-	var filterItems = BX.findChildren(BX('reports-filter-columns-container'), {attr: {fielddefinition:/__COLUMN__\d+/}}, true);
-	for (i in filterItems)
-	{
-		if (!filterItems.hasOwnProperty(i))
-			continue;
-
-		var filterItem = filterItems[i].parentNode.parentNode;
-		var column_num = filterItems[i].getAttribute('fielddefinition').match(/\d+/)[0];
-		columnInfo = columnInfoList[column_num];
-		var current_data_type = filterItems[i].getAttribute('fieldType');
-
-		if (!columnInfo || current_data_type != columnInfo.data_type)
-		{
-			// this column has been deleted from select
-			// or data_type has been changed through prcnt or calc
-			var minusButt = BX.findChild(filterItem, {className:'reports-filter-del-item'}, true);
-			BX.fireEvent(minusButt, 'click');
-		}
-		else
-		{
-			// column still exists, but it may need to update title
-			filterItems[i].title = columnInfo.title;
-			filterItems[i].innerHTML = columnInfo.title;
-		}
-	}
 }
 
 function rebuildHtmlSelect(obj, newValues)
@@ -2357,89 +2267,100 @@ function restoreSubFilter(parent, filter)
 		if (!filter.hasOwnProperty(i))
 			continue;
 
-		if (i == 'LOGIC')
+		if (i === 'LOGIC')
 		{
 			continue;
 		}
 
 		var subFilter = filter[i];
 
-		if (subFilter.type == 'field')
+		if (subFilter.type === 'field')
 		{
 			// add empty column
 			newCol = addFilterColumn(container);
 
-			// fill column name
-			var iCheckbox = BX.findChild(BX('reports-add_filcol-popup-cont'), {attr:{type:'checkbox', name: subFilter.name}}, true);
-			var fControl = BX.findChild(iCheckbox.parentNode.parentNode, {className:'reports-add-popup-it-text'}, true);
-			var fChoose = BX.findChild(newCol, {className:'reports-filter-item-name'}, true);
-			LAST_FILCOL_CALLED = fChoose;
-			fillFilterColumnEvent(null, fControl);
+			var iCheckbox = BX.findChild(
+				BX('reports-add_filcol-popup-cont'),
+				{attr:{type:'checkbox', name: subFilter.name}},
+				true
+			);
 
-			// fill column compare
-			var sel = BX.findChild(newCol, {attr:{name:'compare'}});
-			setSelectValue(sel, subFilter.compare);
-
-			// fill column value. fffuuuu
-			var vControl = BX.findChild(newCol, {attr:{name:'value'}}, true);
-
-			if (vControl)
+			if (iCheckbox)
 			{
-				if (vControl.getAttribute('type') == 'hidden')
-				{
-					vControl = vControl.parentNode;
-				}
+				// fill column name
+				var fControl = BX.findChild(
+					iCheckbox.parentNode.parentNode,
+					{className:'reports-add-popup-it-text'},
+					true
+				);
+				LAST_FILCOL_CALLED = BX.findChild(newCol, {className:'reports-filter-item-name'}, true);
+				fillFilterColumnEvent(null, fControl);
 
-				switch (vControl.nodeName.toLowerCase())
+				// fill column compare
+				var sel = BX.findChild(newCol, {attr:{name:'compare'}});
+				setSelectValue(sel, subFilter.compare);
+
+				// fill column value. fffuuuu
+				var vControl = BX.findChild(newCol, {attr:{name:'value'}}, true);
+
+				if (vControl)
 				{
-					case 'input':
-						vControl.value = subFilter.value;
-						break;
-					case 'select':
-						setSelectValue(vControl, subFilter.value);
-						break;
-					default:
-						if (vControl.getAttribute('callback') != null)
-						{
-							var callBack = vControl.getAttribute('callback');
-							var callerName = callBack + '_LAST_CALLER';
-							var cFunc = callBack + 'Catch';
-							var caller = BX.findChild(vControl, {attr:'caller'}, true);
-							window[callerName] = caller;
-							window[cFunc](subFilter.value);
-						}
-				}
-			}
-			else
-			{
-				var dashed, ufSelector, isUF, ufId, ufName, ufSelectorIndex;
-				if (BX.hasClass(newCol, 'reports-filter-item'))
-				{
-					dashed = BX.findChild(newCol, {className:'reports-dashed'}, true);
-					ufSelector = null;
-					isUF = (dashed && parseInt(dashed.getAttribute('isUF')) === 1);
-					if (isUF)
+					if (vControl.getAttribute('type') === 'hidden')
 					{
-						ufId = dashed.getAttribute('ufId');
-						ufName = dashed.getAttribute('ufName');
-						ufSelectorIndex = parseInt(dashed.getAttribute('ufSelectorIndex'));
+						vControl = vControl.parentNode;
+					}
 
-						if (ufId && ufName)
+					switch (vControl.nodeName.toLowerCase())
+					{
+						case 'input':
+							vControl.value = subFilter.value;
+							break;
+						case 'select':
+							setSelectValue(vControl, subFilter.value);
+							break;
+						default:
+							if (vControl.getAttribute('callback') != null)
+							{
+								var callBack = vControl.getAttribute('callback');
+								var callerName = callBack + '_LAST_CALLER';
+								var cFunc = callBack + 'Catch';
+								var caller = BX.findChild(vControl, {attr:'caller'}, true);
+								window[callerName] = caller;
+								window[cFunc](subFilter.value);
+							}
+					}
+				}
+				else
+				{
+					var dashed, ufSelector, isUF, ufId, ufName, ufSelectorIndex;
+					if (BX.hasClass(newCol, 'reports-filter-item'))
+					{
+						dashed = BX.findChild(newCol, {className:'reports-dashed'}, true);
+						ufSelector = null;
+						isUF = (dashed && parseInt(dashed.getAttribute('isUF')) === 1);
+						if (isUF)
 						{
-							if (BX.Report && BX.Report.FilterFieldSelectorManager)
-								ufSelector = BX.Report.FilterFieldSelectorManager.getSelector(ufId, ufName);
-							if (ufSelector)
-								ufSelector.setFilterValue(ufSelectorIndex, subFilter.value);
+							ufId = dashed.getAttribute('ufId');
+							ufName = dashed.getAttribute('ufName');
+							ufSelectorIndex = parseInt(dashed.getAttribute('ufSelectorIndex'));
+
+							if (ufId && ufName)
+							{
+								if (BX.Report && BX.Report.FilterFieldSelectorManager)
+									ufSelector = BX.Report.FilterFieldSelectorManager.getSelector(ufId, ufName);
+								if (ufSelector)
+									ufSelector.setFilterValue(ufSelectorIndex, subFilter.value);
+							}
 						}
 					}
 				}
+
+				// fill changeable flag
+				BX.findChild(newCol, {attr: {name: 'changeable'}}, true).checked = !!parseInt(subFilter.changeable);
+
+				// yay!
+				lastElem = newCol;
 			}
-
-			// fill changeable flag
-			BX.findChild(newCol, {attr: {name: 'changeable'}}, true).checked = !!parseInt(subFilter.changeable);
-
-			// yay!
-			lastElem = newCol;
 		}
 		else if (subFilter.type == 'filter')
 		{

@@ -2,12 +2,15 @@
 
 namespace Bitrix\Sale\Helpers\Admin\Blocks;
 
+use Bitrix\Main\Config\Option;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Type\Date;
 use Bitrix\Sale\Cashbox\Internals\CashboxTable;
 use Bitrix\Sale\Cashbox;
 use Bitrix\Sale\Delivery\CalculationResult;
+use Bitrix\Sale\Exchange\Integration\Admin\Link;
+use Bitrix\Sale\Exchange\Integration\Admin\Registry;
 use Bitrix\Sale\Helpers\Admin\OrderEdit;
 use Bitrix\Sale\Delivery\Services;
 use Bitrix\Sale\Delivery\Restrictions;
@@ -20,7 +23,7 @@ use Bitrix\Main\Entity\EntityError;
 use Bitrix\Main;
 use Bitrix\Sale\Services\Company;
 use Bitrix\Sale\Shipment;
-use Bitrix\Sale\ShipmentCollection;
+use Bitrix\Sale;
 use Bitrix\Sale\Services\Base;
 use Bitrix\Sale\Delivery\Requests;
 
@@ -147,9 +150,20 @@ class OrderShipment
 		$currencyLang = preg_replace("/(^|[^&])#/", '$1', $curFormat["FORMAT_STRING"]);
 
 		$customPriceDelivery = isset($post['CUSTOM_PRICE_DELIVERY']) ? htmlspecialcharsbx($post['CUSTOM_PRICE_DELIVERY']) : $data['CUSTOM_PRICE_DELIVERY'];
+		$customWeightDelivery = isset($post['CUSTOM_WEIGHT_DELIVERY']) ? htmlspecialcharsbx($post['CUSTOM_WEIGHT_DELIVERY']) : $data['CUSTOM_WEIGHT_DELIVERY'];
 
 		$basePriceDelivery = round((isset($post['BASE_PRICE_DELIVERY']) ? $post['BASE_PRICE_DELIVERY'] : $data['BASE_PRICE_DELIVERY']), 2);
 		$priceDelivery = round((isset($post['PRICE_DELIVERY']) ? $post['PRICE_DELIVERY'] : $data['PRICE_DELIVERY']), 2);
+
+		$weight = isset($post['WEIGHT']) ? $post['WEIGHT'] : $data['WEIGHT'];
+		$weight = roundEx(
+			floatval(
+				$weight/self::getWeightKoef($data['SITE_ID'])
+			),
+			SALE_WEIGHT_PRECISION
+		);
+
+		$weightMeasureUnits = self::getWeightUnit($data['SITE_ID']);
 
 		$blockProfiles = '';
 		if ($profileId > 0 && $profiles)
@@ -260,8 +274,10 @@ class OrderShipment
 		<div class="adm-bus-pay" id="shipment_container_'.$index.'">
 			<input type="hidden" name="SHIPMENT['.$index.'][SHIPMENT_ID]" id="SHIPMENT_ID_'.$index.'" value="'.$id.'">
 			<input type="hidden" name="SHIPMENT['.$index.'][CUSTOM_PRICE_DELIVERY]" id="CUSTOM_PRICE_DELIVERY_'.$index.'" value="'.$customPriceDelivery.'">
+			<input type="hidden" name="SHIPMENT['.$index.'][CUSTOM_WEIGHT_DELIVERY]" id="CUSTOM_WEIGHT_DELIVERY_'.$index.'" value="'.$customWeightDelivery.'">
 			<input type="hidden" name="SHIPMENT['.$index.'][BASE_PRICE_DELIVERY]" id="BASE_PRICE_DELIVERY_'.$index.'" value="'.$data['BASE_PRICE_DELIVERY'].'">
 			<input type="hidden" name="SHIPMENT['.$index.'][CALCULATED_PRICE]" id="CALCULATED_PRICE_'.$index.'" value="'.(isset($post['CALCULATED_PRICE']) ? htmlspecialcharsbx($post['CALCULATED_PRICE']) : $data['CALCULATED_PRICE']).'">
+			<input type="hidden" name="SHIPMENT['.$index.'][CALCULATED_WEIGHT]" id="CALCULATED_WEIGHT_'.$index.'" value="'.(isset($post['CALCULATED_WEIGHT']) ? htmlspecialcharsbx($post['CALCULATED_WEIGHT']) : $data['CALCULATED_WEIGHT']).'">
 			<input type="hidden" name="SHIPMENT['.$index.'][DEDUCTED]" id="STATUS_DEDUCTED_'.$index.'" value="'.($data['DEDUCTED'] == "" ? "N" : $data['DEDUCTED']).'">
 			<input type="hidden" name="SHIPMENT['.$index.'][ALLOW_DELIVERY]" id="STATUS_ALLOW_DELIVERY_'.$index.'" value="'.($data['ALLOW_DELIVERY'] == "" ? "N" : htmlspecialcharsbx($data['ALLOW_DELIVERY'])).'">
 			<div class="adm-bus-component-content-container">
@@ -307,7 +323,20 @@ class OrderShipment
 										</tr>
 									</tbody>
 								</table>
+							</div>
+							<div class="adm-bus-table-container caption border">
+								<div class="adm-bus-table-caption-title" style="background: #eef5f5;">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_BLOCK_WEIGHT').'</div>
+								<table border="0" cellspacing="0" cellpadding="0" width="100%" class="adm-detail-content-table edit-table ">
+									<tbody>
+										<tr>
+											<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_WEIGHT').':</td>
+											<td class="adm-detail-content-cell-r tal"><input type="text" class="adm-bus-input-price" name="SHIPMENT['.$index.'][WEIGHT]" id="WEIGHT_DELIVERY_'.$index.'" value="'.$weight.'"> '.$weightMeasureUnits.'</td>
+										</tr>
+									</tbody>
+								</table>
 							</div>';
+
+
 	if ($companies)
 	{
 		$result .= '<div class="adm-bus-table-container caption border">
@@ -375,7 +404,7 @@ class OrderShipment
 					<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_NUMBER').':</td>
 					<td class="adm-detail-content-cell-r tal"><input type="text" class="adm-bus-input" name="SHIPMENT['.$index.'][TRACKING_NUMBER]" value="'.$trackingNumber.'"><br></td>
 				</tr>'.(
-				$data['HAS_TRACKING'] && strlen($trackingNumber) > 0 && intval($data['ID'] > 0)
+				$data['HAS_TRACKING'] && $trackingNumber <> '' && intval($data['ID'] > 0)
 				?
 				'<tr>
 					<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_STATUS').':</td>
@@ -385,11 +414,11 @@ class OrderShipment
 				</tr>
 				<tr>
 					<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_DESCRIPTION').':</td>
-					<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-description-'.$index.'">'.(strlen($data['TRACKING_DESCRIPTION']) > 0 ? $data['TRACKING_DESCRIPTION'] : '-').'<br></td>
+					<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-description-'.$index.'">'.($data['TRACKING_DESCRIPTION'] <> '' ? $data['TRACKING_DESCRIPTION'] : '-').'<br></td>
 				</tr>
 				<tr>
 					<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_LAST_CHANGE').':</td>
-					<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-last-change-'.$index.'">'.(strlen($data['TRACKING_LAST_CHANGE']) > 0 ? $data['TRACKING_LAST_CHANGE'] : '-').'<br></td>
+					<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-last-change-'.$index.'">'.($data['TRACKING_LAST_CHANGE'] <> '' ? $data['TRACKING_LAST_CHANGE'] : '-').'<br></td>
 				</tr>'.(!empty($data['TRACKING_URL']) ?
 						'<tr>
 							<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_URL').':</td>
@@ -486,14 +515,35 @@ class OrderShipment
 			'active' => true,
 			'discounts' => $data["DISCOUNTS"],
 			'discountsMode' =>  ($formType == "edit" ? "view" : "edit"),
-			'templateType' => 'edit'
+			'templateType' => 'edit',
+			'weightKoef' => self::getWeightKoef($data['SITE_ID']),
+			'weightUnit' => self::getWeightUnit($data['SITE_ID'])
 		);
 
 		if ($customPriceDelivery == 'Y')
 			$params['calculated_price'] = $data['CALCULATED_PRICE'];
 
+		if ($customWeightDelivery == 'Y')
+			$params['calculated_weight'] = $data['CALCULATED_WEIGHT'];
+
 		$result .= self::initJsShipment($params);
 		return $result;
+	}
+	public static function getWeightUnit($siteId)
+	{
+		return htmlspecialcharsbx(Option::get('sale', 'weight_unit', "", $siteId));
+	}
+
+	public static function getWeightKoef($siteId)
+	{
+		$weightKoef = floatval(Option::get('sale', 'weight_koef', 1, $siteId));
+
+		if($weightKoef <= 0)
+		{
+			$weightKoef = 1;
+		}
+
+		return $weightKoef;
 	}
 
 	public function getImgDeliveryServiceList($items)
@@ -834,6 +884,8 @@ class OrderShipment
 			'SALE_ORDER_SHIPMENT_PROFILE' => Loc::getMessage('SALE_ORDER_SHIPMENT_PROFILE'),
 			'SALE_ORDER_SHIPMENT_TRACKING_S_EMPTY' => Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_S_EMPTY'),
 			'SALE_ORDER_SHIPMENT_CASHBOX_CHECK_ADD_WINDOW_TITLE' => Loc::getMessage('SALE_ORDER_SHIPMENT_CHECK_ADD_WINDOW_TITLE'),
+			'SALE_ORDER_SHIPMENT_CONFIRM_SET_NEW_WEIGHT' => Loc::getMessage('SALE_ORDER_SHIPMENT_CONFIRM_SET_NEW_WEIGHT'),
+			'SALE_ORDER_SHIPMENT_NEW_WEIGHT_DELIVERY' => Loc::getMessage('SALE_ORDER_SHIPMENT_NEW_WEIGHT_DELIVERY'),
 		);
 
 		return "<script>
@@ -1056,7 +1108,7 @@ class OrderShipment
 		$allowedStatusesDelivery = DeliveryStatus::getStatusesUserCanDoOperations($USER->GetID(), array('delivery'));
 		$isAllowDelivery = in_array($data["STATUS_ID"], $allowedStatusesDelivery) && $formType != 'archive' && $formType != 'edit';
 
-		$isActive = ($formType != 'edit' && $formType != 'archive') && !Order::isLocked($data['ORDER_ID']);
+		$isActive = ($formType != 'edit' && $formType != 'archive') && !$data['ORDER_LOCKED'];
 
 		$triangle = ($isActive && $isAllowDelivery) ? '<span class="triangle"> &#9662;</span>' : '';
 
@@ -1126,7 +1178,7 @@ class OrderShipment
 		$shipmentStatus = '<span><span id="BUTTON_SHIPMENT_' . $index . '" '.$class.'>' . htmlspecialcharsbx($shipmentStatusList[$data['STATUS_ID']]) . '</span>'.$triangle.'</span>';
 
 		$shippingBlockId = '';
-		if(($isAllowCompany !== false || $isUserResponsible !== false) && ($isActive || strlen($data['TRACKING_NUMBER']) > 0))
+		if(($isAllowCompany !== false || $isUserResponsible !== false) && ($isActive || $data['TRACKING_NUMBER'] <> ''))
 		{
 			$shippingBlockId = '<tr>
 									<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_NUMBER').':</td>
@@ -1136,7 +1188,7 @@ class OrderShipment
 			if ($isActive)
 				$shippingBlockId .= '<div class="bx-adm-edit-pencil" id="TRACKING_NUMBER_PENCIL_'.$index.'"></div>';
 
-			if($data['HAS_TRACKING'] && strlen($data['TRACKING_NUMBER']) > 0)
+			if($data['HAS_TRACKING'] && $data['TRACKING_NUMBER'] <> '')
 			{
 				$shippingBlockId .= '</td></tr>
 				<tr>
@@ -1147,11 +1199,11 @@ class OrderShipment
 											</tr>
 											<tr>
 												<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_DESCRIPTION').':</td>
-												<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-description-'.$index.'">'.(strlen($data['TRACKING_DESCRIPTION']) > 0 ? $data['TRACKING_DESCRIPTION'] : '-').'<br></td>
+												<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-description-'.$index.'">'.($data['TRACKING_DESCRIPTION'] <> '' ? $data['TRACKING_DESCRIPTION'] : '-').'<br></td>
 											<tr>
 											<tr>
 												<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_TRACKING_LAST_CHANGE').':</td>
-												<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-last-change-'.$index.'">'.(strlen($data['TRACKING_LAST_CHANGE']) > 0 ? $data['TRACKING_LAST_CHANGE'] : '-').'<br></td>
+												<td class="adm-detail-content-cell-r tal" id="sale-order-shipment-tracking-last-change-'.$index.'">'.($data['TRACKING_LAST_CHANGE'] <> '' ? $data['TRACKING_LAST_CHANGE'] : '-').'<br></td>
 											<tr>';
 
 				if(!empty($data['TRACKING_URL']))
@@ -1165,7 +1217,7 @@ class OrderShipment
 		}
 
 		$shippingBlockDocNum = '';
-		if (($isAllowCompany !== false || $isUserResponsible !== false) && strlen($data['DELIVERY_DOC_NUM']) > 0)
+		if (($isAllowCompany !== false || $isUserResponsible !== false) && $data['DELIVERY_DOC_NUM'] <> '')
 		{
 			$shippingBlockDocNum = '<tr>
 								<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_DOC_NUM').':</td>
@@ -1176,7 +1228,7 @@ class OrderShipment
 		}
 
 		$shippingBlockDocDate = '';
-		if (($isAllowCompany !== false || $isUserResponsible !== false) && strlen($data['DELIVERY_DOC_DATE']) > 0)
+		if (($isAllowCompany !== false || $isUserResponsible !== false) && $data['DELIVERY_DOC_DATE'] <> '')
 		{
 			$shippingBlockDocDate = '<tr>
 								<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_DOC_DATE').':</td>
@@ -1211,7 +1263,18 @@ class OrderShipment
 		$sectionEdit = '';
 		$allowedOrderStatusesUpdate = DeliveryStatus::getStatusesUserCanDoOperations($USER->GetID(), array('update'));
 		if (in_array($data["STATUS_ID"], $allowedOrderStatusesUpdate) && !$data['ORDER_LOCKED'] && $formType != 'archive')
-			$sectionEdit = '<div class="adm-bus-pay-section-action" id="SHIPMENT_SECTION_'.$index.'_EDIT"><a href="/bitrix/admin/sale_order_shipment_edit.php?order_id='.$data['ORDER_ID'].'&shipment_id='.$data['ID'].'&backurl='.urlencode($backUrl).'">'.Loc::getMessage('SALE_ORDER_SHIPMENT_BLOCK_SHIPMENT_EDIT').'</a></div>';
+		{
+			$sectionEdit = '<div class="adm-bus-pay-section-action" id="SHIPMENT_SECTION_'.$index.'_EDIT">'.
+				static::renderShipmentEditLink($data+['backurl'=>$backUrl]).
+				Loc::getMessage('SALE_ORDER_SHIPMENT_BLOCK_SHIPMENT_EDIT').'</a></div>';
+		}
+			
+		$weightView = roundEx(
+			floatval(
+				$data['WEIGHT']/self::getWeightKoef($data['SITE_ID'])
+			),
+			SALE_WEIGHT_PRECISION
+		)." ".self::getWeightUnit($data['SITE_ID']);
 
 		$result = '
 			<input type="hidden" name="SHIPMENT['.$index.'][DEDUCTED]" id="STATUS_DEDUCTED_'.$index.'" value="'.($data['DEDUCTED'] == "" ? "N" : $data['DEDUCTED']).'">
@@ -1263,6 +1326,17 @@ class OrderShipment
 										<tr>
 											<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_SUM_DISCOUNT_PRICE').':</td>
 											<td class="adm-detail-content-cell-r tal" id="PRICE_DELIVERY_'.$index.'">'.SaleFormatCurrency(floatval($data['PRICE_DELIVERY']), $data['CURRENCY']).'<br></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="adm-bus-table-container caption border">
+								<div class="adm-bus-table-caption-title" style="background: #eef5f5;">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_BLOCK_WEIGHT').'</div>
+								<table border="0" cellspacing="0" cellpadding="0" width="100%" class="adm-detail-content-table edit-table">
+									<tbody>
+										<tr>
+											<td class="adm-detail-content-cell-l" width="40%">'.Loc::getMessage('SALE_ORDER_SHIPMENT_DELIVERY_WEIGHT').':</td>
+											<td class="adm-detail-content-cell-r tal" id="WEIGHT_DELIVERY_'.$index.'">'.$weightView.'<br></td>
 										</tr>
 									</tbody>
 								</table>
@@ -1424,12 +1498,30 @@ class OrderShipment
 			'active' => $isActive,
 			'discounts' => $data["DISCOUNTS"],
 			'discountsMode' => ($formType == "edit" ? "edit" : "view"),
-			'templateType' => 'view'
+			'templateType' => 'view',
+			'weightKoef' => self::getWeightKoef($data['SITE_ID']),
+			'weightUnit' => self::getWeightUnit($data['SITE_ID'])
 		);
 
 		$result .= self::initJsShipment($params);
 
 		return $result;
+	}
+
+	protected static function renderShipmentEditLink($data)
+	{
+		$backUrl = $data['backurl'];
+		$href = Link::getInstance()
+			->create()
+			->setPageByType(Registry::SALE_ORDER_SHIPMENT_EDIT)
+			->setFilterParams(false)
+			->fill()
+			->setField('order_id', $data['ORDER_ID'])
+			->setField('shipment_id', $data['ID'])
+			->setField('backurl', $backUrl)
+			->build();
+
+		return '<a href="'.$href.'">';
 	}
 
 	private static function getShortViewTemplate($data, $index, $logo, $formType)
@@ -1455,7 +1547,7 @@ class OrderShipment
 		$allowedStatusesDelivery = DeliveryStatus::getStatusesUserCanDoOperations($USER->GetID(), array('delivery'));
 		$isAllowDelivery = in_array($data["STATUS_ID"], $allowedStatusesDelivery) && $formType != 'archive' && $formType != 'edit';
 
-		$isActive = ($formType != 'edit' && $formType != 'archive') && !Order::isLocked($data['ORDER_ID']);
+		$isActive = ($formType != 'edit' && $formType != 'archive') && !$data['ORDER_LOCKED'];
 		$triangle = ($isActive && $isAllowDelivery) ? '<span class="triangle"> &#9662;</span>' : '';
 
 		if ($data['ALLOW_DELIVERY'] == 'Y')
@@ -1529,9 +1621,9 @@ class OrderShipment
 		return $result;
 	}
 
-	public static function createNewShipmentButton()
+	public static function createNewShipmentButton($params=[])
 	{
-		return '<input type="button" class="adm-order-block-add-button" onclick="BX.Sale.Admin.GeneralShipment.createNewShipment()" value = "'.Loc::getMessage('SALE_ORDER_SHIPMENT_ADD_SHIPMENT').'">';
+		return '<input type="button" class="adm-order-block-add-button" onclick="BX.Sale.Admin.GeneralShipment.createNewShipment(this,'.\CUtil::PhpToJSObject($params).')" value = "'.Loc::getMessage('SALE_ORDER_SHIPMENT_ADD_SHIPMENT').'">';
 	}
 
 	/**
@@ -1644,6 +1736,8 @@ class OrderShipment
 				$fields['CALCULATED_PRICE'] = $calcResult->getPrice();
 		}
 
+		$fields['CALCULATED_WEIGHT'] = self::$shipment->getShipmentItemCollection()->getWeight() / self::getWeightKoef($order->getSiteId());
+
 		if ($fields['CUSTOM_PRICE_DELIVERY'] == 'Y' && $fields['ID'] <= 0)
 			$fields['BASE_PRICE_DELIVERY'] = self::$shipment->getField('BASE_PRICE_DELIVERY');
 
@@ -1669,7 +1763,7 @@ class OrderShipment
 
 		if(!is_null($delivery))
 		{
-			$fields['HAS_TRACKING'] = strlen($delivery->getTrackingClass()) > 0 ? true : false;
+			$fields['HAS_TRACKING'] = $delivery->getTrackingClass() <> '' ? true : false;
 
 			if($fields['HAS_TRACKING'] && intval($fields['DELIVERY_ID']) > 0)
 			{
@@ -1705,7 +1799,7 @@ class OrderShipment
 			$sanitizer = new \CBXSanitizer;
 			$sanitizer->SetLevel(\CBXSanitizer::SECURE_LEVEL_MIDDLE);
 
-			if(strlen($request['ERROR_DESCRIPTION']) > 0)
+			if($request['ERROR_DESCRIPTION'] <> '')
 				$fields['DELIVERY_REQUEST_ERROR_DESCRIPTION'] = $sanitizer->SanitizeHtml($request['ERROR_DESCRIPTION']);
 		}
 
@@ -1718,7 +1812,15 @@ class OrderShipment
 		$dbRes = CashboxTable::getList(array('filter' => array('=ACTIVE' => 'Y', '=ENABLED' => 'Y')));
 		$fields['HAS_ENABLED_CASHBOX'] = ($dbRes->fetch()) ? 'Y' : 'N';
 
-		$fields['ORDER_LOCKED'] = Order::isLocked($fields['ORDER_ID']);
+
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
+		$fields['ORDER_LOCKED'] = $orderClass::isLocked($fields['ORDER_ID']);
+		$fields['SITE_ID'] = $order->getSiteId();
+		$fields['CUSTOM_WEIGHT_DELIVERY'] = self::$shipment->isMarkedFieldCustom('WEIGHT') ? 'Y' : 'N';
+
 		return $fields;
 	}
 
@@ -1845,8 +1947,18 @@ class OrderShipment
 				'DELIVERY_DOC_NUM' => $item['DELIVERY_DOC_NUM'],
 				'TRACKING_NUMBER' => $item['TRACKING_NUMBER'],
 				'CURRENCY' => $order->getCurrency(),
-				'COMMENTS' => $item['COMMENTS']
+				'COMMENTS' => $item['COMMENTS'],
+				'WEIGHT' => $item['WEIGHT'] * self::getWeightKoef($order->getSiteId())
 			);
+
+			if($item['CUSTOM_WEIGHT_DELIVERY'] === 'Y')
+			{
+				self::$shipment->markFieldCustom('WEIGHT');
+			}
+			else
+			{
+				self::$shipment->unMarkFieldCustom('WEIGHT');
+			}
 
 			if ($isNew)
 			{
@@ -1952,6 +2064,8 @@ class OrderShipment
 			$fields['PRICE_DELIVERY'] = $deliveryPrice;
 
 			$setFieldsResult = self::$shipment->setFields($fields);
+
+
 			if (!$setFieldsResult->isSuccess())
 			{
 				$result->addErrors($setFieldsResult->getErrors());
@@ -2066,7 +2180,7 @@ class OrderShipment
 		{
 			$result .= '<div>';
 
-			if (strlen($check['LINK']) > 0)
+			if ($check['LINK'] <> '')
 			{
 				$result .= '<a href="'.$check['LINK'].'" target="_blank">'.Loc::getMessage('SALE_ORDER_SHIPMENT_CHECK_LINK', array('#CHECK_ID#' => $check['ID'])).'</a>';
 			}

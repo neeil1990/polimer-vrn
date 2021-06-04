@@ -5,11 +5,18 @@ IncludeModuleLangFile(__FILE__);
 
 if(!$USER->IsAdmin())
 	$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
-
-if(!extension_loaded('memcache'))
+$cacheType = COption::GetOptionString('cluster', 'cache_type', 'memcache');
+if(!extension_loaded('memcache') || $cacheType != 'memcache')
 {
 	require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php");
-	ShowError(GetMessage("CLU_MEMCACHE_NO_EXTENTION"));
+	if ($cacheType != 'memcache')
+	{
+		ShowError(GetMessage("CLU_MEMCACHE_DISABLED"));
+	}
+	else
+	{
+		ShowError(GetMessage("CLU_MEMCACHE_NO_EXTENTION"));
+	}
 	require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
 	die();
 }
@@ -27,9 +34,9 @@ if($arID = $lAdmin->GroupAction())
 {
 	foreach($arID as $ID)
 	{
-		if(strlen($ID)<=0)
+		if($ID == '')
 			continue;
-		$ID = IntVal($ID);
+		$ID = intval($ID);
 		switch($_REQUEST['action'])
 		{
 		case "delete":

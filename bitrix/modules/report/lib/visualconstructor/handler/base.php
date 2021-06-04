@@ -6,7 +6,6 @@ use Bitrix\Report\VisualConstructor\Entity\Configuration;
 use Bitrix\Report\VisualConstructor\Fields\Base as BaseFormElement;
 use Bitrix\Report\VisualConstructor\Fields\Valuable\BaseValuable;
 use Bitrix\Report\VisualConstructor\Helper\Util;
-use Bitrix\Report\VisualConstructor\Internal\IConfigurable;
 use Bitrix\Report\VisualConstructor\View;
 
 /**
@@ -290,6 +289,23 @@ abstract class Base
 		{
 			return null;
 		}
+	}
+
+	/**
+	 * Returns value of the form element with given key.
+	 *
+	 * @param string $fieldKey The key of the field.
+	 * @return mixed|null
+	 */
+	public function getFormElementValue($fieldKey)
+	{
+		$formElements = $this->getFormElements();
+		if (isset($formElements[$fieldKey]))
+		{
+			return $formElements[$fieldKey]->getValue();
+		}
+
+		return null;
 	}
 
 	/**

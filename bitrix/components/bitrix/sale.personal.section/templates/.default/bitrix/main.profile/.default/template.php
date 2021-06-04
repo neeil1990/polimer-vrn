@@ -16,7 +16,7 @@ use Bitrix\Main\Localization\Loc;
 	}
 
 	?>
-	<form method="post" name="form1" action="<?=$APPLICATION->GetCurUri()?>" enctype="multipart/form-data" role="form">
+	<form method="post" name="form1" action="<?=POST_FORM_ACTION_URI?>" enctype="multipart/form-data" role="form">
 		<?=$arResult["BX_SESSION_CHECK"]?>
 		<input type="hidden" name="lang" value="<?=LANG?>" />
 		<input type="hidden" name="ID" value="<?=$arResult["ID"]?>" />
@@ -26,7 +26,7 @@ use Bitrix\Main\Localization\Loc;
 				<?
 				if($arResult["ID"]>0)
 				{
-					if (strlen($arResult["arUser"]["TIMESTAMP_X"])>0)
+					if ($arResult["arUser"]["TIMESTAMP_X"] <> '')
 					{
 						?>
 						<div class="col-sm-9 col-md-offset-3 small">
@@ -36,7 +36,7 @@ use Bitrix\Main\Localization\Loc;
 						<?
 					}
 
-					if (strlen($arResult["arUser"]["LAST_LOGIN"])>0)
+					if ($arResult["arUser"]["LAST_LOGIN"] <> '')
 					{
 						?>
 						<div class="col-sm-9 col-md-offset-3 small">
@@ -132,4 +132,7 @@ use Bitrix\Main\Localization\Loc;
 		?>
 	</div>
 	<div class="clearfix"></div>
+	<script>
+		BX.Sale.PrivateProfileComponent.init();
+	</script>
 </div>

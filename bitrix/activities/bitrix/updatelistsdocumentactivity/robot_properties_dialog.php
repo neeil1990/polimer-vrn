@@ -6,13 +6,13 @@ $elementId = $dialog->getMap()['ElementId'];
 $docType = $dialog->getMap()['DocumentType'];
 ?>
 <?= $javascriptFunctions ?>
-<div class="crm-automation-popup-settings">
-	<span class="crm-automation-popup-settings-title"><?=htmlspecialcharsbx($elementId['Name'])?>: </span>
+<div class="bizproc-automation-popup-settings">
+	<span class="bizproc-automation-popup-settings-title"><?=htmlspecialcharsbx($elementId['Name'])?>: </span>
 	<?=$dialog->renderFieldControl($elementId)?>
 </div>
 
-<div class="crm-automation-popup-settings" id="doctype_container">
-	<span class="crm-automation-popup-settings-title"><?=htmlspecialcharsbx($docType['Name'])?>: </span>
+<div class="bizproc-automation-popup-settings" id="doctype_container">
+	<span class="bizproc-automation-popup-settings-title"><?=htmlspecialcharsbx($docType['Name'])?>: </span>
 	<?=$dialog->renderFieldControl($docType)?>
 </div>
 
@@ -186,7 +186,8 @@ $docType = $dialog->getMap()['DocumentType'];
 					autoHide: true,
 					offsetLeft: (BX.pos(this)['width'] / 2),
 					angle: { position: 'top', offset: 0 },
-					maxHeight: 500
+					maxHeight: 500,
+					overlay: { backgroundColor: 'transparent' },
 				}
 			);
 		});

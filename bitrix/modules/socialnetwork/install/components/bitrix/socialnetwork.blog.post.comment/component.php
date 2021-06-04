@@ -29,21 +29,22 @@ if (!Loader::includeModule("socialnetwork"))
 	ShowError(GetMessage("SONET_MODULE_NOT_INSTALL"));
 	return;
 }
-$arParams["SOCNET_GROUP_ID"] = IntVal($arParams["SOCNET_GROUP_ID"]);
+$arParams["SOCNET_GROUP_ID"] = intval($arParams["SOCNET_GROUP_ID"]);
 $arResult["bIntranetInstalled"] = ModuleManager::isModuleInstalled("intranet");
 $arResult["bTasksAvailable"] = (
 	(!isset($arParams["bPublicPage"]) || !$arParams["bPublicPage"])
-	&& IsModuleInstalled("tasks")
+	&& Loader::includeModule("tasks")
 	&& (
-		!CModule::IncludeModule('bitrix24')
+		!Loader::includeModule('bitrix24')
 		|| CBitrix24BusinessTools::isToolAvailable($USER->GetID(), "tasks")
 	)
+	&& \Bitrix\Tasks\Access\TaskAccessController::can($USER->getId(), \Bitrix\Tasks\Access\ActionDictionary::ACTION_TASK_CREATE)
 );
 
 $arParams["ID"] = trim($arParams["ID"]);
 if(preg_match("/^[1-9][0-9]*\$/", $arParams["ID"]))
 {
-	$arParams["ID"] = IntVal($arParams["ID"]);
+	$arParams["ID"] = intval($arParams["ID"]);
 	$bIDbyCode = false;
 }
 else
@@ -56,7 +57,7 @@ $arParams["BLOG_URL"] = preg_replace("/[^a-zA-Z0-9_-]/is", "", $arParams["BLOG_U
 if(!is_array($arParams["GROUP_ID"]))
 	$arParams["GROUP_ID"] = array($arParams["GROUP_ID"]);
 foreach($arParams["GROUP_ID"] as $k=>$v)
-	if(IntVal($v) <= 0)
+	if(intval($v) <= 0)
 		unset($arParams["GROUP_ID"][$k]);
 
 if ($arParams["CACHE_TYPE"] == "Y" || ($arParams["CACHE_TYPE"] == "A" && COption::GetOptionString("main", "component_cache_on", "Y") == "Y"))
@@ -64,35 +65,51 @@ if ($arParams["CACHE_TYPE"] == "Y" || ($arParams["CACHE_TYPE"] == "A" && COption
 else
 	$arParams["CACHE_TIME"] = 0;
 
-if(strLen($arParams["BLOG_VAR"])<=0)
+if($arParams["BLOG_VAR"] == '')
 	$arParams["BLOG_VAR"] = "blog";
-if(strLen($arParams["PAGE_VAR"])<=0)
+if($arParams["PAGE_VAR"] == '')
 	$arParams["PAGE_VAR"] = "page";
-if(strLen($arParams["USER_VAR"])<=0)
+if($arParams["USER_VAR"] == '')
 	$arParams["USER_VAR"] = "id";
-if(strLen($arParams["POST_VAR"])<=0)
+if($arParams["POST_VAR"] == '')
 	$arParams["POST_VAR"] = "id";
-if(strLen($arParams["NAV_PAGE_VAR"])<=0)
+if($arParams["NAV_PAGE_VAR"] == '')
 	$arParams["NAV_PAGE_VAR"] = "pagen";
-if(strLen($arParams["COMMENT_ID_VAR"])<=0)
+if($arParams["COMMENT_ID_VAR"] == '')
 	$arParams["COMMENT_ID_VAR"] = "commentId";
 
 $pagen = (
-	IntVal($_GET[$arParams["NAV_PAGE_VAR"]]) > 0
-		? IntVal($_REQUEST[$arParams["NAV_PAGE_VAR"]])
+	intval($_GET[$arParams["NAV_PAGE_VAR"]]) > 0
+		? intval($_REQUEST[$arParams["NAV_PAGE_VAR"]])
 		: 1
 );
 
-if (intval($_REQUEST["LAST_LOG_TS"]) > 0)
+$arResult["TZ_OFFSET"] = CTimeZone::GetOffset();
+
+if ((int)$_REQUEST["LAST_LOG_TS"] > 0)
 {
-	$arParams["LAST_LOG_TS"] = intval($_REQUEST["LAST_LOG_TS"]);
-	if ($arParams["MOBILE"] != "Y")
+	$timeZoneOffset = (
+		(
+			isset($_REQUEST['AJAX_CALL'])
+			&& $_REQUEST['AJAX_CALL'] === 'Y'
+		)
+		|| (
+			isset($_REQUEST['empty_get_comments'])
+			&& $_REQUEST['empty_get_comments'] === 'Y'
+
+		)
+			? $arResult["TZ_OFFSET"]
+			: 0
+	);
+
+	$arParams["LAST_LOG_TS"] = (int)$_REQUEST["LAST_LOG_TS"] + $timeZoneOffset; // next mobile livefeed page or get_empty_comments
+	if ($arParams["MOBILE"] !== "Y")
 	{
 		$arParams["MARK_NEW_COMMENTS"] = "Y";
 	}
 }
 
-if(IntVal($arParams["COMMENTS_COUNT"])<=0)
+if(intval($arParams["COMMENTS_COUNT"])<=0)
 	$arParams["COMMENTS_COUNT"] = 25;
 
 if($arParams["USE_ASC_PAGING"] != "Y")
@@ -101,15 +118,15 @@ if($arParams["USE_ASC_PAGING"] != "Y")
 $applicationPage = $APPLICATION->GetCurPage();
 
 $arParams["PATH_TO_BLOG"] = trim($arParams["PATH_TO_BLOG"]);
-if(strlen($arParams["PATH_TO_BLOG"])<=0)
+if($arParams["PATH_TO_BLOG"] == '')
 	$arParams["PATH_TO_BLOG"] = htmlspecialcharsbx($applicationPage."?".$arParams["PAGE_VAR"]."=blog&".$arParams["BLOG_VAR"]."=#blog#");
 
 $arParams["PATH_TO_USER"] = trim($arParams["PATH_TO_USER"]);
-if(strlen($arParams["PATH_TO_USER"])<=0)
+if($arParams["PATH_TO_USER"] == '')
 	$arParams["PATH_TO_USER"] = htmlspecialcharsbx($applicationPage."?".$arParams["PAGE_VAR"]."=user&".$arParams["USER_VAR"]."=#user_id#");
 
 $arParams["PATH_TO_POST"] = trim($arParams["PATH_TO_POST"]);
-if(strlen($arParams["PATH_TO_POST"])<=0)
+if($arParams["PATH_TO_POST"] == '')
 {
 	$arParams["PATH_TO_POST"] = htmlspecialcharsbx($applicationPage."?".$arParams["PAGE_VAR"]."=post&".$arParams["BLOG_VAR"]."=#blog#"."&".$arParams["POST_VAR"]."=#post_id#");
 }
@@ -119,7 +136,7 @@ if ($arParams["bPublicPage"])
 	$arParams["PATH_TO_POST"] = COption::GetOptionString("socialnetwork", "userblogpost_page", "/company/personal/user/#user_id#/blog/#post_id#/", SITE_ID)."";
 }
 
-$arParams["PATH_TO_SMILE"] = strlen(trim($arParams["PATH_TO_SMILE"]))<=0 ? false : trim($arParams["PATH_TO_SMILE"]);
+$arParams["PATH_TO_SMILE"] = trim($arParams["PATH_TO_SMILE"]) == '' ? false : trim($arParams["PATH_TO_SMILE"]);
 
 if (!isset($arParams["PATH_TO_CONPANY_DEPARTMENT"]) || $arParams["PATH_TO_CONPANY_DEPARTMENT"] == "")
 	$arParams["PATH_TO_CONPANY_DEPARTMENT"] = "/company/structure.php?set_filter_structure=Y&structure_UF_DEPARTMENT=#ID#";
@@ -128,19 +145,19 @@ if (!isset($arParams["PATH_TO_MESSAGES_CHAT"]) || $arParams["PATH_TO_MESSAGES_CH
 if (!isset($arParams["PATH_TO_VIDEO_CALL"]) || $arParams["PATH_TO_VIDEO_CALL"] == "")
 	$arParams["PATH_TO_VIDEO_CALL"] = "/company/personal/video/#user_id#/";
 
-if (strlen(trim($arParams["NAME_TEMPLATE"])) <= 0)
+if (trim($arParams["NAME_TEMPLATE"]) == '')
 	$arParams["NAME_TEMPLATE"] = CSite::GetNameFormat();
 $arParams['SHOW_LOGIN'] = $arParams['SHOW_LOGIN'] != "N" ? "Y" : "N";
-$arParams["IMAGE_MAX_WIDTH"] = IntVal($arParams["IMAGE_MAX_WIDTH"]);
-$arParams["IMAGE_MAX_HEIGHT"] = IntVal($arParams["IMAGE_MAX_HEIGHT"]);
+$arParams["IMAGE_MAX_WIDTH"] = intval($arParams["IMAGE_MAX_WIDTH"]);
+$arParams["IMAGE_MAX_HEIGHT"] = intval($arParams["IMAGE_MAX_HEIGHT"]);
 $arParams["ALLOW_POST_CODE"] = $arParams["ALLOW_POST_CODE"] !== "N";
 
-$arParams["ATTACHED_IMAGE_MAX_WIDTH_SMALL"] = (IntVal($arParams["ATTACHED_IMAGE_MAX_WIDTH_SMALL"]) > 0 ? IntVal($arParams["ATTACHED_IMAGE_MAX_WIDTH_SMALL"]) : 70);
-$arParams["ATTACHED_IMAGE_MAX_HEIGHT_SMALL"] = (IntVal($arParams["ATTACHED_IMAGE_MAX_HEIGHT_SMALL"]) > 0 ? IntVal($arParams["ATTACHED_IMAGE_MAX_HEIGHT_SMALL"]) : 70);
-$arParams["ATTACHED_IMAGE_MAX_WIDTH_FULL"] = (IntVal($arParams["ATTACHED_IMAGE_MAX_WIDTH_FULL"]) > 0 ? IntVal($arParams["ATTACHED_IMAGE_MAX_WIDTH_FULL"]) : 1000);
-$arParams["ATTACHED_IMAGE_MAX_HEIGHT_FULL"] = (IntVal($arParams["ATTACHED_IMAGE_MAX_HEIGHT_FULL"]) > 0 ? IntVal($arParams["ATTACHED_IMAGE_MAX_HEIGHT_FULL"]) : 1000);
+$arParams["ATTACHED_IMAGE_MAX_WIDTH_SMALL"] = (intval($arParams["ATTACHED_IMAGE_MAX_WIDTH_SMALL"]) > 0 ? intval($arParams["ATTACHED_IMAGE_MAX_WIDTH_SMALL"]) : 70);
+$arParams["ATTACHED_IMAGE_MAX_HEIGHT_SMALL"] = (intval($arParams["ATTACHED_IMAGE_MAX_HEIGHT_SMALL"]) > 0 ? intval($arParams["ATTACHED_IMAGE_MAX_HEIGHT_SMALL"]) : 70);
+$arParams["ATTACHED_IMAGE_MAX_WIDTH_FULL"] = (intval($arParams["ATTACHED_IMAGE_MAX_WIDTH_FULL"]) > 0 ? intval($arParams["ATTACHED_IMAGE_MAX_WIDTH_FULL"]) : 1000);
+$arParams["ATTACHED_IMAGE_MAX_HEIGHT_FULL"] = (intval($arParams["ATTACHED_IMAGE_MAX_HEIGHT_FULL"]) > 0 ? intval($arParams["ATTACHED_IMAGE_MAX_HEIGHT_FULL"]) : 1000);
 
-$commentUrlID = IntVal($_REQUEST[$arParams["COMMENT_ID_VAR"]]);
+$commentUrlID = intval($_REQUEST[$arParams["COMMENT_ID_VAR"]]);
 
 $arParams["NAV_TYPE_NEW"] = (isset($arParams['NAV_TYPE_NEW']) && $arParams['NAV_TYPE_NEW'] == 'Y' ? 'Y' : 'N');
 $arResult['firstPage'] = (
@@ -178,8 +195,6 @@ $arResult["userID"] = $user_id = $USER->GetID();
 $arResult["canModerate"] = false;
 $arResult["ajax_comment"] = 0;
 $arResult["is_ajax_post"] = "N";
-
-$arResult["TZ_OFFSET"] = CTimeZone::GetOffset();
 
 $a = new CAccess;
 $a->UpdateCodes();
@@ -232,9 +247,9 @@ $arResult["Perm"] = Permissions::DENY;
 $arResult["PostPerm"] = Permissions::DENY;
 $arResult["PermBySG"] = false;
 
-if(IntVal($_REQUEST["comment_post_id"]) > 0)
+if(intval($_REQUEST["comment_post_id"]) > 0)
 {
-	$arParams["ID"] = IntVal($_REQUEST["comment_post_id"]);
+	$arParams["ID"] = intval($_REQUEST["comment_post_id"]);
 	$arPost = CBlogPost::GetById($arParams["ID"]);
 	$arPost = CBlogTools::htmlspecialcharsExArray($arPost);
 	$arBlog = CBlog::GetById($arPost["BLOG_ID"]);
@@ -248,7 +263,10 @@ if(IntVal($_REQUEST["comment_post_id"]) > 0)
 	else
 	{
 		$arResult["PostPerm"] = (
-			strlen($arParams["POST_DATA"]["perms"]) <= 0
+			(
+				$arParams["POST_DATA"]["perms"] == ''
+				|| $arParams["POST_DATA"]['ID'] != $arParams['ID']
+			)
 				? CBlogPost::GetSocNetPostPerms($arParams["ID"])
 				: $arParams["POST_DATA"]["perms"]
 		);
@@ -264,7 +282,7 @@ if(IntVal($_REQUEST["comment_post_id"]) > 0)
 else
 {
 	$arResult["PostPerm"] = (
-		strlen($arParams["POST_DATA"]["perms"]) <= 0
+		$arParams["POST_DATA"]["perms"] == ''
 			? CBlogPost::GetSocNetPostPerms($arParams["ID"])
 			: $arParams["POST_DATA"]["perms"]
 	);
@@ -308,7 +326,7 @@ if(
 )
 {
 	//Comment delete
-	if(IntVal($_GET["delete_comment_id"])>0)
+	if(intval($_GET["delete_comment_id"])>0)
 	{
 		if($_GET["success"] == "Y")
 		{
@@ -316,12 +334,12 @@ if(
 		}
 		else
 		{
-			$arComment = CBlogComment::GetByID(IntVal($_GET["delete_comment_id"]));
+			$arComment = CBlogComment::GetByID(intval($_GET["delete_comment_id"]));
 			if (
 				(
 					$arResult["Perm"] >= Permissions::MODERATE
 					|| (
-						IntVal($user_id) > 0
+						intval($user_id) > 0
 						&& $arComment["AUTHOR_ID"] == $user_id
 					)
 				)
@@ -330,15 +348,15 @@ if(
 			{
 				if(check_bitrix_sessid())
 				{
-					if(CBlogComment::Delete(IntVal($_GET["delete_comment_id"])))
+					if(CBlogComment::Delete(intval($_GET["delete_comment_id"])))
 					{
 						BXClearCache(true, ComponentHelper::getBlogPostCacheDir(array(
 							'TYPE' => 'post_comments',
 							'POST_ID' => $arParams["ID"]
 						)));
-						CBlogComment::DeleteLog(IntVal($_GET["delete_comment_id"]));
+						CBlogComment::DeleteLog(intval($_GET["delete_comment_id"]));
 
-						$arResult["ajax_comment"] = IntVal($_GET["delete_comment_id"]);
+						$arResult["ajax_comment"] = intval($_GET["delete_comment_id"]);
 						$arResult["MESSAGE"] = GetMessage("B_B_PC_MES_DELED");
 					}
 				}
@@ -348,8 +366,8 @@ if(
 				}
 			}
 			if (
-				IntVal($arResult["ajax_comment"]) <= 0
-				&& strlen($arResult["ERROR_MESSAGE"]) <= 0
+				intval($arResult["ajax_comment"]) <= 0
+				&& $arResult["ERROR_MESSAGE"] == ''
 			)
 			{
 				$arResult["ERROR_MESSAGE"] = GetMessage("B_B_PC_MES_ERROR_DELETE");
@@ -360,9 +378,9 @@ if(
 			}
 		}
 	}
-	elseif (IntVal($_GET["show_comment_id"]) > 0)
+	elseif (intval($_GET["show_comment_id"]) > 0)
 	{
-		$arComment = CBlogComment::GetByID(IntVal($_GET["show_comment_id"]));
+		$arComment = CBlogComment::GetByID(intval($_GET["show_comment_id"]));
 		$arTagInline = \Bitrix\Socialnetwork\Util::detectTags($arComment, array('POST_TEXT'));
 
 		if (
@@ -435,7 +453,7 @@ if(
 							$postUrl = CComponentEngine::MakePathFromTemplate(htmlspecialcharsBack($arParams["PATH_TO_POST"]), array("post_id"=> CBlogPost::GetPostID($arPost["ID"], $arPost["CODE"], $arParams["ALLOW_POST_CODE"]), "user_id" => $arPost["AUTHOR_ID"]));
 
 							$commentUrl = $postUrl;
-							$commentUrl .= (strpos($commentUrl, "?") !== false ? "&" : "?");
+							$commentUrl .= (mb_strpos($commentUrl, "?") !== false ? "&" : "?");
 							$commentUrl .= $arParams["COMMENT_ID_VAR"]."=".$arComment["ID"]."#com".$arComment["ID"];
 
 							$arFieldsForSocnet = array(
@@ -490,14 +508,14 @@ if(
 				}
 			}
 		}
-		if (IntVal($arResult["ajax_comment"]) <= 0)
+		if (intval($arResult["ajax_comment"]) <= 0)
 		{
 			$arResult["ERROR_MESSAGE"] = GetMessage("B_B_PC_MES_ERROR_SHOW");
 		}
 	}
-	elseif(IntVal($_GET["hide_comment_id"])>0)
+	elseif(intval($_GET["hide_comment_id"])>0)
 	{
-		$arComment = CBlogComment::GetByID(IntVal($_GET["hide_comment_id"]));
+		$arComment = CBlogComment::GetByID(intval($_GET["hide_comment_id"]));
 		if (
 			$arResult["Perm"] >= Permissions::MODERATE
 			&& !empty($arComment)
@@ -528,14 +546,14 @@ if(
 			}
 		}
 		if (
-			IntVal($arResult["ajax_comment"]) <= 0
-			&& strlen($arResult["ERROR_MESSAGE"]) <= 0
+			intval($arResult["ajax_comment"]) <= 0
+			&& $arResult["ERROR_MESSAGE"] == ''
 		)
 		{
 			$arResult["ERROR_MESSAGE"] = GetMessage("B_B_PC_MES_ERROR_HIDE");
 		}
 	}
-	elseif(IntVal($_GET["hidden_add_comment_id"])>0)
+	elseif(intval($_GET["hidden_add_comment_id"])>0)
 	{
 		$arResult["MESSAGE"] = GetMessage("B_B_PC_MES_HIDDEN_ADDED");
 	}
@@ -555,7 +573,7 @@ if(
 		$arResult["canModerate"] = true;
 	}
 
-	if(IntVal($user_id)>0)
+	if(intval($user_id)>0)
 	{
 		$arResult["User"]["ID"] = $user_id;
 	}
@@ -605,7 +623,7 @@ if(
 		$_SERVER["REQUEST_METHOD"] == "POST"
 		&& !empty($arPost["ID"])
 		&& isset($_POST["post"])
-		&& strlen($_POST["post"]) > 0
+		&& $_POST["post"] <> ''
 	)
 	{
 		if ($_POST["decode"] == "Y")
@@ -654,7 +672,7 @@ if(
 							"IMAGE_SIZE"	=> $_FILES["BLOG_UPLOAD_FILE"]["size"],
 							"IS_COMMENT" => "Y",
 							"URL" => $arBlog["URL"],
-							"USER_ID" => IntVal($user_id),
+							"USER_ID" => intval($user_id),
 						);
 						$arFields["FILE_ID"] = array_merge(
 								$_FILES["BLOG_UPLOAD_FILE"],
@@ -691,7 +709,7 @@ if(
 						$captcha_word = $_POST["captcha_word"];
 						$cpt = new CCaptcha();
 						$captchaPass = COption::GetOptionString("main", "captcha_password", "");
-						if (strlen($captcha_code) > 0)
+						if ($captcha_code <> '')
 						{
 							if (!$cpt->CheckCodeCrypt($captcha_word, $captcha_code, $captchaPass))
 							{
@@ -708,7 +726,7 @@ if(
 						isset($_POST['webdav_history'])
 						&& $_POST['webdav_history'] == 'Y'
 						&& isset($_POST['comment'])
-						&& strlen($_POST['comment']) > 0
+						&& $_POST['comment'] <> ''
 					)
 					{
 						$_POST["comment"] = $APPLICATION->convertCharset($_POST["comment"], 'UTF-8', LANG_CHARSET);
@@ -746,18 +764,18 @@ if(
 						$arFields["PUBLISH_STATUS"] = BLOG_PUBLISH_STATUS_READY;
 					}
 
-					if (IntVal($user_id) > 0)
+					if (intval($user_id) > 0)
 					{
 						$arFields["AUTHOR_ID"] = $user_id;
 					}
 					else
 					{
 						$arFields["AUTHOR_NAME"] = trim($_POST["user_name"]);
-						if (strlen(trim($_POST["user_email"])) > 0)
+						if (trim($_POST["user_email"]) <> '')
 						{
 							$arFields["AUTHOR_EMAIL"] = trim($_POST["user_email"]);
 						}
-						if (strlen($arFields["AUTHOR_NAME"]) <= 0)
+						if ($arFields["AUTHOR_NAME"] == '')
 						{
 							$strErrorMessage .= GetMessage("B_B_PC_NO_ANAME")."<br />";
 						}
@@ -765,17 +783,17 @@ if(
 						$_SESSION["blog_user_email"] = $_POST["user_email"];
 					}
 
-					if (strlen($arFields["POST_TEXT"]) <= 0)
+					if ($arFields["POST_TEXT"] == '')
 					{
 						$strErrorMessage .= GetMessage("B_B_PC_NO_COMMENT")."<br />";
 					}
 
-					if (IntVal($_REQUEST["as"]) > 0)
+					if (intval($_REQUEST["as"]) > 0)
 					{
-						$arParams["AVATAR_SIZE_COMMENT"] = IntVal($_REQUEST["as"]);
+						$arParams["AVATAR_SIZE_COMMENT"] = intval($_REQUEST["as"]);
 					}
 
-					if(strlen($strErrorMessage) <= 0)
+					if($strErrorMessage == '')
 					{
 						if (!\Bitrix\Blog\Item\Comment::checkDuplicate(array(
 							'MESSAGE' => $arFields["POST_TEXT"],
@@ -788,7 +806,7 @@ if(
 						}
 					}
 
-					if(strlen($strErrorMessage)<=0)
+					if($strErrorMessage == '')
 					{
 						$fieldName = 'UF_BLOG_COMMENT_DOC';
 						if (isset($GLOBALS[$fieldName]) && is_array($GLOBALS[$fieldName]))
@@ -818,7 +836,7 @@ if(
 										"FILE_ID" => $fileID,
 										"IS_COMMENT" => "Y",
 										"URL" => $arBlog["URL"],
-										"USER_ID" => IntVal($user_id),
+										"USER_ID" => intval($user_id),
 										"IMAGE_SIZE_CHECK" => "N",
 									);
 									$imgID = CBlogImage::Add($arImgFields);
@@ -847,7 +865,7 @@ if(
 						$commentUrl = CComponentEngine::MakePathFromTemplate(htmlspecialcharsBack($arParams["PATH_TO_POST"]), array("blog" => $arBlog["URL"], "post_id"=> CBlogPost::GetPostID($arPost["ID"], $arPost["CODE"], $arParams["ALLOW_POST_CODE"]), "user_id" => $arBlog["OWNER_ID"], "group_id" => $arParams["SOCNET_GROUP_ID"]));
 
 						$arFields["PATH"] = $commentUrl;
-						$arFields["PATH"] .= (strpos($arFields["PATH"], "?") !== false ? "&" : "?");
+						$arFields["PATH"] .= (mb_strpos($arFields["PATH"], "?") !== false ? "&" : "?");
 						$arFields["PATH"] .= $arParams["COMMENT_ID_VAR"]."=#comment_id##com#comment_id#";
 
 						if(
@@ -901,7 +919,7 @@ if(
 							)));
 							$images = Array();
 
-							$DB->Query("UPDATE b_blog_image SET COMMENT_ID=".IntVal($commentId)." WHERE BLOG_ID=".IntVal($arBlog["ID"])." AND POST_ID=".IntVal($arPost["ID"])." AND IS_COMMENT = 'Y' AND (COMMENT_ID = 0 OR COMMENT_ID is null) AND USER_ID=".IntVal($user_id)."", true);
+							$DB->Query("UPDATE b_blog_image SET COMMENT_ID=".intval($commentId)." WHERE BLOG_ID=".intval($arBlog["ID"])." AND POST_ID=".intval($arPost["ID"])." AND IS_COMMENT = 'Y' AND (COMMENT_ID = 0 OR COMMENT_ID is null) AND USER_ID=".intval($user_id)."", true);
 
 							$parserBlog = new blogTextParser(false, $arParams["PATH_TO_SMILE"], array("bPublic" => $arParams["bPublicPage"]));
 							$arParserParams = Array(
@@ -909,9 +927,9 @@ if(
 								"imageHeight" => $arParams["IMAGE_MAX_HEIGHT"],
 							);
 
-							$commentUrl .= (strpos($commentUrl, "?") !== false ? "&" : "?");
+							$commentUrl .= (mb_strpos($commentUrl, "?") !== false ? "&" : "?");
 							if (
-								strlen($arFields["PUBLISH_STATUS"]) > 0
+								$arFields["PUBLISH_STATUS"] <> ''
 								&& $arFields["PUBLISH_STATUS"] != BLOG_PUBLISH_STATUS_PUBLISH
 							)
 							{
@@ -921,7 +939,7 @@ if(
 
 							if (
 								$arFields["PUBLISH_STATUS"] == BLOG_PUBLISH_STATUS_PUBLISH
-								|| strlen($arFields["PUBLISH_STATUS"]) <= 0
+								|| $arFields["PUBLISH_STATUS"] == ''
 							)
 							{
 								if ($log_id <= 0)
@@ -1126,7 +1144,7 @@ if(
 							}
 
 							if (
-								strlen($arFields["PUBLISH_STATUS"]) > 0
+								$arFields["PUBLISH_STATUS"] <> ''
 								&& $arFields["PUBLISH_STATUS"] != BLOG_PUBLISH_STATUS_PUBLISH
 							)
 							{
@@ -1180,7 +1198,7 @@ if(
 					}
 					else
 					{
-						$arResult["COMMENT_ERROR"] = (strlen($strErrorMessage) > 0 ? $strErrorMessage : GetMessage("B_B_PC_COM_ERROR"));
+						$arResult["COMMENT_ERROR"] = ($strErrorMessage <> '' ? $strErrorMessage : GetMessage("B_B_PC_COM_ERROR"));
 					}
 				}
 				else //update comment
@@ -1234,7 +1252,7 @@ if(
 									$arImgFields = array(
 										"BLOG_ID"	=> $arBlog["ID"],
 										"POST_ID"	=> $arPost["ID"],
-										"USER_ID" => IntVal($user_id),
+										"USER_ID" => intval($user_id),
 										"COMMENT_ID" => $commentID,
 										"=TIMESTAMP_X"	=> $DB->GetNowFunction(),
 										"TITLE"		=> $arFile["FILE_NAME"],
@@ -1272,7 +1290,7 @@ if(
 						$commentUrl = CComponentEngine::MakePathFromTemplate(htmlspecialcharsBack($arParams["PATH_TO_POST"]), array("blog" => $arBlog["URL"], "post_id"=> CBlogPost::GetPostID($arPost["ID"], $arPost["CODE"], $arParams["ALLOW_POST_CODE"]), "user_id" => $arBlog["OWNER_ID"], "group_id" => $arParams["SOCNET_GROUP_ID"]));
 
 						$arFields["PATH"] = $commentUrl;
-						$arFields["PATH"] .= (strpos($arFields["PATH"], "?") !== false ? "&" : "?");
+						$arFields["PATH"] .= (mb_strpos($arFields["PATH"], "?") !== false ? "&" : "?");
 						$arFields["PATH"] .= $arParams["COMMENT_ID_VAR"]."=".$commentID."#".$commentID;
 
 						$dbComment = CBlogComment::GetList(array(), Array("POST_ID" => $arPost["ID"], "BLOG_ID" => $arBlog["ID"], ">ID" => $commentID));
@@ -1338,7 +1356,7 @@ if(
 									"IMAGES" => $images,
 								);
 
-								if(IntVal($user_id) > 0)
+								if(intval($user_id) > 0)
 								{
 									$arResult["BlogUser"] = CBlogUser::GetByID($user_id, BLOG_BY_USER_ID);
 									$arResult["BlogUser"] = CBlogTools::htmlspecialcharsExArray($arResult["BlogUser"]);
@@ -1356,10 +1374,10 @@ if(
 								}
 
 								$commentUrl = CComponentEngine::MakePathFromTemplate(htmlspecialcharsBack($arParams["PATH_TO_POST"]), array("post_id" => CBlogPost::GetPostID($arPost["ID"], $arPost["CODE"], $arParams["ALLOW_POST_CODE"]), "user_id" => $arBlog["OWNER_ID"]));
-								$commentUrl .= (strpos($commentUrl, "?") !== false ? "&" : "?");
+								$commentUrl .= (mb_strpos($commentUrl, "?") !== false ? "&" : "?");
 
 								if (
-									strlen($arFields["PUBLISH_STATUS"]) > 0
+									$arFields["PUBLISH_STATUS"] <> ''
 									&& $arFields["PUBLISH_STATUS"] != BLOG_PUBLISH_STATUS_PUBLISH
 								)
 								{
@@ -1396,9 +1414,9 @@ if(
 									{
 										foreach($arMentionedUserId as $val)
 										{
-											$val = IntVal($val);
+											$val = intval($val);
 											if (
-												IntVal($val) > 0
+												intval($val) > 0
 												&& $val != $arOldComment["AUTHOR_ID"]
 												&& $val != $arPost["AUTHOR_ID"]
 											)
@@ -1529,23 +1547,23 @@ if(
 		$tmp = Array();
 		$tmp["MESSAGE"] = $arResult["MESSAGE"];
 		$tmp["ERROR_MESSAGE"] = $arResult["ERROR_MESSAGE"];
-		if((strlen($arResult["COMMENT_ERROR"]) > 0 || strlen($arResult["ERROR_MESSAGE"]) > 0))
+		if(($arResult["COMMENT_ERROR"] <> '' || $arResult["ERROR_MESSAGE"] <> ''))
 		{
 			$arResult["is_ajax_post"] = "Y";
 		}
 		else
 		{
-			if (IntVal($_REQUEST["new_comment_id"]) > 0) // for push&pull
+			if (intval($_REQUEST["new_comment_id"]) > 0) // for push&pull
 			{
-				$arResult["ajax_comment"] = IntVal($_REQUEST["new_comment_id"]);
+				$arResult["ajax_comment"] = intval($_REQUEST["new_comment_id"]);
 			}
 
 			if(
 				(
-					IntVal($arParams["ID"]) > 0
+					intval($arParams["ID"]) > 0
 					&& (
-						(isset($arPost["NUM_COMMENTS_ALL"]) && IntVal($arPost["NUM_COMMENTS_ALL"]) > 0)
-						|| IntVal($arPost["NUM_COMMENTS"]) > 0
+						(isset($arPost["NUM_COMMENTS_ALL"]) && intval($arPost["NUM_COMMENTS_ALL"]) > 0)
+						|| intval($arPost["NUM_COMMENTS"]) > 0
 					)
 				)
 				|| $arResult["ajax_comment"] > 0
@@ -1588,7 +1606,7 @@ if(
 					'POST_ID' => $arParams["ID"]
 				));
 
-				if(IntVal($arResult["ajax_comment"]) > 0)
+				if(intval($arResult["ajax_comment"]) > 0)
 				{
 					$arResult["is_ajax_post"] = "Y";
 					$cache_id .= $arResult["ajax_comment"];
@@ -1643,7 +1661,7 @@ if(
 					$arResult["IDS"] = Array();
 
 					$arFilter = Array("POST_ID" => $arParams["ID"], "BLOG_ID" => $arPost["BLOG_ID"]);
-					if($arResult["is_ajax_post"] == "Y" && IntVal($arResult["ajax_comment"]) > 0)
+					if($arResult["is_ajax_post"] == "Y" && intval($arResult["ajax_comment"]) > 0)
 					{
 						$arFilter["ID"] = $arResult["ajax_comment"];
 					}
@@ -1682,7 +1700,7 @@ if(
 
 					while ($arComment = $dbComment->Fetch())
 					{
-						if(IntVal($arComment["AUTHOR_ID"]) > 0)
+						if(intval($arComment["AUTHOR_ID"]) > 0)
 						{
 							$arIdToGet[] = $arComment["AUTHOR_ID"];
 						}
@@ -1764,7 +1782,7 @@ if(
 										true
 									);
 									$aImgNew["ID"] = $aImg["ID"];
-									$aImgNew["fileName"] = substr($aImgNew["src"], strrpos($aImgNew["src"], "/")+1);
+									$aImgNew["fileName"] = mb_substr($aImgNew["src"], mb_strrpos($aImgNew["src"], "/") + 1);
 									$arResult["Images"][$aImg['ID']] = $aImgNew;
 								}
 								$arResult["arImages"][$aImg["COMMENT_ID"]][$aImg['ID']] = Array(
@@ -1792,7 +1810,7 @@ if(
 
 						do
 						{
-							if(IntVal($arComment["AUTHOR_ID"]) > 0)
+							if(intval($arComment["AUTHOR_ID"]) > 0)
 							{
 								if($arComment["AUTHOR_ID"] == $arPost["AUTHOR_ID"])
 									$arComment["AuthorIsPostAuthor"] = "Y";
@@ -1858,7 +1876,7 @@ if(
 											}
 											else
 											{
-												$arPostField["EDIT_FORM_LABEL"] = strLen($arPostField["EDIT_FORM_LABEL"]) > 0 ? $arPostField["EDIT_FORM_LABEL"] : $arPostField["FIELD_NAME"];
+												$arPostField["EDIT_FORM_LABEL"] = $arPostField["EDIT_FORM_LABEL"] <> '' ? $arPostField["EDIT_FORM_LABEL"] : $arPostField["FIELD_NAME"];
 												$arPostField["EDIT_FORM_LABEL"] = htmlspecialcharsEx($arPostField["EDIT_FORM_LABEL"]);
 												$arPostField["~EDIT_FORM_LABEL"] = $arPostField["EDIT_FORM_LABEL"];
 												$arComment["COMMENT_PROPERTIES"]["DATA"][$FIELD_NAME] = $arPostField;
@@ -1902,7 +1920,7 @@ if(
 								if(
 									$arParams["NO_URL_IN_COMMENTS"] == "L"
 									|| (
-										IntVal($arComment["AUTHOR_ID"]) <= 0
+										intval($arComment["AUTHOR_ID"]) <= 0
 										&& $arParams["NO_URL_IN_COMMENTS"] == "A"
 									)
 								)
@@ -1910,7 +1928,7 @@ if(
 									$arAllow["CUT_ANCHOR"] = "Y";
 								}
 
-								if($arParams["NO_URL_IN_COMMENTS_AUTHORITY_CHECK"] == "Y" && $arAllow["CUT_ANCHOR"] != "Y" && IntVal($arComment["AUTHOR_ID"]) > 0)
+								if($arParams["NO_URL_IN_COMMENTS_AUTHORITY_CHECK"] == "Y" && $arAllow["CUT_ANCHOR"] != "Y" && intval($arComment["AUTHOR_ID"]) > 0)
 								{
 									$authorityRatingId = CRatings::GetAuthorityRating();
 									$arRatingResult = CRatings::GetRatingResult($authorityRatingId, $arComment["AUTHOR_ID"]);
@@ -1968,12 +1986,12 @@ if(
 								$arComment["DATE_CREATE_TIME"] = FormatDateFromDB(
 									$arComment["DATE_CREATE"],
 									(
-										strpos($arParams["DATE_TIME_FORMAT_S"], 'a') !== false
+									mb_strpos($arParams["DATE_TIME_FORMAT_S"], 'a') !== false
 										|| (
 											$arParams["DATE_TIME_FORMAT_S"] == 'FULL'
 											&& IsAmPmMode()
 										) !== false
-											? (strpos(FORMAT_DATETIME, 'TT')!==false ? 'G:MI TT': 'G:MI T')
+											? (mb_strpos(FORMAT_DATETIME, 'TT') !== false ? 'G:MI TT': 'G:MI T')
 											: 'GG:MI'
 									)
 								);
@@ -2016,14 +2034,14 @@ if(
 		}
 
 		$arResult["commentUrl"] = CComponentEngine::MakePathFromTemplate(htmlspecialcharsBack($arParams["PATH_TO_POST"]), array("post_id" => CBlogPost::GetPostID($arPost["ID"], $arPost["CODE"], $arParams["ALLOW_POST_CODE"]), "user_id" => $arPost["AUTHOR_ID"]));
-		$arResult["commentUrl"] .= (strpos($arResult["commentUrl"], "?") !== false ? "&" : "?").$arParams["COMMENT_ID_VAR"]."=#comment_id###comment_id#";
+		$arResult["commentUrl"] .= (mb_strpos($arResult["commentUrl"], "?") !== false ? "&" : "?").$arParams["COMMENT_ID_VAR"]."=#comment_id###comment_id#";
 
 		if($arResult["use_captcha"])
 		{
 			include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/classes/general/captcha.php");
 			$cpt = new CCaptcha();
 			$captchaPass = COption::GetOptionString("main", "captcha_password", "");
-			if (strlen($captchaPass) <= 0)
+			if ($captchaPass == '')
 			{
 				$captchaPass = randString(10);
 				COption::SetOptionString("main", "captcha_password", $captchaPass);
@@ -2049,7 +2067,7 @@ if(
 			foreach($arResult["CommentsResult"] as $k1 => $v1)
 			{
 				if(
-					IntVal($commentUrlID) > 0
+					intval($commentUrlID) > 0
 					&& $commentUrlID == $v1["ID"]
 					&& $v1["AUTHOR_ID"] == $user_id
 					&& $v1["PUBLISH_STATUS"] == BLOG_PUBLISH_STATUS_READY
@@ -2139,7 +2157,7 @@ if(
 				if(
 					$bAuthor
 					&& $arPost["AUTHOR_ID"] != $v1["AUTHOR_ID"]
-					&& strlen($v1["SHARE_DEST"]) > 0
+					&& $v1["SHARE_DEST"] <> ''
 				) // user can't delete his own share from other author post
 				{
 					$arResult["CommentsResult"][$k1]["CAN_DELETE"] = "N";
@@ -2201,13 +2219,10 @@ if(
 							)
 						) // show only non-aux and aux after non-aux
 						{
+							$arResult["newCountWOMark"]++;
 							if ($arParams["MARK_NEW_COMMENTS"] == "Y")
 							{
 								$arResult["CommentsResult"][$k1]["NEW"] = "Y";
-							}
-							else
-							{
-								$arResult["newCountWOMark"]++;
 							}
 						}
 					}
@@ -2245,7 +2260,7 @@ if(
 				$arResult["newCount"] = $arParams["PAGE_SIZE_MIN"];
 			}
 			$arResult["~newCount"] = $arResult["newCount"];
-			if(IntVal($commentUrlID) > 0)
+			if(intval($commentUrlID) > 0)
 			{
 				$arResult["newCount"] = count($arResult["CommentsResult"]);
 			}
@@ -2256,7 +2271,7 @@ if(
 		}
 
 		$arResult["urlToPost"] = CComponentEngine::MakePathFromTemplate(htmlspecialcharsBack($arParams["PATH_TO_POST_CURRENT"]), array("post_id" => "#source_post_id#", "user_id" => $arPost["AUTHOR_ID"]));
-		$arResult["urlToPost"] .= (strpos($arResult["urlToPost"], "?") === false ? "?" : "&");
+		$arResult["urlToPost"] .= (mb_strpos($arResult["urlToPost"], "?") === false ? "?" : "&");
 
 		$arResult["urlToDelete"] = $arResult["urlToPost"]."delete_comment_id=#comment_id#&comment_post_id=#post_id#&".bitrix_sessid_get();
 		$arResult["urlToHide"] = $arResult["urlToPost"]."hide_comment_id=#comment_id#&comment_post_id=#post_id#&".bitrix_sessid_get();

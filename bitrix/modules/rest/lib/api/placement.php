@@ -4,6 +4,7 @@ namespace Bitrix\Rest\Api;
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\Entity\ExpressionField;
 use Bitrix\Rest\AccessException;
 use Bitrix\Rest\AppTable;
 use Bitrix\Rest\AuthTypeException;
@@ -86,6 +87,19 @@ class Placement extends \IRestService
 		return $result;
 	}
 
+	/**
+	 * Clears placement's cache in other modules.
+	 * @return void
+	 */
+	protected static function clearPlacementCache(): void
+	{
+		if (defined('BX_COMP_MANAGED_CACHE'))
+		{
+			global $CACHE_MANAGER;
+			$CACHE_MANAGER->clearByTag('intranet_menu_binding');
+		}
+	}
+
 
 	public static function bind($params, $n, \CRestServer $server)
 	{
@@ -96,7 +110,7 @@ class Placement extends \IRestService
 		$placement = toUpper($params['PLACEMENT']);
 		$placementHandler = $params['HANDLER'];
 
-		if(strlen($placement) <= 0)
+		if($placement == '')
 		{
 			throw new ArgumentNullException("PLACEMENT");
 		}
@@ -106,13 +120,12 @@ class Placement extends \IRestService
 			throw new ArgumentException("Wrong value", "PLACEMENT");
 		}
 
-		if(strlen($placementHandler) <= 0)
+		if($placementHandler == '')
 		{
 			throw new ArgumentNullException("HANDLER");
 		}
 
 		$appInfo = static::getApplicationInfo($server);
-
 		HandlerHelper::checkCallback($placementHandler, $appInfo);
 
 		$scopeList = static::getScope($server);
@@ -144,6 +157,43 @@ class Placement extends \IRestService
 				$placementBind['GROUP_NAME'] = trim($params['GROUP_NAME']);
 			}
 
+			if($placementInfo['max_count'] > 0)
+			{
+				$res = PlacementTable::getList(
+					[
+						'filter' => [
+							'=APP_ID' => $placementBind['APP_ID'],
+							'=PLACEMENT' => $placementBind['PLACEMENT']
+						],
+						'select' => array('COUNT'),
+						'runtime' => array(
+							new ExpressionField('COUNT', 'COUNT(*)')
+						)
+					]
+				);
+
+				if($result = $res->fetch())
+				{
+					if($result['COUNT'] >= $placementInfo['max_count'])
+					{
+						throw new RestException(
+							'Placement max count: '.$placementInfo['max_count'],
+							PlacementTable::ERROR_PLACEMENT_MAX_COUNT
+						);
+					}
+				}
+			}
+
+			if (
+				array_key_exists('ICON', $params)
+				&& is_array($params['ICON'])
+				&& $params['ICON']['fileData']
+				&& ($file = \CRestUtil::saveFile($params['ICON']['fileData']))
+			)
+			{
+				$placementBind['ICON'] = $file;
+			}
+
 			$result = PlacementTable::add($placementBind);
 			if(!$result->isSuccess())
 			{
@@ -153,6 +203,8 @@ class Placement extends \IRestService
 					RestException::ERROR_CORE
 				);
 			}
+
+			self::clearPlacementCache();
 
 			return true;
 		}
@@ -173,7 +225,7 @@ class Placement extends \IRestService
 		$placement = toUpper($params['PLACEMENT']);
 		$placementHandler = $params['HANDLER'];
 
-		if(strlen($placement) <= 0)
+		if($placement == '')
 		{
 			throw new ArgumentNullException("PLACEMENT");
 		}
@@ -191,7 +243,7 @@ class Placement extends \IRestService
 				'=PLACEMENT' => $placement,
 			);
 
-			if(strlen($placementHandler) > 0)
+			if($placementHandler <> '')
 			{
 				$filter['=PLACEMENT_HANDLER'] = $placementHandler;
 			}
@@ -209,6 +261,11 @@ class Placement extends \IRestService
 					$cnt++;
 				}
 			}
+		}
+
+		if ($cnt > 0)
+		{
+			self::clearPlacementCache();
 		}
 
 		return array('count' => $cnt);

@@ -76,7 +76,7 @@ while($arStore = $rsStores->GetNext())
 	$arStores[$arStore["ID"]] = $arStore;
 unset($arStore, $rsStores);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && strlen($_REQUEST["Update"]) > 0 && !$bReadOnly && check_bitrix_sessid())
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["Update"] <> '' && !$bReadOnly && check_bitrix_sessid())
 {
 	$adminSidePanelHelper->decodeUriComponent();
 	if (!$_REQUEST["cancellation"] && ($_REQUEST["save_document"] || $_REQUEST["save_and_conduct"]))
@@ -735,7 +735,7 @@ CAdminMessage::ShowMessage($errorMessage);
 $actionUrl = $APPLICATION->GetCurPage()."?lang=".LANGUAGE_ID."&DOCUMENT_TYPE=".htmlspecialcharsbx($docType);
 $actionUrl = $adminSidePanelHelper->setDefaultQueryParams($actionUrl);
 ?>
-<form enctype="multipart/form-data" method="POST" action="<?=$actionUrl?>" id="form_b_catalog_store_docs" name="form_b_catalog_store_docs">
+<form enctype="multipart/form-data" method="POST" action="<?=$actionUrl?>" id="form_b_catalog_store_docs" name="form_b_catalog_store_docs" onsubmit="return checkBarcodeSearch();">
 	<?echo GetFilterHiddens("filter_");?>
 	<input type="hidden" name="Update" value="Y">
 	<input type="hidden" name="lang" value="<?echo LANGUAGE_ID; ?>">
@@ -1381,6 +1381,16 @@ if (typeof showTotalSum === 'undefined')
 		else if(BX("BARCODE_INPUT_BUTTON_" + id))
 			BX("BARCODE_INPUT_BUTTON_" + id).disabled = true;
 
+	}
+
+	function checkBarcodeSearch()
+	{
+		if (BX("CAT_DOC_BARCODE_FIND").value !== '')
+		{
+			productSearch(BX('CAT_DOC_BARCODE_FIND').value);
+			return false;
+		}
+		return true;
 	}
 }
 <?

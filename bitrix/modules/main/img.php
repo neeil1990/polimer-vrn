@@ -6,9 +6,6 @@
  * @copyright 2001-2014 Bitrix
  */
 
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/save_colors.php");
-
-
 /*******************************************************
 Converts ISO to UNICODE
 ********************************************************/
@@ -16,9 +13,9 @@ Converts ISO to UNICODE
 function iso2uni ($isoline)
 {
 	$uniline = "";
-	for ($i = 0, $n = strlen($isoline); $i < $n; $i++)
+	for ($i = 0, $n = mb_strlen($isoline); $i < $n; $i++)
 	{
-		$thischar = substr($isoline,$i,1);
+		$thischar = mb_substr($isoline, $i, 1);
 		$charcode = ord($thischar);
 		$uniline .= ($charcode>175) ? "&#" . (1040+($charcode-176)). ";" : $thischar;
 	}
@@ -85,7 +82,7 @@ Returns some color
 function GetArrSaveDecColor($arr)
 {
 	$arrSaveDecColor = array();
-	while(list($key, $scolor) = each($arr))
+	foreach($arr as $key => $scolor)
 	{
 		$arrSaveDecColor[$key] = hexdec($scolor);
 	}
@@ -95,14 +92,14 @@ function GetArrSaveDecColor($arr)
 
 function GetNextRGB($base_color, $total)
 {
-	global $arrSaveColor;
+	$arrSaveColor = getSafeColors();
 
 	$tsc = count($arrSaveColor);
 	if ($total > $tsc)
 	{
 		return GetBNextRGB($base_color, $total);
 	}
-	elseif (strlen($base_color) <= 0)
+	elseif ($base_color == '')
 	{
 		$res = "1288A0";
 	}
@@ -112,8 +109,7 @@ function GetNextRGB($base_color, $total)
 		$step = round($tsc/$total);
 		$dec = hexdec($base_color);
 		$arrSaveDecColor = GetArrSaveDecColor($arrSaveColor);
-		reset($arrSaveDecColor);
-		while(list($key, $sdcolor) = each($arrSaveDecColor))
+		foreach($arrSaveDecColor as $key => $sdcolor)
 		{
 			if ($dec <= $sdcolor)
 			{
@@ -169,7 +165,7 @@ function EchoGraphData($arrayX, $MinX, $MaxX, $arrayY, $MinY, $MaxY, $arrX, $arr
 {
 	echo "<pre>";
 	echo "--------------------------------------\n";
-	while (list($key, $value) = each($arrX))
+	foreach($arrX as $key => $value)
 	{
 		echo date("d.m.Y",$value)." = ".$arrY[$key]."\n";
 	}
@@ -340,7 +336,7 @@ function ReColor($colorString)
 
 function DrawCoordinatGrid($arrayX, $arrayY, $width, $height, $ImageHandle, $bgColor="FFFFFF", $gColor='B1B1B1', $Color="000000", $dD=15, $FontWidth=2, $arrTTF_FONT=false)
 {
-	global $xA, $yA, $xPixelLength, $yPixelLength, $APPLICATION;
+	global $xA, $yA, $xPixelLength, $yPixelLength;
 
 	/******************************************************************************
 	* $k - array performance font size to pixel format
@@ -391,7 +387,7 @@ function DrawCoordinatGrid($arrayX, $arrayY, $width, $height, $ImageHandle, $bgC
 	else
 	{
 		foreach($arrayY as $value)
-			$max_len=max($max_len, strlen($value));
+			$max_len=max($max_len, mb_strlen($value));
 		$dlataX = $max_len*ImageFontWidth($FontWidth);
 	}
 
@@ -489,7 +485,7 @@ function DrawCoordinatGrid($arrayX, $arrayY, $width, $height, $ImageHandle, $bgC
 			$arResult["XBUCKETS"][$i] = array(ceil($xP0)+1, ceil($xP0+$dX)-1);
 
 		$captionX = $arrayX[$i];
-		$xCaption = $xP0 - strlen($captionX)*$k[$FontWidth] + ($dX*$bForBarDiagram/2);
+		$xCaption = $xP0 - mb_strlen($captionX) * $k[$FontWidth] + ($dX*$bForBarDiagram/2);
 		$yCaption = $yP0;
 
 		if ($bUseTTFX)
@@ -498,7 +494,7 @@ function DrawCoordinatGrid($arrayX, $arrayY, $width, $height, $ImageHandle, $bgC
 			$ttf_width_x = abs($bbox[2] - $bbox[0]) + 1;
 			$xCaption = $xP0 - $ttf_width_x/2 + ($dX*$bForBarDiagram/2);
 			$yCaption = $yP0 + $dD + $ttf_shift_x - $ttf_base_x;
-			$captionX = $APPLICATION->ConvertCharset($captionX, LANG_CHARSET, "UTF-8");
+			$captionX = \Bitrix\Main\Text\Encoding::convertEncoding($captionX, LANG_CHARSET, "UTF-8");
 			ImageTTFText($ImageHandle, $ttf_size_x, 0, $xCaption, $yCaption, $color000000, $ttf_font_x, $captionX);
 		}
 		else ImageString($ImageHandle, $FontWidth, $xCaption, $yCaption+ImageFontHeight($FontWidth)/2, $captionX, $color000000);
@@ -544,12 +540,12 @@ function DrawCoordinatGrid($arrayX, $arrayY, $width, $height, $ImageHandle, $bgC
 
 			if ($bUseTTFY)
 			{
-				$captionY = $APPLICATION->ConvertCharset($captionY, LANG_CHARSET, "UTF-8");
+				$captionY = \Bitrix\Main\Text\Encoding::convertEncoding($captionY, LANG_CHARSET, "UTF-8");
 				$bbox = imagettfbbox($ttf_size_y, 0, $ttf_font_y, $captionY);
 				$yCaption = $yM1+($ttf_shift_y-$ttf_base_y)/2;
 				ImageTTFText($ImageHandle, $ttf_size_y, 0, $xCaption-abs($bbox[2]-$bbox[0])-1, $yCaption, $color000000, $ttf_font_y, $captionY);
 			}
-			else ImageString($ImageHandle, $FontWidth, $xCaption-strlen($captionY)*ImageFontWidth($FontWidth), $yCaption, $captionY, $color000000);
+			else ImageString($ImageHandle, $FontWidth, $xCaption- mb_strlen($captionY) * ImageFontWidth($FontWidth), $yCaption, $captionY, $color000000);
 		}
 		$yM0 -= $dY;
 		$yM1 -= $dY;
@@ -1066,4 +1062,200 @@ function _a_draw_ellipse($im, $x1, $y1, $x2, $y2, $fgcolors, $half=false)
 			if(!$half || $ix>$cx) _a_set_pixel($im, $iy, $ix-1, $f, $fgcolors);
 		}
 	}
+}
+
+function getSafeColors()
+{
+	static $colors = array(
+		"CCCCCC",
+		"999999",
+		"FF0000",
+		"FF3333",
+		"CC0000",
+		"FF6666",
+		"CC3333",
+		"990000",
+		"FF9999",
+		"CC6666",
+		"993333",
+		"FFCCCC",
+		"CC9999",
+		"996666",
+		"FF3300",
+		"FF6633",
+		"CC3300",
+		"FF9966",
+		"CC6633",
+		"993300",
+		"FF6600",
+		"FF9933",
+		"CC6600",
+		"FFCC99",
+		"CC9966",
+		"996633",
+		"FF9900",
+		"FFCC66",
+		"CC9933",
+		"996600",
+		"CC9900",
+		"FFCC33",
+		"FFCC00",
+		"FFFF00",
+		"FFFF33",
+		"CCCC00",
+		"FFFF66",
+		"CCCC33",
+		"999900",
+		"FFFF99",
+		"CCCC66",
+		"999933",
+		"FFFFCC",
+		"CCCC99",
+		"999966",
+		"A2CA00",
+		"CCFF33",
+		"99CC00",
+		"CCFF66",
+		"99CC33",
+		"669900",
+		"99FF00",
+		"99FF33",
+		"66CC00",
+		"73E600",
+		"99CC66",
+		"669933",
+		"66FF00",
+		"99FF66",
+		"66CC33",
+		"339900",
+		"66FF33",
+		"33CC00",
+		"33FF00",
+		"00FF00",
+		"33FF33",
+		"00CC00",
+		"66FF66",
+		"33CC33",
+		"009900",
+		"99FF99",
+		"66CC66",
+		"339933",
+		"00AA00",
+		"99CC99",
+		"669966",
+		"00FF33",
+		"33FF66",
+		"00CC33",
+		"66FF99",
+		"33CC66",
+		"009933",
+		"00FF66",
+		"33FF99",
+		"00CC66",
+		"99FFCC",
+		"66CC99",
+		"339966",
+		"00FF99",
+		"66FFCC",
+		"33CC99",
+		"009966",
+		"33FFCC",
+		"00CC99",
+		"00FFCC",
+		"00FFFF",
+		"33FFFF",
+		"00CCCC",
+		"66FFFF",
+		"33CCCC",
+		"009999",
+		"99FFFF",
+		"66CCCC",
+		"339999",
+		"CCFFFF",
+		"99CCCC",
+		"669999",
+		"00CCFF",
+		"33CCFF",
+		"0099CC",
+		"66CCFF",
+		"3399CC",
+		"006699",
+		"0099FF",
+		"3399FF",
+		"0066CC",
+		"99CCFF",
+		"6699CC",
+		"336699",
+		"599BFF",
+		"6699FF",
+		"3366CC",
+		"003399",
+		"3366FF",
+		"0033CC",
+		"0033FF",
+		"0000FF",
+		"3333FF",
+		"0000CC",
+		"6666FF",
+		"3333CC",
+		"000099",
+		"9999FF",
+		"6666CC",
+		"333399",
+		"CCCCFF",
+		"9999CC",
+		"666699",
+		"0A7BB8",
+		"6633FF",
+		"3300CC",
+		"9966FF",
+		"5997D5",
+		"330099",
+		"6600FF",
+		"9933FF",
+		"1AA9F7",
+		"CC99FF",
+		"9966CC",
+		"663399",
+		"9900FF",
+		"CC66FF",
+		"CE37CE",
+		"660099",
+		"CC33FF",
+		"9900CC",
+		"CC00FF",
+		"FF00FF",
+		"FF33FF",
+		"CC00CC",
+		"FF66FF",
+		"CC33CC",
+		"990099",
+		"FF99FF",
+		"CC66CC",
+		"993399",
+		"FFCCFF",
+		"CC99CC",
+		"996699",
+		"FF00CC",
+		"FF33CC",
+		"CC0099",
+		"FF66CC",
+		"CC3399",
+		"990066",
+		"FF0099",
+		"FF3399",
+		"CC0066",
+		"FF99CC",
+		"CC6699",
+		"993366",
+		"FF0066",
+		"FF6699",
+		"CC3366",
+		"990033",
+		"FF3366",
+		"CC0033",
+		"FF0033",
+	);
+
+	return $colors;
 }

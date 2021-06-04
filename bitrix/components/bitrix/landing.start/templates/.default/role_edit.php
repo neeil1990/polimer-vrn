@@ -13,7 +13,8 @@ Loc::loadMessages(__FILE__);
 	'.default',
 	array(
 		'ROLE_EDIT' => $arResult['VARS']['role_edit'],
-		'PAGE_URL_ROLES' => $arParams['PAGE_URL_ROLES']
+		'PAGE_URL_ROLES' => $arParams['PAGE_URL_ROLES'],
+		'TYPE' => $arParams['TYPE']
 	),
 	$component
 );?>
@@ -24,20 +25,20 @@ Loc::loadMessages(__FILE__);
 		{
 			var disableFunc = function(e)
 			{
-				BX.Landing.PaymentAlertShow({
-					message: "<?= \CUtil::jsEscape(Loc::getMessage('LANDING_ROLES_UNAVAILABLE'));?>"
-				});
+				<?= \Bitrix\Landing\Restriction\Manager::getActionCode('limit_sites_access_permissions');?>
 				if (e)
 				{
 					e.preventDefault();
 				}
 			};
 			BX.bind(
-				BX("landing-rights-save"),
-				"click",
+				BX('landing-rights-save'),
+				'click',
 				BX.delegate(disableFunc)
 			);
-			disableFunc();
+			setTimeout(function() {
+				disableFunc();
+			}, 0);
 		});
 	</script>
 <?endif;?>

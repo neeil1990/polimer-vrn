@@ -59,24 +59,24 @@ class BasketBuilderExist implements IBasketBuilderDelegate
 
 		$itemFields = array_intersect_key($productData, array_flip($item::getAvailableFields()));
 
-		if(isset($itemFields["MEASURE_CODE"]) && strlen($itemFields["MEASURE_CODE"]) > 0)
+		if(isset($itemFields["MEASURE_CODE"]) && $itemFields["MEASURE_CODE"] <> '')
 		{
 			$measures = $this->builder->getCatalogMeasures();
 
-			if(isset($measures[$itemFields["MEASURE_CODE"]]) && strlen($measures[$itemFields["MEASURE_CODE"]]) > 0)
+			if(isset($measures[$itemFields["MEASURE_CODE"]]) && $measures[$itemFields["MEASURE_CODE"]] <> '')
 				$itemFields["MEASURE_NAME"] = $measures[$itemFields["MEASURE_CODE"]];
 		}
 
 		if(!empty($productData["PROVIDER_DATA"]) && !$this->builder->isNeedUpdateNewProductPrice() && CheckSerializedData($productData["PROVIDER_DATA"]))
 		{
-			$providerData = unserialize($productData["PROVIDER_DATA"]);
+			$providerData = unserialize($productData["PROVIDER_DATA"], ['allowed_classes' => false]);
 		}
 
 		if(is_array($providerData) && !empty($providerData))
 			$this->builder->sendProductCachedDataToProvider($item, $this->builder->getOrder(), $providerData);
 
 		if(!empty($productData["SET_ITEMS_DATA"]) && CheckSerializedData($productData["SET_ITEMS_DATA"]))
-			$productData["SET_ITEMS"] = unserialize($productData["SET_ITEMS_DATA"]);
+			$productData["SET_ITEMS"] = unserialize($productData["SET_ITEMS_DATA"], ['allowed_classes' => false]);
 
 		$this->builder->setBasketItemFields($item, $itemFields);
 	}

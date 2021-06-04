@@ -10,7 +10,6 @@
  * @global CMain $APPLICATION
  * @global CUser $USER
  * @global CDatabase $DB
- * @global array $BX_GROUP_POLICY;
  */
 
 require_once(dirname(__FILE__)."/../include/prolog_admin_before.php");
@@ -59,6 +58,8 @@ $arBXGroupPolicy = array(
 		"PASSWORD_LOWERCASE" => "N",
 		"PASSWORD_DIGITS" => "N",
 		"PASSWORD_PUNCTUATION" => "N",
+		"PASSWORD_CHANGE_DAYS" => "",
+		"PASSWORD_UNIQUE_COUNT" => "",
 		"LOGIN_ATTEMPTS" => "",
 		"BLOCK_LOGIN_ATTEMPTS" => "",
 		"BLOCK_TIME" => "",
@@ -75,6 +76,8 @@ $arBXGroupPolicy = array(
 		"PASSWORD_LOWERCASE" => "N",
 		"PASSWORD_DIGITS" => "N",
 		"PASSWORD_PUNCTUATION" => "N",
+		"PASSWORD_CHANGE_DAYS" => "0",
+		"PASSWORD_UNIQUE_COUNT" => "0",
 		"LOGIN_ATTEMPTS" => 0,
 		"BLOCK_LOGIN_ATTEMPTS" => 0,
 		"BLOCK_TIME" => "",
@@ -91,6 +94,8 @@ $arBXGroupPolicy = array(
 		"PASSWORD_LOWERCASE" => "Y",
 		"PASSWORD_DIGITS" => "Y",
 		"PASSWORD_PUNCTUATION" => "N",
+		"PASSWORD_CHANGE_DAYS" => "90",
+		"PASSWORD_UNIQUE_COUNT" => "1",
 		"LOGIN_ATTEMPTS" => 0,
 		"BLOCK_LOGIN_ATTEMPTS" => 0,
 		"BLOCK_TIME" => "",
@@ -107,6 +112,8 @@ $arBXGroupPolicy = array(
 		"PASSWORD_LOWERCASE" => "Y",
 		"PASSWORD_DIGITS" => "Y",
 		"PASSWORD_PUNCTUATION" => "Y",
+		"PASSWORD_CHANGE_DAYS" => "30",
+		"PASSWORD_UNIQUE_COUNT" => "3",
 		"LOGIN_ATTEMPTS" => 3,
 		"BLOCK_LOGIN_ATTEMPTS" => 0,
 		"BLOCK_TIME" => "",
@@ -125,6 +132,8 @@ $BX_GROUP_POLICY_CONTROLS = array(
 	"PASSWORD_LOWERCASE"	=>	array("checkbox", "Y"),
 	"PASSWORD_DIGITS"	=>	array("checkbox", "Y"),
 	"PASSWORD_PUNCTUATION"	=>	array("checkbox", "Y"),
+	"PASSWORD_CHANGE_DAYS"	=>	array("text", 5),
+	"PASSWORD_UNIQUE_COUNT"	=>	array("text", 5),
 	"LOGIN_ATTEMPTS"	=>	array("text", 5),
 	"BLOCK_LOGIN_ATTEMPTS"	=>	array("text", 5),
 	"BLOCK_TIME"	=>	array("text", 5),
@@ -148,7 +157,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && ($_REQUEST["save"] <> '' || $_REQUEST
 	$group = new CGroup;
 
 	$arGroupPolicy = array();
-	foreach ($BX_GROUP_POLICY as $key => $value)
+	foreach (CUser::$GROUP_POLICY as $key => $value)
 	{
 		$curVal = ${"gp_".$key};
 		$curValParent = ${"gp_".$key."_parent"};
@@ -204,7 +213,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && ($_REQUEST["save"] <> '' || $_REQUEST
 
 	$strError .= $group->LAST_ERROR;
 
-	if (strlen($strError)<=0)
+	if ($strError == '')
 	{
 		if (intval($ID) != 1 || (COption::GetOptionString("main", "controller_member", "N") == "Y" && COption::GetOptionString("main", "~controller_limited_admin", "N") == "Y"))
 		{
@@ -238,13 +247,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && ($_REQUEST["save"] <> '' || $_REQUEST
 				{
 					foreach ($rt as $i => $right)
 					{
-						if (strlen($right) > 0 && $right != "NOT_REF")
+						if ($right <> '' && $right != "NOT_REF")
 						{
-							$APPLICATION->SetGroupRight($MID, $ID, $right, (array_key_exists($i, $st) && strlen($st[$i]) > 0 && $st[$i] != "NOT_REF" ? $st[$i] : false));
+							$APPLICATION->SetGroupRight($MID, $ID, $right, (array_key_exists($i, $st) && $st[$i] <> '' && $st[$i] != "NOT_REF" ? $st[$i] : false));
 						}
 					}
 				}
-				elseif(!is_array($rt) && strlen($rt) > 0 && $rt != "NOT_REF")
+				elseif(!is_array($rt) && $rt <> '' && $rt != "NOT_REF")
 					$APPLICATION->SetGroupRight($MID, $ID, $rt, false);
 			}
 
@@ -310,7 +319,7 @@ else
 	$str_C_SORT = 100;
 }
 
-if (strlen($strError)>0)
+if ($strError <> '')
 {
 	$DB->InitTableVarsForEdit("b_group", "", "str_");
 
@@ -389,13 +398,13 @@ $context->Show();
 <?=bitrix_sessid_post()?>
 <input type="hidden" name="lang" value="<?echo LANG?>">
 <input type="hidden" name="ID" value="<?echo $ID?>">
-<?if(strlen($COPY_ID)>0):?><input type="hidden" name="COPY_ID" value="<?echo htmlspecialcharsbx($COPY_ID)?>"><?endif?>
+<?if($COPY_ID <> ''):?><input type="hidden" name="COPY_ID" value="<?echo htmlspecialcharsbx($COPY_ID)?>"><?endif?>
 <?
 $tabControl->Begin();
 
 $tabControl->BeginNextTab();
 ?>
-	<?if(strlen($str_TIMESTAMP_X)>0):?>
+	<?if($str_TIMESTAMP_X <> ''):?>
 	<tr>
 		<td><?echo GetMessage('LAST_UPDATE')?></td>
 		<td><?echo $str_TIMESTAMP_X?></td>
@@ -583,6 +592,8 @@ $tabControl->BeginNextTab();
 						level.low++;
 					break;
 				case "PASSWORD_LENGTH":
+				case "BLOCK_TIME":
+				case "PASSWORD_UNIQUE_COUNT":
 					level.total++;
 					if(parseInt(el2.value) >= parseInt(arGroupPolicy['high'][key]))
 						level.high++;
@@ -592,6 +603,8 @@ $tabControl->BeginNextTab();
 						level.low++;
 					break;
 				case "LOGIN_ATTEMPTS":
+				case "BLOCK_LOGIN_ATTEMPTS":
+				case "PASSWORD_CHANGE_DAYS":
 					level.total++;
 					if(parseInt(el2.value) > 0)
 					{
@@ -678,15 +691,15 @@ $tabControl->BeginNextTab();
 		</td>
 	</tr>
 	<?
-	$arGroupPolicy = unserialize(htmlspecialcharsback($str_SECURITY_POLICY));
+	$arGroupPolicy = unserialize(htmlspecialcharsback($str_SECURITY_POLICY), ['allowed_classes' => false]);
 	if (!is_array($arGroupPolicy))
 		$arGroupPolicy = array();
 
-	foreach ($BX_GROUP_POLICY as $key => $value)
+	foreach (CUser::$GROUP_POLICY as $key => $value)
 	{
 		$curVal = $arGroupPolicy[$key];
 		$curValParent = !array_key_exists($key, $arGroupPolicy);
-		if (strlen($strError) > 0)
+		if ($strError <> '')
 		{
 			$curVal = ${"gp_".$key};
 			$curValParent = ((${"gp_".$key."_parent"} == "Y") ? True : False);
@@ -694,8 +707,8 @@ $tabControl->BeginNextTab();
 		?>
 		<tr valign="top">
 			<td><label for="gp_<?echo $key?>"><?
-			$gpTitle = GetMessage("GP_".$key);
-			if (strlen($gpTitle) <= 0)
+			$gpTitle = GetMessage("GP_".$key, ["#SPECIAL_CHARS#" => \CUser::PASSWORD_SPECIAL_CHARS]);
+			if ($gpTitle == '')
 				$gpTitle = $key;
 
 			echo $gpTitle;
@@ -946,7 +959,7 @@ $tabControl->BeginNextTab();
 							$site_selected = $site_id_tmp;
 						}
 
-						if (strlen($v) > 0)
+						if ($v <> '')
 						{
 							?><tr>
 								<td style="padding: 3px;">

@@ -1,4 +1,11 @@
-<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+<?php
+
+use Bitrix\Main\Loader;
+use Bitrix\Blog\Copy\Integration\Group;
+
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
+	die();
+
 /** @var CBitrixComponentTemplate $this */
 /** @var array $arParams */
 /** @var array $arResult */
@@ -40,6 +47,25 @@ if(COption::GetOptionString("blog", "socNetNewPerms", "N") == "N" && $USER->IsAd
 		<span class="feed-add-info-icon"></span><span class="feed-add-info-text"><?=GetMessage("BLG_SOCNET_REINDEX", Array("#url#" => $arResult["PATH_TO_GROUP_REINDEX"]))?></span>
 	</div>
 	<?
+}
+
+if (Loader::includeModule("blog"))
+{
+	$APPLICATION->includeComponent(
+		"bitrix:socialnetwork.copy.checker",
+		"",
+		[
+			"moduleId" => Group::MODULE_ID,
+			"queueId" => $arParams["BLOG_GROUP_ID"],
+			"stepperClassName" => Group::STEPPER_CLASS,
+			"checkerOption" => Group::CHECKER_OPTION,
+			"errorOption" => Group::ERROR_OPTION,
+			"titleMessage" => GetMessage("BLG_STEPPER_PROGRESS_TITLE"),
+			"errorMessage" => GetMessage("BLG_STEPPER_PROGRESS_ERROR"),
+		],
+		$component,
+		["HIDE_ICONS" => "Y"]
+	);
 }
 
 $livefeedProvider = new \Bitrix\Socialnetwork\Livefeed\BlogPost;

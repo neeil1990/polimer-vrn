@@ -1,14 +1,60 @@
-<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+<?php
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
+	die();
+
+use Bitrix\Landing\Copy\Integration\Group as LandingGroup;
+use Bitrix\Main\Loader;
+use Bitrix\Blog\Copy\Integration\Group as BlogGroup;
+
 /** @var CBitrixComponentTemplate $this */
 /** @var array $arParams */
 /** @var array $arResult */
 /** @global CDatabase $DB */
 /** @global CUser $USER */
 /** @global CMain $APPLICATION */
+
 $component = $this->getComponent();
 
 $pageId = "group";
 include("util_group_menu.php");
+
+if (Loader::includeModule("blog"))
+{
+	$APPLICATION->includeComponent(
+		"bitrix:socialnetwork.copy.checker",
+		"",
+		[
+			"moduleId" => BlogGroup::MODULE_ID,
+			"queueId" => $arResult["VARIABLES"]["group_id"],
+			"stepperClassName" => BlogGroup::STEPPER_CLASS,
+			"checkerOption" => BlogGroup::CHECKER_OPTION,
+			"errorOption" => BlogGroup::ERROR_OPTION,
+			"titleMessage" => GetMessage("BLG_STEPPER_PROGRESS_TITLE"),
+			"errorMessage" => GetMessage("BLG_STEPPER_PROGRESS_ERROR"),
+		],
+		$component,
+		["HIDE_ICONS" => "Y"]
+	);
+}
+
+if (Loader::includeModule("landing"))
+{
+	$APPLICATION->includeComponent(
+		"bitrix:socialnetwork.copy.checker",
+		"",
+		[
+			"moduleId" => LandingGroup::MODULE_ID,
+			"queueId" => $arResult["VARIABLES"]["group_id"],
+			"stepperClassName" => LandingGroup::STEPPER_CLASS,
+			"checkerOption" => LandingGroup::CHECKER_OPTION,
+			"errorOption" => LandingGroup::ERROR_OPTION,
+			"titleMessage" => GetMessage("LANDING_STEPPER_PROGRESS_TITLE"),
+			"errorMessage" => GetMessage("LANDING_STEPPER_PROGRESS_ERROR"),
+		],
+		$component,
+		["HIDE_ICONS" => "Y"]
+	);
+}
 
 $APPLICATION->IncludeComponent(
 	"bitrix:socialnetwork.group",
@@ -18,6 +64,7 @@ $APPLICATION->IncludeComponent(
 		"PATH_TO_GROUP" => $arResult["PATH_TO_GROUP"],
 		"PATH_TO_GROUP_EDIT" => $arResult["PATH_TO_GROUP_EDIT"],
 		"PATH_TO_GROUP_CREATE" => $arResult["PATH_TO_GROUP_CREATE"],
+		"PATH_TO_GROUP_COPY" => $arResult["PATH_TO_GROUP_COPY"],
 		"PATH_TO_GROUP_REQUEST_SEARCH" => $arResult["PATH_TO_GROUP_REQUEST_SEARCH"],
 		"PATH_TO_USER_REQUEST_GROUP" => $arResult["PATH_TO_USER_REQUEST_GROUP"],
 		"PATH_TO_GROUP_REQUESTS" => $arResult["PATH_TO_GROUP_REQUESTS"],

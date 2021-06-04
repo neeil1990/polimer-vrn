@@ -247,7 +247,7 @@ class CClusterDBNodeCheck extends CAllClusterDBNodeCheck
 		foreach($arMasters as $node_id => $arNode)
 		{
 			$relay_log = $this->GetServerVariable($arNode["DB"], "relay_log");
-			if(strlen($relay_log) <= 0)
+			if($relay_log == '')
 			{
 				$bRelayIsOK = false;
 				$result[$node_id."_relay_log"] = array(
@@ -317,7 +317,7 @@ class CClusterDBNodeCheck extends CAllClusterDBNodeCheck
 			$rs = $nodeDB->Query("show slave status");
 			$ar = $rs->Fetch();
 
-			if($ar && strlen($ar["Slave_IO_State"]) > 0)
+			if($ar && $ar["Slave_IO_State"] <> '')
 			{
 				if($ar["Master_Host"] == $master_host && $ar["Master_Port"] == $master_port)
 					return $nodeDB;
@@ -362,7 +362,7 @@ class CClusterDBNodeCheck extends CAllClusterDBNodeCheck
 			$rs = $nodeDB->Query("show slave status");
 			if($ar = $rs->Fetch())
 			{
-				if(strlen($ar["Slave_IO_State"]) > 0)
+				if($ar["Slave_IO_State"] <> '')
 				{
 					if($ar["Master_Host"] != $master_host || $ar["Master_Port"] != $master_port)
 						return GetMessage("CLU_RUNNING_SLAVE");
@@ -603,7 +603,7 @@ class CClusterDBNodeCheck extends CAllClusterDBNodeCheck
 		);
 
 		$relay_log = $this->GetServerVariable($nodeDB, "relay_log");
-		$is_ok = strlen($relay_log) > 0;
+		$is_ok = $relay_log <> '';
 		$result["relay_log"] = array(
 			"IS_OK" => $is_ok? CClusterDBNodeCheck::OK: CClusterDBNodeCheck::WARNING,
 			"MESSAGE" => GetMessage("CLU_SLAVE_RELAY_LOG_MSG"),
@@ -715,7 +715,7 @@ class CClusterDBNodeCheck extends CAllClusterDBNodeCheck
 		foreach($arMasters as $node_id => $arNode)
 		{
 			$relay_log = $this->GetServerVariable($arNode["DB"], "relay_log");
-			if(strlen($relay_log) <= 0)
+			if($relay_log == '')
 			{
 				$bIncIsOK = false;
 				$result[$node_id."_relay_log"] = array(

@@ -4,7 +4,6 @@
 
 	var BX = window.BX;
 	var localStorageKey = "compositeCache";
-	var localStorageKeyPullConfig = "pullConfigCache";
 	var lolalStorageTTL = 1440;
 	var compositeMessageIds = ["bitrix_sessid", "USER_ID", "SERVER_TIME", "USER_TZ_OFFSET", "USER_TZ_AUTO"];
 	var compositeDataFile = "/bitrix/tools/composite_data.php";
@@ -50,19 +49,20 @@
 			]
 		};
 
-		this.frameData = null;
+		this.frameDataReceived = false;
+		this.frameDataInserted = false;
+
 		if (BX.type.isString(window.frameDataString) && window.frameDataString.length > 0)
 		{
 			BX.frameCache.onFrameDataReceived(window.frameDataString);
 		}
 
 		this.vars = window.frameCacheVars ? window.frameCacheVars : {
+			dynamicBlocks: {},
 			page_url: "",
 			params: {},
 			storageBlocks: []
 		};
-
-		this.lastReplacedBlocks = false;
 
 		//local storage warming up
 		var lsCache = BX.frameCache.localStorage.get(localStorageKey) || {};
@@ -167,60 +167,16 @@
 		BX.frameCache.localStorage.set(localStorageKey, lsCache, lolalStorageTTL);
 	};
 
-	/**
-	 * @param {object} vars
-	 * @param {object} [vars.pull] - pull configuration
-	 */
-	BX.frameCache.setPullConfigVars = function(vars)
+	BX.frameCache.insertBlock = function(block, callback)
 	{
-		if (!vars || !vars.pull)
+		if (!BX.type.isFunction(callback))
 		{
-			return;
+			callback = function() {};
 		}
 
-		var cachedPullConfig = BX.frameCache.localStorage.get(localStorageKeyPullConfig);
-		var isPullChannelsHaveBeenChanged = false;
-
-		if(cachedPullConfig != null)
-		{
-			var channels = vars.pull.CHANNEL_ID.split("/");
-			var cachedChannels = cachedPullConfig.CHANNEL_ID.split("/");
-			isPullChannelsHaveBeenChanged = ((channels[0] != cachedChannels[0]) || (channels[1] != cachedChannels[1]))
-		}
-		else
-		{
-			isPullChannelsHaveBeenChanged = true;
-		}
-
-		var dt = vars.pull.CHANNEL_DT.split("/");
-		var nearChannelExpireTime = Math.min(parseInt(dt[0]),parseInt(dt[1]))+43200;
-		var currentTime = Math.round((new Date).getTime() / 1000);
-		var ttl = nearChannelExpireTime - currentTime;
-
-		BX.frameCache.localStorage.set(localStorageKeyPullConfig, vars.pull, ttl);
-
-		if(isPullChannelsHaveBeenChanged)
-		{
-			BX.onCustomEvent("pullConfigHasBeenChanged", [vars.pull]);
-		}
-	};
-
-
-
-	BX.frameCache.getPullConfig = function()
-	{
-		if(this.frameData && this.frameData.pull)
-			return this.frameData.pull;
-		else
-		{
-			return BX.frameCache.localStorage.get(localStorageKeyPullConfig);
-		}
-	};
-
-	BX.frameCache.processData = function(block)
-	{
 		if (!block)
 		{
+			callback();
 			return;
 		}
 
@@ -236,6 +192,7 @@
 			if (!dynamicStart || !dynamicEnd)
 			{
 				BX.debug("Dynamic area " + block.ID + " was not found");
+				callback();
 				return;
 			}
 		}
@@ -245,6 +202,7 @@
 			if (!container)
 			{
 				BX.debug("Container " + block.ID + " was not found");
+				callback();
 				return;
 			}
 		}
@@ -308,12 +266,17 @@
 
 		function processStrings()
 		{
+			if (BX.Type.isStringFilled(assets.html))
+			{
+				document.head.insertAdjacentHTML("beforeend", assets.html);
+			}
+
 			BX.evalGlobal(assets.inlineJS.join(";"));
 		}
 
 		function getAssets()
 		{
-			var result = { styles: [], inlineJS: [], externalJS: []};
+			var result = { styles: [], inlineJS: [], externalJS: [], html: "" };
 			if (!BX.type.isArray(block.PROPS.STRINGS) || block.PROPS.STRINGS.length < 1)
 			{
 				return result;
@@ -334,6 +297,7 @@
 			}
 
 			result.styles = parts.STYLE;
+			result.html = parts.HTML;
 
 			return result;
 		}
@@ -354,16 +318,18 @@
 			if (htmlWasInserted)
 			{
 				BX.ajax.processRequestData(block.CONTENT, {scriptsRunFirst: false, dataType: "HTML"});
-			}
 
-			if (BX.type.isArray(block.PROPS.BUNDLE_JS))
-			{
-				BX.setJSList(block.PROPS.BUNDLE_JS);
-			}
+				if (BX.type.isArray(block.PROPS.BUNDLE_JS))
+				{
+					BX.setJSList(block.PROPS.BUNDLE_JS);
+				}
 
-			if (BX.type.isArray(block.PROPS.BUNDLE_CSS))
-			{
-				BX.setCSSList(block.PROPS.BUNDLE_CSS);
+				if (BX.type.isArray(block.PROPS.BUNDLE_CSS))
+				{
+					BX.setCSSList(block.PROPS.BUNDLE_CSS);
+				}
+
+				callback();
 			}
 		}
 	};
@@ -405,7 +371,7 @@
 		if (!noInvoke)
 		{
 			BX.ready(BX.proxy(function() {
-				if (!this.frameData)
+				if (!this.frameDataReceived)
 				{
 					this.invokeCache();
 				}
@@ -463,8 +429,22 @@
 		var headers = [
 			{ name: "BX-ACTION-TYPE", value: "get_dynamic" },
 			{ name: "BX-REF", value: document.referrer },
-			{ name: "BX-CACHE-MODE", value: this.vars.CACHE_MODE }
+			{ name: "BX-CACHE-MODE", value: this.vars.CACHE_MODE },
+			{ name: "BX-CACHE-BLOCKS", value: this.vars.dynamicBlocks ? JSON.stringify(this.vars.dynamicBlocks) : "" }
 		];
+
+		if (this.vars.AUTO_UPDATE === false && this.vars.AUTO_UPDATE_TTL && this.vars.AUTO_UPDATE_TTL > 0)
+		{
+			var lastModified = Date.parse(document.lastModified);
+			if (!isNaN(lastModified))
+			{
+				var now = new Date().getTime();
+				if ((lastModified + this.vars.AUTO_UPDATE_TTL * 1000) < now)
+				{
+					headers.push({ name: "BX-INVALIDATE-CACHE", value: "Y" });
+				}
+			}
+		}
 
 		if (this.vars.CACHE_MODE === "APPCACHE")
 		{
@@ -493,7 +473,7 @@
 			onsuccess: BX.proxy(BX.frameCache.onFrameDataReceived, this),
 			onfailure: function()
 			{
-				var response = {
+				window.frameRequestFail = {
 					error: true,
 					reason: "bad_response",
 					url : requestURI,
@@ -501,7 +481,7 @@
 					status: this.xhr ? this.xhr.status : 0
 				};
 
-				BX.onCustomEvent("onFrameDataRequestFail", [response]);
+				BX.onCustomEvent("onFrameDataRequestFail", [window.frameRequestFail]);
 			}
 		});
 	};
@@ -512,51 +492,57 @@
 		try
 		{
 			eval("result = " + response);
-			this.frameData = result;
 		}
 		catch (e)
 		{
+			var error = {
+				error: true,
+				reason: "bad_eval",
+				response: response
+			};
+
+			window.frameRequestFail = error;
+
 			BX.ready(function() {
 				setTimeout(function() {
-					BX.onCustomEvent("onFrameDataRequestFail", [{
-						error: true,
-						reason: "bad_eval",
-						response: response
-					}]);
+					BX.onCustomEvent("onFrameDataRequestFail", [error]);
 				}, 0);
 			});
 
 			return;
 		}
 
-		if (this.frameData && BX.type.isNotEmptyString(this.frameData.redirect_url))
+		this.frameDataReceived = true;
+
+		if (result && BX.type.isNotEmptyString(result.redirect_url))
 		{
-			window.location = this.frameData.redirect_url;
+			window.location = result.redirect_url;
 			return;
 		}
 
-		if (this.frameData && this.frameData.error === true)
+		if (result && result.error === true)
 		{
+			window.frameRequestFail = result;
+
 			BX.ready(BX.proxy(function() {
 				setTimeout(BX.proxy(function() {
-					BX.onCustomEvent("onFrameDataRequestFail", [this.frameData]);
+					BX.onCustomEvent("onFrameDataRequestFail", [result]);
 				}, this), 0);
 			}, this));
 
 			return;
 		}
 
-		BX.frameCache.setCompositeVars(this.frameData);
-		BX.frameCache.setPullConfigVars(this.frameData);
+		BX.frameCache.setCompositeVars(result);
 		BX.ready(BX.proxy(function() {
-			this.handleResponse(this.frameData);
+			this.handleResponse(result);
 			this.tryUpdateSessid();
 		}, this));
 	};
 
 	BX.frameCache.insertFromCache = function(resultSet, transaction)
 	{
-		if (!this.frameData)
+		if (!this.frameDataReceived)
 		{
 			var items = resultSet.items;
 			if (items.length > 0)
@@ -575,8 +561,7 @@
 
 	BX.frameCache.insertBlocks = function(blocks, fromCache)
 	{
-		var useHash = this.lastReplacedBlocks.length != 0;
-
+		var blocksToInsert = new Set();
 		for (var i = 0; i < blocks.length; i++)
 		{
 			var block = blocks[i];
@@ -587,27 +572,63 @@
 				continue;
 			}
 
-			var skip = false;
-			if (useHash)
+			blocksToInsert.add(block);
+		}
+
+		var inserted = 0;
+
+		var finalize = function() {
+			if (window.performance)
 			{
-				for (var j = 0; j < this.lastReplacedBlocks.length; j++)
+				var entries = performance.getEntries();
+				for (var i = 0; i < entries.length; i++)
 				{
-					if (this.lastReplacedBlocks[j].ID == block.ID && this.lastReplacedBlocks[j].HASH == block.HASH)
+					var entry = entries[i];
+					if (entry.initiatorType === 'xmlhttprequest' && entry.name && entry.name.match(/bxrand=[0-9]+/))
 					{
-						skip = true;
-						break;
+						this.requestTiming = entry;
+					}
+				}
+
+				if (window.performance.measure)
+				{
+					window.performance.measure('Composite:LCP');
+
+					var lcpEntries = performance.getEntriesByName('Composite:LCP');
+					if (lcpEntries.length > 0 && lcpEntries[0].duration)
+					{
+						this.lcp = Math.ceil(lcpEntries[0].duration);
 					}
 				}
 			}
 
-			if (!skip)
-			{
-				this.processData(block)
-			}
-		}
+			BX.onCustomEvent("onFrameDataProcessed", [blocks, fromCache]);
+			this.frameDataInserted = true;
+		}.bind(this);
 
-		BX.onCustomEvent("onFrameDataProcessed", [blocks, fromCache]);
-		this.lastReplacedBlocks = blocks;
+		var handleBlockInsertion = function() {
+			if (++inserted === blocksToInsert.size)
+			{
+				finalize();
+			}
+		}.bind(this);
+
+		if (blocksToInsert.size === 0)
+		{
+			finalize();
+		}
+		else
+		{
+			blocksToInsert.forEach(function(block) {
+
+				if (block && block.HASH && block.PROPS && block.PROPS.ID)
+				{
+					this.vars.dynamicBlocks[block.PROPS.ID] = block.HASH;
+				}
+
+				this.insertBlock(block, handleBlockInsertion);
+			}, this);
+		}
 	};
 
 	BX.frameCache.writeCache = function(blocks)
@@ -632,16 +653,12 @@
 
 		if(!isDatabaseOpened)
 		{
-			this.cacheDataBase = BX.dataBase.create({
-				name: "Database",
-				displayName: "BXCacheBase",
-				capacity: 1024 * 1024 * 4,
-				version: "1.0"
-			});
-
+			this.cacheDataBase = new BX.Dexie("composite");
 			if(this.cacheDataBase != null)
 			{
-				this.cacheDataBase.createTable(this.tableParams);
+				this.cacheDataBase.version(1).stores({
+					composite: '&ID,CONTENT,HASH,PROPS'
+				});
 				isDatabaseOpened = true;
 			}
 		}
@@ -655,97 +672,32 @@
 		{
 			if (typeof props == "object")
 			{
-				props = JSON.stringify(props)
+				props = JSON.stringify(props);
 			}
 
-			this.cacheDataBase.getRows(
-				{
-					tableName: this.tableParams.tableName,
-					filter: {id: id},
-					success: BX.proxy(
-						function(res)
-						{
-							if (res.items.length > 0)
-							{
-								this.cacheDataBase.updateRows(
-									{
-										tableName: this.tableParams.tableName,
-										updateFields: {
-											content: content,
-											hash: hash,
-											props : props
-										},
-										filter: {
-											id: id
-										},
-										fail:function(e){
-											//console.error("Update cache error: ", e);
-										}
-
-									}
-								);
-							}
-							else
-							{
-								this.cacheDataBase.addRow(
-									{
-										tableName: this.tableParams.tableName,
-										insertFields:
-										{
-											id: id,
-											content: content,
-											hash: hash,
-											props : props
-										}
-									}
-								);
-							}
-
-						}, this),
-					fail: BX.proxy(function(e)
-					{
-						this.cacheDataBase.addRow
-						(
-							{
-								tableName: this.tableParams.tableName,
-								insertFields: {
-									id: id,
-									content: content,
-									hash: hash,
-									props : props
-								},
-								fail: function(error)
-								{
-									//console.error("Add cache error: ", error);
-								}
-							}
-						);
-					}, this)
-				}
-			);
+			this.cacheDataBase.composite.put({
+				ID: id,
+				CONTENT: content,
+				HASH: hash,
+				PROPS : props
+			});
 		}
-
-
 	};
 
 	BX.frameCache.readCacheWithID = function(id, callback)
 	{
 		if(BX.frameCache.openDatabase())
 		{
-			this.cacheDataBase.getRows
-			(
-				{
-					tableName: this.tableParams.tableName,
-					filter: {id: id},
-					success: BX.proxy(callback, this)
-				}
-			);
+			this.cacheDataBase.composite
+				.where("ID").anyOf(id).toArray()
+				.then((function(items){
+					callback({items:items});
+				}).bind(this));
 		}
 		else if(typeof callback != "undefined")
 		{
 			callback({items:[]});
 		}
-
 	};
 
 	BX.frameCache.insertBanner = function()

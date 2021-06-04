@@ -10,6 +10,7 @@
 		this.dayCount = 7;
 		this.slotHeight = 20;
 		this.eventHolderTopOffset = 25;
+		this.hotkey = 'M';
 
 		this.preBuild();
 	}
@@ -195,9 +196,7 @@
 			date = new Date(viewRange.end.getTime());
 		}
 
-		var
-			currentViewRangeDate = this.calendar.getViewRangeDate(),
-			viewRangeDate = false;
+		var viewRangeDate = false;
 
 		if (date && date.getTime)
 		{
@@ -299,7 +298,6 @@
 		if (this.monthRows.length > 0)
 		{
 			this.rowHeight = Math.round(height / this.monthRows.length);
-
 			this.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
 			for (i = 0; i < this.monthRows.length; i++)
 			{
@@ -331,11 +329,11 @@
 			}
 		}
 
-		if (params.month == 'previous')
+		if (params.month === 'previous')
 		{
 			className += ' calendar-grid-previous-month-day';
 		}
-		else if (params.month == 'next')
+		else if (params.month === 'next')
 		{
 			className += ' calendar-grid-next-month-day';
 		}
@@ -374,7 +372,7 @@
 
 		this.calendar.dragDrop.registerDay(this.days[this.days.length - 1]);
 
-		if (this.currentMonthRow && this.util.getWeekEnd() == weekDay)
+		if (this.currentMonthRow && this.util.getWeekEnd() === weekDay)
 		{
 			this.entryHolders.push(this.currentMonthRow.appendChild(BX.create('DIV', {props: {className: 'calendar-grid-month-events-holder'}})));
 		}
@@ -390,6 +388,7 @@
 	{
 		var
 			prevElement,
+			element,
 			i, j, entry, part, dayPos, entryPart, day, entryStarted,
 			partsStorage = [],
 			entryDisplayed, showHiddenLink,
@@ -440,7 +439,7 @@
 			for (dayPos = this.dayIndex[entry.startDayCode]; dayPos < this.days.length; dayPos++)
 			{
 				day = this.days[dayPos];
-				if (day.dayCode == entry.startDayCode || entryStarted && day.dayOffset == 0)
+				if (day.dayCode === entry.startDayCode || entryStarted && day.dayOffset === 0)
 				{
 					entryStarted = true;
 
@@ -465,13 +464,13 @@
 					part.daysCount++;
 					part.to = day;
 
-					if (day.dayCode == entry.endDayCode || day.dayOffset == this.dayCount - 1)
+					if (day.dayCode === entry.endDayCode || day.dayOffset === this.dayCount - 1)
 					{
 						// here we know where part of event starts and ends
 						partsStorage.push({part: part, entry: entry});
 
 						// Event finished
-						if (day.dayCode == entry.endDayCode)
+						if (day.dayCode === entry.endDayCode)
 						{
 							break;
 						}
@@ -494,7 +493,9 @@
 			if (day.entries.started.length > 0)
 			{
 				if (day.entries.started.length > 0)
+				{
 					day.entries.started.sort(this.calendar.entryController.sort);
+				}
 
 				for(i = 0; i < day.entries.started.length; i++)
 				{
@@ -537,7 +538,7 @@
 				showHiddenLink = false;
 				for(i = 0; i < day.entries.list.length; i++)
 				{
-					if (day.entries.list[i].part.params.wrapNode.style.display == 'none')
+					if (day.entries.list[i].part.params.wrapNode.style.display === 'none')
 					{
 						showHiddenLink = true;
 						break;
@@ -552,8 +553,7 @@
 						},
 						attrs: {'data-bx-calendar-show-all-events': day.dayCode},
 						style: {
-							top: (this.rowHeight - 42) + 'px',
-							//top: (this.rowHeight < 135 ? (this.rowHeight - 42) : (this.rowHeight - 45)) + 'px',
+							top: (this.rowHeight - 47) + 'px',
 							left: 'calc((100% / ' + this.dayCount + ') * (' + (day.dayOffset + 1) + ' - 1) + 2px)',
 							width: 'calc(100% / ' + this.dayCount + ' - 3px)'
 						}
@@ -596,9 +596,14 @@
 				entryClassName += ' calendar-event-line-border';
 			}
 
-			if (entry.isExternal())
+			// if (entry.hasEmailAttendees())
+			// {
+			// 	entryClassName += ' calendar-event-line-intranet';
+			// }
+
+			if (entry.isExpired())
 			{
-				entryClassName += ' calendar-event-line-intranet';
+				entryClassName += ' calendar-event-line-past';
 			}
 
 			if (!params.popupMode && this.util.getDayCode(entry.from) !== this.util.getDayCode(from.date))
@@ -634,6 +639,7 @@
 				}
 			});
 
+
 			if (startArrow)
 			{
 				partWrap.appendChild(startArrow);
@@ -661,7 +667,22 @@
 				// first part
 				if (params.part.partIndex == 0)
 				{
-					timeNode = innerNode.appendChild(BX.create('SPAN', {props: {className: 'calendar-event-line-time'}, text: this.calendar.util.formatTime(entry.from.getHours(), entry.from.getMinutes())}));
+					if (this.util.getDayCode(entry.from) !== this.util.getDayCode(from.date))
+					{
+						timeNode = innerNode.appendChild(
+							BX.create('SPAN', {
+								props: {className: 'calendar-event-line-time'},
+								text: this.calendar.util.formatTime(entry.to.getHours(), entry.to.getMinutes())
+							}));
+					}
+					else
+					{
+						timeNode = innerNode.appendChild(
+							BX.create('SPAN', {
+								props: {className: 'calendar-event-line-time'},
+								text: this.calendar.util.formatTime(entry.from.getHours(), entry.from.getMinutes())
+							}));
+					}
 					innerNode.style.width = 'calc(100% / ' + daysCount + ' - 3px)';
 				}
 
@@ -673,10 +694,12 @@
 						innerNode.style.width = 'calc(' + (daysCount - 1) + '00% / ' + daysCount + ' - 3px)';
 					}
 
-					if (!params.popupMode)
+					if (!params.popupMode && daysCount > 1)
 					{
 						endTimeNode = innerNode.appendChild(BX.create('SPAN', {
-							props: {className: (entry.parts.length > 1 && daysCount == 1) ? 'calendar-event-line-time' : 'calendar-event-line-expired-time'},
+							props: {className: (entry.parts.length > 1 && daysCount == 1)
+									? 'calendar-event-line-time'
+									: 'calendar-event-line-expired-time'},
 							text: this.calendar.util.formatTime(entry.to.getHours(), entry.to.getMinutes())
 						}));
 					}
@@ -686,7 +709,9 @@
 			{
 				timeNode = innerNode.appendChild(BX.create('SPAN', {props: {className: 'calendar-event-line-time'}, text: this.calendar.util.formatTime(entry.from.getHours(), entry.from.getMinutes())}));
 			}
-			nameNode = innerNode.appendChild(BX.create('SPAN', {props: {className: 'calendar-event-line-text'}, text: params.entry.name}));
+			nameNode = innerNode
+				.appendChild(BX.create('SPAN', {props: {className: 'calendar-event-line-text'}}))
+				.appendChild(BX.create('SPAN', {text: params.entry.name}));
 
 			if (entry.isFullDay())
 			{
@@ -875,6 +900,12 @@
 			section = this.calendar.sectionController.getCurrentSection(),
 			color = section.color;
 
+		var compactForm = BX.Calendar.EntryManager.getCompactViewForm(false);
+		if (compactForm && compactForm.isShown())
+		{
+			return;
+		}
+
 		entryTime = this.entryController.getTimeForNewEntry(from.date);
 		entryName = this.entryController.getDefaultEntryName();
 
@@ -891,20 +922,17 @@
 		innerNode = innerContainer.appendChild(BX.create('DIV', {props: {className: 'calendar-event-line-inner'}}));
 		innerNode.appendChild(BX.create('SPAN', {props: {className: 'calendar-event-line-time'}, style: {color: '#fff'}, text: this.calendar.util.formatTime(entryTime.from.getHours(), entryTime.from.getMinutes())}));
 		innerNode.appendChild(BX.create('SPAN', {props: {className: 'calendar-event-line-text'}, style: {color: '#fff'}, text: entryName}));
-
 		partWrap.style.backgroundColor = color;
 		partWrap.style.borderColor = color;
-
 		holder.appendChild(partWrap);
 
-		var pos = BX.pos(partWrap);
-		var entryClone = BX.adjust(document.body.appendChild(partWrap.cloneNode(true)), {
+		var entryClone = BX.adjust(this.gridMonthContainer.appendChild(partWrap.cloneNode(true)), {
 			props: {className: 'calendar-event-line-clone'},
 			style: {
-				width: (pos.width - 6) + 'px',
-				height: pos.height + 'px',
-				top : pos.top + 'px',
-				left : (pos.left + 1)+ 'px'
+				width: (partWrap.offsetWidth - 3) + 'px',
+				height: partWrap.offsetHeight + 'px',
+				top : (holder.offsetTop + holder.parentNode.offsetTop) + 'px',
+				left : (partWrap.offsetLeft)+ 'px'
 			}
 		});
 
@@ -918,7 +946,7 @@
 		setTimeout(BX.delegate(function(){
 
 			// Show simple add entry popup
-			this.showSimplePopup({
+			this.showCompactEditForm({
 				entryTime: entryTime,
 				entryName: entryName,
 				nameNode: entryClone.querySelector('.calendar-event-line-text'),
@@ -929,44 +957,55 @@
 				{
 					BX.cleanNode(entryClone, true);
 					BX.cleanNode(partWrap, true);
-					BX.removeClass(holder, 'shifted');
-					holder.style.height = '1px';
-				},
-				changeDateCallback: BX.delegate(function(date)
+					var shiftedHolder = this.gridWrap.querySelector('.calendar-grid-month-events-holder.shifted');
+					if (shiftedHolder)
+					{
+						BX.removeClass(shiftedHolder, 'shifted');
+						shiftedHolder.style.height = '1px';
+					}
+				}.bind(this)
+			});
+
+			BX.Event.EventEmitter.unsubscribeAll('BX.Calendar.CompactEventForm:onChange');
+			BX.Event.EventEmitter.subscribe('BX.Calendar.CompactEventForm:onChange', function(event)
+			{
+				if (event instanceof BX.Event.BaseEvent && entryClone && entryClone.parentNode)
 				{
-					var dayCode = this.util.getDayCode(date);
+					var data = event.getData();
+					var dateTime = data.form.dateTimeControl.getValue();
+					var dayCode = this.util.getDayCode(dateTime.from);
+
 					if (dayCode && this.dayIndex[dayCode] !== undefined && this.days[this.dayIndex[dayCode]])
 					{
 						var dayFrom = this.days[this.dayIndex[dayCode]];
 						partWrap.style.left = 'calc((100% / ' + this.dayCount + ') * (' + (dayFrom.dayOffset + 1) + ' - 1) + 2px)';
 
-						this.entryHolders[dayFrom.holderIndex].appendChild(partWrap);
-						var pos = BX.pos(partWrap);
+						var shiftedHolder = this.gridWrap.querySelector('.calendar-grid-month-events-holder.shifted');
+						if (shiftedHolder)
+						{
+							BX.removeClass(shiftedHolder, 'shifted');
+							shiftedHolder.style.height = '1px';
+						}
+						var holder = this.entryHolders[dayFrom.holderIndex];
+						holder.appendChild(partWrap);
 						BX.adjust(entryClone, {
 							style: {
-								width: (pos.width + 1) + 'px',
-								height: pos.height + 'px',
-								top : pos.top + 'px',
-								left : pos.left + 'px'
+								width: (partWrap.offsetWidth - 3) + 'px',
+								height: partWrap.offsetHeight + 'px',
+								top : (holder.offsetTop + holder.parentNode.offsetTop) + 'px',
+								left : (partWrap.offsetLeft) + 'px'
 							}
 						});
+						BX.addClass(holder, 'shifted');
+						holder.style.height = (this.slotsCount - 1) * this.slotHeight + 'px';
 					}
-				}, this),
-				saveCallback: function()
-				{
 
-				},
-				changeSectionCallback: function(section)
-				{
-					var color = section.color;
-					if (entryClone)
-					{
-						entryClone.style.background = color;
-						entryClone.style.borderColor = color;
-					}
-				},
-				fullFormCallback: BX.delegate(this.showEditSlider, this)
-			});
+					var color = data.form.colorSelector.getValue();
+					entryClone.style.background = color;
+					entryClone.style.borderColor = color;
+				}
+			}.bind(this));
+
 		}, this), 200);
 	};
 

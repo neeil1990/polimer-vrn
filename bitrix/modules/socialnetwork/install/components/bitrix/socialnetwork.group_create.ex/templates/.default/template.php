@@ -19,7 +19,7 @@ if ($arResult["NEED_AUTH"] == "Y")
 {
 	$APPLICATION->AuthForm("");
 }
-elseif (strlen($arResult["FatalError"])>0)
+elseif ($arResult["FatalError"] <> '')
 {
 	?><span class='errortext'><?=$arResult["FatalError"]?></span><br /><br /><?
 }
@@ -37,7 +37,7 @@ else
 	$APPLICATION->SetAdditionalCSS("/bitrix/components/bitrix/main.post.form/templates/.default/style.css");
 	$APPLICATION->SetAdditionalCSS("/bitrix/components/bitrix/socialnetwork.blog.post.edit/templates/.default/style.css");
 
-	?><div id="sonet_group_create_error_block" class="ui-alert ui-alert-xs ui-alert-danger ui-alert-icon-danger<?=(strlen($arResult["ErrorMessage"]) > 0 ? "" : " sonet-ui-form-error-block-invisible")?>"><?=$arResult["ErrorMessage"]?></div><?
+	?><div id="sonet_group_create_error_block" class="ui-alert ui-alert-xs ui-alert-danger ui-alert-icon-danger<?=($arResult["ErrorMessage"] <> '' ? "" : " sonet-ui-form-error-block-invisible")?>"><?=$arResult["ErrorMessage"]?></div><?
 
 	if ($arResult["ShowForm"] == "Input")
 	{
@@ -89,6 +89,7 @@ else
 			top.BXExtranetMailList = [];
 
 			BX.message({
+				SONET_GCE_T_SCRUM_PAGE_TITLE: '<?=GetMessageJS('SONET_GCE_T_SCRUM_PAGE_TITLE')?>',
 				SONET_GCE_T_NAME2: '<?=GetMessageJS('SONET_GCE_T_NAME2')?>',
 				SONET_GCE_T_NAME2_PROJECT: '<?=GetMessageJS('SONET_GCE_T_NAME2_PROJECT')?>',
 				SONET_GCE_T_TITLE_CREATE: '<?=GetMessageJS('SONET_GCE_T_TITLE_CREATE')?>',
@@ -103,7 +104,7 @@ else
 				SONET_GCE_T_TAG_ADD: '<?=GetMessageJS("SONET_GCE_T_TAG_ADD")?>',
 				SONET_GCE_T_AJAX_ERROR:  '<?=GetMessageJS('SONET_GCE_T_AJAX_ERROR')?>'
 				<?
-				if (array_key_exists("POST", $arResult) && array_key_exists("NAME", $arResult["POST"]) && strlen($arResult["POST"]["NAME"]) > 0)
+				if (array_key_exists("POST", $arResult) && array_key_exists("NAME", $arResult["POST"]) && $arResult["POST"]["NAME"] <> '')
 				{
 					?>
 					, SONET_GROUP_TITLE : '<?=CUtil::JSEscape($arResult["POST"]["NAME"])?>'
@@ -118,7 +119,9 @@ else
 					BX.BXGCE.types = <?=CUtil::phpToJSObject($arResult['Types'])?>;
 					BX.BXGCE.arUserSelector = [];
 					BX.BXGCE.init({
+						preset: '<?=(!empty($arResult["preset"]) ? \CUtil::jsEscape($arResult["preset"]) : '')?>',
 						groupId: <?=intval($arParams["GROUP_ID"])?>,
+						isScrumProject: '<?=$arResult["isScrumProject"]?>',
 						config: <?=CUtil::phpToJSObject($arResult['ClientConfig'])?>,
 						avatarUploaderId: '<?=$arResult['AVATAR_UPLOADER_CID']?>'
 					});
@@ -176,10 +179,9 @@ else
 							<div class="social-group-create-container first-step"><?
 
 								$typeCode = \Bitrix\Socialnetwork\Item\Workgroup::getTypeCodeByParams(array(
-									'typesList' => $arResult['Types'],
-									'fields' => $arResult['POST']
+									"typesList" => $arResult["Types"],
+									"fields" => $arResult["POST"]
 								));
-
 								foreach($arResult["TypeRowList"] as $rowCode)
 								{
 									?><div class="social-group-create-inner">
@@ -211,7 +213,7 @@ else
 					{
 						if ($arParams["GROUP_ID"] > 0)
 						{
-							$strSubmitButtonTitle = Loc::getMessage("SONET_GCE_T_DO_EDIT");
+							$strSubmitButtonTitle = Loc::getMessage("SONET_GCE_T_DO_EDIT_1");
 							$actionType = "edit";
 						}
 						else
@@ -225,7 +227,7 @@ else
 								<div class="social-group-create-info-panel-title">
 									<input type="text" id="GROUP_NAME_input"
 											name="GROUP_NAME"
-											value="<?=(strlen($arResult["POST"]["NAME"]) > 0 ? $arResult["POST"]["NAME"] : '');?>"
+											value="<?=($arResult["POST"]["NAME"] <> '' ? $arResult["POST"]["NAME"] : '');?>"
 											placeholder="<?=Loc::getMessage($arResult["POST"]["PROJECT"] == "Y" ? "SONET_GCE_T_NAME2_PROJECT" : "SONET_GCE_T_NAME2");?>"
 									/>
 								</div>
@@ -235,7 +237,7 @@ else
 									<textarea name="GROUP_DESCRIPTION"
 												class="social-group-create-description"
 												cols="30" rows="10"
-									><?=(strlen($arResult["POST"]["DESCRIPTION"]) > 0 ? $arResult["POST"]["DESCRIPTION"] : '');?></textarea>
+									><?=($arResult["POST"]["DESCRIPTION"] <> '' ? $arResult["POST"]["DESCRIPTION"] : '');?></textarea>
 									<div class="social-group-create-separator-line"></div>
 								</div>
 							</div>
@@ -298,10 +300,13 @@ else
 											</div>
 										</div>
 									</div>
+									<?php if (true): ?>
+										<div></div>
+									<?php endif; ?>
 								</div><?
-							}
+							}?>
 
-							?><div class="social-group-create-options-item">
+							<div class="social-group-create-options-item">
 								<div id="GROUP_OWNER_LABEL_block" class="social-group-create-options-item-column-left<?=($arResult["POST"]["PROJECT"] == "Y" ? " sgcp-switch-project" : "")?>">
 									<div class="social-group-create-options-item-name sgcp-block-nonproject"><?=GetMessage("SONET_GCE_T_DEST_TITLE_OWNER")?></div>
 									<div class="social-group-create-options-item-name sgcp-block-project"><?=GetMessage("SONET_GCE_T_DEST_TITLE_OWNER_PROJECT")?></div>
@@ -320,7 +325,7 @@ else
 												"ID" => $selectorName,
 												"INPUT_NAME" => 'OWNER_CODE',
 												"LIST" => (!empty($arResult["POST"]) && !empty($arResult["POST"]["OWNER_ID"]) ? array('U'.$arResult["POST"]["OWNER_ID"]) : array('U'.$arResult["currentUserId"])),
-												"USE_SYMBOLIC_ID" => "Y",
+												"USE_SYMBOLIC_ID" => true,
 												"BUTTON_SELECT_CAPTION" => GetMessage('SONET_GCE_T_ADD_OWNER'),
 												"API_VERSION" => 3,
 												"SELECTOR_OPTIONS" => array(
@@ -337,9 +342,119 @@ else
 										</span><?
 									?></div>
 								</div>
-							</div><? // owner block
+							</div>
 
-							?><div class="social-group-create-openable-block-outer invisible" id="GROUP_MODERATORS_block_container"><div class="social-group-create-options-item" id="GROUP_MODERATORS_block">
+							<div id="scrum-block" class="social-group-create-options-item">
+								<div class="social-group-create-options-item-column-left">
+									<div class="social-group-create-options-item-name">
+										<?=Loc::getMessage('SONET_GCE_T_SCRUM_MASTER')?>
+									</div>
+								</div>
+								<div class="social-group-create-options-item-column-right">
+									<div class="social-group-create-options-item-column-one social-group-create-form-control-block">
+										<?
+
+										$selectorName = "group_create_scrum_master_".randString(6);
+
+										$APPLICATION->IncludeComponent(
+											"bitrix:main.user.selector",
+											"",
+											[
+												"ID" => $selectorName,
+												"INPUT_NAME" => 'SCRUM_MASTER_CODE',
+												"LIST" => (!empty($arResult["POST"]) && !empty($arResult["POST"]["SCRUM_MASTER_ID"]) ? ['U'.$arResult["POST"]["SCRUM_MASTER_ID"]] : []),
+												"USE_SYMBOLIC_ID" => true,
+												"BUTTON_SELECT_CAPTION" => GetMessage('SONET_GCE_T_CHANGE_SCRUM_MASTER'),
+												"BUTTON_SELECT_CAPTION_MORE" => GetMessage('SONET_GCE_T_CHANGE_SCRUM_MASTER_MORE'),
+												"API_VERSION" => 3,
+												"SELECTOR_OPTIONS" => [
+													'userSearchArea' => ($arResult["bExtranetInstalled"] ? 'I' : false),
+													'contextCode' => 'U',
+													'context' => $arResult['destinationContextOwner'],
+												]
+											]
+										);
+										?>
+									</div>
+								</div>
+							</div>
+
+							<div id="scrum-block" class="social-group-create-options-item">
+								<div class="social-group-create-options-item-column-left">
+									<div class="social-group-create-options-item-name">
+										<?=Loc::getMessage('SONET_GCE_T_SCRUM_OWNER')?>
+									</div>
+								</div>
+								<div class="social-group-create-options-item-column-right">
+									<div class="social-group-create-options-item-column-one social-group-create-form-control-block">
+										<?
+
+										$selectorName = "group_create_scrum_owner_".randString(6);
+
+										$APPLICATION->IncludeComponent(
+											"bitrix:main.user.selector",
+											"",
+											[
+												"ID" => $selectorName,
+												"INPUT_NAME" => 'SCRUM_OWNER_CODE',
+												"LIST" => (!empty($arResult["POST"]) && !empty($arResult["POST"]["SCRUM_OWNER_ID"]) ? ['U'.$arResult["POST"]["SCRUM_OWNER_ID"]] : []),
+												"USE_SYMBOLIC_ID" => true,
+												"BUTTON_SELECT_CAPTION" => GetMessage('SONET_GCE_T_CHANGE_SCRUM_OWNER'),
+												"BUTTON_SELECT_CAPTION_MORE" => GetMessage('SONET_GCE_T_CHANGE_SCRUM_OWNER_MORE'),
+												"API_VERSION" => 3,
+												"SELECTOR_OPTIONS" => [
+													'userSearchArea' => ($arResult["bExtranetInstalled"] ? 'I' : false),
+													'contextCode' => 'U',
+													'context' => $arResult['destinationContextOwner'],
+												]
+											]
+										);
+										?>
+									</div>
+								</div>
+							</div>
+
+							<div id="scrum-block" class="social-group-create-options-item">
+								<div class="social-group-create-options-item-column-left">
+									<div class="social-group-create-options-item-name">
+										<?=Loc::getMessage('SONET_GCE_T_SCRUM_SPRINT_DURATION')?>
+									</div>
+								</div>
+								<div class="social-group-create-options-item-column-right">
+									<div class="social-group-create-field-block">
+										<select name="SCRUM_SPRINT_DURATION" id="SCRUM_SPRINT_DURATION" class="
+											social-group-create-field social-group-create-field-select">
+											<? foreach ($arResult["ScrumSprintDuration"] as $key => $value): ?>
+												<option value="<?=$key?>"<?=
+												($key == $arResult["POST"]["SCRUM_SPRINT_DURATION"]) ?
+													" selected" : "" ?>><?=$value?></option>
+											<? endforeach; ?>
+										</select>
+									</div>
+								</div>
+							</div>
+
+							<div id="scrum-block" class="social-group-create-options-item">
+								<div class="social-group-create-options-item-column-left">
+									<div class="social-group-create-options-item-name">
+										<?=Loc::getMessage('SONET_GCE_T_SCRUM_TASK_RESPONSIBLE')?>
+									</div>
+								</div>
+								<div class="social-group-create-options-item-column-right">
+									<div class="social-group-create-field-block">
+										<select name="SCRUM_TASK_RESPONSIBLE" id="SCRUM_TASK_RESPONSIBLE" class="
+											social-group-create-field social-group-create-field-select">
+											<? foreach ($arResult["ScrumTaskResponsible"] as $key => $value): ?>
+												<option value="<?=$key?>"<?=
+												($key == $arResult["POST"]["SCRUM_TASK_RESPONSIBLE"]) ?
+													" selected" : "" ?>><?=$value?></option>
+											<? endforeach; ?>
+										</select>
+									</div>
+								</div>
+							</div>
+
+							<div class="social-group-create-openable-block-outer invisible" id="GROUP_MODERATORS_block_container"><div class="social-group-create-options-item" id="GROUP_MODERATORS_block">
 								<div id="GROUP_MODERATORS_LABEL_block" class="social-group-create-options-item-column-left<?=($arResult["POST"]["PROJECT"] == "Y" ? " sgcp-switch-project" : "")?>">
 									<div class="social-group-create-options-item-name sgcp-block-nonproject"><?=GetMessage("SONET_GCE_T_DEST_TITLE_MODERATORS")?></div>
 									<div class="social-group-create-options-item-name sgcp-block-project"><?=GetMessage("SONET_GCE_T_DEST_TITLE_MODERATORS_PROJECT")?></div>
@@ -371,7 +486,7 @@ else
 												"ID" => $selectorName,
 												"INPUT_NAME" => 'MODERATOR_CODES[]',
 												"LIST" => $moderatorsList,
-												"USE_SYMBOLIC_ID" => "Y",
+												"USE_SYMBOLIC_ID" => true,
 												"BUTTON_SELECT_CAPTION" => ($arResult["intranetInstalled"] ? GetMessage('SONET_GCE_T_ADD_EMPLOYEE') : GetMessage('SONET_GCE_T_ADD_USER')),
 												"BUTTON_SELECT_CAPTION_MORE" => GetMessage('SONET_GCE_T_DEST_LINK_2'),
 												"API_VERSION" => 3,
@@ -432,7 +547,7 @@ else
 												"ID" => $selectorName,
 												"INPUT_NAME" => 'USER_CODES[]',
 												"LIST" => $userLists,
-												"USE_SYMBOLIC_ID" => "Y",
+												"USE_SYMBOLIC_ID" => true,
 												"OPEN_DIALOG_WHEN_INIT" => ($arResult["POST"]["IS_EXTRANET_GROUP"] != "Y" && $arResult["TAB"] == "invite"),
 												"FIRE_CLICK_EVENT" => (
 														$arResult["POST"]["IS_EXTRANET_GROUP"] != "Y"
@@ -478,7 +593,7 @@ else
 							if (
 								$arResult["bExtranetInstalled"]
 								&& Loader::includeModule("intranet")
-								&& strlen(COption::GetOptionString("extranet", "extranet_site")) > 0
+								&& COption::GetOptionString("extranet", "extranet_site") <> ''
 								&& (
 									empty($arResult["TAB"])
 									|| (
@@ -512,7 +627,7 @@ else
 														"ID" => $selectorName,
 														"INPUT_NAME" => 'USER_CODES[]',
 														"LIST" => $userLists,
-														"USE_SYMBOLIC_ID" => "Y",
+														"USE_SYMBOLIC_ID" => true,
 														"BUTTON_SELECT_CAPTION" => GetMessage('SONET_GCE_T_ADD_EXTRANET'),
 														"BUTTON_SELECT_CAPTION_MORE" => GetMessage('SONET_GCE_T_DEST_LINK_2'),
 														"API_VERSION" => 3,
@@ -534,7 +649,7 @@ else
 												)?></div><?
 												?><div id="sonet_group_create_popup_action_block_invite" style="display: <?=(isset($arResult["POST"]["EXTRANET_INVITE_ACTION"]) && $arResult["POST"]["EXTRANET_INVITE_ACTION"] == "add" ? "none" : "block")?>;"><?
 
-													if(strlen($arResult["WarningMessage"]) > 0)
+													if($arResult["WarningMessage"] <> '')
 													{
 														?><div class='errortext'><?=$arResult["WarningMessage"]?></div><?
 													}
@@ -553,7 +668,7 @@ else
 																		class="invite-dialog-inv-form-textarea"
 																		onblur="if(this.value == ''){BX.removeClass(this, 'invite-dialog-inv-form-textarea-active'); this.value = this.value.replace(new RegExp(/^$/), '<?=GetMessage("SONET_GCE_T_EMAILS_DESCR")?>')}"
 																		onfocus="BX.addClass(this, 'invite-dialog-inv-form-textarea-active'); this.value = this.value.replace('<?=GetMessage("SONET_GCE_T_EMAILS_DESCR")?>', '')"
-																><?=(strlen($arResult["POST"]["EMAILS"]) > 0 ? htmlspecialcharsbx($arResult["POST"]["EMAILS"]) : GetMessage("SONET_GCE_T_EMAILS_DESCR"));?></textarea>
+																><?=($arResult["POST"]["EMAILS"] <> '' ? htmlspecialcharsbx($arResult["POST"]["EMAILS"]) : GetMessage("SONET_GCE_T_EMAILS_DESCR"));?></textarea>
 															</td>
 														</tr>
 													</table>
@@ -585,14 +700,14 @@ else
 																<input type="text" name="ADD_LAST_NAME" id="ADD_LAST_NAME" class="invite-dialog-inv-form-inp" value="<?echo htmlspecialcharsbx($_POST["ADD_LAST_NAME"])?>">
 															</td>
 														</tr>
-														<tr class="invite-dialog-inv-form-footer">
-															<td class="invite-dialog-inv-form-l">&nbsp;</td>
-															<td class="invite-dialog-inv-form-r">
-																<div class="invite-dialog-inv-form-checkbox-wrap">
-																	<input type="checkbox" name="ADD_SEND_PASSWORD" id="ADD_SEND_PASSWORD" value="Y" class="invite-dialog-inv-form-checkbox"><label class="invite-dialog-inv-form-checkbox-label" for="ADD_SEND_PASSWORD"><?echo GetMessage("SONET_GCE_T_DEST_EXTRANET_ADD_SEND_PASSWORD_TITLE")?></label>
-																</div>
-															</td>
-														</tr>
+															<tr class="invite-dialog-inv-form-footer">
+																<td class="invite-dialog-inv-form-l">&nbsp;</td>
+																<td class="invite-dialog-inv-form-r">
+																	<div class="invite-dialog-inv-form-checkbox-wrap">
+																		<input type="checkbox" name="ADD_SEND_PASSWORD" id="ADD_SEND_PASSWORD" value="Y" class="invite-dialog-inv-form-checkbox"><label class="invite-dialog-inv-form-checkbox-label" for="ADD_SEND_PASSWORD"><?echo Loc::getMessage($arResult['bitrix24Installed'] ? 'SONET_GCE_T_DEST_EXTRANET_ADD_WO_CONFIRMATION_TITLE' : 'SONET_GCE_T_DEST_EXTRANET_ADD_SEND_PASSWORD_TITLE')?></label>
+																	</div>
+																</td>
+															</tr>
 													</table><?
 
 												?></div>
@@ -687,7 +802,7 @@ else
 															$customTitle = false;
 															$featureTitle = $featureTitleOriginal = (
 																isset($arResult["arSocNetFeaturesSettings"][$feature]["title"])
-																&& strlen($arResult["arSocNetFeaturesSettings"][$feature]["title"]) > 0
+																&& $arResult["arSocNetFeaturesSettings"][$feature]["title"] <> ''
 																	? $arResult["arSocNetFeaturesSettings"][$feature]["title"]
 																	: Loc::getMessage("SONET_FEATURES_".$feature."_GROUP")
 															);
@@ -697,18 +812,27 @@ else
 																$featureTitle = $featureTitleOriginal = Loc::getMessage("SONET_FEATURES_".$feature);
 															}
 
-															if (strlen($arResult["POST"]["FEATURES"][$feature]["FeatureName"]) > 0)
+															if ($arResult["POST"]["FEATURES"][$feature]["FeatureName"] <> '')
 															{
 																$customTitle = ($arResult["POST"]["FEATURES"][$feature]["FeatureName"] != $featureTitle);
 																$featureTitle = $arResult["POST"]["FEATURES"][$feature]["FeatureName"];
 															}
 
 															if (
-																$feature == 'search'
-																&& SITE_TEMPLATE_ID == 'bitrix24'
+																$feature === 'search'
+																&& SITE_TEMPLATE_ID === 'bitrix24'
 															)
 															{
 																?><input type="hidden" name="<?=htmlspecialcharsbx($feature)?>_active"  value="<?=($arFeature["Active"] ? 'Y' : 'N')?>">
+																<input type="hidden" name="<?=htmlspecialcharsbx($feature)?>_name" value="<?=($customTitle ? $featureTitle : '')?>"><?
+															}
+															elseif (
+																isset($arParams['PROJECT_OPTIONS']['features'])
+																&& is_array($arParams['PROJECT_OPTIONS']['features'])
+																&& isset($arParams['PROJECT_OPTIONS']['features'][$feature])
+															)
+															{
+																?><input type="hidden" name="<?=htmlspecialcharsbx($feature)?>_active"  value="<?=($arParams['PROJECT_OPTIONS']['features'][$feature] ? 'Y' : 'N')?>">
 																<input type="hidden" name="<?=htmlspecialcharsbx($feature)?>_name" value="<?=($customTitle ? $featureTitle : '')?>"><?
 															}
 															else
@@ -807,7 +931,7 @@ else
 										foreach($tagsList as $val)
 										{
 											$val = trim($val);
-											if(strlen($val) > 0)
+											if($val <> '')
 											{
 												$tags .= '<span class="js-id-tdp-mem-sel-is-items social-group-create-sliders-h-invisible" data-tag="'.htmlspecialcharsbx($val).'">'.
 													'<span class="js-id-tdp-mem-sel-is-item social-group-create-form-field-item">'.
@@ -855,7 +979,7 @@ else
 														}
 														else
 														{
-															?><input type="text" name="GROUP_KEYWORDS" style="width:98%" value="<?= $arResult["POST"]["KEYWORDS"]; ?>"><?
+															?><input type="text" style="width:98%" value=""><?
 														}
 														?>
 														<script>
@@ -900,7 +1024,7 @@ else
 															{
 																?><div class="social-group-create-form-field-list-item">
 																<label class="social-group-create-form-field-list-label<?=($arResult["POST"]["PROJECT"] == "Y" ? ' sgcp-switch-project' : '')?>" id="GROUP_VISIBLE_LABEL_block">
-																	<input type="checkbox" id="GROUP_VISIBLE" name="GROUP_VISIBLE" class="social-group-create-form-field-list-input" value="Y" <?= ($arResult["POST"]["VISIBLE"] == "Y") ? " checked" : ""?>>
+																	<input type="checkbox" id="GROUP_VISIBLE" name="GROUP_VISIBLE" class="social-group-create-form-field-list-input" value="Y" <?= ($arResult["POST"]["VISIBLE"] === "Y") ? " checked" : ""?><?= ($arResult["POST"]["IS_EXTRANET_GROUP"] === "Y") ? " disabled" : ""?>>
 																	<span class="social-group-create-form-field-list-name sgcp-inlineblock-nonproject" title="<?=Loc::getMessage("SONET_GCE_T_PARAMS_VIS2_HINT")?>"><?=Loc::getMessage("SONET_GCE_T_PARAMS_VIS2") ?></span>
 																	<span class="social-group-create-form-field-list-name sgcp-inlineblock-project" title="<?=Loc::getMessage("SONET_GCE_T_PARAMS_VIS2_HINT_PROJECT")?>"><?=Loc::getMessage("SONET_GCE_T_PARAMS_VIS2_PROJECT")?></span>
 																</label>
@@ -975,6 +1099,23 @@ else
 																		<input type="checkbox" id="GROUP_PROJECT" name="GROUP_PROJECT" value="Y" class="social-group-create-form-field-list-input" onclick="BXSwitchProject(this.checked)" <?= ($arResult["POST"]["PROJECT"] == "Y") ? " checked" : ""?>>
 																		<span class="social-group-create-form-field-list-name"><?=Loc::getMessage("SONET_GCE_T_PARAMS_PROJECT") ?></span>
 																	</label>
+																</div><?
+															}
+														}
+
+														if ($arResult["landingInstalled"])
+														{
+															if ($arResult["hidePresetSettings"])
+															{
+																?><input type="hidden" id="GROUP_LANDING" value="<?=($arResult["POST"]["LANDING"] == "Y") ? "Y" : "N"?>" name="GROUP_LANDING"><?
+															}
+															else
+															{
+																?><div class="social-group-create-form-field-list-item">
+																<label class="social-group-create-form-field-list-label">
+																	<input type="checkbox" id="GROUP_LANDING" name="GROUP_LANDING" value="Y" class="social-group-create-form-field-list-input" <?= ($arResult["POST"]["LANDING"] == "Y") ? " checked" : ""?>>
+																	<span class="social-group-create-form-field-list-name"><?=Loc::getMessage("SONET_GCE_T_PARAMS_LANDING") ?></span>
+																</label>
 																</div><?
 															}
 														}
@@ -1063,12 +1204,7 @@ else
 								}
 								else
 								{
-									?><button class="ui-btn ui-btn-link" id="sonet_group_create_popup_form_button_step_2_cancel"><?=Loc::getMessage("SONET_GCE_T_T_CANCEL")?></button><?
-								}
-
-								if (false && $arResult["templateEditMode"] != 'Y')
-								{
-									?><input type="checkbox" class="task-edit-add-template-checkbox" id="SAVE_AS_TEMPLATE" name="SAVE_AS_TEMPLATE" value="Y"><?
+									?><button class="ui-btn ui-btn-link" id="sonet_group_create_popup_form_button_step_2_cancel" bx-url="<?=htmlspecialcharsbx($arResult["Urls"]["Group"])?>"><?=Loc::getMessage("SONET_GCE_T_T_CANCEL")?></button><?
 								}
 
 							?></span><? // class="popup-window-buttons"

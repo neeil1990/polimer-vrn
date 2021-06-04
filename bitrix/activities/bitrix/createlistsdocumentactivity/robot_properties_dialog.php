@@ -5,8 +5,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 $docType = $dialog->getMap()['DocumentType'];
 ?>
 
-<div class="crm-automation-popup-settings" id="doctype_container">
-	<span class="crm-automation-popup-settings-title"><?=htmlspecialcharsbx($docType['Name'])?>: </span>
+<div class="bizproc-automation-popup-settings" id="doctype_container">
+	<span class="bizproc-automation-popup-settings-title"><?=htmlspecialcharsbx($docType['Name'])?>: </span>
 	<?=$dialog->renderFieldControl($docType)?>
 </div>
 
@@ -35,14 +35,14 @@ $docType = $dialog->getMap()['DocumentType'];
 	BX.ready(function()
 	{
 		var container = BX('doctype_container');
+		var fieldsContainer = BX('lists_document_fields');
 		var select = container ? container.querySelector('[name="lists_document_type"]') : null;
 		if (select)
 		{
 			BX.bind(select, 'change', function()
 				{
 					var documentType = this.value;
-					var container = BX('lists_document_fields');
-					BX.cleanNode(container);
+					BX.cleanNode(fieldsContainer);
 
 					if (!documentType)
 					{
@@ -97,7 +97,7 @@ $docType = $dialog->getMap()['DocumentType'];
 					controlWrapper.appendChild(node);
 				}
 
-				container.appendChild(newRow);
+				fieldsContainer.appendChild(newRow);
 			}
 		}
 	});

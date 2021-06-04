@@ -223,7 +223,7 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_aft
 // validate list_url
 if (!empty($list_url))
 {
-	$list_url = substr($list_url, 0, 1) === '/' ? $list_url : '/'.$list_url;
+	$list_url = mb_substr($list_url, 0, 1) === '/' ? $list_url : '/'.$list_url;
 }
 
 $aMenu = array();
@@ -375,7 +375,7 @@ $tabControl->BeginNextTab();
 				<?=$ENTITY_ID?>
 				<input type="hidden" name="ENTITY_ID" value="<?=$ENTITY_ID?>">
 			<?else:?>
-				<input type="text" name="ENTITY_ID" value="<?=$ENTITY_ID?>" maxlength="20">
+				<input type="text" name="ENTITY_ID" value="<?=$ENTITY_ID?>" maxlength="50">
 			<?endif?>
 		</td>
 	</tr>
@@ -385,7 +385,7 @@ $tabControl->BeginNextTab();
 			<?if($ID>0):?>
 				<?=$FIELD_NAME?>
 			<?else:?>
-				<input type="text" name="FIELD_NAME" value="<?=$FIELD_NAME?>" maxlength="20">
+				<input type="text" name="FIELD_NAME" value="<?=$FIELD_NAME?>" maxlength="50">
 			<?endif?>
 		</td>
 	</tr>

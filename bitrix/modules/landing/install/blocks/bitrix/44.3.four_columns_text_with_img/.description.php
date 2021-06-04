@@ -9,7 +9,7 @@ use \Bitrix\Main\Localization\Loc;
 return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_44.3.FOUR_COLUMNS_TEXT_WITH_IMG_NAME'),
-		'section' => array('tiles'),
+		'section' => array('tiles', 'news'),
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
@@ -21,7 +21,7 @@ return array(
 		'.landing-block-node-card-img' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_44.3.FOUR_COLUMNS_TEXT_WITH_IMG_NODES_LANDINGBLOCKNODECARDIMG'),
 			'type' => 'img',
-			'dimensions' => array('width' => 570, 'height' => 436),
+			'dimensions' => array('width' => 480),
 		),
 		'.landing-block-node-card-title' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_44.3.FOUR_COLUMNS_TEXT_WITH_IMG_NODES_LANDINGBLOCKNODECARD_TITLE'),

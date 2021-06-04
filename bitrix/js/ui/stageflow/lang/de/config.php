@@ -1,0 +1,5 @@
+<?php
+$MESS["UI_STAGEFLOW_FINAL_STAGE_NAME"] = "Beenden";
+$MESS["UI_STAGEFLOW_FINAL_STAGE_POPUP_FAIL"] = "Gescheitert";
+$MESS["UI_STAGEFLOW_FINAL_STAGE_POPUP_TITLE"] = "Wählen Sie den Endstatus aus";
+$MESS["UI_STAGEFLOW_FINAL_STAGE_SELECTOR_TITLE"] = "Status des Workflow-Abschlusses:";

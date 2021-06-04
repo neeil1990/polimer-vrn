@@ -1,17 +1,18 @@
-
 /**
  * Bitrix Messenger
- * Message model (Vuex Builder model)
+ * Dialogues model (Vuex Builder model)
  *
  * @package bitrix
  * @subpackage im
- * @copyright 2001-2019 Bitrix
+ * @copyright 2001-2020 Bitrix
  */
 
 import {Vue} from 'ui.vue';
 import {VuexBuilderModel} from 'ui.vue.vuex';
+import {StorageLimit} from "im.const";
+import {Utils} from "im.lib.utils";
 
-class DialoguesModel extends VuexBuilderModel
+export class DialoguesModel extends VuexBuilderModel
 {
 	getName()
 	{
@@ -23,19 +24,41 @@ class DialoguesModel extends VuexBuilderModel
 		return {
 			host: this.getVariable('host', location.protocol+'//'+location.host),
 			collection: {},
+			saveDialogList: [],
+			saveChatList: [],
+		}
+	}
+
+	getStateSaveException()
+	{
+		return {
+			host: null
+		}
+	}
+
+	getElementStateSaveException()
+	{
+		return {
+			writingList: null,
+			quoteId: null
 		}
 	}
 
 	getElementState()
 	{
 		return {
-			dialogId: 0,
+			dialogId: '0',
 			chatId: 0,
 			counter: 0,
+			userCounter: 0,
 			unreadId: 0,
 			unreadLastId: 0,
+			managerList: [],
 			readedList: [],
 			writingList: [],
+			textareaMessage: "",
+			quoteId: 0,
+			editId: 0,
 			init: false,
 
 			name: "",
@@ -50,6 +73,17 @@ class DialoguesModel extends VuexBuilderModel
 			entityData2: "",
 			entityData3: "",
 			dateCreate: new Date(),
+			restrictions: {
+				avatar: true,
+				extend: true,
+				leave: true,
+				leaveOwner: true,
+				rename: true
+			},
+			public: {
+				code: '',
+				link: ''
+			}
 		};
 	}
 
@@ -58,17 +92,71 @@ class DialoguesModel extends VuexBuilderModel
 		return {
 			get: state => dialogId =>
 			{
-				if (!state.collection[dialogId] || state.collection[dialogId].length <= 0)
+				if (!state.collection[dialogId])
 				{
 					return null;
 				}
 
 				return state.collection[dialogId];
 			},
+			getByChatId: state => chatId =>
+			{
+				chatId = parseInt(chatId);
+
+				for (let dialogId in state.collection)
+				{
+					if (!state.collection.hasOwnProperty(dialogId))
+					{
+						continue;
+					}
+
+					if (state.collection[dialogId].chatId === chatId)
+					{
+						return state.collection[dialogId];
+					}
+				}
+
+				return null;
+			},
 			getBlank: state => params =>
 			{
 				return this.getElementState();
-			}
+			},
+			getQuoteId: state => dialogId =>
+			{
+				if (!state.collection[dialogId])
+				{
+					return 0;
+				}
+
+				return state.collection[dialogId].quoteId;
+			},
+			getEditId: state => dialogId =>
+			{
+				if (!state.collection[dialogId])
+				{
+					return 0;
+				}
+
+				return state.collection[dialogId].editId;
+			},
+			canSaveChat: state => chatId =>
+			{
+				if (/^\d+$/.test(chatId))
+				{
+					chatId = parseInt(chatId);
+				}
+				return state.saveChatList.includes(parseInt(chatId));
+			},
+			canSaveDialog: state => dialogId =>
+			{
+				return state.saveDialogList.includes(dialogId.toString());
+			},
+			isPrivateDialog: state => dialogId =>
+			{
+				dialogId = dialogId.toString();
+				return state.collection[dialogId.toString()] && state.collection[dialogId].type === 'private';
+			},
 		}
 	}
 
@@ -82,7 +170,6 @@ class DialoguesModel extends VuexBuilderModel
 					payload = payload.map(dialog => {
 						return Object.assign(
 							{},
-							this.getElementState(),
 							this.validate(Object.assign({}, dialog), {host: store.state.host}),
 							{init: true}
 						);
@@ -93,7 +180,6 @@ class DialoguesModel extends VuexBuilderModel
 					let result = [];
 					result.push(Object.assign(
 						{},
-						this.getElementState(),
 						this.validate(Object.assign({}, payload), {host: store.state.host}),
 						{init: true}
 					));
@@ -136,7 +222,7 @@ class DialoguesModel extends VuexBuilderModel
 					return true;
 				}
 
-				let index = store.state.collection[payload.dialogId].writingList.findIndex(el => el.userId == payload.userId);
+				let index = store.state.collection[payload.dialogId].writingList.findIndex(el => el.userId === payload.userId);
 				if (payload.action)
 				{
 					if (index >= 0)
@@ -154,7 +240,7 @@ class DialoguesModel extends VuexBuilderModel
 						store.commit('update', {
 							actionName: 'updateWriting/1',
 							dialogId : payload.dialogId,
-							fields : {writingList}
+							fields : this.validate({writingList}, {host: store.state.host})
 						});
 					}
 				}
@@ -162,11 +248,11 @@ class DialoguesModel extends VuexBuilderModel
 				{
 					if (index >= 0)
 					{
-						let writingList = store.state.collection[payload.dialogId].writingList.filter(el => el.userId != payload.userId);
+						let writingList = store.state.collection[payload.dialogId].writingList.filter(el => el.userId !== payload.userId);
 						store.commit('update', {
 							actionName: 'updateWriting/2',
 							dialogId : payload.dialogId,
-							fields : {writingList}
+							fields : this.validate({writingList}, {host: store.state.host})
 						});
 
 						return true;
@@ -176,6 +262,37 @@ class DialoguesModel extends VuexBuilderModel
 						return true;
 					}
 				}
+
+				return false;
+			},
+
+			updateReaded: (store, payload) =>
+			{
+				if (
+					typeof store.state.collection[payload.dialogId] === 'undefined'
+					|| store.state.collection[payload.dialogId].init === false
+				)
+				{
+					return true;
+				}
+
+				let readedList = store.state.collection[payload.dialogId].readedList.filter(el => el.userId !== payload.userId);
+
+				if (payload.action)
+				{
+					readedList.push({
+						userId: payload.userId,
+						userName: payload.userName || '',
+						messageId: payload.messageId,
+						date: payload.date || (new Date()),
+					});
+				}
+
+				store.commit('update', {
+					actionName: 'updateReaded',
+					dialogId : payload.dialogId,
+					fields : this.validate({readedList}, {host: store.state.host})
+				});
 
 				return false;
 			},
@@ -191,7 +308,16 @@ class DialoguesModel extends VuexBuilderModel
 				}
 
 				let counter = store.state.collection[payload.dialogId].counter;
+				if (counter === 100)
+				{
+					return true;
+				}
+
 				let increasedCounter = counter + payload.count;
+				if (increasedCounter > 100)
+				{
+					increasedCounter = 100;
+				}
 
 				let fields = {
 					counter: increasedCounter
@@ -222,6 +348,11 @@ class DialoguesModel extends VuexBuilderModel
 				}
 
 				let counter = store.state.collection[payload.dialogId].counter;
+				if (counter === 100)
+				{
+					return true;
+				}
+
 				let decreasedCounter = counter - payload.count;
 				if (decreasedCounter < 0)
 				{
@@ -230,13 +361,42 @@ class DialoguesModel extends VuexBuilderModel
 
 				let unreadId = payload.unreadId > store.state.collection[payload.dialogId].unreadId? payload.unreadId: store.state.collection[payload.dialogId].unreadId;
 
-				store.commit('update', {
-					actionName: 'decreaseCounter',
-					dialogId : payload.dialogId,
-					fields : {
-						counter: decreasedCounter,
-						unreadId: unreadId
+				if (
+					store.state.collection[payload.dialogId].unreadId !== unreadId
+					|| store.state.collection[payload.dialogId].counter !== decreasedCounter
+				)
+				{
+					if (decreasedCounter === 0)
+					{
+						unreadId = 0;
 					}
+
+					store.commit('update', {
+						actionName: 'decreaseCounter',
+						dialogId : payload.dialogId,
+						fields : {
+							counter: decreasedCounter,
+							unreadId: unreadId
+						}
+					});
+				}
+
+				return false;
+			},
+
+			saveDialog: (store, payload) =>
+			{
+				if (
+					typeof store.state.collection[payload.dialogId] === 'undefined'
+					|| store.state.collection[payload.dialogId].init === false
+				)
+				{
+					return true;
+				}
+
+				store.commit('saveDialog', {
+					dialogId : payload.dialogId,
+					chatId : payload.chatId
 				});
 
 				return false;
@@ -249,48 +409,132 @@ class DialoguesModel extends VuexBuilderModel
 		return {
 			initCollection: (state, payload) =>
 			{
-				if (typeof state.collection[payload.dialogId] === 'undefined')
+				this.initCollection(state, payload);
+			},
+			saveDialog: (state, payload) =>
+			{
+				// TODO if payload.dialogId is IMOL, skip update this flag
+				if (!(payload.chatId > 0 && payload.dialogId.length > 0))
 				{
-					Vue.set(state.collection, payload.dialogId, this.getElementState());
-
-					if (payload.fields)
-					{
-						state.collection[payload.dialogId] = Object.assign(
-							state.collection[payload.dialogId],
-							this.validate(Object.assign({}, payload.fields), {host: state.host})
-						);
-					}
+					return false;
 				}
+
+				let saveDialogList = state.saveDialogList.filter(function(element) {
+					return element !== payload.dialogId;
+				});
+
+				saveDialogList.unshift(payload.dialogId);
+
+				saveDialogList = saveDialogList.slice(0, StorageLimit.dialogues);
+
+				if (state.saveDialogList.join(',') === saveDialogList.join(','))
+				{
+					return true;
+				}
+
+				state.saveDialogList = saveDialogList;
+
+
+				let saveChatList = state.saveChatList.filter(function(element) {
+					return element !== payload.chatId;
+				});
+
+				saveChatList.unshift(payload.chatId);
+
+				state.saveChatList = saveChatList.slice(0, StorageLimit.dialogues);
+
+				this.saveState(state);
 			},
 			set: (state, payload) =>
 			{
 				for (let element of payload)
 				{
-					if (typeof state.collection[element.dialogId] === 'undefined')
-					{
-						Vue.set(state.collection, element.dialogId, element);
-					}
+					this.initCollection(state, {dialogId: element.dialogId});
 
-					state.collection[element.dialogId] = element;
+					state.collection[element.dialogId] = Object.assign(
+						this.getElementState(),
+						state.collection[element.dialogId],
+						element
+					);
 				}
+
+				// TODO if payload.dialogId is IMOL, skip update cache
+				this.saveState(state);
 			},
 			update: (state, payload) =>
 			{
-				if (typeof state.collection[payload.dialogId] === 'undefined')
-				{
-					Vue.set(state.collection, payload.dialogId, this.getElementState());
-				}
+				this.initCollection(state, payload);
 
 				state.collection[payload.dialogId] = Object.assign(
 					state.collection[payload.dialogId],
 					payload.fields
 				);
+
+				// TODO if payload.dialogId is IMOL, skip update cache
+				this.saveState(state);
 			},
 			delete: (state, payload) =>
 			{
-				delete state.collection[payload.dialogId]
+				delete state.collection[payload.dialogId];
+
+				// TODO if payload.dialogId is IMOL, skip update cache
+				this.saveState(state);
 			}
 		};
+	}
+
+	initCollection(state, payload)
+	{
+		if (typeof state.collection[payload.dialogId] !== 'undefined')
+		{
+			return true
+		}
+
+		Vue.set(state.collection, payload.dialogId, this.getElementState());
+
+		if (payload.fields)
+		{
+			state.collection[payload.dialogId] = Object.assign(
+				state.collection[payload.dialogId],
+				this.validate(Object.assign({}, payload.fields), {host: state.host})
+			);
+		}
+
+		return true;
+	}
+
+	getSaveTimeout()
+	{
+		return 100;
+	}
+
+	saveState(state = {})
+	{
+		if (!this.isSaveAvailable())
+		{
+			return true;
+		}
+
+		super.saveState(() =>
+		{
+			let storedState = {
+				collection: {},
+				saveDialogList: [].concat(state.saveDialogList),
+				saveChatList: [].concat(state.saveChatList),
+			};
+
+			state.saveDialogList.forEach(dialogId => {
+				if (!state.collection[dialogId])
+					return false;
+
+				storedState.collection[dialogId] = Object.assign(
+					this.getElementState(),
+					this.cloneState(state.collection[dialogId], this.getElementStateSaveException())
+				);
+			});
+
+			return storedState;
+		});
 	}
 
 	validate(fields, options = {})
@@ -320,10 +564,27 @@ class DialoguesModel extends VuexBuilderModel
 		{
 			result.chatId = parseInt(fields.chatId);
 		}
+		if (typeof fields.quoteId === "number")
+		{
+			result.quoteId = parseInt(fields.quoteId);
+		}
+		if (typeof fields.editId === "number")
+		{
+			result.editId = parseInt(fields.editId);
+		}
 
 		if (typeof fields.counter === "number" || typeof fields.counter === "string")
 		{
 			result.counter = parseInt(fields.counter);
+		}
+
+		if (typeof fields.user_counter === "number" || typeof fields.user_counter === "string")
+		{
+			result.userCounter = parseInt(fields.user_counter);
+		}
+		if (typeof fields.userCounter === "number" || typeof fields.userCounter === "string")
+		{
+			result.userCounter = parseInt(fields.userCounter);
 		}
 
 		if (typeof fields.unread_id !== 'undefined')
@@ -379,18 +640,7 @@ class DialoguesModel extends VuexBuilderModel
 					record.userName = element.userName.toString();
 					record.messageId = parseInt(element.messageId);
 
-					if (fields.date instanceof Date)
-					{
-						record.date = fields.date;
-					}
-					else if (typeof fields.date === "string")
-					{
-						record.date = new Date(fields.date);
-					}
-					else
-					{
-						record.date = new Date();
-					}
+					record.date = Utils.date.cast(element.date);
 
 					result.readedList.push(record);
 				})
@@ -417,10 +667,31 @@ class DialoguesModel extends VuexBuilderModel
 					}
 
 					record.userId = parseInt(element.userId);
-					record.userName = element.userName;
+					record.userName = Utils.text.htmlspecialcharsback(element.userName);
 
 					result.writingList.push(record);
 				})
+			}
+		}
+
+		if (typeof fields.manager_list !== 'undefined')
+		{
+			fields.managerList = fields.manager_list;
+		}
+		if (typeof fields.managerList !== 'undefined')
+		{
+			result.managerList = [];
+
+			if (fields.managerList instanceof Array)
+			{
+				fields.managerList.forEach(userId =>
+				{
+					userId = parseInt(userId);
+					if (userId > 0)
+					{
+						result.managerList.push(userId);
+					}
+				});
 			}
 		}
 
@@ -445,13 +716,18 @@ class DialoguesModel extends VuexBuilderModel
 			}
 		}
 
+		if (typeof fields.textareaMessage !== 'undefined')
+		{
+			result.textareaMessage = fields.textareaMessage.toString();
+		}
+
 		if (typeof fields.title !== 'undefined')
 		{
 			fields.name = fields.title;
 		}
 		if (typeof fields.name === "string" || typeof fields.name === "number")
 		{
-			result.name = fields.name.toString();
+			result.name = Utils.text.htmlspecialcharsback(fields.name.toString());
 		}
 
 		if (typeof fields.owner !== 'undefined')
@@ -470,13 +746,24 @@ class DialoguesModel extends VuexBuilderModel
 
 		if (typeof fields.avatar === 'string')
 		{
-			if (!fields.avatar || fields.avatar.startsWith('http'))
+			let avatar;
+
+			if (!fields.avatar || fields.avatar.endsWith('/js/im/images/blank.gif'))
 			{
-				result.avatar = fields.avatar;
+				avatar = '';
+			}
+			else if (fields.avatar.startsWith('http'))
+			{
+				avatar = fields.avatar;
 			}
 			else
 			{
-				result.avatar = options.host+fields.avatar;
+				avatar = options.host + fields.avatar;
+			}
+
+			if (avatar)
+			{
+				result.avatar = encodeURI(avatar);
 			}
 		}
 
@@ -538,17 +825,62 @@ class DialoguesModel extends VuexBuilderModel
 		{
 			fields.dateCreate = fields.date_create;
 		}
-		if (fields.dateCreate instanceof Date)
+
+		if (typeof fields.dateCreate !== "undefined")
 		{
-			result.dateCreate = fields.dateCreate;
+			result.dateCreate = Utils.date.cast(fields.dateCreate);
 		}
-		else if (typeof fields.dateCreate === "string")
+
+		if (typeof fields.dateLastOpen !== "undefined")
 		{
-			result.dateCreate = new Date(fields.dateCreate);
+			result.dateLastOpen = Utils.date.cast(fields.dateLastOpen);
+		}
+
+		if (typeof fields.restrictions === 'object' && fields.restrictions)
+		{
+			result.restrictions = {};
+
+			if (typeof fields.restrictions.AVATAR === 'boolean')
+			{
+				result.restrictions.avatar = fields.restrictions.AVATAR;
+			}
+
+			if (typeof fields.restrictions.EXTEND === 'boolean')
+			{
+				result.restrictions.extend = fields.restrictions.EXTEND;
+			}
+
+			if (typeof fields.restrictions.LEAVE === 'boolean')
+			{
+				result.restrictions.leave = fields.restrictions.LEAVE;
+			}
+
+			if (typeof fields.restrictions.LEAVE_OWNER === 'boolean')
+			{
+				result.restrictions.leaveOwner = fields.restrictions.LEAVE_OWNER;
+			}
+
+			if (typeof fields.restrictions.RENAME === 'boolean')
+			{
+				result.restrictions.rename = fields.restrictions.RENAME;
+			}
+		}
+
+		if (typeof fields.public === 'object' && fields.public)
+		{
+			result.public = {};
+
+			if (typeof fields.public.code === 'string')
+			{
+				result.public.code = fields.public.code;
+			}
+
+			if (typeof fields.public.link === 'string')
+			{
+				result.public.link = fields.public.link;
+			}
 		}
 
 		return result;
 	}
 }
-
-export {DialoguesModel};

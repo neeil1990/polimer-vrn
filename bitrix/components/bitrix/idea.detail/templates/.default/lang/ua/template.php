@@ -8,7 +8,7 @@ $MESS["IDEA_STATUS_PROCESSING"] = "В роботі";
 $MESS["IDEA_STATUS_COMPLETED"] = "Впроваджено";
 $MESS["IDEA_RATING_TITLE"] = "Рейтинг";
 $MESS["IDEA_INTRODUCED_TITLE"] = "Запропонував";
-$MESS["IDEA_POST_DUPLICATE"] = "Дублікат ідеї, яка була <a href='#LINK#'> запропонована раніше </ a>";
+$MESS["IDEA_POST_DUPLICATE"] = "Дублікат ідеї, яка була <a href='#LINK#'>запропонована раніше</a>";
 $MESS["IDEA_POST_COMMENT_CNT"] = "Коментарів";
 $MESS["BLOG_BLOG_BLOG_EDIT"] = "Редагувати";
 $MESS["BLOG_BLOG_BLOG_DELETE"] = "Видалити";

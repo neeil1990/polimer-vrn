@@ -203,14 +203,14 @@ class CDeliveryUaPost
 
 	function GetSettings($strSettings)
 	{
-		return unserialize($strSettings);
+		return unserialize($strSettings, ['allowed_classes' => false]);
 	}
 
 	function SetSettings($arSettings)
 	{
 		foreach ($arSettings as $key => $value)
 		{
-			if (strlen($value) > 0)
+			if ($value <> '')
 				$arSettings[$key] = $value;
 			else
 				unset($arSettings[$key]);

@@ -2,7 +2,7 @@
 
 namespace Sale\Handlers\Delivery;
 
-use Bitrix\Sale\Order;
+use Bitrix\Sale;
 use Bitrix\Main\Error;
 use Bitrix\Sale\Result;
 use Bitrix\Main\Loader;
@@ -87,7 +87,11 @@ class SpsrTracking extends \Bitrix\Sale\Delivery\Tracking\Base
 		if($orderId <= 0)
 			return null;
 
-		$order = Order::load($orderId);
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
+		$order = $orderClass::load($orderId);
 
 		if(!$order)
 			return null;
@@ -234,7 +238,7 @@ class SpsrTracking extends \Bitrix\Sale\Delivery\Tracking\Base
 
 	protected static function translateStatus($externalStatus)
 	{
-		if(strlen($externalStatus) <= 0)
+		if($externalStatus == '')
 			return Statuses::UNKNOWN;
 
 		$statusMaps = array(
@@ -273,7 +277,7 @@ class SpsrTracking extends \Bitrix\Sale\Delivery\Tracking\Base
 
 	protected static function utfDecode($str)
 	{
-		if(strtolower(SITE_CHARSET) != 'utf-8')
+		if(mb_strtolower(SITE_CHARSET) != 'utf-8')
 			$str = Encoding::convertEncoding($str, 'UTF-8', SITE_CHARSET);
 
 		return $str;

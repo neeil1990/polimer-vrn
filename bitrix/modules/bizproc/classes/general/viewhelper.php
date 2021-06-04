@@ -1,4 +1,7 @@
 <?
+
+use Bitrix\Main\ArgumentException;
+
 IncludeModuleLangFile(__FILE__);
 
 class CBPViewHelper
@@ -60,6 +63,11 @@ class CBPViewHelper
 	{
 		$withUsers = $withUsers ? 1 : 0;
 		$extendUserInfo = $extendUserInfo ? 1 : 0;
+
+		if (!$workflowId)
+		{
+			return ['COMPLETED' => [], 'RUNNING' => []];
+		}
 
 		if (!isset(self::$cachedTasks[$workflowId][$withUsers][$extendUserInfo]))
 		{
@@ -208,5 +216,31 @@ class CBPViewHelper
 		}
 
 		return $result;
+	}
+
+	public static function prepareTaskDescription($description)
+	{
+		return nl2br(preg_replace_callback(
+			'|<a href="(/bitrix/tools/bizproc_show_file.php\?)([^"]+)"\starget=\'_blank\'>|',
+			function($matches)
+			{
+				parse_str($matches[2], $query);
+				if (isset($query['i']))
+				{
+					try
+					{
+						$attributes = \Bitrix\Main\UI\Viewer\ItemAttributes::tryBuildByFileId(
+							$query['i'],
+							$matches[1].$matches[2]
+						);
+						return "<a href=\"".$matches[1].$matches[2]."\" ".$attributes.">";
+					}
+					catch (ArgumentException $e) {}
+				}
+
+				return $matches[0];
+			},
+			$description
+		));
 	}
 }

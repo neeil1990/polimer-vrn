@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_6_IMAGE_CAROUSEL_6_COLS_FIX_NAME'),
 		'section' => array('image', 'partners'),
+		'dynamic' => false,
 	),
 	'cards' => array(
 		'.landing-block-card-carousel-item' => array(
@@ -22,7 +23,7 @@ return array(
 			'name' => Loc::getMessage('LANDING_BLOCK_6_IMAGE_CAROUSEL_6_COLS_FIX_NODES_LANDINGBLOCKNODECAROUSELIMG'),
 			'type' => 'img',
 			'group' => 'logo',
-			'dimensions' => array('width' => 200, 'height' => 150),
+			'dimensions' => array('width' => 200),
 		),
 		'.landing-block-card-logo-link' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_6_IMAGE_CAROUSEL_6_COLS_FIX_NODES_LANDINGBLOCKNODECARDLOGOLINK'),
@@ -37,7 +38,7 @@ return array(
 		'nodes' => array(
 			'.landing-block-card-carousel-item' => array(
 				'name' => Loc::getMessage('LANDING_BLOCK_6_IMAGE_CAROUSEL_6_COLS_FIX_CARDS_LANDINGBLOCKCARDCAROUSELITEM'),
-				'type' => 'align-items',
+				'type' => ['align-items']
 			),
 		),
 	),

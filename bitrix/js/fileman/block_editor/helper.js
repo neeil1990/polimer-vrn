@@ -109,11 +109,11 @@ BXBlockEditorHelper.prototype.column = function(node, param, value)
 			var width = null;
 			if(inner.childNodes.length == 3)
 			{
-				width = '188';
+				width = '210';
 			}
 			else if(inner.childNodes.length == 2)
 			{
-				width = '282';
+				width = '318';
 			}
 			for(var i in inner.childNodes)
 			{
@@ -387,7 +387,7 @@ BXBlockEditorHelper.prototype.groupImageSrc = function (node, value)
 		var imageContainerHtml = '<table align="left" border="0" cellpadding="0" cellspacing="0" width="260">'
 			+ '<tbody><tr>'
 			+ '<td valign="top" class="bxBlockPadding bxBlockContentImage">'
-			+ '<a href="#"><img align="left" data-bx-editor-def-image="1" src="/bitrix/images/fileman/block_editor/photo-default.png" class="bxImage"></a></td>'
+			+ '<img align="left" data-bx-editor-def-image="1" src="/bitrix/images/fileman/block_editor/photo-default.png" class="bxImage"></td>'
 			+ '</tr>'
 			+ '</tbody></table>';
 
@@ -450,6 +450,7 @@ BXBlockEditorHelper.prototype.groupImageSrc = function (node, value)
 				{
 					continue;
 				}
+
 				this.attr(imgNode, 'src', valueList[i]);
 				this.attr(imgNode, 'data-bx-editor-def-image', '0');
 			}

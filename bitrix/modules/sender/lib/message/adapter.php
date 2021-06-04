@@ -8,11 +8,10 @@
 
 namespace Bitrix\Sender\Message;
 
-use Bitrix\Main\SiteTable;
 use Bitrix\Main\ArgumentException;
-
-use Bitrix\Sender\Transport;
+use Bitrix\Main\SiteTable;
 use Bitrix\Sender\Integration;
+use Bitrix\Sender\Transport;
 
 /**
  * Class Adapter
@@ -68,8 +67,9 @@ class Adapter implements iBase
 	/**
 	 * Get instance.
 	 *
-	 * @param $code
+	 * @param string $code Message code.
 	 * @return static
+	 * @throws ArgumentException
 	 */
 	public static function getInstance($code)
 	{
@@ -112,7 +112,7 @@ class Adapter implements iBase
 	/**
 	 * Get name.
 	 *
-	 * return string
+	 * @return string
 	 */
 	public function getName()
 	{
@@ -134,6 +134,7 @@ class Adapter implements iBase
 		$transportCode = $this->configuration->get('TRANSPORT_CODE') ?: current($this->message->getSupportedTransports());
 		//$transportConfigId = $this->configuration->get('TRANSPORT_CONFIGURATION_ID');
 		$this->transport = Transport\Adapter::create($transportCode);
+		$this->transport->saveConfiguration($this->getConfiguration());
 		$this->transport->loadConfiguration();
 
 		return $this->transport;
@@ -143,6 +144,7 @@ class Adapter implements iBase
 	 * Set transport.
 	 *
 	 * @param Transport\Adapter $transport Transport.
+	 * @return void
 	 */
 	public function setTransport(Transport\Adapter $transport)
 	{
@@ -307,6 +309,7 @@ class Adapter implements iBase
 	 * Set fields.
 	 *
 	 * @param array $fields Fields.
+	 * @return void
 	 */
 	public function setFields(array $fields)
 	{
@@ -330,9 +333,8 @@ class Adapter implements iBase
 			$to[] = (string) $value;
 		}
 
-		return str_replace($from, $to, $content);
+		return Integration\Sender\Mail\TransportMail::replaceTemplate(str_replace($from, $to, $content));
 	}
-
 	/**
 	 * Get to.
 	 *
@@ -409,7 +411,7 @@ class Adapter implements iBase
 	/**
 	 * Get recipient data.
 	 *
-	 * @return []
+	 * @return array
 	 */
 	public function getRecipientData()
 	{
@@ -419,7 +421,7 @@ class Adapter implements iBase
 	/**
 	 * Set recipient data.
 	 *
-	 * @param [] $data Data.
+	 * @param array $data Data.
 	 * @return void
 	 */
 	public function setRecipientData(array $data)
@@ -542,6 +544,14 @@ class Adapter implements iBase
 		return isset($siteData['SERVER_NAME']) ? $siteData['SERVER_NAME'] : null;
 	}
 
+	/**
+	 * Get site data.
+	 * @param int $id Id.
+	 * @return array
+	 * @throws ArgumentException
+	 * @throws \Bitrix\Main\ObjectPropertyException
+	 * @throws \Bitrix\Main\SystemException
+	 */
 	private function getSiteData($id)
 	{
 		if ($this->siteData !== null)
@@ -572,6 +582,16 @@ class Adapter implements iBase
 	public function isAds()
 	{
 		return $this->message instanceof iAds;
+	}
+
+	/**
+	 * Is ads.
+	 *
+	 * @return bool
+	 */
+	public function isMarketing()
+	{
+		return $this->message instanceof iMarketing;
 	}
 
 	/**
@@ -647,5 +667,47 @@ class Adapter implements iBase
 			default:
 				return false;
 		}
+	}
+
+	/**
+	 *  Check value of audio field and prepare it for DB
+	 * @param string $optionCode Field code.
+	 * @param string $newValue New field value.
+	 * @return bool|string
+	 */
+	public function getAudioValue($optionCode, $newValue)
+	{
+		if ($this->message instanceof iAudible)
+		{
+			return $this->message->getAudioValue($optionCode, $newValue);
+		}
+		return $newValue;
+	}
+
+	public function onBeforeStart()
+	{
+		if ($this->message instanceof iBeforeAfter)
+		{
+			return $this->message->onBeforeStart();
+		}
+		return new \Bitrix\Main\Result();
+	}
+
+	public function onAfterEnd()
+	{
+		if ($this->message instanceof iBeforeAfter)
+		{
+			return $this->message->onAfterEnd();
+
+		}
+		return new \Bitrix\Main\Result();
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getEntityCode()
+	{
+		return $this->message->getEntityCode();
 	}
 }

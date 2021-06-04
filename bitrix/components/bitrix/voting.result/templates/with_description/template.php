@@ -29,7 +29,7 @@ endif;
 					?>">
 		<div class="vote-item-header">
 <?
-	if (strlen($arResult["VOTE"]["TITLE"]) > 0):
+	if ($arResult["VOTE"]["TITLE"] <> ''):
 ?>
 			<span class="vote-item-title"><?=$arResult["VOTE"]["TITLE"];?></span>
 <?
@@ -76,7 +76,7 @@ endif;
 		<div class="vote-item-counter"><span><?=GetMessage("VOTE_VOTES")?>:</span> <?=$arResult["VOTE"]["COUNTER"]?></div>
 
 <?
-	if (strlen($arResult["VOTE"]["TITLE"]) <= 0):
+	if ($arResult["VOTE"]["TITLE"] == ''):
 		if ($arResult["VOTE"]["LAMP"]=="green"):
 ?>
 		<div class="vote-item-lamp vote-item-lamp-green"><span class="active"><?=GetMessage("VOTE_IS_ACTIVE")?></span></div>
@@ -149,7 +149,7 @@ endif;
 									<tr>
 										<td><div class="vote-bar-square" style="background-color:#<?=htmlspecialcharsbx($arAnswer["COLOR"])?>"></div></td>
 										<td><nobr><?=$arAnswer["COUNTER"]?> (<?=$arAnswer["PERCENT"]?>%)</nobr></td>
-										<td><?=htmlspecialcharsbx($arAnswer["~MESSAGE"])?></td>
+										<td><?=$arAnswer["MESSAGE"]?></td>
 									</tr>
 								<?endforeach?>
 							</table>
@@ -163,7 +163,7 @@ endif;
 				<?foreach ($arQuestion["ANSWERS"] as $arAnswer):?>
 					<tr class='vote-answer-row'>
 						<td width="30%">
-							<?=htmlspecialcharsbx($arAnswer["~MESSAGE"])?>
+							<?=$arAnswer["MESSAGE"]?>
 							<? if (isset($arResult['GROUP_ANSWERS'][$arAnswer['ID']])) 
 							{
 								if (trim($arAnswer["MESSAGE"]) != '') 
@@ -188,10 +188,9 @@ endif;
 									<tr>
 										<td width="30%">
 											<? if (trim($arAnswer["MESSAGE"]) != '') { ?>
-												<span class='vote-answer-lolight'>
-													<?=htmlspecialcharsbx($arGroupAnswer["~MESSAGE"])?>:&nbsp;</span>
+												<span class='vote-answer-lolight'><?=$arAnswer["MESSAGE"]?>:&nbsp;</span>
 											<? } ?>
-											<?=htmlspecialcharsbx($arGroupAnswer["~MESSAGE"])?></td>
+											<?=$arGroupAnswer["MESSAGE"]?></td>
 										<td width="70%">
 											<table class="vote-bar-table">
 												<tr>

@@ -22,6 +22,8 @@ class Translation
 	/** @var array */
 	private static $map = array();
 
+	const CACHE_ID = 'TranslationLoadMapCache';
+	const CACHE_TTL = 3600;
 
 	/**
 	 * Returns true if language translation is one of the default translation.
@@ -130,11 +132,11 @@ class Translation
 			{
 				$encoding = 'utf-8';
 			}
-			elseif (defined('SITE_CHARSET') && (strlen(SITE_CHARSET) > 0))
+			elseif (defined('SITE_CHARSET') && (SITE_CHARSET <> ''))
 			{
 				$encoding = SITE_CHARSET;
 			}
-			elseif (defined('LANG_CHARSET') && (strlen(LANG_CHARSET) > 0))
+			elseif (defined('LANG_CHARSET') && (LANG_CHARSET <> ''))
 			{
 				$encoding = LANG_CHARSET;
 			}
@@ -157,7 +159,7 @@ class Translation
 				{
 					$encoding = Configuration::getValue('default_charset');
 				}
-				elseif (defined('BX_DEFAULT_CHARSET') && (strlen(BX_DEFAULT_CHARSET) > 0))
+				elseif (defined('BX_DEFAULT_CHARSET') && (BX_DEFAULT_CHARSET <> ''))
 				{
 					$encoding = BX_DEFAULT_CHARSET;
 				}
@@ -167,7 +169,7 @@ class Translation
 				}
 			}
 
-			self::$currentEncoding = strtolower($encoding);
+			self::$currentEncoding = mb_strtolower($encoding);
 		}
 
 		return self::$currentEncoding;
@@ -216,11 +218,11 @@ class Translation
 		{
 			if (self::getDeveloperRepositoryPath() !== null)
 			{
-				$needConvert = (strpos($langFile, self::getDeveloperRepositoryPath()) === 0);
+				$needConvert = (stripos($langFile, self::getDeveloperRepositoryPath()) === 0);
 			}
 			if (!$needConvert && self::useTranslationRepository())
 			{
-				$needConvert = (strpos($langFile, self::getTranslationRepositoryPath()) === 0);
+				$needConvert = (stripos($langFile, self::getTranslationRepositoryPath()) === 0);
 			}
 		}
 
@@ -333,6 +335,12 @@ class Translation
 			return $langFile;
 		}
 
+		static $documentRoot;
+		if ($documentRoot === null)
+		{
+			$documentRoot = Path::normalize(Main\Application::getDocumentRoot());
+		}
+
 		if (self::useTranslationRepository() && !self::isDefaultTranslationLang($language))
 		{
 			$modulePath = self::getTranslationRepositoryPath().'/'.$language.'/';
@@ -343,18 +351,18 @@ class Translation
 		}
 		elseif (self::isDefaultTranslationLang($language))
 		{
-			$modulePath = Main\Application::getDocumentRoot(). '/bitrix/modules/';
+			$modulePath = $documentRoot. '/bitrix/modules/';
 		}
 		else
 		{
 			return $langFile;
 		}
 
-		if (strpos($langFile, '\\') !== false)
+		if (mb_strpos($langFile, '\\') !== false)
 		{
 			$langFile = str_replace('\\', '/', $langFile);
 		}
-		if (strpos($langFile, '//') !== false)
+		if (mb_strpos($langFile, '//') !== false)
 		{
 			$langFile = str_replace('//', '/', $langFile);
 		}
@@ -362,7 +370,7 @@ class Translation
 		// linked
 		if (self::getDeveloperRepositoryPath() !== null)
 		{
-			if (strpos($langFile, self::getDeveloperRepositoryPath()) === 0)
+			if (mb_strpos($langFile, self::getDeveloperRepositoryPath()) === 0)
 			{
 				$langFile = str_replace(
 					self::getDeveloperRepositoryPath(). '/',
@@ -375,10 +383,10 @@ class Translation
 		}
 
 		// module lang
-		if (strpos($langFile, Main\Application::getDocumentRoot(). '/bitrix/modules/') === 0)
+		if (strpos($langFile, $documentRoot. '/bitrix/modules/') === 0)
 		{
 			$langFile = str_replace(
-				Main\Application::getDocumentRoot().'/bitrix/modules/',
+				$documentRoot.'/bitrix/modules/',
 				$modulePath,
 				$langFile
 			);
@@ -388,7 +396,7 @@ class Translation
 
 		self::loadMap();
 
-		$langPathParts = preg_split('#[/]+#', trim(str_replace(Main\Application::getDocumentRoot(), '', $langFile), '/'), 6);
+		$langPathParts = preg_split('#[/]+#', trim(str_replace($documentRoot, '', $langFile), '/'), 6);
 		if (empty($langPathParts) || $langPathParts[0] !== 'bitrix')
 		{
 			return $langFile;
@@ -404,7 +412,7 @@ class Translation
 				{
 					$testEntry = 'mobileapp/'. $moduleName;
 					$langFile = str_replace(
-						Main\Application::getDocumentRoot().'/bitrix/mobileapp/'. $moduleName. '/',
+						$documentRoot.'/bitrix/mobileapp/'. $moduleName. '/',
 						$modulePath.''.$moduleName.'/install/mobileapp/'. $moduleName. '/',
 						$langFile
 					);
@@ -419,7 +427,7 @@ class Translation
 					if (isset(self::$map[$moduleName][$testEntry], self::$map[$moduleName][$testEntry][$templateName]))
 					{
 						$langFile = str_replace(
-							Main\Application::getDocumentRoot().'/bitrix/templates/'.$templateName.'/',
+							$documentRoot.'/bitrix/templates/'.$templateName.'/',
 							$modulePath.''.$moduleName.'/install/templates/'. $templateName .'/',
 							$langFile
 						);
@@ -447,7 +455,7 @@ class Translation
 					if (isset(self::$map[$moduleName][$testEntry], self::$map[$moduleName][$testEntry][$searchEntryName]))
 					{
 						$langFile = str_replace(
-							Main\Application::getDocumentRoot().'/bitrix/'.$testEntry.'/bitrix/'.$searchEntryName.'/',
+							$documentRoot.'/bitrix/'.$testEntry.'/bitrix/'.$searchEntryName.'/',
 							$modulePath.''.$moduleName.'/install/'.$testEntry.'/bitrix/'. $searchEntryName. '/',
 							$langFile
 						);
@@ -457,6 +465,7 @@ class Translation
 				break;
 
 			// bitrix/js/[moduleName]/[smth] -> [moduleName]/install/js/[moduleName]/[smth]
+			// bitrix/js/[moduleName]/[smth] -> [moduleName]/install/public/js/[moduleName]/[smth]
 			case 'js':
 				$libraryNamespace = $langPathParts[2];
 
@@ -465,8 +474,17 @@ class Translation
 					if (isset(self::$map[$moduleName][$testEntry], self::$map[$moduleName][$testEntry][$libraryNamespace]))
 					{
 						$langFile = str_replace(
-							Main\Application::getDocumentRoot().'/bitrix/'.$testEntry.'/'.$libraryNamespace.'/',
+							$documentRoot.'/bitrix/'.$testEntry.'/'.$libraryNamespace.'/',
 							$modulePath.''.$moduleName.'/install/'.$testEntry.'/'.$libraryNamespace.'/',
+							$langFile
+						);
+						break;
+					}
+					if (isset(self::$map[$moduleName]["public/{$testEntry}"], self::$map[$moduleName]["public/{$testEntry}"][$libraryNamespace]))
+					{
+						$langFile = str_replace(
+							$documentRoot.'/bitrix/'.$testEntry.'/'.$libraryNamespace.'/',
+							$modulePath.''.$moduleName.'/install/public/'.$testEntry.'/'.$libraryNamespace.'/',
 							$langFile
 						);
 						break;
@@ -482,7 +500,7 @@ class Translation
 					if (isset(self::$map[$moduleName][$testEntry], self::$map[$moduleName][$testEntry][$searchEntryName]))
 					{
 						$langFile = str_replace(
-							Main\Application::getDocumentRoot().'/bitrix/modules/'.$moduleName.'/'.$testEntry.'/',
+							$documentRoot.'/bitrix/modules/'.$moduleName.'/'.$testEntry.'/',
 							$modulePath.''.$moduleName.'/'.$testEntry.'/',
 							$langFile
 						);
@@ -505,6 +523,15 @@ class Translation
 	{
 		if (empty(self::$map))
 		{
+			$cacheManager = Main\Application::getInstance()->getManagedCache();
+			if ($cacheManager->read(static::CACHE_TTL, static::CACHE_ID))
+			{
+				self::$map = $cacheManager->get(static::CACHE_ID);
+			}
+		}
+
+		if (empty(self::$map))
+		{
 			$testForExistence = array(
 				'templates',
 				'components',
@@ -512,6 +539,7 @@ class Translation
 				'wizards',
 				'gadgets',
 				'js',
+				'public/js',
 				'blocks',
 				'payment',
 				'mobileapp',
@@ -529,7 +557,7 @@ class Translation
 						foreach ($testForExistence as $testEntry)
 						{
 							$testPath = $bxRoot. '/'. $moduleName. '/install/'. $testEntry;
-							if ($testEntry === 'templates' || $testEntry === 'mobileapp' || $testEntry === 'js')
+							if ($testEntry === 'templates' || $testEntry === 'mobileapp' || $testEntry === 'js' || $testEntry === 'public/js')
 							{
 								$testPath .= '/';
 							}
@@ -558,8 +586,44 @@ class Translation
 					}
 				}
 			}
+
+			$cacheManager->set(static::CACHE_ID, static::$map);
 		}
 
 		return self::$map;
+	}
+
+	/**
+	 * @param $language
+	 * @param $langFile
+	 * @return array
+	 */
+	public static function getEncodings($language, $langFile)
+	{
+		static $encodingCache = array();
+
+		if(isset($encodingCache[$language]))
+		{
+			list($convertEncoding, $targetEncoding, $sourceEncoding) = $encodingCache[$language];
+		}
+		else
+		{
+			$convertEncoding = self::needConvertEncoding($language);
+			$targetEncoding = $sourceEncoding = '';
+			if($convertEncoding)
+			{
+				$targetEncoding = self::getCurrentEncoding();
+				$sourceEncoding = self::getSourceEncoding($language);
+			}
+
+			$encodingCache[$language] = array($convertEncoding, $targetEncoding, $sourceEncoding);
+		}
+
+		if($convertEncoding)
+		{
+			$convertEncoding = self::checkPathRestrictionConvertEncoding($langFile);
+		}
+
+		return array($convertEncoding, $targetEncoding, $sourceEncoding);
 	}
 }

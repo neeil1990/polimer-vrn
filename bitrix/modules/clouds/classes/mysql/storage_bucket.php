@@ -38,6 +38,9 @@ class CAllCloudStorageBucket
 		if (defined("BX_CLOUDS_COUNTERS_DEBUG"))
 			\CCloudsDebug::getInstance()->endAction();
 
+		if ($file_size)
+			COption::SetOptionString("main_size", "~cloud", intval(COption::GetOptionString("main_size", "~cloud")) + $file_size);
+
 		if(CACHED_b_clouds_file_bucket !== false)
 			$CACHE_MANAGER->CleanDir("b_clouds_file_bucket");
 		return $res;
@@ -59,6 +62,9 @@ class CAllCloudStorageBucket
 		if (defined("BX_CLOUDS_COUNTERS_DEBUG"))
 			\CCloudsDebug::getInstance()->endAction();
 
+		if ($file_size)
+			COption::SetOptionString("main_size", "~cloud", intval(COption::GetOptionString("main_size", "~cloud")) - $file_size);
+
 		if(CACHED_b_clouds_file_bucket !== false)
 			$CACHE_MANAGER->CleanDir("b_clouds_file_bucket");
 		return $res;
@@ -68,11 +74,11 @@ class CAllCloudStorageBucket
 	{
 		if (
 			$this->isFailoverEnabled() && CCloudFailover::IsEnabled()
-			&& $this->arBucket["FAILOVER_ACTIVE"] === 'Y'
-			&& $this->arBucket["FAILOVER_BUCKET_ID"] > 0
+			&& $this->FAILOVER_ACTIVE === 'Y'
+			&& $this->FAILOVER_BUCKET_ID > 0
 		)
-			return $this->arBucket["FAILOVER_BUCKET_ID"];
+			return $this->FAILOVER_BUCKET_ID;
 		else
-			return $this->arBucket["ID"];
+			return $this->ID;
 	}
 }

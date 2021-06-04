@@ -8,7 +8,6 @@ $MESS['BLOG_EMPTY_TITLE_PLACEHOLDER'] = "Bild";
 $MESS['BLOG_EMPTY_TITLE_PLACEHOLDER2'] = "Datei";
 $MESS['BLOG_EMPTY_TITLE_PLACEHOLDER3'] = "Überschrift";
 $MESS['BLOG_ERR_NO_RIGHTS'] = "Fehler! Sie haben nicht genügend Rechte, um eine Nachricht zu schreiben";
-$MESS['BLOG_GRAT_IBLOCKELEMENT_NAME'] = "Auszeichnung für #GRAT_NAME#";
 $MESS['BLOG_MODULE_NOT_INSTALL'] = "Das Modul \"Blog\" wurde nicht installiert.";
 $MESS['BLOG_NEW_MESSAGE'] = "Erstellung einer neuen Nachricht";
 $MESS['BLOG_POST_EDIT'] = "Nachricht bearbeiten";

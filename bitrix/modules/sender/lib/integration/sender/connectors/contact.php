@@ -8,12 +8,11 @@
 
 namespace Bitrix\Sender\Integration\Sender\Connectors;
 
-use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Entity;
-
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Sender\Connector;
-use Bitrix\Sender\ListTable;
 use Bitrix\Sender\ContactTable;
+use Bitrix\Sender\ListTable;
 use Bitrix\Sender\Recipient\Type as RecipientType;
 
 Loc::loadMessages(__FILE__);
@@ -67,6 +66,7 @@ class Contact extends Connector\BaseFilter
 	}
 
 	/**
+	 *
 	 * @return \Bitrix\Main\DB\Result|array
 	 */
 	public function getData()
@@ -77,12 +77,14 @@ class Contact extends Connector\BaseFilter
 			return array();
 		}
 
-		$resultDb = ContactTable::getList(array(
-			'select' => array('NAME', 'TYPE_ID', 'CODE', 'USER_ID'),
-			'filter' => array(
-				'=CONTACT_LIST.LIST_ID' => $listId
-			)
-		));
+		$resultDb = ContactTable::getList(
+			[
+				'select' => ['NAME', 'TYPE_ID', 'CODE', 'USER_ID'],
+				'filter' => [
+					'=CONTACT_LIST.LIST_ID' => $listId
+				]
+			]
+		);
 		$resultDb->addFetchDataModifier(
 			function ($data)
 			{

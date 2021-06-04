@@ -2,17 +2,17 @@
 
 namespace Bitrix\Sale\Internals\Input;
 
+use Bitrix\Location\Service\FormatService;
 use Bitrix\Main\Event;
-use	Bitrix\Main\EventManager,
-	Bitrix\Main\SystemException,
+use	Bitrix\Main\SystemException,
 	Bitrix\Main\Localization\Loc;
 use Bitrix\Main\EventResult;
-use Bitrix\Sale\ResultError;
+use Bitrix\Main\Loader;
+use Bitrix\Main\Web\Json;
 
 Loc::loadMessages(__FILE__);
 
 // TODO integrate with input.js on adding multiple item
-
 class Manager
 {
 	static function initJs()
@@ -23,8 +23,15 @@ class Manager
 		{
 			$done = true;
 
+			if (Loader::includeModule('location'))
+			{
+				\Bitrix\Main\UI\Extension::load('sale.address');
+			}
+
 			\CJSCore::RegisterExt('input', array(
-				'js'   => '/bitrix/js/sale/input.js',
+				'js'   => [
+					'/bitrix/js/sale/input.js'
+				],
 				'lang' => '/bitrix/modules/sale/lang/'.LANGUAGE_ID.'/lib/internals/input.php',
 			));
 			\CJSCore::Init(array('input'));
@@ -213,12 +220,37 @@ class Manager
 		foreach (static::$types as $k => $v)
 			$typeOptions[$k] = $v['NAME']." [$k]";
 
-		return array(
+		$hasMultipleSupport = true;
+		if (isset(static::$types[$input['TYPE']]))
+		{
+			/** @var Base $typeClass */
+			$typeClass = static::$types[$input['TYPE']]['CLASS'];
+
+			if (!$typeClass::hasMultipleValuesSupport())
+			{
+				$hasMultipleSupport = false;
+			}
+		}
+
+		$multiple = array('TYPE' => 'Y/N' , 'LABEL' => Loc::getMessage('INPUT_MULTIPLE'));
+
+		if (!$hasMultipleSupport)
+		{
+			$multiple['DISABLED_YN'] = 'N';
+		}
+		else
+		{
+			$multiple['ONCLICK'] = $reload;
+		}
+
+		$result = [
 			'TYPE'     => array('TYPE' => 'ENUM', 'LABEL' => Loc::getMessage('INPUT_TYPE'), 'OPTIONS' => $typeOptions, 'REQUIRED' => 'Y', 'ONCHANGE' => $reload),
 			'REQUIRED' => array('TYPE' => 'Y/N' , 'LABEL' => Loc::getMessage('INPUT_REQUIRED')),
-			'MULTIPLE' => array('TYPE' => 'Y/N' , 'LABEL' => Loc::getMessage('INPUT_MULTIPLE'), 'ONCLICK' => $reload),
+			'MULTIPLE' => $multiple,
 			'VALUE'    => array('LABEL' => Loc::getMessage('INPUT_VALUE'), 'REQUIRED' => 'N') + $input,
-		);
+		];
+
+		return $result;
 	}
 
 	/** Get all registered types.
@@ -242,14 +274,20 @@ class Manager
 	 */
 	static function register($name, array $type)
 	{
-		if (static::$types[$name])
+		if (isset(static::$types[$name]))
+		{
 			throw new SystemException('duplicate type '.$name, 0, __FILE__, __LINE__);
+		}
 
 		if (! class_exists($type['CLASS']))
+		{
 			throw new SystemException('undefined CLASS in '.print_r($type, true), 0, __FILE__, __LINE__);
+		}
 
 		if (! is_subclass_of($type['CLASS'], __NAMESPACE__.'\Base'))
+		{
 			throw new SystemException($type['CLASS'].' does not implement Input\Base', 0, __FILE__, __LINE__);
+		}
 
 		static::$types[$name] = $type;
 	}
@@ -338,7 +376,7 @@ abstract class Base
 		if ($input['MULTIPLE'] == 'Y')
 		{
 			$tag = isset($input['MULTITAG']) ? htmlspecialcharsbx($input['MULTITAG']) : static::MULTITAG;
-			list ($startTag, $endTag) = $tag ? array("<$tag>", "</$tag>") : array('', '');
+			[$startTag, $endTag] = $tag ? array("<$tag>", "</$tag>") : array('', '');
 
 			$html = '';
 
@@ -384,7 +422,7 @@ abstract class Base
 			if ($input['MULTIPLE'] == 'Y')
 			{
 				$tag = isset($input['MULTITAG']) ? htmlspecialcharsbx($input['MULTITAG']) : static::MULTITAG;
-				list ($startTag, $endTag) = $tag ? array("<$tag>", "</$tag>") : array('', '');
+				[$startTag, $endTag] = $tag ? array("<$tag>", "</$tag>") : array('', '');
 
 				$index = -1;
 
@@ -610,7 +648,7 @@ abstract class Base
 
 		foreach (array_intersect_key($input, $boolean) as $k => $v)
 			if ($v === 'Y' || $v === true)
-				$string .= ' '.strtolower($k).($boolean[$k] ? '="'.$boolean[$k].'"' : '');
+				$string .= ' '.mb_strtolower($k).($boolean[$k] ? '="'.$boolean[$k].'"' : '');
 
 		// add event attributes with values
 		if ($withGlobal)
@@ -632,7 +670,7 @@ abstract class Base
 
 			foreach ($events as $k => $v)
 				if ($v)
-					$string .= ' '.strtolower($k).'="'.$v.'"';
+					$string .= ' '.mb_strtolower($k).'="'.$v.'"';
 		}
 
 		// add other attributes with values
@@ -648,7 +686,7 @@ abstract class Base
 
 		foreach (array_intersect_key($input, $other) as $k => $v)
 			if ($v)
-				$string .= ' '.strtolower($k).'="'.htmlspecialcharsbx($v).'"';
+				$string .= ' '.mb_strtolower($k).'="'.htmlspecialcharsbx($v).'"';
 
 		// add data attributes
 		if ($withGlobal && is_array($input['DATA']))
@@ -658,6 +696,14 @@ abstract class Base
 		}
 
 		return $string;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function hasMultipleValuesSupport()
+	{
+		return true;
 	}
 }
 
@@ -705,10 +751,10 @@ class StringInput extends Base // String reserved in php 7
 
 		$value = trim($value);
 
-		if ($input['MINLENGTH'] && strlen($value) < $input['MINLENGTH'])
+		if ($input['MINLENGTH'] && mb_strlen($value) < $input['MINLENGTH'])
 			$errors['MINLENGTH'] = Loc::getMessage('INPUT_STRING_MINLENGTH_ERROR', array("#NUM#" => $input['MINLENGTH']));
 
-		if ($input['MAXLENGTH'] && strlen($value) > $input['MAXLENGTH'])
+		if ($input['MAXLENGTH'] && mb_strlen($value) > $input['MAXLENGTH'])
 			$errors['MAXLENGTH'] = Loc::getMessage('INPUT_STRING_MAXLENGTH_ERROR', array("#NUM#" => $input['MAXLENGTH']));
 
 
@@ -718,7 +764,7 @@ class StringInput extends Base // String reserved in php 7
 			$issetDelimiter = false;
 			$pattern = trim($input['PATTERN']);
 
-			if (isset($pattern[0]) && in_array($pattern[0], static::$patternDelimiters) && strrpos($pattern, $pattern[0]) !== false)
+			if (isset($pattern[0]) && in_array($pattern[0], static::$patternDelimiters) && mb_strrpos($pattern, $pattern[0]) !== false)
 			{
 				$issetDelimiter = true;
 			}
@@ -788,13 +834,13 @@ class Number extends Base
 
 		$size = 5;
 
-		if (($s = strlen(strval($input['MIN']))) && $s > $size)
+		if (($s = mb_strlen(strval($input['MIN']))) && $s > $size)
 			$size = $s;
 
-		if (($s = strlen(strval($input['MAX']))) && $s > $size)
+		if (($s = mb_strlen(strval($input['MAX']))) && $s > $size)
 			$size = $s;
 
-		if (($s = strlen(strval($input['STEP']))) && $s > $size)
+		if (($s = mb_strlen(strval($input['STEP']))) && $s > $size)
 			$size = $s;
 
 		$input['SIZE'] = $size;
@@ -883,11 +929,19 @@ class EitherYN extends Base
 	public static function getEditHtmlSingle($name, array $input, $value)
 	{
 		$hiddenAttributes = static::extractAttributes($input, array('DISABLED'=>''), array('FORM'=>1), false);
-
 		$checkboxAttributes = static::extractAttributes($input, array('DISABLED'=>'', 'AUTOFOCUS'=>'', 'REQUIRED'=>''), array('FORM'=>1));
 
-		return '<input type="hidden" name="'.$name.'" value="N"'.$hiddenAttributes.'>'
-			.'<input type="checkbox" name="'.$name.'" value="Y"'.($value == 'Y' ? ' checked' : '').$checkboxAttributes.'>';
+		if (isset($input['DISABLED_YN']))
+		{
+			return '<input type="hidden" name="'.$name.'" value="' . (($input['DISABLED_YN'] == 'Y') ? 'Y' : 'N') . '">'
+				.'<input type="checkbox" '.($input['DISABLED_YN'] == 'Y' ? ' checked' : '').'disabled'.'>';
+		}
+		else
+		{
+			return '<input type="hidden" name="'.$name.'" value="N"'.$hiddenAttributes.'>'
+				.'<input type="checkbox" name="'.$name.'" value="Y"'.($value == 'Y' ? ' checked' : '').$checkboxAttributes.'>';
+		}
+
 	}
 
 	/**
@@ -942,9 +996,13 @@ class Enum extends Base
 		foreach ($array as $key => $value)
 		{
 			if (is_array($value))
-				$result = array_merge($result, $value);
+			{
+				$result = $result + $value;
+			}
 			else
+			{
 				$result[$key] = $value;
+			}
 		}
 
 		return $result;
@@ -1009,7 +1067,7 @@ class Enum extends Base
 			if ($input['MULTIELEMENT'] == 'Y')
 			{
 				$tag = isset($input['MULTITAG']) ? htmlspecialcharsbx($input['MULTITAG']) : static::MULTITAG;
-				list ($startTag, $endTag) = $tag ? array("<$tag>", "</$tag>") : array('', '');
+				[$startTag, $endTag] = $tag ? array("<$tag>", "</$tag>") : array('', '');
 
 				$attributes = static::extractAttributes($input, array('DISABLED'=>''), array('FORM'=>1), false);
 
@@ -1253,7 +1311,23 @@ class File extends Base
 
 	static function isMultiple($value)
 	{
-		return is_array($value) && ! isset($value['ID']);
+		$isMultiple = false;
+
+		if (isset($value['ID']))
+		{
+			return $isMultiple;
+		}
+
+		if (\is_array($value))
+		{
+			$file = current($value);
+			if (\is_array($file) || ((int)$file > 0))
+			{
+				$isMultiple = true;
+			}
+		}
+
+		return $isMultiple;
 	}
 
 	public static function getViewHtmlSingle(array $input, $value)
@@ -1332,14 +1406,14 @@ class File extends Base
 			.'<input type="file" name="'.$name.'" style="position:absolute; visibility:hidden"'.$fileAttributes.'>'
 			.'<input type="button" value="'.Loc::getMessage('INPUT_FILE_BROWSE').'" onclick="this.previousSibling.click()">'
 			.(
-				$input['NO_DELETE']
-					? ''
-					: '<label> '.Loc::getMessage('INPUT_DELETE').' <input type="checkbox" name="'.$name.'[DELETE]" onclick="'
+			$input['NO_DELETE']
+				? ''
+				: '<label> '.Loc::getMessage('INPUT_DELETE').' <input type="checkbox" name="'.$name.'[DELETE]" onclick="'
 
-						."var button = this.parentNode.previousSibling, file = button.previousSibling;"
-						."button.disabled = file.disabled = this.checked;"
+				."var button = this.parentNode.previousSibling, file = button.previousSibling;"
+				."button.disabled = file.disabled = this.checked;"
 
-						.'"'.$otherAttributes.'> </label>'
+				.'"'.$otherAttributes.'> </label>'
 			);
 	}
 
@@ -1471,12 +1545,12 @@ class Date extends Base
 	{
 		return '<label> '.Loc::getMessage('INPUT_DELETE').' <input type="checkbox" onclick="'
 
-		."var disabled = this.checked;"
-		."var button = this.parentNode.previousSibling;"
-		."button.disabled = disabled;"
-		."button.previousSibling.disabled = disabled;"
+			."var disabled = this.checked;"
+			."var button = this.parentNode.previousSibling;"
+			."button.disabled = disabled;"
+			."button.previousSibling.disabled = disabled;"
 
-		.'"> </label>';
+			.'"> </label>';
 	}
 
 	public static function getErrorSingle(array $input, $value)
@@ -1575,7 +1649,7 @@ class Location extends Base
 			if ($input['MULTIPLE'] == 'Y')
 			{
 				$tag = isset($input['MULTITAG']) ? htmlspecialcharsbx($input['MULTITAG']) : static::MULTITAG;
-				list ($startTag, $endTag) = $tag ? array("<$tag>", "</$tag>") : array('', '');
+				[$startTag, $endTag] = $tag ? array("<$tag>", "</$tag>") : array('', '');
 
 				$index = -1;
 
@@ -1670,3 +1744,132 @@ Manager::register('LOCATION', array(
 	'CLASS' => __NAMESPACE__.'\Location',
 	'NAME' => Loc::getMessage('INPUT_LOCATION'),
 ));
+
+/**
+ * Class Address
+ * @package Bitrix\Sale\Internals\Input
+ */
+class Address extends Base
+{
+	/**
+	 * @inheritdoc
+	 */
+	static function isMultiple($value)
+	{
+		return false;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function hasMultipleValuesSupport()
+	{
+		return false;
+	}
+
+	/**
+	 * @param array $input
+	 * @param \Bitrix\Location\Entity\Address $value
+	 * @return string
+	 */
+	public static function getViewHtml(array $input, $value = null)
+	{
+		if (!is_array($value) || !Loader::includeModule('location'))
+		{
+			return '';
+		}
+
+		$address = \Bitrix\Location\Entity\Address::fromArray($value);
+
+		return $address->toString(
+			FormatService::getInstance()->findDefault(LANGUAGE_ID)
+		);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function getFilterEditHtml($name, array $input, $value)
+	{
+		//not implemented
+		return '';
+	}
+
+	/**
+	 * @param array $input
+	 * @param $value
+	 * @return array
+	 */
+	public static function getErrorSingle(array $input, $value)
+	{
+		if ($input['REQUIRED'] == 'Y')
+		{
+			if (!(is_array($value) && !empty($value)))
+			{
+				return ['REQUIRED' => Loc::getMessage('INPUT_REQUIRED_ERROR')];
+			}
+		}
+
+		return [];
+	}
+
+	/**
+	 * @param array $input
+	 * @param $value
+	 * @return array
+	 */
+	public static function getRequiredError(array $input, $value)
+	{
+		return static::getErrorSingle($input, $value);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	public static function getEditHtmlSingle($name, array $input, $value)
+	{
+		if (!Loader::includeModule('location'))
+		{
+			return '';
+		}
+
+		\Bitrix\Main\UI\Extension::load('sale.address');
+
+		ob_start();
+		?>
+		<script>
+			if (BX.Sale.AddressControlConstructor)
+			{
+				new BX.Sale.AddressControlConstructor(
+					{
+						propsData: {
+							name: '<?=$name?>',
+							initValue: <?=($value) ? ("'" . \Bitrix\Location\Entity\Address::fromArray($value)->toJson() . "'") : Json::encode(null)?>,
+							isLocked: <?=($input['DISABLED'] === 'Y') ? Json::encode(true) : Json::encode(false)?>,
+							onChangeCallback: function () {
+								<?if (isset($input['ONCHANGE'])):?>
+								<?=$input['ONCHANGE']?>
+								<?endif;?>
+							}
+						}
+					}
+				).$mount('#<?=$name?>');
+			}
+		</script>
+		<?
+		$script = ob_get_clean();
+
+		return '
+			<div id="' . $name . '"></div>
+			' . $script . '
+		';
+	}
+}
+
+if (Loader::includeModule('location'))
+{
+	Manager::register('ADDRESS', array(
+		'CLASS' => __NAMESPACE__.'\Address',
+		'NAME' => Loc::getMessage('INPUT_ADDRESS'),
+	));
+}

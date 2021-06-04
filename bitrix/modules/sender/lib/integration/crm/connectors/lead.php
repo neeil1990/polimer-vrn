@@ -8,17 +8,17 @@
 
 namespace Bitrix\Sender\Integration\Crm\Connectors;
 
-use Bitrix\Main\DB\Result;
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\Entity;
-use Bitrix\Main\Page\Asset;
-use Bitrix\Main\UI\Filter\AdditionalDateType;
-
-use Bitrix\Sender\Connector\BaseFilter as ConnectorBaseFilter;
-use Bitrix\Sender\Connector\ResultView;
-
 use Bitrix\Crm\LeadTable;
 use Bitrix\Crm\PhaseSemantics;
+use Bitrix\Main\DB\Result;
+use Bitrix\Main\Entity;
+use Bitrix\Main\Loader;
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Page\Asset;
+use Bitrix\Main\UI\Filter\AdditionalDateType;
+use Bitrix\Sender\Connector;
+use Bitrix\Sender\Connector\BaseFilter as ConnectorBaseFilter;
+use Bitrix\Sender\Connector\ResultView;
 
 Loc::loadMessages(__FILE__);
 
@@ -26,7 +26,7 @@ Loc::loadMessages(__FILE__);
  * Class Lead
  * @package Bitrix\Sender\Integration\Crm\Connectors
  */
-class Lead extends ConnectorBaseFilter
+class Lead extends ConnectorBaseFilter implements Connector\IncrementallyConnector
 {
 	/**
 	 * Get name.
@@ -53,7 +53,7 @@ class Lead extends ConnectorBaseFilter
 	 *
 	 * @return null|Entity\Query
 	 */
-	public function getQuery()
+	public function getQuery($selectList = [])
 	{
 		$filter = Helper::getFilterByFields(
 			self::getUiFilterFields(),
@@ -74,10 +74,17 @@ class Lead extends ConnectorBaseFilter
 
 		$query = new Entity\Query(LeadTable::getEntity());
 		$query->setFilter($filter);
-		$query->setSelect([
-			$nameExprField, 'CRM_ENTITY_ID' => 'ID', 'CRM_ENTITY_TYPE_ID',
-			'CRM_CONTACT_ID' => 'CONTACT_ID', 'CRM_COMPANY_ID' => 'COMPANY_ID',
-		]);
+		$query->setSelect(array_merge($selectList, [
+			$nameExprField,
+			'CRM_ENTITY_ID' => 'ID',
+			'CRM_ENTITY_TYPE_ID',
+			'CRM_ENTITY_TYPE',
+			'CRM_CONTACT_ID' => 'CONTACT_ID',
+			'CRM_COMPANY_ID' => 'COMPANY_ID',
+		]));
+
+		$query->registerRuntimeField(new Entity\ExpressionField('CRM_ENTITY_TYPE', '\''.\CCrmOwnerType::LeadName.'\''));
+
 		$query->registerRuntimeField(Helper::createExpressionMultiField(
 			\CCrmOwnerType::LeadName,
 			'EMAIL'
@@ -158,7 +165,10 @@ class Lead extends ConnectorBaseFilter
 	 */
 	public static function getPersonalizeList()
 	{
-		return Helper::getPersonalizeList();
+		return Loader::includeModule('crm') ? array_merge(
+			Helper::getPersonalizeList(),
+			Helper::buildPersonalizeList(\CCrmOwnerType::LeadName)
+		) : Helper::getPersonalizeList();
 	}
 
 	/**
@@ -232,7 +242,8 @@ class Lead extends ConnectorBaseFilter
 				\CCrmFieldMulti::PHONE,
 				\CCrmFieldMulti::EMAIL,
 				\CCrmFieldMulti::IM
-			))
+			)),
+			'filter_callback' => ['\Bitrix\Sender\Integration\Crm\Connectors\Helper', 'getCommunicationTypeFilter']
 		);
 
 		$list[] = PhaseSemantics::getListFilterInfo(
@@ -244,6 +255,32 @@ class Lead extends ConnectorBaseFilter
 				'params' => array('multiple' => 'Y'),
 			),
 			true
+		);
+
+		$list[] = array(
+			'id' => 'PRODUCT_ROW.PRODUCT_ID',
+			"name" => Loc::getMessage("SENDER_INTEGRATION_CRM_CONNECTOR_LEAD_FIELD_PRODUCT_ID"),
+			'default' => true,
+			'type' => 'dest_selector',
+			'partial' => true,
+			'params' => array(
+				'multiple' => 'Y',
+				'apiVersion' => 3,
+				'context' => 'CRM_LEAD_FILTER_PRODUCT_ID',
+				'contextCode' => 'CRM',
+				'useClientDatabase' => 'N',
+				'enableAll' => 'N',
+				'enableDepartments' => 'N',
+				'enableUsers' => 'N',
+				'enableSonetgroups' => 'N',
+				'allowEmailInvitation' => 'N',
+				'allowSearchEmailUsers' => 'N',
+				'departmentSelectDisable' => 'Y',
+				'addTabCrmProducts' => 'Y',
+				'enableCrm' => 'Y',
+				'enableCrmProducts' => 'Y',
+				'convertJson' => 'Y'
+			)
 		);
 
 		$list[] = array(
@@ -277,6 +314,14 @@ class Lead extends ConnectorBaseFilter
 		);
 
 		$list[] = array(
+			"id" => "POST",
+			'type' => 'string',
+			"name" => Loc::getMessage('SENDER_INTEGRATION_CRM_CONNECTOR_LEAD_FIELD_POST'),
+			'params' => array('multiple' => 'Y'),
+			"default" => false
+		);
+
+		$list[] = array(
 			"id" => "BIRTHDATE",
 			"name" => Loc::getMessage('SENDER_INTEGRATION_CRM_CONNECTOR_LEAD_FIELD_BIRTHDATE'),
 			'type' => 'date',
@@ -289,6 +334,15 @@ class Lead extends ConnectorBaseFilter
 			],
 			"allow_years_switcher" => true,
 			"default" => false,
+		);
+
+		$list[] = array(
+			'id' => 'HONORIFIC',
+			'name' => Loc::getMessage('SENDER_INTEGRATION_CRM_CONNECTOR_LEAD_FIELD_HONORIFIC'),
+			'params' => array('multiple' => 'Y'),
+			'default' => false,
+			'type' => 'list',
+			'items' => \CCrmStatus::GetStatusList('HONORIFIC'),
 		);
 
 		$list = array_merge($list, Helper::getFilterUserFields(\CCrmOwnerType::Lead));
@@ -374,5 +428,70 @@ class Lead extends ConnectorBaseFilter
 				ResultView::Draw,
 				[__NAMESPACE__ . '\Helper', 'onResultViewDraw']
 			);
+	}
+
+	public function getUiFilterId()
+	{
+		$code = str_replace('_', '', $this->getCode());
+		return $this->getId()   . '_--filter--'.$code.'--';
+	}
+
+	/**
+	 * Get fields for statistic
+	 * @return array
+	 */
+	public function getStatFields()
+	{
+		return ['PRODUCT_ROW.PRODUCT_ID'];
+	}
+
+	/**
+	 * @param int $offset
+	 * @param int $limit
+	 * @param string|null $excludeType
+	 *
+	 * @return array|Entity\Query[]|null[]
+	 */
+	public function getLimitedQueries(int $offset, int $limit, string $excludeType = null): array
+	{
+		$query = $this->getQuery();
+
+		$query->whereBetween('ID', $offset, $limit);
+		return [
+			$query
+		];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getEntityLimitInfo(): array
+	{
+		$lastLead = \CCrmLead::GetListEx(
+			['ID' => 'DESC'],
+			['CHECK_PERMISSIONS' => 'N'],
+			false,
+            ['nTopCount' => '1'],
+			['ID']
+		)->Fetch();
+		$lastLeadId = $lastLead['ID'] ?? 0;
+
+		return [
+			'lastContactId' => 0,
+			'lastCompanyId' => 0,
+			'lastId' => $lastLeadId,
+		];
+	}
+
+	/**
+	 * @param int $offset
+	 * @param int $limit
+	 *
+	 * @return Result
+	 */
+	public function getLimitedData(int $offset, int $limit): \Bitrix\Main\DB\Result
+	{
+		$query = $this->getLimitedQueries($offset, $limit)[0];
+		return QueryData::getData($query, $this->getDataTypeId());
 	}
 }

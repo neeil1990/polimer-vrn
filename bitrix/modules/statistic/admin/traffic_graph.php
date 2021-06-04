@@ -69,7 +69,7 @@ if(isset($_REQUEST["find_site_id"]))
 foreach($find_site_id as $k=>$v)
 {
 	$v = trim($v);
-	if(strlen($v) <= 0)
+	if($v == '')
 		unset($find_site_id[$k]);
 	else
 		$find_site_id[$k] = $v;
@@ -98,7 +98,7 @@ if ($find_graph_type!="date")
 			if(LANGUAGE_ID != "en")
 				$arrTTF_FONT = array(
 					"X" => array(
-						"FONT_PATH" => "/bitrix/modules/statistic/ttf/verdana.ttf",
+						"FONT_PATH" => "/bitrix/modules/main/install/fonts/opensans-regular.ttf",
 						"FONT_SIZE" => 8,
 						"FONT_SHIFT" => 12,
 					),
@@ -109,7 +109,7 @@ if ($find_graph_type!="date")
 			if(LANGUAGE_ID != "en")
 				$arrTTF_FONT = array(
 					"X" => array(
-						"FONT_PATH" => "/bitrix/modules/statistic/ttf/verdana.ttf",
+						"FONT_PATH" => "/bitrix/modules/main/install/fonts/opensans-regular.ttf",
 						"FONT_SIZE" => 8,
 						"FONT_SHIFT" => 12,
 					),

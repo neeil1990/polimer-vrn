@@ -26,8 +26,8 @@ IncludeModuleLangFile(dirname(__FILE__).'/dump.php');
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/classes/general/backup.php");
 $strBXError = '';
 $bGzip = function_exists('gzcompress');
-$bMcrypt = function_exists('mcrypt_encrypt') || function_exists('openssl_encrypt');
-$bBitrixCloud = $bMcrypt;
+$encrypt = function_exists('openssl_encrypt');
+$bBitrixCloud = $encrypt;
 if (!CModule::IncludeModule('bitrixcloud'))
 {
 	$bBitrixCloud = false;
@@ -80,7 +80,7 @@ if($_REQUEST['save'])
 	else
 	{
 		$BUCKET_ID = $_REQUEST['dump_bucket_id'];
-		if (!$bMcrypt)
+		if (!$encrypt)
 		{
 			$_REQUEST['dump_encrypt_key'] = '';
 			if ($BUCKET_ID == -1)
@@ -229,7 +229,6 @@ if($_REQUEST['save'])
 		COption::SetOptionString("main", "skip_mask_array_auto", serialize($skip_mask_array));
 
 		IntOptionSet('dump_max_file_size', intval($_REQUEST['max_file_size']));
-		IntOptionSet('skip_symlinks', $_REQUEST['skip_symlinks'] == 'Y');
 
 		if ($strError)
 			CAdminMessage::ShowMessage(array(
@@ -275,10 +274,10 @@ else
 			"HTML" => true));
 }
 
-if (!$bMcrypt)
+if (!$encrypt)
 {
 	CAdminMessage::ShowMessage(array(
-		"MESSAGE" => GetMessage("MAIN_DUMP_NOT_INSTALLED"),
+		"MESSAGE" => GetMessage("MAIN_DUMP_NOT_INSTALLED1"),
 		"DETAILS" => GetMessage("MAIN_DUMP_NO_ENC_FUNCTIONS"),
 		"TYPE" => "ERROR",
 		"HTML" => true));
@@ -617,14 +616,15 @@ if ($BUCKET_ID == -1 && !$bBitrixCloud)
 		<td>
 			<?
 				if ($s = COption::GetOptionString("main", "dump_site_id"."_auto", ($NS['dump_site_id'])))
-					$dump_site_id = unserialize($s);
+					$dump_site_id = unserialize($s, ['allowed_classes' => false]);
 				else
 					$dump_site_id = array();
 				$i = 0;
 				foreach($arSitePath as $path => $val)
 				{
 					$path = rtrim(str_replace('\\','/',$path),'/');
-					list($k,$v) = each($val);
+					$k = key($val);
+					$v = current($val);
 					echo '<div><input type=checkbox id="dump_site_id'.$i.'" name="dump_site_id[]" value="'.htmlspecialcharsbx($k).'" '.(in_array($k, $dump_site_id) ? ' checked' : '').'> <label for="dump_site_id'.$i.'">'.htmlspecialcharsbx($v).'</label></div>';
 					$i++;
 				}
@@ -686,7 +686,7 @@ if ($DB->type == 'MYSQL')
 		<?
 		$i=-1;
 
-		$res = unserialize(COption::GetOptionString("main","skip_mask_array_auto"));
+		$res = unserialize(COption::GetOptionString("main","skip_mask_array_auto"), ['allowed_classes' => false]);
 		$skip_mask_array = is_array($res)?$res:array();
 
 		foreach($skip_mask_array as $mask)
@@ -710,13 +710,6 @@ if ($DB->type == 'MYSQL')
 	<td><input type="text" name="max_file_size" size="10" value="<?=IntOption("dump_max_file_size", 0)?>">
 	<?echo GetMessage("MAIN_DUMP_FILE_MAX_SIZE_kb")?></td>
 </tr>
-<tr>
-	<td><?echo GetMessage("MAIN_DUMP_SKIP_SYMLINKS")?></td>
-	<td><input type="checkbox" name="skip_symlinks" value="Y" <?=IntOption("skip_symlinks", 0) ? "checked" : ''?>></td>
-</tr>
-
-
-
 
 <tr class="heading">
 	<td colspan="2"><?=GetMessage("DUMP_MAIN_ARC_MODE")?></td>
@@ -724,7 +717,7 @@ if ($DB->type == 'MYSQL')
 
 <tr>
 	<td><?=GetMessage("MAIN_DUMP_ENABLE_ENC")?><span class="required"><sup>2</sup></td>
-	<td><input type="checkbox" name="dump_encrypt" value="Y" <?=($BUCKET_ID == -1 || CPasswordStorage::Get('dump_temporary_cache') ? "checked" : "")?> <?=!$bMcrypt || $BUCKET_ID == -1  ? 'disabled' : ''?>></td>
+	<td><input type="checkbox" name="dump_encrypt" value="Y" <?=($BUCKET_ID == -1 || CPasswordStorage::Get('dump_temporary_cache') ? "checked" : "")?> <?=!$encrypt || $BUCKET_ID == -1  ? 'disabled' : ''?>></td>
 </tr>
 <tr>
 	<td width=40%><?=GetMessage('INTEGRITY_CHECK_OPTION')?></td>

@@ -216,6 +216,11 @@
 			});
 		},
 
+		createImageEditor: function(editObject)
+		{
+			return (new BX.Grid.ImageField(this.parent, editObject)).getLayout();
+		},
+
 		getEditor: function(editObject, height)
 		{
 			var control, span;
@@ -273,6 +278,11 @@
 
 					case this.types.DROPDOWN : {
 						control = this.createDropdown(editObject);
+						break;
+					}
+
+					case this.types.IMAGE : {
+						control = this.createImageEditor(editObject);
 						break;
 					}
 

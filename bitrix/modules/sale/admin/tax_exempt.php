@@ -1,13 +1,7 @@
 <?
-##############################################
-# Bitrix: SiteManager                        #
-# Copyright (c) 2002-2006 Bitrix             #
-# http://www.bitrixsoft.com                  #
-# mailto:admin@bitrixsoft.com                #
-##############################################
-
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $publicMode = $adminPage->publicMode;
 $selfFolderUrl = $adminPage->getSelfFolderUrl();
@@ -21,7 +15,7 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/prolog.php");
 
 $sTableID = "tbl_sale_tax_exempt";
 
-$oSort = new CAdminSorting($sTableID, "ID", "asc");
+$oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
@@ -72,7 +66,7 @@ while ($arGroup = $dbResultList->NavNext(false))
 		{
 			if($arTax = CSaleTax::GetByID($arRes["TAX_ID"]))
 			{
-				if (strlen($fieldShow) > 0)
+				if ($fieldShow <> '')
 					$fieldShow .= ", ";
 
 				$fieldShow .= "<a href=\"/bitrix/admin/sale_tax_edit.php?ID=".$arRes["TAX_ID"]."&lang=".
@@ -80,7 +74,7 @@ while ($arGroup = $dbResultList->NavNext(false))
 			}
 		}
 	}
-	if (strlen($fieldShow) <= 0)
+	if ($fieldShow == '')
 		$fieldShow = "&nbsp;";
 	$row->AddField("COUNT", $fieldShow);
 
@@ -105,9 +99,13 @@ $lAdmin->CheckListMode();
 /****************************************************************************/
 $APPLICATION->SetTitle(GetMessage("TAX_EXEMPT_TITLE"));
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php");
-
-
-$lAdmin->DisplayList();
-
+if (!$publicMode && \Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
+{
+	$APPLICATION->IncludeComponent("bitrix:sale.admin.page.stub", ".default");
+}
+else
+{
+	$lAdmin->DisplayList();
+}
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
 ?>

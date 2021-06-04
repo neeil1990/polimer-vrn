@@ -18,7 +18,7 @@ class CBPWhileActivity
 	{
 		$ar = parent::GetACNames();
 		if ($this->arProperties["Condition"] != null)
-			$ar[] = substr(get_class($this->arProperties["Condition"]), 3);
+			$ar[] = mb_substr(get_class($this->arProperties["Condition"]), 3);
 		return $ar;
 	}
 
@@ -156,7 +156,7 @@ class CBPWhileActivity
 			}
 
 			$arActivities[$activityKey]["PROPERTIES_DIALOG"] = $v;
-			if (strlen($firstConditionType) <= 0)
+			if ($firstConditionType == '')
 				$firstConditionType = $activityKey;
 		}
 
@@ -184,7 +184,7 @@ class CBPWhileActivity
 
 		foreach ($arTestProperties as $key => $value)
 		{
-			if (array_key_exists(strtolower($key), $arActivities))
+			if (array_key_exists(mb_strtolower($key), $arActivities))
 			{
 				$runtime->IncludeActivityFile($key);
 
@@ -244,5 +244,14 @@ class CBPWhileActivity
 
 		return false;
 	}
+
+	public function collectUsages()
+	{
+		$usages = parent::collectUsages();
+		if ($this->Condition instanceof CBPActivityCondition)
+		{
+			$usages = array_merge($usages, $this->Condition->collectUsages($this));
+		}
+		return $usages;
+	}
 }
-?>

@@ -10,7 +10,8 @@
 		this.contClassName = '';
 		this.isBuilt = false;
 		this.animateClass = 'calendar-grid-animate';
-		this.collapseOffHours = this.util.getUserOption('collapseOffHours', 'Y') == 'Y';
+		this.collapseOffHours = this.util.getUserOption('collapseOffHours', 'Y') === 'Y';
+		this.hotkey = null;
 
 		this.entries = [];
 		this.entriesIndex = {};
@@ -141,7 +142,7 @@
 			}
 		},
 
-		showSimplePopup: function(params)
+		showCompactEditForm: function(params)
 		{
 			if (this.calendar.isExternalMode())
 			{
@@ -156,26 +157,33 @@
 				return;
 			}
 
-			if (!this.simpleEntryPopup)
-			{
-				this.simpleEntryPopup = new window.BXEventCalendar.SimpleAddPopup(this.calendar);
-			}
-
-			this.simpleEntryPopup.show(params);
+			BX.Calendar.EntryManager.openCompactEditForm({
+				type: this.calendar.util.type,
+				ownerId: this.calendar.util.ownerId,
+				sections: this.calendar.sectionController.sections,
+				trackingUserList: this.calendar.util.getSuperposedTrackedUsers(),
+				entryTime: params.entryTime || null,
+				closeCallback: params.closeCallback,
+				userSettings: this.calendar.util.config.userSettings,
+				locationFeatureEnabled: this.calendar.util.isRichLocationEnabled(),
+				locationList: this.calendar.util.getLocationList(),
+				iblockMeetingRoomList: this.calendar.util.getMeetingRoomList(),
+			});
 		},
 
-		showSimpleViewPopup : function(params)
+		showCompactViewForm : function(params)
 		{
-			if (!this.simpleViewPopup)
-			{
-				this.simpleViewPopup = new window.BXEventCalendar.SimpleViewPopup(this.calendar);
-			}
-			else if (this.simpleViewPopup.isShown())
-			{
-				this.simpleViewPopup.close();
-			}
-
-			this.simpleViewPopup.show(params);
+			BX.Calendar.EntryManager.openCompactViewForm({
+				entry: params.entry,
+				type: this.calendar.util.type,
+				ownerId: this.calendar.util.ownerId,
+				sections: this.calendar.sectionController.sections,
+				trackingUserList: this.calendar.util.getSuperposedTrackedUsers(),
+				userSettings: this.calendar.util.config.userSettings,
+				locationFeatureEnabled: this.calendar.util.isRichLocationEnabled(),
+				locationList: this.calendar.util.getLocationList(),
+				iblockMeetingRoomList: this.calendar.util.getMeetingRoomList()
+			});
 		},
 
 		showEditSlider: function(params)
@@ -190,18 +198,18 @@
 				params = {};
 			}
 
-			if (this.simpleEntryPopup)
+			if (this.simpleEntryPopup && this.simpleEntryPopup.isShown())
 			{
-				params.newEntryData = this.simpleEntryPopup.getPopupData();
+				params.entry = this.simpleEntryPopup.getEntry();
 				this.simpleEntryPopup.close();
 			}
 
-			if (!this.calendar.editSlider)
-			{
-				this.calendar.editSlider = new window.BXEventCalendar.EditEntrySlider(this.calendar);
-			}
-
-			this.calendar.editSlider.show(params);
+			BX.Calendar.EntryManager.openEditSlider({
+				entry: params.entry,
+				type: this.calendar.util.type,
+				ownerId: this.calendar.util.ownerId,
+				userId: parseInt(this.calendar.currentUser.id)
+			});
 		},
 
 		handleEntryClick: function(params)
@@ -213,25 +221,27 @@
 				return this.calendar.triggerEvent('entryClick', params);
 			}
 
-			if (params.entry.isSelected())
-			{
+			// if (params.entry.isSelected())
+			// {
 				if (params.entry.isTask())
 				{
 					BX.SidePanel.Instance.open(this.calendar.util.getViewTaskPath(params.entry.id), {loader: "task-new-loader"});
 				}
 				else
 				{
-					this.showViewSlider({
-						entry: params.entry
-					});
-				}
-			}
+					this.showCompactViewForm(params);
 
-			this.selectEntry(params.entry);
-			if (this.name === 'week' || this.name === 'month')
-			{
-				this.showSimpleViewPopup(params);
-			}
+					// this.showViewSlider({
+					// 	entry: params.entry
+					// });
+				}
+			//}
+
+			//this.selectEntry(params.entry);
+			// if (this.name === 'week' || this.name === 'month')
+			// {
+			// 	this.showCompactViewForm(params);
+			// }
 		},
 
 		showViewSlider: function(params)
@@ -241,17 +251,21 @@
 				return;
 			}
 
-			if (!this.calendar.viewSlider)
+			if (params.entry && params.entry.id)
 			{
-				this.calendar.viewSlider = new window.BXEventCalendar.ViewEntrySlider(this.calendar);
+				BX.Calendar.EntryManager.openViewSlider(params.entry.id,
+					{
+						from: params.entry.from,
+						timezoneOffset: params.entry && params.entry.data ? params.entry.data.TZ_OFFSET_FROM : null
+					}
+				);
 			}
-
-			this.calendar.viewSlider.show(params);
 
 			if (this.simpleViewPopup)
 			{
 				this.simpleViewPopup.close();
 			}
+
 			setTimeout(BX.delegate(function(){
 				if (this.simpleViewPopup)
 				{
@@ -272,36 +286,10 @@
 			return false;
 		},
 
-		selectEntry: function(entry)
-		{
-			if (entry && entry.parts)
-			{
-				if (this.selectedEntry)
-					this.deselectEntry();
-
-				if (entry.select)
-					entry.select();
-
-				entry.parts.forEach(function(part)
-				{
-					part.params = this.selectEntryPart(part.params, entry.color, entry.isExpired());
-				}, this);
-
-				this.selectedEntry = entry;
-
-				if (this.name !== 'week' && this.name !== 'month')
-				{
-					this.showAdditionalInfo(entry);
-				}
-			}
-		},
-
 		selectEntryPart: function(params, color)
 		{
 			if (params.wrapNode)
 			{
-				params.backupWrapZIndex = params.wrapNode.style.zIndex || '';
-				params.wrapNode.style.zIndex = 4000;
 				params.backupWrapNodeClass = params.wrapNode.className;
 
 				BX.addClass(params.wrapNode, 'calendar-event-line-fill');
@@ -354,7 +342,6 @@
 					if (part.params.wrapNode)
 					{
 						part.params.wrapNode.className = part.params.backupWrapNodeClass;
-						part.params.wrapNode.style.zIndex = part.params.backupWrapZIndex;
 					}
 
 					if (part.params.innerContainer)
@@ -397,6 +384,7 @@
 		showAllEventsInPopup: function(params)
 		{
 			var
+				entrieList = params.entrieList || params.day.entries.list,
 				innerCont,
 				popup;
 
@@ -405,10 +393,10 @@
 				events: {click : BX.proxy(this.calendar.handleViewsClick, this.calendar)}
 			});
 
-			params.day.entries.list.sort(this.calendar.entryController.sort);
+			entrieList.sort(this.calendar.entryController.sort);
 
 			var taskWrap, eventsWrap;
-			params.day.entries.list.forEach(function(entryItem)
+			entrieList.forEach(function(entryItem)
 			{
 				if (entryItem.entry)
 				{
@@ -464,18 +452,6 @@
 			{
 				popup.destroy();
 			});
-		},
-
-		showAdditionalInfo: function(entry)
-		{
-			BX.remove(this.calendar.additionalInfoOuter);
-
-			this.calendar.additionalInfoOuter = this.calendar.rightBlock.appendChild(BX.create('DIV', {props: {className: 'calendar-right-block hide'}}));
-
-			if (!this.simpleViewPopup)
-				this.simpleViewPopup = new window.BXEventCalendar.SimpleViewPopup(this.calendar);
-
-			this.calendar.additionalInfoOuter.appendChild(this.simpleViewPopup.createContent({entry: entry}));
 		},
 
 		showNavigationCalendar: function()
@@ -545,6 +521,11 @@
 				viewRangeDate = this.calendar.getViewRangeDate(),
 				endDate = new Date(viewRangeDate.getTime());
 			return {start: viewRangeDate, end: endDate};
+		},
+
+		getHotkey: function()
+		{
+			return this.hotkey || null;
 		}
 	};
 

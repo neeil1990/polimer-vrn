@@ -103,7 +103,7 @@ class CLists
 		$arToDB = CLists::GetDefaultSocnetPermission();
 		foreach($arToDB as $role => $permission)
 			if(isset($arRoles[$role]))
-				$arToDB[$role] = substr($arRoles[$role], 0, 1);
+				$arToDB[$role] = mb_substr($arRoles[$role], 0, 1);
 		$arToDB["A"] = "X"; //Group owner always in charge
 		$arToDB["T"] = "D"; //Banned
 		$arToDB["Z"] = "D"; //and Request never get to list
@@ -269,6 +269,8 @@ class CLists
 		$CACHE_MANAGER->Clean("b_lists_perm".$iblock_id);
 
 		CListFieldList::DeleteFields($iblock_id);
+
+		self::deleteLockFeatureOption($iblock_id);
 	}
 
 	public static function OnAfterIBlockUpdate(array &$fields)
@@ -346,9 +348,9 @@ class CLists
 					"NAME" => $arInputFields["SP_FIELD"],
 				);
 
-				if(substr($arInputFields["FIELD_ID"], 0, 9) == "PROPERTY_")
+				if(mb_substr($arInputFields["FIELD_ID"], 0, 9) == "PROPERTY_")
 				{
-					$arNewFields["ID"] = substr($arInputFields["FIELD_ID"], 9);
+					$arNewFields["ID"] = mb_substr($arInputFields["FIELD_ID"], 9);
 					$arNewFields["TYPE"] = "S";
 				}
 				else
@@ -369,7 +371,10 @@ class CLists
 		{
 			//Check if iblock is list
 			$arListsPerm = CLists::GetPermission($arIBlock["IBLOCK_TYPE_ID"]);
-			if(count($arListsPerm))
+			if(
+				is_array($arListsPerm)
+				&& count($arListsPerm)
+			)
 			{
 				//User groups
 				$arUserGroups = $USER->GetUserGroupArray();
@@ -615,6 +620,7 @@ class CLists
 	 * @param $iblockId
 	 * @param array $errors - an array of errors that occurred array(0 => 'error message')
 	 * @return bool or int
+	 * @deprecated
 	 */
 	public static function copyIblock($iblockId, array &$errors)
 	{
@@ -1039,8 +1045,8 @@ class CLists
 		}
 
 		$cacheTime = defined('BX_COMP_MANAGED_CACHE') ? 3153600 : 3600*4;
-		$cacheId = 'lists-crm-attached-'.strtolower($entityType);
-		$cacheDir = '/lists/crm/attached/'.strtolower($entityType).'/';
+		$cacheId = 'lists-crm-attached-'.mb_strtolower($entityType);
+		$cacheDir = '/lists/crm/attached/'.mb_strtolower($entityType).'/';
 		$cache = new CPHPCache;
 		if($cache->initCache($cacheTime, $cacheId, $cacheDir))
 		{
@@ -1086,21 +1092,20 @@ class CLists
 					{
 						case "CRM_PRODUCT_CATALOG":
 						{
-							continue;
-							break;
+							continue 2;
 						}
 						case "bitrix_processes":
 						{
 							if (!$isProcessesFeatureEnabled)
 							{
-								continue;
+								continue 2;
 							}
 							break;
 						}
 						default:
 							if (!$isListsFeatureEnabled)
 							{
-								continue;
+								continue 2;
 							}
 					}
 					$listIblock[$iblockId] = $iblock['NAME'];
@@ -1131,7 +1136,7 @@ class CLists
 					foreach($fields['USER_TYPE_SETTINGS'] as $entityType => $marker)
 					{
 						if($marker == 'Y')
-						 self::deleteListsCache('/lists/crm/attached/'.strtolower($entityType).'/');
+						 self::deleteListsCache('/lists/crm/attached/'.mb_strtolower($entityType).'/');
 					}
 				}
 			}
@@ -1155,7 +1160,7 @@ class CLists
 					foreach($fields['USER_TYPE_SETTINGS'] as $entityType => $marker)
 					{
 						if($marker == 'Y')
-							self::deleteListsCache('/lists/crm/attached/'.strtolower($entityType).'/');
+							self::deleteListsCache('/lists/crm/attached/'.mb_strtolower($entityType).'/');
 					}
 				}
 			}
@@ -1179,7 +1184,7 @@ class CLists
 					foreach($fields['USER_TYPE_SETTINGS'] as $entityType => $marker)
 					{
 						if($marker == 'Y')
-							self::deleteListsCache('/lists/crm/attached/'.strtolower($entityType).'/');
+							self::deleteListsCache('/lists/crm/attached/'.mb_strtolower($entityType).'/');
 					}
 				}
 			}
@@ -1506,7 +1511,7 @@ class CLists
 						}
 						else
 						{
-							if(strlen($value["VALUE"]) > 0)
+							if($value["VALUE"] <> '')
 								$properties[$propertyId][] = $value["VALUE"];
 						}
 					}
@@ -1516,13 +1521,13 @@ class CLists
 						{
 							foreach($value as $v)
 							{
-								if(strlen($v) > 0)
+								if($v <> '')
 									$properties[$propertyId][] = $v;
 							}
 						}
 						else
 						{
-							if(strlen($value) > 0)
+							if($value <> '')
 								$properties[$propertyId][] = $value;
 						}
 					}
@@ -1565,19 +1570,20 @@ class CLists
 						{
 							foreach($properties[$propertyId] as $value)
 							{
-								if(is_string($value))
+								if (is_string($value))
 								{
 									$unserialize = unserialize($value);
 									if($unserialize)
 										$value = $unserialize;
 								}
-								if(strlen(trim($value["TEXT"])) <= 0)
-									continue;
-								if(isset($value["TYPE"]))
+								if (is_array($value) && trim($value["TEXT"]) <> '')
 								{
-									$value["TYPE"] = strtoupper($value["TYPE"]);
-									if($value["TYPE"] == "HTML")
-										$propertyValues[] = HTMLToTxt($value["TEXT"]);
+									if (isset($value["TYPE"]))
+									{
+										$value["TYPE"] = mb_strtoupper($value["TYPE"]);
+										if ($value["TYPE"] == "HTML")
+											$propertyValues[] = HTMLToTxt($value["TEXT"]);
+									}
 								}
 							}
 							break;
@@ -1856,6 +1862,28 @@ class CLists
 		}
 
 		return false;
+	}
+
+	public static function isEnabledLockFeature($iblockId)
+	{
+		$optionData = Option::get("lists", "iblock_lock_feature");
+		$iblockIdsWithLockFeature = unserialize($optionData);
+		if (!is_array($iblockIdsWithLockFeature))
+		{
+			$iblockIdsWithLockFeature = [];
+		}
+		return isset($iblockIdsWithLockFeature[$iblockId]);
+	}
+
+	public static function deleteLockFeatureOption(int $iblockId)
+	{
+		$option = Option::get("lists", "iblock_lock_feature");
+		$iblockIdsWithLockFeature = ($option !== "" ? unserialize($option) : []);
+		if (isset($iblockIdsWithLockFeature[$iblockId]))
+		{
+			unset($iblockIdsWithLockFeature[$iblockId]);
+			Option::set("lists", "iblock_lock_feature", serialize($iblockIdsWithLockFeature));
+		}
 	}
 }
 ?>

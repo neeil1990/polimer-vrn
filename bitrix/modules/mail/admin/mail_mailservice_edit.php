@@ -44,7 +44,7 @@ else
 	$ID = 0;
 }
 
-if ($REQUEST_METHOD == "POST" && (strlen($save) > 0 || strlen($apply) > 0) && $MOD_RIGHT == "W" && check_bitrix_sessid())
+if ($REQUEST_METHOD == "POST" && ($save <> '' || $apply <> '') && $MOD_RIGHT == "W" && check_bitrix_sessid())
 {
 	$ICON = $_FILES['ICON'];
 	$ICON['old_file'] = $str_ICON;
@@ -84,7 +84,7 @@ if ($REQUEST_METHOD == "POST" && (strlen($save) > 0 || strlen($apply) > 0) && $M
 	}
 	else
 	{
-		if (strlen($save) > 0)
+		if ($save <> '')
 			LocalRedirect("mail_mailservice_admin.php?lang=".LANG);
 		else
 			LocalRedirect($APPLICATION->GetCurPage()."?lang=".LANG."&ID=".$ID);
@@ -158,7 +158,7 @@ $tabControl = new CAdminTabControl("tabControl", $aTabs);
 			<select name="SITE_ID">
 				<? $result = Bitrix\Main\SiteTable::getList(array('filter' => array('ACTIVE' => 'Y'), 'order' => array('SORT' => 'ASC'))); ?>
 				<? while (($site = $result->fetch()) !== false): ?>
-					?><option value="<?=$site['LID'] ?>" <? if ($str_SITE_ID == $site['LID']) echo 'selected'; ?>><?=htmlspecialcharsbx($site['NAME']) ?></option>
+					<option value="<?=$site['LID'] ?>" <? if ($str_SITE_ID == $site['LID']) echo 'selected'; ?>><?=htmlspecialcharsbx($site['NAME']) ?></option>
 				<? endwhile ?>
 			</select>
 		</td>

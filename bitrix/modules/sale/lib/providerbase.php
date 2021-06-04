@@ -1342,18 +1342,19 @@ abstract class ProviderBase
 
 			$fields = $data;
 
-			if ($productData['IS_BUNDLE_CHILD'])
-			{
-				$fields['CHECK_DISCOUNT'] = 'N';
-			}
-
 			if ($productData['IS_ORDERABLE'])
 			{
-				$fields['CHECK_COUPONS'] = 'N';
+				$fields['CHECK_COUPONS'] = 'Y';
 			}
 			else
 			{
-				$fields['CHECK_COUPONS'] = 'Y';
+				$fields['CHECK_COUPONS'] = 'N';
+			}
+
+			if ($productData['IS_BUNDLE_CHILD'])
+			{
+				$fields['CHECK_DISCOUNT'] = 'N';
+				$fields['CHECK_COUPONS'] = 'N';
 			}
 
 			$fields['PRODUCT_ID'] = $productId;
@@ -2820,9 +2821,9 @@ abstract class ProviderBase
 						$productId = $basketItem->getProductId();
 
 						$resultAvailableQuantityList = $resultData['AVAILABLE_QUANTITY_LIST'];
-						if (substr($providerName, 0, 1) == "\\")
+						if (mb_substr($providerName, 0, 1) == "\\")
 						{
-							$providerName = substr($providerName, 1);
+							$providerName = mb_substr($providerName, 1);
 						}
 
 						if (isset($resultAvailableQuantityList[$providerName]) && isset($resultAvailableQuantityList[$providerName][$productId]))

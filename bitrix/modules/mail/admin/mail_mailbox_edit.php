@@ -26,7 +26,7 @@ $ID = intval($ID);
 
 $bCanUseTLS = (defined('BX_MAIL_FORCE_USE_TLS') && BX_MAIL_FORCE_USE_TLS === true) || function_exists('openssl_open');
 
-if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($save_ext)>0 || strlen($apply)>0) && $MOD_RIGHT=="W" && check_bitrix_sessid())
+if($REQUEST_METHOD=="POST" && ($save <> '' || $save_ext <> '' || $apply <> '') && $MOD_RIGHT=="W" && check_bitrix_sessid())
 {
 	$arFields = array(
 		'ACTIVE'          => $ACTIVE,
@@ -74,24 +74,26 @@ if($REQUEST_METHOD=="POST" && (strlen($save)>0 || strlen($save_ext)>0 || strlen(
 	}
 	else
 	{
-		if (strlen($save_ext) > 0 && $filter_type != '')
+		if ($save_ext <> '' && $filter_type != '')
 			LocalRedirect("mail_filter_edit.php?lang=".LANG."&filter_type=".$filter_type."&find_mailbox_id=".$ID);
-		elseif (strlen($save) > 0)
+		elseif ($save <> '')
 			LocalRedirect("mail_mailbox_admin.php?lang=".LANG);
 		else
 			LocalRedirect($APPLICATION->GetCurPage()."?lang=".LANG."&ID=".$ID);
 	}
 }
-
-$str_SERVER_TYPE = $mailbox_type == 'user' ? 'imap' : 'pop3';
-$str_PORT        = $str_SERVER_TYPE == 'imap' ? ($bCanUseTLS ? '993' : '143') : '110';
-$str_USE_TLS     = $str_SERVER_TYPE == 'imap' && $bCanUseTLS ? 'Y' : 'N';
-$str_ACTIVE      = 'Y';
-$str_AUTH_RELAY  = 'Y';
-$str_RELAY       = 'Y';
 $mb = CMailbox::GetByID($ID);
 if (!$mb->ExtractFields("str_"))
 	$ID = 0;
+
+if($ID===0){
+	$str_SERVER_TYPE = $mailbox_type == 'user' ? 'imap' : 'pop3';
+	$str_PORT        = $str_SERVER_TYPE == 'imap' ? ($bCanUseTLS ? '993' : '143') : '110';
+	$str_USE_TLS     = $str_SERVER_TYPE == 'imap' && $bCanUseTLS ? 'Y' : 'N';
+	$str_ACTIVE      = 'Y';
+	$str_AUTH_RELAY  = 'Y';
+	$str_RELAY       = 'Y';
+}
 
 if ($message)
 	$DB->InitTableVarsForEdit("b_mail_mailbox", "", "str_");
@@ -173,7 +175,7 @@ if ($message)
 		<td><?echo $str_ID?></td>
 	</tr>
 	<?endif?>
-	<?if(strlen($str_TIMESTAMP_X)>0):?>
+	<?if($str_TIMESTAMP_X <> ''):?>
 	<tr>
 		<td><?echo GetMessage("MAIL_MBOX_EDT_DATECH")?></td>
 		<td><?echo $str_TIMESTAMP_X?></td>
@@ -283,12 +285,10 @@ if ($message)
 		<td><?=GetMessage("MAIL_MBOX_EDT_USE_TLS"); ?><span class="required"><sup>1</sup></span></td>
 		<td><input type="checkbox" name="USE_TLS" id="USE_TLS" value="Y"<? if ($str_USE_TLS == 'Y' || $str_USE_TLS == 'S') { ?> checked<? } ?> onclick="change_port();"<? if (!$bCanUseTLS) { ?> disabled<? } ?>></td>
 	</tr>
-	<? if (PHP_VERSION_ID >= 50600) { ?>
 	<tr id="el23" class="pop3 imap">
 		<td><?=GetMessage('MAIL_MBOX_EDT_SKIP_CERT'); ?></td>
 		<td><input type="checkbox" name="SKIP_CERT" id="SKIP_CERT" value="Y"<? if ($str_USE_TLS == 'S') { ?> checked<? } ?><? if ($str_USE_TLS != 'Y' && $str_USE_TLS != 'S') { ?> disabled<? } ?>></td>
 	</tr>
-	<? } ?>
 	<tr id="el9" class="pop3 imap domain crdomain controller adm-detail-required-field">
 		<td><?=GetMessage("MAIL_MBOX_EDT_LOGIN"); ?></td>
 		<td><input type="text" name="LOGIN" size="53" maxlength="255" value="<?=$str_LOGIN?>"></td>
@@ -342,9 +342,9 @@ if ($message)
 <? $tabControl->BeginNextTab(); ?>
 
 	<? $db_max_allowed = $DB->Query("SHOW VARIABLES LIKE 'MAX_ALLOWED_PACKET'", true);
-	if ($db_max_allowed !== false && ($ar_max_allowed = $db_max_allowed->Fetch()) !== false && IntVal($ar_max_allowed["Value"]) > 0)
+	if ($db_max_allowed !== false && ($ar_max_allowed = $db_max_allowed->Fetch()) !== false && intval($ar_max_allowed["Value"]) > 0)
 	{
-		$B_MAIL_MAX_ALLOWED = IntVal($ar_max_allowed["Value"]);
+		$B_MAIL_MAX_ALLOWED = intval($ar_max_allowed["Value"]);
 		?><tr id="el18" class="pop3 smtp">
 			<td><?echo GetMessage("MAIL_MBOX_EDT_MAX_ALLOWED")?></td>
 			<td><?echo $B_MAIL_MAX_ALLOWED/1024?> <?echo GetMessage("MAIL_MBOX_EDT_MAX_ALLOWED_KB")?></td>
@@ -390,7 +390,7 @@ if ($message)
 				<option value=""></option>
 				<option value=""<?if($str_CHARSET=="")echo ' selected'?>><?echo GetMessage("MAIL_MBOX_EDT_CHARSET_RECOMND_TEXT")?></option>
 				<?foreach($chs as $ch):?>
-					<option value="<?=$ch?>"<?if(strtolower($ch) == strtolower($str_CHARSET))echo ' selected'?>><?=$ch?></option>
+					<option value="<?=$ch?>"<?if(mb_strtolower($ch) == mb_strtolower($str_CHARSET))echo ' selected'?>><?=$ch?></option>
 				<?endforeach?>
 			</select>
 			<input type="text" name="CHARSET" id="CHARSET" size="12" maxlength="255" value="<?=$str_CHARSET?>">

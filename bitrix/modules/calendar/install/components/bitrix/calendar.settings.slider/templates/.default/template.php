@@ -91,6 +91,16 @@ $showPersonalTitle = $showGeneralSettings && $isPersonal;
 					<div class="calendar-field-container calendar-field-container-checkbox">
 						<div class="calendar-field-block">
 							<label type="text" class="calendar-field-checkbox-label">
+								<input id="<?=$id?>_sync_tasks" type="checkbox" class="calendar-field-checkbox">
+								<?=Loc::getMessage('EC_OPTION_SYNC_TASKS')?>
+							</label>
+						</div>
+					</div>
+				</div>
+				<div class="calendar-settings-control calendar-settings-checkbox">
+					<div class="calendar-field-container calendar-field-container-checkbox">
+						<div class="calendar-field-block">
+							<label type="text" class="calendar-field-checkbox-label">
 								<input id="<?=$id?>_show_completed_tasks" type="checkbox" class="calendar-field-checkbox">
 								<?=Loc::getMessage('EC_OPTION_SHOW_COMPLETED_TASKS')?>
 							</label>
@@ -113,7 +123,42 @@ $showPersonalTitle = $showGeneralSettings && $isPersonal;
 						</label>
 					</div>
 				</div>
-				<span id="<?=$id?>_manage_caldav" class="calendar-settings-link-option"><?= Loc::getMessage('EC_MANAGE_CALDAV')?></span>
+
+				<?$APPLICATION->IncludeComponent('bitrix:main.mail.confirm', '', []);?>
+				<div class="calendar-settings-control calendar-settings-email-wrap">
+					<div class="calendar-settings-control-name"><label for="<?=$id?>_send_from_email"><?=Loc::getMessage('EC_SEND_FROM_EMAIL')?></label>
+					<div class="ui-icon ui-icon-common-question calendar-settings-question"  data-hint="<?=Loc::getMessage('EC_SEND_FROM_EMAIL_HELP_TITLE')?>">
+						<i></i>
+					</div>
+					</div>
+					<div class="calendar-field-container calendar-field-container-select">
+						<div class="calendar-field-block">
+							<select id="<?=$id?>_send_from_email" class="calendar-field calendar-field-select"></select>
+							<span class="tariff-lock"></span>
+						</div>
+					</div>
+				</div>
+
+				<div class="calendar-settings-control">
+					<div class="calendar-settings-control-name"><label for="<?=$id?>_uset_calend_sel"><?=Loc::getMessage('EC_SYNC_PERIOD')?></label></div>
+					<div class="calendar-field-container calendar-field-container-select">
+						<div class="calendar-field-block">
+							<select id="<?=$id?>_sync_period_past" class="calendar-field calendar-field-select" style="width: 150px;">
+								<option value="3"><?=Loc::getMessage('EC_SYNC_PERIOD_PAST_3')?></option>
+								<option value="6"><?=Loc::getMessage('EC_SYNC_PERIOD_PAST_6')?></option>
+								<option value="12"><?=Loc::getMessage('EC_SYNC_PERIOD_PAST_12')?></option>
+							</select>
+							<span>&nbsp;&mdash;&nbsp;</span>
+							<select id="<?=$id?>_sync_period_future" class="calendar-field calendar-field-select" style="width: 150px;">
+								<option value="12"><?=Loc::getMessage('EC_SYNC_PERIOD_FUTURE_12')?></option>
+								<option value="24"><?=Loc::getMessage('EC_SYNC_PERIOD_FUTURE_24')?></option>
+								<option value="36"><?=Loc::getMessage('EC_SYNC_PERIOD_FUTURE_36')?></option>
+							</select>
+						</div>
+					</div>
+				</div>
+
+<!--				<span id="--><?//=$id?><!--_manage_caldav" class="calendar-settings-link-option">--><?//= Loc::getMessage('EC_MANAGE_CALDAV')?><!--</span>-->
 				<?endif; //if($isPersonal)?>
 
 				<?if ($showGeneralSettings):?>

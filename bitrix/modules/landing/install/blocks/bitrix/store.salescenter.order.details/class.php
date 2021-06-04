@@ -4,12 +4,6 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 	die();
 }
 
-use \Bitrix\Main\Localization\Loc;
-
-Loc::loadMessages(
-	\Bitrix\Main\Application::getDocumentRoot() . '/bitrix/blocks/bitrix/store.order/block.php'
-);
-
 class StoreSalesCenterOrderDetails extends \Bitrix\Landing\LandingBlock
 {
 	public function init(array $params = [])

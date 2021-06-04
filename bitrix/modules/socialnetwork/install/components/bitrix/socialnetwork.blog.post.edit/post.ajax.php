@@ -5,6 +5,13 @@ define("NO_AGENT_STATISTIC","Y");
 define("NO_AGENT_CHECK", true);
 define("DisableEventsCheck", true);
 
+$siteId = (isset($_REQUEST["siteId"]) && is_string($_REQUEST["siteId"])) ? trim($_REQUEST["siteId"]): "";
+$siteId = mb_substr(preg_replace("/[^a-z0-9_]/i", "", $siteId), 0, 2);
+if ($siteId)
+{
+	define("SITE_ID", $siteId);
+}
+
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
 header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
 
@@ -107,7 +114,7 @@ if (check_bitrix_sessid())
 					{
 						$listData[$list['ID']]['ID'] = $list['ID'];
 
-						$shortName = substr($list['NAME'], 0, 50);
+						$shortName = mb_substr($list['NAME'], 0, 50);
 						if($shortName == $list['NAME'])
 							$listData[$list['ID']]['NAME'] = $list['NAME'];
 						else

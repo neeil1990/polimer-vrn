@@ -78,3 +78,27 @@ CREATE TABLE b_clouds_delete_queue
 	PRIMARY KEY pk_b_clouds_delete_queue(ID),
 	INDEX ix_b_clouds_delete_queue_1(BUCKET_ID, FILE_PATH(100))
 );
+
+CREATE TABLE b_clouds_file_save
+(
+	ID INT(32) NOT NULL auto_increment,
+	TIMESTAMP_X TIMESTAMP NOT NULL,
+	BUCKET_ID INT(11) NOT NULL,
+	SUBDIR VARCHAR(255),
+	FILE_NAME VARCHAR(255) not null,
+	EXTERNAL_ID VARCHAR(50),
+	FILE_SIZE BIGINT null,
+	INDEX IX_EXTERNAL_ID(EXTERNAL_ID),
+	PRIMARY KEY pk_b_clouds_file_upload(ID)
+);
+
+CREATE TABLE b_clouds_file_hash
+(
+	BUCKET_ID INT(11) NOT NULL,
+	FILE_PATH VARCHAR(600) NOT NULL,
+	FILE_SIZE BIGINT,
+	FILE_MTIME DATETIME,
+	FILE_HASH VARCHAR(50),
+	PRIMARY KEY pk_b_clouds_file_hash(BUCKET_ID, FILE_PATH(100))
+);
+

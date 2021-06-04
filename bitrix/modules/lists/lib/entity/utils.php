@@ -3,10 +3,6 @@ namespace Bitrix\Lists\Entity;
 
 class Utils
 {
-	private static $iblockId = 0;
-	private static $elementId = 0;
-	private static $sectionId = 0;
-
 	/**
 	 * Returns an iblock id by code or id.
 	 *
@@ -16,32 +12,23 @@ class Utils
 	 */
 	public static function getIblockId(array $params)
 	{
-		if (self::$iblockId)
+		if ($params["IBLOCK_ID"])
 		{
-			return self::$iblockId;
+			return (int) $params["IBLOCK_ID"];
 		}
-		else
+		elseif ($params["IBLOCK_CODE"])
 		{
-			if ($params["IBLOCK_ID"])
+			$queryObject = \CIBlock::getList([], [
+				"CHECK_PERMISSIONS" => "N",
+				"=CODE" => $params["IBLOCK_CODE"]
+			]);
+			if ($iblock = $queryObject->fetch())
 			{
-				self::$iblockId = (int) $params["IBLOCK_ID"];
-				return self::$iblockId;
-			}
-			elseif ($params["IBLOCK_CODE"])
-			{
-				$queryObject = \CIBlock::getList([], [
-					"CHECK_PERMISSIONS" => "N",
-					"=CODE" => $params["IBLOCK_CODE"]
-				]);
-				if ($iblock = $queryObject->fetch())
-				{
-					self::$iblockId = (int) $iblock["ID"];
-					return self::$iblockId;
-				}
+				return (int) $iblock["ID"];
 			}
 		}
 
-		return self::$iblockId;
+		return 0;
 	}
 
 	/**
@@ -53,33 +40,24 @@ class Utils
 	 */
 	public static function getElementId(array $params)
 	{
-		if (self::$elementId)
+		if ($params["ELEMENT_ID"])
 		{
-			return self::$elementId;
+			return (int) $params["ELEMENT_ID"];
 		}
-		else
+		elseif ($params["ELEMENT_CODE"])
 		{
-			if ($params["ELEMENT_ID"])
+			$queryObject = \CIBlockElement::getList([], [
+				"IBLOCK_ID" => Utils::getIblockId($params),
+				"CHECK_PERMISSIONS" => "N",
+				"CODE" => $params["ELEMENT_CODE"]
+			], false, false, ["ID"]);
+			if ($element = $queryObject->fetch())
 			{
-				self::$elementId = (int)$params["ELEMENT_ID"];
-				return self::$elementId;
-			}
-			elseif ($params["ELEMENT_CODE"])
-			{
-				$queryObject = \CIBlockElement::getList([], [
-					"IBLOCK_ID" => Utils::getIblockId($params),
-					"CHECK_PERMISSIONS" => "N",
-					"CODE" => $params["ELEMENT_CODE"]
-				], false, false, ["ID"]);
-				if ($element = $queryObject->fetch())
-				{
-					self::$elementId = (int) $element["ID"];
-					return self::$elementId;
-				}
+				return (int) $element["ID"];
 			}
 		}
 
-		return self::$elementId;
+		return 0;
 	}
 
 	/**
@@ -91,31 +69,22 @@ class Utils
 	 */
 	public static function getSectionId(array $params)
 	{
-		if (self::$sectionId)
+		if ($params["SECTION_ID"])
 		{
-			return self::$sectionId;
+			return (int)$params["SECTION_ID"];
 		}
-		else
+		elseif ($params["SECTION_CODE"])
 		{
-			if ($params["SECTION_ID"])
+			$queryObject = \CIBlockSection::getList([], [
+				"CHECK_PERMISSIONS" => "N",
+				"CODE" => $params["SECTION_CODE"]
+			], false, false, ["ID"]);
+			if ($section = $queryObject->fetch())
 			{
-				self::$sectionId = (int)$params["SECTION_ID"];
-				return self::$sectionId;
-			}
-			elseif ($params["SECTION_CODE"])
-			{
-				$queryObject = \CIBlockSection::getList([], [
-					"CHECK_PERMISSIONS" => "N",
-					"CODE" => $params["SECTION_CODE"]
-				], false, false, ["ID"]);
-				if ($section = $queryObject->fetch())
-				{
-					self::$sectionId = (int) $section["ID"];
-					return self::$sectionId;
-				}
+				return (int) $section["ID"];
 			}
 		}
 
-		return self::$sectionId;
+		return 0;
 	}
 }

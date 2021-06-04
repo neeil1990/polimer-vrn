@@ -22,7 +22,8 @@ class Section implements Controllable, Errorable
 	private $filterList = [];
 	private $selectList = [];
 
-	private $errorCollection;
+	private $iblockId;
+	private $sectionId;
 
 	public function __construct(Param $param)
 	{
@@ -44,6 +45,9 @@ class Section implements Controllable, Errorable
 			"RIGHT_MARGIN", "DEPTH_LEVEL", "SEARCHABLE_CONTENT", "SECTION_PAGE_URL", "MODIFIED_BY", "DATE_CREATE",
 			 "CREATED_BY", "DETAIL_PICTURE"];
 
+		$this->iblockId = Utils::getIblockId($this->params);
+		$this->sectionId = Utils::getSectionId($this->params);
+
 		$this->errorCollection = new ErrorCollection;
 	}
 
@@ -54,8 +58,16 @@ class Section implements Controllable, Errorable
 	 */
 	public function isExist()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID", "SECTION_ID", "SECTION_CODE"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$filter = [
-			"ID" => Utils::getSectionId($this->params),
+			"ID" => $this->sectionId,
+			"IBLOCK_ID" => $this->iblockId,
 			"CHECK_PERMISSIONS" => "N",
 		];
 		$queryObject = \CIBlockSection::getList([], $filter, false, ["ID"]);
@@ -70,6 +82,13 @@ class Section implements Controllable, Errorable
 	 */
 	public function add()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID", "SECTION_CODE", ["FIELDS" => ["NAME"]]]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$sectionObject = new \CIBlockSection;
 		$result = $sectionObject->add($this->getFields());
 
@@ -101,11 +120,18 @@ class Section implements Controllable, Errorable
 	 */
 	public function get(array $navData = [])
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return [];
+		}
+
 		$sections = [];
 
-		$filter = $this->getFilter();
+		$filter = $this->getFilter($this->iblockId);
 
-		$select = $this->getSelectList();
+		$select = $this->getSelectList($this->params["SELECT"]);
 
 		$queryObject = \CIBlockSection::getList([], $filter, false, $select, $navData);
 		while ($section = $queryObject->fetch())
@@ -123,8 +149,16 @@ class Section implements Controllable, Errorable
 	 */
 	public function update()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_CODE", "IBLOCK_ID",
+			"SECTION_ID", "SECTION_CODE", ["FIELDS" => ["NAME"]]]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$sectionObject = new \CIBlockSection;
-		if ($sectionObject->update(Utils::getSectionId($this->params), $this->getFields()))
+		if ($sectionObject->update($this->sectionId, $this->getFields()))
 		{
 			return true;
 		}
@@ -150,8 +184,15 @@ class Section implements Controllable, Errorable
 	 */
 	public function delete()
 	{
+		$this->param->checkRequiredInputParams(["SECTION_ID", "SECTION_CODE"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$sectionObject = new \CIBlockSection;
-		if ($sectionObject->delete(Utils::getSectionId($this->params), false))
+		if ($sectionObject->delete($this->sectionId, false))
 		{
 			return true;
 		}
@@ -173,7 +214,7 @@ class Section implements Controllable, Errorable
 	private function getFields()
 	{
 		$fields = [
-			"IBLOCK_ID" => Utils::getIblockId($this->params),
+			"IBLOCK_ID" => $this->iblockId,
 			"CODE" => $this->params["SECTION_CODE"],
 			"IBLOCK_SECTION_ID" => $this->params["IBLOCK_SECTION_ID"] ? (int)$this->params["IBLOCK_SECTION_ID"] : 0,
 			"CHECK_PERMISSIONS" => "N"
@@ -197,10 +238,10 @@ class Section implements Controllable, Errorable
 		return $fields;
 	}
 
-	private function getFilter()
+	private function getFilter($iblockId)
 	{
 		$filter = [
-			"IBLOCK_ID" => Utils::getIblockId($this->params),
+			"IBLOCK_ID" => $iblockId,
 			"CHECK_PERMISSIONS" => "N",
 		];
 
@@ -220,23 +261,23 @@ class Section implements Controllable, Errorable
 		return $filter;
 	}
 
-	private function getSelectList()
+	private function getSelectList($inputSelectList)
 	{
-		$select = [];
+		$selectList = [];
 
-		if (!is_array($this->params["SELECT"]))
+		if (!is_array($inputSelectList))
 		{
-			$this->params["SELECT"] = [];
+			$inputSelectList = [];
 		}
 
-		foreach ($this->params["SELECT"] as $fieldId)
+		foreach ($inputSelectList as $fieldId)
 		{
 			if (in_array($fieldId, $this->selectList))
 			{
-				$select[] = $fieldId;
+				$selectList[] = $fieldId;
 			}
 		}
 
-		return $select;
+		return $selectList;
 	}
 }

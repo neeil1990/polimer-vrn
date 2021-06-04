@@ -1,4 +1,7 @@
 <?
+
+use Bitrix\Im\Call\VideoStrategyType;
+
 class CIMSettings
 {
 	const SETTINGS = 'settings';
@@ -25,26 +28,19 @@ class CIMSettings
 
 	public static function Get($userId = false)
 	{
-		global $USER, $CACHE_MANAGER;
+		global $USER;
 
 		$userId = intval($userId);
 		if ($userId == 0)
 			$userId = $USER->GetId();
 
-		$arSettings = Array();
-		$res = $CACHE_MANAGER->Read(2678400, $cache_id="b_ims_".intval($userId), "b_im_options");
-		if ($res)
-			$arSettings = $CACHE_MANAGER->Get($cache_id);
+		$arSettings[self::SETTINGS] = CUserOptions::GetOption('im', self::SETTINGS, Array(), $userId);
+		$arSettings[self::NOTIFY] = CUserOptions::GetOption('im', self::NOTIFY, Array(), $userId);
 
-		if(!is_array($arSettings) || !isset($arSettings['settings']) || !isset($arSettings['notify']))
-		{
-			$arSettings[self::SETTINGS] = CUserOptions::GetOption('im', self::SETTINGS, Array(), $userId);
-			$arSettings[self::NOTIFY] = CUserOptions::GetOption('im', self::NOTIFY, Array(), $userId);
-			$CACHE_MANAGER->Set($cache_id, $arSettings);
-		}
 		// Check fields and add default values
 		$arSettings[self::SETTINGS] = self::checkValues(self::SETTINGS, $arSettings[self::SETTINGS]);
 		$arSettings[self::NOTIFY] = self::checkValues(self::NOTIFY, $arSettings[self::NOTIFY]);
+
 		return $arSettings;
 	}
 
@@ -91,8 +87,6 @@ class CIMSettings
 		{
 			$USER_FIELD_MANAGER->Update("USER", $userId, Array('UF_IM_SEARCH' => $value[self::PRIVACY_SEARCH]));
 		}
-
-		self::ClearCache($userId);
 
 		return true;
 	}
@@ -144,8 +138,6 @@ class CIMSettings
 			$USER_FIELD_MANAGER->Update("USER", $userId, Array('UF_IM_SEARCH' => $value[self::PRIVACY_SEARCH]));
 		}
 
-		self::ClearCache($userId);
-
 		return true;
 	}
 
@@ -162,15 +154,13 @@ class CIMSettings
 	public static function GetNotifyAccess($userId, $moduleId, $eventId, $clientId)
 	{
 		$userId = intval($userId);
-		if ($userId <= 0 || strlen($moduleId) <= 0 || strlen($eventId) <= 0 || strlen($clientId) <= 0)
+		if ($userId <= 0 || $moduleId == '' || $eventId == '' || $clientId == '')
 			return false;
 
 		$notifyId = $clientId.'|'.$moduleId.'|'.$eventId;
 		$arSettings = self::Get($userId);
 		if ($arSettings['settings']['notifyScheme'] == 'simple')
 		{
-			//if ($arSettings['settings']['notifySchemeLevel'] == 'important' && !$arSettings['notify']['important|'.$moduleId.'|'.$eventId])
-			//	return false;
 			if ($clientId == self::CLIENT_SITE && !$arSettings['settings']['notifySchemeSendSite'])
 				return false;
 			elseif ($clientId == self::CLIENT_XMPP && !$arSettings['settings']['notifySchemeSendXmpp'])
@@ -215,6 +205,7 @@ class CIMSettings
 				'viewLastMessage' => true,
 				'enableSound' => true,
 				'enableBigSmile' => true,
+				'enableDarkTheme' => false,
 				'enableRichLink' => true,
 				'linesTabEnable' => true,
 				'linesNewGroupEnable' => false,
@@ -222,7 +213,7 @@ class CIMSettings
 				'correctText' => COption::GetOptionString("im", "correct_text"),
 				'panelPositionHorizontal' => COption::GetOptionString("im", "panel_position_horizontal"),
 				'panelPositionVertical' => COption::GetOptionString("im", "panel_position_vertical"),
-				'loadLastMessage' => COption::GetOptionString("im", "load_last_message"),
+				'loadLastMessage' => true,
 				'loadLastNotify' => COption::GetOptionString("im", "load_last_notify"),
 				'notifyAutoRead' => true,
 				'notifyScheme' => 'simple',
@@ -236,6 +227,7 @@ class CIMSettings
 				'privacyCall' => COption::GetOptionString("im", "privacy_call"),
 				'privacySearch' => COption::GetOptionString("im", "privacy_search"),
 				'privacyProfile' => COption::GetOptionString("im", "privacy_profile"),
+				'callAcceptIncomingVideo' => VideoStrategyType::ALLOW_ALL
 			);
 		}
 		elseif ($type == self::NOTIFY)
@@ -326,6 +318,10 @@ class CIMSettings
 					$arValues[$key] = implode(',', $value[$key]);
 
 				}
+				else if ($key === 'callAcceptIncomingVideo')
+				{
+					$arValues[$key] = in_array($value[$key], VideoStrategyType::getList())? $value[$key]: $default;
+				}
 				else if (array_key_exists($key, $value))
 				{
 					$arValues[$key] = is_bool($value[$key])? $value[$key]: $default;
@@ -346,6 +342,7 @@ class CIMSettings
 					$arValues[$key] = $default;
 			}
 		}
+
 		return $arValues;
 	}
 
@@ -356,7 +353,7 @@ class CIMSettings
 		foreach ($arNotify as $moduleId => $notifyTypes)
 		{
 			$arNames[$moduleId]['NAME'] = $notifyTypes['NAME'];
-			if (strlen($notifyTypes['NAME']) <= 0)
+			if ($notifyTypes['NAME'] == '')
 			{
 				$info = CModule::CreateModuleObject($moduleId);
 				$arNames[$moduleId]['NAME'] = $info->MODULE_NAME;
@@ -433,14 +430,6 @@ class CIMSettings
 
 	public static function ClearCache($userId = false)
 	{
-		global $CACHE_MANAGER;
-
-		$userId = intval($userId);
-		if ($userId == 0)
-			$CACHE_MANAGER->CleanDir("b_im_options");
-		else
-			$CACHE_MANAGER->Clean("b_ims_".intval($userId), "b_im_options");
-
 		return true;
 	}
 }

@@ -3,6 +3,7 @@ namespace Bitrix\MessageService;
 
 use \Bitrix\Main\Loader;
 use \Bitrix\Rest\AppTable;
+use Bitrix\Rest\HandlerHelper;
 use \Bitrix\Rest\RestException;
 use \Bitrix\Rest\AccessException;
 
@@ -125,6 +126,17 @@ class RestService extends \IRestService
 
 		$senderLang['APP_ID'] = $result->getId();
 		static::addSenderLang($senderLang, $server->getClientId());
+
+		$app = \Bitrix\Rest\AppTable::getByClientId($params['APP_ID']);
+		if ($app['CODE'])
+		{
+			AddEventToStatFile(
+				'messageservice',
+				'addProvider' . $params['TYPE'],
+				uniqid($app['CODE'], true),
+				$app['CODE']
+			);
+		}
 
 		return true;
 	}
@@ -312,56 +324,7 @@ class RestService extends \IRestService
 
 	private static function validateSenderHandler($handler, $server)
 	{
-		$handlerData = parse_url($handler);
-
-		if (is_array($handlerData)
-			&& strlen($handlerData['host']) > 0
-			&& strpos($handlerData['host'], '.') > 0
-		)
-		{
-			if ($handlerData['scheme'] == 'http' || $handlerData['scheme'] == 'https')
-			{
-				$host = $handlerData['host'];
-				$app = self::getApp($server);
-				if (strlen($app['URL']) > 0)
-				{
-					$urls = array($app['URL']);
-
-					if (strlen($app['URL_DEMO']) > 0)
-					{
-						$urls[] = $app['URL_DEMO'];
-					}
-					if (strlen($app['URL_INSTALL']) > 0)
-					{
-						$urls[] = $app['URL_INSTALL'];
-					}
-
-					$found = false;
-					foreach($urls as $url)
-					{
-						$a = parse_url($url);
-						if ($host == $a['host'] || $a['host'] == 'localhost')
-						{
-							$found = true;
-							break;
-						}
-					}
-
-					if(!$found)
-					{
-						throw new RestException('Handler URL host doesn\'t match application url', self::ERROR_HANDLER_URL_MATCH);
-					}
-				}
-			}
-			else
-			{
-				throw new RestException('Unsupported event handler protocol', self::ERROR_UNSUPPORTED_PROTOCOL);
-			}
-		}
-		else
-		{
-			throw new RestException('Wrong handler URL', self::ERROR_WRONG_HANDLER_URL);
-		}
+		HandlerHelper::checkCallback($handler);
 	}
 
 	/**
@@ -407,9 +370,9 @@ class RestService extends \IRestService
 		{
 			foreach ($langFields['NAME'] as $langId => $langName)
 			{
-				$langData[strtolower($langId)] = array(
+				$langData[mb_strtolower($langId)] = array(
 					'APP_ID' => $langFields['APP_ID'],
-					'LANGUAGE_ID' => strtolower($langId),
+					'LANGUAGE_ID' => mb_strtolower($langId),
 					'NAME' => $langFields['NAME'][$langId],
 					'DESCRIPTION' => is_array($langFields['DESCRIPTION']) && isset($langFields['DESCRIPTION'][$langId])
 						? (string)$langFields['DESCRIPTION'][$langId] : null
@@ -467,7 +430,7 @@ class RestService extends \IRestService
 
 		while ($row = $orm->fetch())
 		{
-			$result[strtolower($row['LANGUAGE_ID'])] = $row['MENU_NAME'];
+			$result[mb_strtolower($row['LANGUAGE_ID'])] = $row['MENU_NAME'];
 		}
 
 		if (isset($result[LANGUAGE_ID]))

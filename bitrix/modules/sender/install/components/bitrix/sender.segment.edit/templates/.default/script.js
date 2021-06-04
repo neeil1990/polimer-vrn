@@ -136,6 +136,7 @@
 	Manager.prototype.init = function (params)
 	{
 		this.list = [];
+		this.groupId = params.groupId || 0;
 		this.actionUri = params.actionUri || '';
 		this.onlyConnectorFilters = params.onlyConnectorFilters;
 		this.showContactSets = params.showContactSets;
@@ -151,6 +152,7 @@
 		this.pathToContactList = params.pathToContactList || '';
 		this.pathToContactImport = params.pathToContactImport || '';
 		this.segmentTile = params.segmentTile || {};
+		this.filterCounterTag = params.filterCounterTag || null;
 
 		this.ajaxAction = new BX.AjaxAction(this.actionUri);
 		this.form = new Form({node: this.context.querySelector('form')});
@@ -158,6 +160,7 @@
 
 		this.initUi();
 		this.initItems();
+		BX.addCustomEvent("SidePanel.Slider:onClose", this.actualizeSegment.bind(this));
 
 		this.contactList = new ContactList({manager: this});
 		Helper.hint.init(this.context);
@@ -185,7 +188,37 @@
 			top.BX.onCustomEvent(top, 'sender-segment-edit-change', [this.segmentTile]);
 			BX.Sender.Page.slider.close();
 		}
+
+		return this;
 	};
+
+	Manager.prototype.actualizeSegment = function (event)
+	{
+		var slider = event.getSlider();
+		var _this = this;
+		if(typeof slider.data.close === 'undefined' || slider.data.close === false)
+		{
+			this.ajaxAction.request({
+				action: 'actualizeSegment',
+				data: {
+					'groupId': this.groupId
+				},
+				onsuccess: function()
+				{
+					BX.removeCustomEvent("SidePanel.Slider::onClose", _this.actualizeSegment);
+					event.allowAction();
+					slider.close();
+					slider.data.close = true;
+					setTimeout(function() {
+						slider.destroy();
+					}, 1);
+				}
+			});
+
+			event.denyAction();
+		}
+	};
+
 	Manager.prototype.initUi = function ()
 	{
 		this.ui = {
@@ -204,7 +237,6 @@
 		var itemNodes = this.ui.list.querySelectorAll('[data-bx-item]');
 		itemNodes = BX.convert.nodeListToArray(itemNodes);
 		itemNodes.forEach(this.initItem.bind(this));
-
 		if (this.onlyConnectorFilters)
 		{
 			this.availableConnectors.reverse().forEach(function (connectorData) {
@@ -218,7 +250,7 @@
 				{
 					return;
 				}
-				
+
 				this.createItem(connectorData.ID);
 			}, this);
 		}
@@ -244,12 +276,31 @@
 		var isFilter = connectorData.IS_FILTER;
 		var html = connectorData.FORM;
 
-		var randomId = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
+		var matches;
+		var randomId;
+		var filterId = connectorData.FILTER_ID;
+
+		if (matches = html.match(/--filter--([^-]+)--/))
+		{
+			randomId = matches[1];
+			if (this.getItemByFilterId(connectorData.ID + '_' + '--filter--' + randomId + '--'))
+			{
+				randomId = randomId + Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
+			}
+			randomId = '--filter--' + randomId + '--';
+			html = html.replace(/--filter--([^-]+)--/g, randomId);
+			filterId = filterId.replace(/--filter--([^-]+)--/g, "%CONNECTOR_NUM%");
+		}
+		else
+		{
+			randomId = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
+		}
+
 		html = html.replace(new RegExp("%CONNECTOR_NUM%",'g'), randomId);
 
 		html = this.getConnectorForm(
 			{
-				'%CONNECTOR_FILTER_ID%': connectorData.FILTER_ID,
+				'%CONNECTOR_FILTER_ID%': filterId,
 				'%CONNECTOR_NUM%': randomId,
 				'%CONNECTOR_CODE%': connectorData.CODE,
 				'%CONNECTOR_MODULE_ID%': connectorData.MODULE_ID,
@@ -305,16 +356,49 @@
 
 		this.getCount(item);
 	};
+
+	Manager.prototype.extendWatch = function()
+	{
+		if(typeof BX.PULL !== 'undefined' && this.filterCounterTag !== null)
+		{
+			BX.PULL.extendWatch(this.filterCounterTag);
+			window.setTimeout(BX.delegate(this.extendWatch, this), 60000);
+		}
+	};
+
 	Manager.prototype.initItem = function (node)
 	{
 		var item = new Item({
 			'caller': this,
 			'context': node,
+			'groupId': this.groupId,
 			'code': node.getAttribute('data-code')
 		});
 		this.list.push(item);
 		BX.addCustomEvent(item, 'remove', this.removeItem.bind(this, item));
 		BX.addCustomEvent(item, 'change', BX.throttle(this.getCount.bind(this, item), 100));
+
+		var self = this;
+
+		if(typeof BX.PULL !== 'undefined')
+		{
+			BX.PULL.subscribe({
+				type: BX.PullClient.SubscriptionType.Server,
+				moduleId: 'sender',
+				command: 'updateFilterCounter',
+				callback: function (params) {
+					if(
+						item.groupId === params.groupId
+						&& item.getFilterId() === params.filterId
+					)
+					{
+						self.setCount(item, params);
+					}
+				}.bind(this)
+			});
+
+			this.extendWatch();
+		}
 
 		return item;
 	};
@@ -336,12 +420,12 @@
 				return item.ID !== 'sender_contact_list';
 			})
 			.map(function (item) {
-			return {
-				id: item.ID,
-				text: item.NAME,
-				onclick: this.onMenuAddClick.bind(this, item.ID)
-			};
-		}, this);
+				return {
+					id: item.ID,
+					text: item.NAME,
+					onclick: this.onMenuAddClick.bind(this, item.ID)
+				};
+			}, this);
 
 		this.menuAdd = BX.PopupMenu.create(
 			'sender-segment-edit-menu-add',
@@ -422,7 +506,10 @@
 		this.ajaxAction.request({
 			action: 'getFilterData',
 			onsuccess: this.onFilterData.bind(this, filterId, callback),
-			data: {'filterId': filterId}
+			data: {
+				'filterId': filterId,
+				'groupId': this.groupId
+			}
 		});
 	};
 	Manager.prototype.onFilterData = function (filterId, callback, response)
@@ -448,7 +535,7 @@
 	};
 	Manager.prototype.getCount = function (item)
 	{
-		item.animateCounter(true);
+		item.animateCounter(true, true);
 		this.ajaxAction.request({
 			action: 'getCount',
 			onsuccess: this.setCount.bind(this, item),
@@ -459,9 +546,22 @@
 	{
 		response = response || {};
 
-		item.animateCounter(false);
-		item.setCount(response.count || {});
-		this.updateCounter();
+		item.animateCounter(false, true);
+
+		if (typeof response.waiting !== 'undefined' && response.waiting)
+		{
+			item.showLoadingInfo();
+		}
+		else
+		{
+			item.setCount(response.count || {});
+			this.updateCounter();
+
+			if(typeof response.completed !== 'undefined' && !response.completed)
+			{
+				item.animateCounter(true, false);
+			}
+		}
 	};
 	Manager.prototype.getItemById = function (id)
 	{
@@ -520,17 +620,120 @@
 	FilterListener.prototype.onBeforeApplyFilter = function (filterId)
 	{
 		var item = this.manager.getItemByFilterId(filterId);
+		var filter = BX.Main.filterManager.getById(filterId)
+		var dealCategory = filter.getField('DEAL_CATEGORY_ID');
+		var hasValues = false;
+
+		for(var id in filter.getFilterFieldsValues())
+		{
+			if(filter.getFilterFieldsValues().hasOwnProperty(id))
+			{
+				var value = filter.getFilterFieldsValues()[id];
+				if(
+					value !== 'exact' &&
+					value !== 'NONE' &&
+					value !== ''
+				)
+				{
+					if(Array.isArray(value) && !value.length)
+					{
+						continue;
+					}
+
+					hasValues = true;
+				}
+			}
+		}
+
+		if(dealCategory && hasValues)
+		{
+			if(typeof dealCategory.options.ITEMS[0] !== 'undefined')
+			{
+				this.setDefaultValue(dealCategory, {0: dealCategory.options.ITEMS[0].VALUE});
+			}
+		}
+
 		if (item)
 		{
-			item.animateCounter(true);
+			item.animateCounter(true, true);
 		}
+	};
+
+	FilterListener.prototype.setDefaultValue = function(field, value)
+	{
+		var container = field.parent.getFieldListContainer();
+		Object.entries(value).forEach(function (data) {
+			var fieldValue = data[1];
+
+			var fieldNode = container.querySelector(
+				"[data-name='"
+					.concat(field.id, "'] [data-name='")
+					.concat(field.id, "'], [data-name='")
+					.concat(field.id, "'] [name='")
+					.concat(field.id, "']"));
+
+			if (fieldNode) {
+				var dataValue = fieldNode.getAttribute('data-value');
+				if(dataValue !== "[]")
+				{
+					return;
+				}
+
+				if (BX.Dom.hasClass(fieldNode, 'main-ui-multi-select')) {
+					var items = BX.Dom.attr(fieldNode, 'data-items');
+
+					if (BX.Type.isArray(items)) {
+						var item = items.find(function (currentItem) {
+							return currentItem.VALUE === fieldValue;
+						});
+
+						if (BX.Type.isPlainObject(item)) {
+							BX.Dom.attr(fieldNode, 'data-value', item);
+							var nameNode = fieldNode.querySelector('.main-ui-square-container');
+
+							if (nameNode) {
+								var squareNode =
+									BX.create('span', {
+										'props': {
+											'className': 'main-ui-square'
+										},
+										'attrs': {
+											'data-item': JSON.stringify(item)
+										}
+									});
+								var squareNodeItem =
+									BX.create('span', {
+										'props': {
+											'className': 'main-ui-square-item'
+										}
+									});
+								var squareNodeRem =
+									BX.create('span', {
+										'props': {
+											'className': 'main-ui-item-icon main-ui-square-delete'
+										}
+									});
+
+								squareNodeItem.innerText = item.NAME;
+								squareNode.append(squareNodeItem);
+								squareNode.append(squareNodeRem);
+
+								nameNode.append(squareNode);
+							}
+							var value = [item];
+							fieldNode.setAttribute('data-value', JSON.stringify(value));
+						}
+					}
+				}
+			}
+		});
 	};
 	FilterListener.prototype.onFilterData = function (filterId, promise)
 	{
 		var item = this.manager.getItemByFilterId(filterId);
 		if (item)
 		{
-			item.animateCounter(false);
+			item.animateCounter(false, true);
 		}
 
 		// resolve promise
@@ -538,6 +741,7 @@
 	};
 	FilterListener.prototype.onApplyFilter = function (id, data, ctx, promise, params)
 	{
+		//this.clearEmptyFilterFields(ctx);
 		// disable promise auto resolving
 		params.autoResolve = false;
 		this.manager.updateFilterData(id, this.onFilterData.bind(this, id, promise));
@@ -556,7 +760,6 @@
 	};
 	FilterListener.prototype.onFilterShow = function (filter)
 	{
-		this.clearEmptyFilterFields(filter);
 		if (this.getShowedFilterFields(filter).length === 0)
 		{
 			filter.restoreDefaultFields();
@@ -564,7 +767,6 @@
 	};
 	FilterListener.prototype.onFilterBlur = function (filter)
 	{
-		this.clearEmptyFilterFields(filter);
 	};
 	FilterListener.prototype.clearEmptyFilterFields = function (filter)
 	{
@@ -598,7 +800,8 @@
 					}).length === 0;
 
 				default:
-					return (typeof (values[name]) === "undefined" || values[name] === "");
+					return (typeof (values[name]) === "undefined" || values[name] === ""  ||
+						(typeof values[name] === "object" && values[name].hasOwnProperty('length') && !values[name].length));
 			}
 		});
 
@@ -626,6 +829,7 @@
 		this.code = params.code;
 		this.caller = params.caller;
 		this.context = params.context;
+		this.groupId = params.groupId;
 
 		this.init();
 	}
@@ -873,14 +1077,16 @@
 
 		parameters.SENDER_RECIPIENT_TYPE_ID = typeId;
 		parameters.apply_filter = 'Y';
+		parameters.groupId = this.groupId;
+		parameters.filterId = this.getFilterId();
 
 		var uri = BX.util.add_url_param(this.caller.pathToResult, parameters);
 		BX.SidePanel.Instance.open(uri, {cacheable: false});
 	};
-	Item.prototype.animateCounter = function (isAnimate)
+	Item.prototype.animateCounter = function (isAnimate, hideCounter)
 	{
-		Helper.changeClass(this.context, 'loading', isAnimate);
-		if (isAnimate)
+		Helper.changeClass(this.context, 'loading' + (!hideCounter ? '-partial' : ''), isAnimate);
+		if (isAnimate && hideCounter)
 		{
 			this.setCount(null);
 		}
@@ -917,6 +1123,15 @@
 
 		Helper.changeDisplay(this.ui.resultView, this.counters.length > 0 && this.isResultViewable());
 		Helper.changeDisplay(this.ui.counter, count.summary <= 0);
+	};
+	Item.prototype.showLoadingInfo = function ()
+	{
+		this.ui.counter.textContent = BX.Loc.getMessage('SENDER_SEGMENT_SEARCH_INFORMATION');
+
+		this.ui.countInfo.innerHTML = '';
+
+		Helper.changeDisplay(this.ui.resultView, true);
+		Helper.changeDisplay(this.ui.counter, true);
 	};
 	Item.prototype.getCounters = function ()
 	{

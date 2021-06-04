@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_17.2.COPYRIGHT_WITH_SOCIAL_NAME_NEW'),
 		'section' => array('footer'),
+		'dynamic' => false,
 	),
 	'cards' => array(
 		'.landing-block-card-social' => array(

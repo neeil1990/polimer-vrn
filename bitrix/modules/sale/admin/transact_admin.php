@@ -15,7 +15,8 @@ $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions == "D")
 	$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
 
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+\Bitrix\Main\Loader::includeModule('sale');
+
 IncludeModuleLangFile(__FILE__);
 
 $arTransactTypes = array(
@@ -34,7 +35,7 @@ $arTransactTypes = array(
 
 $sTableID = "tbl_sale_transact";
 
-$oSort = new CAdminSorting($sTableID, "ID", "desc");
+$oSort = new CAdminUiSorting($sTableID, "ID", "desc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
 $listCurrency = array();
@@ -136,7 +137,7 @@ if (in_array("DESCR", $arVisibleColumns))
 	while ($arTransact = $dbTransactList1->Fetch())
 	{
 		$tmpTrans[] = $arTransact;
-		if(IntVal($arTransact["EMPLOYEE_ID"]) > 0 && !in_array($arTransact["EMPLOYEE_ID"], $arTrUsers))
+		if(intval($arTransact["EMPLOYEE_ID"]) > 0 && !in_array($arTransact["EMPLOYEE_ID"], $arTrUsers))
 			$arTrUsers[] = $arTransact["EMPLOYEE_ID"];
 	}
 
@@ -145,7 +146,7 @@ if (in_array("DESCR", $arVisibleColumns))
 		$dbUser = CUser::GetList($by = "ID", $or = "ASC", array("ID" => implode(' || ', array_keys($arTrUsers))), array("FIELDS" => array("ID", "LOGIN", "NAME", "LAST_NAME")));
 		while($arUser = $dbUser->Fetch())
 		{
-			$LOCAL_TRANS_USER_CACHE[$arUser["ID"]] = htmlspecialcharsEx($arUser["NAME"].((strlen($arUser["NAME"])<=0 || strlen($arUser["LAST_NAME"])<=0) ? "" : " ").$arUser["LAST_NAME"]." (".$arUser["LOGIN"].")");
+			$LOCAL_TRANS_USER_CACHE[$arUser["ID"]] = htmlspecialcharsEx($arUser["NAME"].(($arUser["NAME"] == '' || $arUser["LAST_NAME"] == '') ? "" : " ").$arUser["LAST_NAME"]." (".$arUser["LOGIN"].")");
 		}
 	}
 }
@@ -164,8 +165,8 @@ while ($arTransact = $dbTransactList->NavNext(false))
 		$urlToUser = $adminSidePanelHelper->editUrlToPublicPage($urlToUser);
 	}
 	$fieldValue  = "[<a href=\"".$urlToUser."\" title=\"".GetMessage("STA_USER_INFO")."\">".$arTransact["USER_ID"]."</a>] ";
-	$fieldValue .= htmlspecialcharsEx($arTransact["USER_NAME"].((strlen($arTransact["USER_NAME"])<=0 ||
-			strlen($arTransact["USER_LAST_NAME"])<=0) ? "" : " ").$arTransact["USER_LAST_NAME"])."<br>";
+	$fieldValue .= htmlspecialcharsEx($arTransact["USER_NAME"].(($arTransact["USER_NAME"] == '' ||
+			$arTransact["USER_LAST_NAME"] == '') ? "" : " ").$arTransact["USER_LAST_NAME"])."<br>";
 	$fieldValue .= htmlspecialcharsEx($arTransact["USER_LOGIN"])."&nbsp;&nbsp;&nbsp; ";
 	$fieldValue .= "<a href=\"mailto:".htmlspecialcharsbx($arTransact["USER_EMAIL"])."\" title=\"".
 		GetMessage("STA_MAILTO")."\">".htmlspecialcharsEx($arTransact["USER_EMAIL"])."</a>";
@@ -199,7 +200,7 @@ while ($arTransact = $dbTransactList->NavNext(false))
 	if (in_array("DESCR", $arVisibleColumns))
 	{
 		$fieldValue .= "<small>";
-		if (IntVal($arTransact["EMPLOYEE_ID"]) > 0)
+		if (intval($arTransact["EMPLOYEE_ID"]) > 0)
 		{
 			if (isset($LOCAL_TRANS_USER_CACHE[$arTransact["EMPLOYEE_ID"]])
 				&& !empty($LOCAL_TRANS_USER_CACHE[$arTransact["EMPLOYEE_ID"]]))
@@ -244,9 +245,14 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/prolog.php");
 $APPLICATION->SetTitle(GetMessage("STA_TITLE"));
 
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php");
-
-$lAdmin->DisplayFilter($filterFields);
-$lAdmin->DisplayList();
-
+if (!$publicMode && \Bitrix\Sale\Update\CrmEntityCreatorStepper::isNeedStub())
+{
+	$APPLICATION->IncludeComponent("bitrix:sale.admin.page.stub", ".default");
+}
+else
+{
+	$lAdmin->DisplayFilter($filterFields);
+	$lAdmin->DisplayList();
+}
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
 ?>

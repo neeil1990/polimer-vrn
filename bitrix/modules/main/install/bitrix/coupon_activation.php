@@ -3,12 +3,16 @@ define("UPDATE_SYSTEM_VERSION", "9.0.2");
 error_reporting(E_ALL & ~E_NOTICE);
 
 include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/lib/loader.php");
+include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/autoload.php");
+
 $application = \Bitrix\Main\HttpApplication::getInstance();
 $application->initializeBasicKernel();
 
 require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/php_interface/dbconn.php");
-require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/classes/".$DBType."/database.php");
 require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/tools.php");
+require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/classes/".$DBType."/database.php");
+require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/classes/general/cache.php");	//various cache classes
+require_once($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/classes/general/module.php");
 
 if ($_REQUEST['lang'] == 'ru')
 	define("LANGUAGE_ID", 'ru');
@@ -58,20 +62,6 @@ $DB->Connect($DBHost, $DBName, $DBLogin, $DBPassword);
 $errorMessage = "";
 $successMessage = "";
 
-/**************************************************************************************************************************/
-/*************************   FUNCTIONS   **********************************************************************************/
-/**************************************************************************************************************************/
-if (!function_exists("file_get_contents"))
-{
-	function file_get_contents($filename)
-	{
-		$fd = fopen("$filename", "rb");
-		$content = fread($fd, filesize($filename));
-		fclose($fd);
-		return $content;
-	}
-}
-
 function UpdateGetOption($name, $default = "")
 {
 	global $DB;
@@ -80,7 +70,7 @@ function UpdateGetOption($name, $default = "")
 	$dbOption = $DB->Query("SELECT VALUE FROM b_option WHERE MODULE_ID='main' AND NAME='".$DB->ForSql($name)."'", true);
 	if ($arOption = $dbOption->Fetch())
 		$value = $arOption['VALUE'];
-	if (strlen($value) <= 0)
+	if ($value == '')
 		$value = $default;
 
 	return $value;
@@ -119,14 +109,14 @@ function UpdateGetHTTPPage($requestDataAdd, &$errorMessage)
 	$proxyPort = 0;
 	$proxyUserName = "";
 	$proxyPassword = "";
-	if (strlen($proxyAddr) > 0)
+	if ($proxyAddr <> '')
 	{
 		$proxyPort = intval(UpdateGetOption("update_site_proxy_port", ""));
 		$proxyUserName = UpdateGetOption("update_site_proxy_user", "");
 		$proxyPassword = UpdateGetOption("update_site_proxy_pass", "");
 	}
 
-	$bUseProxy = (strlen($proxyAddr) > 0 && $proxyPort > 0);
+	$bUseProxy = ($proxyAddr <> '' && $proxyPort > 0);
 
 	if ($bUseProxy)
 	{
@@ -172,7 +162,7 @@ function UpdateGetHTTPPage($requestDataAdd, &$errorMessage)
 			"&dbv=".urlencode($dbv != false ? $dbv : "").
 			"&SUPD_VER=".urlencode(UPDATE_SYSTEM_VERSION);
 
-		if (strlen($requestDataAdd) > 0)
+		if ($requestDataAdd <> '')
 			$requestData .= "&".$requestDataAdd;
 
 		$requestString = "";
@@ -180,7 +170,7 @@ function UpdateGetHTTPPage($requestDataAdd, &$errorMessage)
 		if ($bUseProxy)
 		{
 			$requestString .= "POST http://".$serverIP."/bitrix/updates/us_updater_actions.php HTTP/1.0\r\n";
-			if (strlen($proxyUserName) > 0)
+			if ($proxyUserName <> '')
 				$requestString .= "Proxy-Authorization: Basic ".base64_encode($proxyUserName.":".$proxyPassword)."\r\n";
 		}
 		else
@@ -222,7 +212,7 @@ function UpdateGetHTTPPage($requestDataAdd, &$errorMessage)
 
 function UpdateHtmlSpecialCharsBack($str)
 {
-	if (strlen($str) > 0)
+	if ($str <> '')
 	{
 		$str = str_replace("&lt;", "<", $str);
 		$str = str_replace("&gt;", ">", $str);
@@ -273,7 +263,7 @@ function UpdateActivateCoupon($coupon, &$errorMessage)
 
 	$postDataString = "coupon=".urlencode($coupon)."&query_type=".urlencode("reincarnate");
 	$content = UpdateGetHTTPPage($postDataString, $errorMessage);
-	if (strlen($content) <= 0)
+	if ($content == '')
 	{
 		$errorMessage .= $MESS['ERROR_EMPTY_CONTENT'].". ";
 		return false;
@@ -282,20 +272,29 @@ function UpdateActivateCoupon($coupon, &$errorMessage)
 	$arContent = UpdateParseServerData($content, $errorMessage);
 	if (!is_array($arContent) || count($arContent) <= 0)
 	{
-		if (strlen($errorMessage) <= 0)
+		if ($errorMessage == '')
 			$errorMessage .= $MESS['ERROR_INVALID_CONTENT'].". ";
+		return false;
+	}
+
+	$v1Value = $arContent["V1"];
+	$v2Value = $arContent["V2"];
+	if (preg_match("#[^A-Za-z0-9+/=]#i", $v1Value)
+		|| preg_match("#[^A-Za-z0-9+/=]#i", $v2Value))
+	{
+		$errorMessage .= $MESS['ERROR_INVALID_CONTENT'].". ";
 		return false;
 	}
 
 	UpdateSetOption('~SAAS_MODE', "Y");
 
-	UpdateSetOption('admin_passwordh', $arContent["V1"]);
+	UpdateSetOption('admin_passwordh', $v1Value);
 
 	if (is_writable($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/admin"))
 	{
 		if ($fp = fopen($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/admin/define.php", 'w'))
 		{
-			fwrite($fp, "<"."?Define(\"TEMPORARY_CACHE\", \"".$arContent["V2"]."\");?".">");
+			fwrite($fp, "<"."?Define(\"TEMPORARY_CACHE\", \"".$v2Value."\");?".">");
 			fclose($fp);
 		}
 		else
@@ -363,23 +362,7 @@ function UpdateIsAdmin($login, $password)
 	{
 		if(intval($arUser["LOGIN_ATTEMPTS"]) <= 5)
 		{
-			if (strlen($arUser["PASSWORD"]) > 32)
-			{
-				$salt = substr($arUser["PASSWORD"], 0, strlen($arUser["PASSWORD"]) - 32);
-				$db_password = substr($arUser["PASSWORD"], -32);
-			}
-			else
-			{
-				$salt = "";
-				$db_password = $arUser["PASSWORD"];
-			}
-
-			$user_password =  md5($salt.$password);
-
-			if($db_password === $user_password)
-			{
-				return true;
-			}
+			return \Bitrix\Main\Security\Password::equals($arUser["PASSWORD"], $password);
 		}
 		$DB->Query("UPDATE b_user SET LOGIN_ATTEMPTS = LOGIN_ATTEMPTS+1, TIMESTAMP_X = TIMESTAMP_X WHERE ID = ".intval($arUser["ID"]));
 	}
@@ -418,7 +401,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 		{
 			$errorMessage .= $MESS['ERROR_EMPTY_COUPON'].". ";
 		}
-		elseif (!preg_match("#^[A-Z0-9]{3}-[A-Z]{2}-?[A-Z0-9]{12,18}$#i", $_POST["coupon"]) && !preg_match("#^[A-Z0-9]{3}-[A-Z0-9]{10}-[A-Z0-9]{10}$#i", $_POST["coupon"]))
+		elseif (!preg_match("#^[A-Z0-9]{3}-[A-Z]{2}-?[A-Z0-9]{12,30}$#i", $_POST["coupon"]) && !preg_match("#^[A-Z0-9]{3}-[A-Z0-9]{10}-[A-Z0-9]{10}$#i", $_POST["coupon"]))
 		{
 			$errorMessage .= $MESS['ERROR_INVALID_COUPON'].". ";
 		}
@@ -443,7 +426,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 	</head>
 	<body>
 	<?
-	if (strlen($errorMessage) > 0)
+	if ($errorMessage <> '')
 	{
 		?><br>
 		<table width="600" align="center" cellspacing="1" cellpadding="10" bgcolor="red"><tr><td bgcolor="white">
@@ -453,7 +436,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 		<?
 	}
 
-	if (strlen($successMessage) > 0)
+	if ($successMessage <> '')
 	{
 		?><br>
 		<table width="600" align="center" cellspacing="1" cellpadding="10" bgcolor="green"><tr><td bgcolor="white">
@@ -509,7 +492,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 											</tr>
 											<tr>
 												<td width="40%" align="right"><?= $MESS['PASSWORD_PROMT'] ?>:</td>
-												<td><input type="password" name="password" value="" size="40"></td>
+												<td><input type="password" name="password" value="<?= htmlspecialcharsbx(strval($_POST["password"])) ?>" size="40"></td>
 											</tr>
 											<tr>
 												<td width="40%" align="right"><?= $MESS['COUPON_PROMT'] ?>:</td>

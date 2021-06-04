@@ -22,7 +22,7 @@ class Iblock implements Controllable, Errorable
 	private $fieldList = [];
 	private $messageList = [];
 
-	private $errorCollection;
+	private $iblockId;
 
 	public function __construct(Param $param)
 	{
@@ -32,6 +32,8 @@ class Iblock implements Controllable, Errorable
 		$this->fieldList = ["NAME", "ACTIVE", "DESCRIPTION", "SORT", "BIZPROC", "PICTURE"];
 		$this->messageList = ["ELEMENTS_NAME", "ELEMENT_NAME", "ELEMENT_ADD", "ELEMENT_EDIT", "ELEMENT_DELETE",
 			"SECTIONS_NAME", "SECTION_ADD", "SECTION_EDIT", "SECTION_DELETE"];
+
+		$this->iblockId = Utils::getIblockId($this->params);
 
 		$this->errorCollection = new ErrorCollection;
 	}
@@ -43,6 +45,13 @@ class Iblock implements Controllable, Errorable
 	 */
 	public function isExist()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$filter = [
 			"ID" => $this->params["IBLOCK_ID"] ? $this->params["IBLOCK_ID"] : "",
 			"CODE" => $this->params["IBLOCK_CODE"] ? $this->params["IBLOCK_CODE"] : "",
@@ -61,6 +70,13 @@ class Iblock implements Controllable, Errorable
 	 */
 	public function add()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", ["FIELDS" => ["NAME"]]]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$iblockObject = new \CIBlock();
 		$result = $iblockObject->add($this->getFields());
 
@@ -96,6 +112,13 @@ class Iblock implements Controllable, Errorable
 	 */
 	public function get(array $navData = [])
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_TYPE_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return [];
+		}
+
 		$iblocks = [];
 
 		$filter = $this->getFilter();
@@ -119,8 +142,15 @@ class Iblock implements Controllable, Errorable
 	 */
 	public function update()
 	{
+		$this->param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
 		$iblockObject = new \CIBlock;
-		if ($iblockObject->update(Utils::getIblockId($this->params), $this->getFields()))
+		if ($iblockObject->update($this->iblockId, $this->getFields()))
 		{
 			return true;
 		}
@@ -146,7 +176,14 @@ class Iblock implements Controllable, Errorable
 	 */
 	public function delete()
 	{
-		return \CIBlock::delete(Utils::getIblockId($this->params));
+		$this->param->checkRequiredInputParams(["IBLOCK_TYPE_ID", "IBLOCK_CODE", "IBLOCK_ID"]);
+		if ($this->param->hasErrors())
+		{
+			$this->errorCollection->add($this->param->getErrors());
+			return false;
+		}
+
+		return \CIBlock::delete($this->iblockId);
 	}
 
 	private function getFilter()
@@ -154,7 +191,7 @@ class Iblock implements Controllable, Errorable
 		$filter = [
 			"TYPE" => $this->params["IBLOCK_TYPE_ID"],
 			"ID" => ($this->params["IBLOCK_ID"] ? $this->params["IBLOCK_ID"] : ""),
-			'CODE' => ($this->params["IBLOCK_CODE"] ? $this->params["IBLOCK_CODE"] : ""),
+			"CODE" => ($this->params["IBLOCK_CODE"] ? $this->params["IBLOCK_CODE"] : ""),
 			"ACTIVE" => "Y",
 			"CHECK_PERMISSIONS" => ($this->params["SOCNET_GROUP_ID"]) ? "N" : "Y",
 		];
@@ -200,7 +237,7 @@ class Iblock implements Controllable, Errorable
 		];
 		if ($this->params["IBLOCK_CODE"])
 		{
-			$fields["CODE"] = $this->params['IBLOCK_CODE'];
+			$fields["CODE"] = $this->params["IBLOCK_CODE"];
 		}
 		if ($this->params["SOCNET_GROUP_ID"])
 		{
@@ -235,7 +272,7 @@ class Iblock implements Controllable, Errorable
 		$fields["RIGHTS"] = $this->getCurrentRights();
 		foreach ($this->getInputRight() as $rightId => $right)
 		{
-			$fields['RIGHTS'][$rightId] = $right;
+			$fields["RIGHTS"][$rightId] = $right;
 		}
 
 		return $fields;
@@ -245,7 +282,7 @@ class Iblock implements Controllable, Errorable
 	{
 		$result = [];
 
-		$iblockRights = new \CIBlockRights(Utils::getIblockId($this->params));
+		$iblockRights = new \CIBlockRights($this->iblockId);
 		$rights = $iblockRights->getRights();
 		foreach ($rights as $rightId => $right)
 		{
@@ -269,10 +306,10 @@ class Iblock implements Controllable, Errorable
 		$count = 0;
 		foreach ($this->params["RIGHTS"] as $rightCode => $access)
 		{
-			$result['n'.($count++)] = [
-				'GROUP_CODE' => $rightCode,
-				'TASK_ID' => \CIBlockRights::letterToTask($access),
-				'DO_CLEAN' => 'N',
+			$result["n".($count++)] = [
+				"GROUP_CODE" => $rightCode,
+				"TASK_ID" => \CIBlockRights::letterToTask($access),
+				"DO_CLEAN" => "N",
 			];
 		}
 

@@ -216,7 +216,6 @@ $MESS["MAIN_DESKTOP_EMAIL_KEY"] = "E-mail";
 $MESS["MAIN_DESKTOP_EMAIL_VALUE"] = "<a href=\"mailto:info@1c-bitrix.ru\">info@1c-bitrix.ru</a>";
 $MESS["MAIN_DESKTOP_INFO_TITLE"] = "Информация о сайте";
 $MESS["MAIN_DESKTOP_RSS_TITLE"] = "Новости 1С-Битрикс";
-
 $MESS["MAIN_MAIL_CONFIRM_EVENT_TYPE_NAME"] = "Подтверждение email-адреса отправителя";
 $MESS["MAIN_MAIL_CONFIRM_EVENT_TYPE_DESC"] = "
 
@@ -233,4 +232,80 @@ $MESS["main_install_sms_event_restore_descr"] = "#USER_PHONE# - номер те�
 ";
 $MESS["main_install_sms_template_confirm_mess"] = "Код подтверждения #CODE#";
 $MESS["main_install_sms_template_restore_mess"] = "Код для восстановления пароля #CODE#";
+$MESS["MAIN_DEFAULT_LANGUAGE_SHORT_DATE_FORMAT"] = "d.m.Y";
+$MESS["MAIN_DEFAULT_LANGUAGE_MEDIUM_DATE_FORMAT"] = "j M Y";
+$MESS["MAIN_DEFAULT_LANGUAGE_LONG_DATE_FORMAT"] = "j F Y";
+$MESS["MAIN_DEFAULT_LANGUAGE_FULL_DATE_FORMAT"] = "l, j F Y";
+$MESS["MAIN_DEFAULT_LANGUAGE_DAY_MONTH_FORMAT"] = "j F";
+$MESS["MAIN_DEFAULT_LANGUAGE_DAY_SHORT_MONTH_FORMAT"] = "j M";
+$MESS["MAIN_DEFAULT_LANGUAGE_DAY_OF_WEEK_MONTH_FORMAT"] = "l, j F";
+$MESS["MAIN_DEFAULT_LANGUAGE_SHORT_DAY_OF_WEEK_MONTH_FORMAT"] = "D, j F";
+$MESS["MAIN_DEFAULT_LANGUAGE_SHORT_DAY_OF_WEEK_SHORT_MONTH_FORMAT"] = "D, j M";
+$MESS["MAIN_DEFAULT_LANGUAGE_SHORT_TIME_FORMAT"] = "H:i";
+$MESS["MAIN_DEFAULT_LANGUAGE_LONG_TIME_FORMAT"] = "H:i:s";
+$MESS["MAIN_DEFAULT_LANGUAGE_AM_VALUE"] = "am";
+$MESS["MAIN_DEFAULT_LANGUAGE_PM_VALUE"] = "pm";
+$MESS["MAIN_DEFAULT_LANGUAGE_NUMBER_THOUSANDS_SEPARATOR"] = " ";
+$MESS["MAIN_DEFAULT_LANGUAGE_NUMBER_DECIMAL_SEPARATOR"] = ",";
+$MESS["MAIN_INSTALL_EVENT_TYPE_NOTIFICATION"] = "Оповещение журнала событий";
+$MESS["MAIN_INSTALL_EVENT_TYPE_NOTIFICATION_DESC"] = "#EMAIL# - Email получателя
+#ADDITIONAL_TEXT# - Дополнительный текст действия
+#NAME# - Название оповещения
+#AUDIT_TYPE_ID# - Тип события
+#ITEM_ID# - Объект
+#USER_ID# - Пользователь
+#REMOTE_ADDR# - IP-адрес
+#USER_AGENT# - Браузер
+#REQUEST_URI# - Страница
+#EVENT_COUNT# - Количество записей";
+$MESS["MAIN_INSTALL_EVENT_TYPE_NOTIFICATION_DESC_SMS"] = "#PHONE_NUMBER# - Номер телефона получателя
+#ADDITIONAL_TEXT# - Дополнительный текст действия
+#NAME# - Название оповещения
+#AUDIT_TYPE_ID# - Тип события
+#ITEM_ID# - Объект
+#USER_ID# - Пользователь
+#REMOTE_ADDR# - IP-адрес
+#USER_AGENT# - Браузер
+#REQUEST_URI# - Страница
+#EVENT_COUNT# - Количество записей";
+$MESS["MAIN_EVENT_MESS_NOTIFICATION"] = "Оповещение журнала событий: #NAME#";
+$MESS["MAIN_EVENT_MESS_NOTIFICATION_TEXT"] = "Зафиксированы события в журнале, соответствующие параметрам оповещения:
+
+Тип события: #AUDIT_TYPE_ID#
+Объект: #ITEM_ID#
+Пользователь: #USER_ID# 
+IP-адрес: #REMOTE_ADDR#
+Браузер: #USER_AGENT#
+Страница: #REQUEST_URI# 
+
+Количество записей: #EVENT_COUNT# 
+
+#ADDITIONAL_TEXT#
+
+Перейти в журнал событий:
+http://#SERVER_NAME#/bitrix/admin/event_log.php?set_filter=Y&find_audit_type_id=#AUDIT_TYPE_ID#";
+$MESS["main_install_sms_template_notification_mess"] = "#NAME#: #ADDITIONAL_TEXT# (событий: #EVENT_COUNT#)";
+$MESS["MAIN_INSTALL_EVENT_TYPE_USER_CODE_REQUEST"] = "Запрос кода авторизации";
+$MESS["MAIN_INSTALL_EVENT_TYPE_USER_CODE_REQUEST_DESC"] = "#USER_ID# - ID пользователя
+#STATUS# - Статус логина
+#LOGIN# - Логин
+#CHECKWORD# - Код для авторизации
+#NAME# - Имя
+#LAST_NAME# - Фамилия
+#EMAIL# - Email пользователя
+";
+$MESS["MAIN_INSTALL_EVENT_MESS_USER_CODE_REQUEST"] = "#SITE_NAME#: Запрос кода авторизации";
+$MESS["MAIN_INSTALL_EVENT_MESS_USER_CODE_REQUEST_MESS"] = "Используйте для авторизации код:
+
+#CHECKWORD#
+
+После авторизации вы сможете изменить свой пароль в редактировании профиля.
+
+Ваша регистрационная информация:
+
+ID пользователя: #USER_ID#
+Статус профиля: #STATUS#
+Логин: #LOGIN#
+
+Сообщение создано автоматически.";
 ?>

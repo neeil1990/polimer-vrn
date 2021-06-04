@@ -1,4 +1,4 @@
 <?
-$MESS['UI_FORM_BUTTON_CANCEL'] = "Cancel";
-$MESS['UI_FORM_BUTTON_SAVE'] = "Save";
+$MESS["UI_FORM_ENTITY_FIELD_ADD"] = "Add";
+$MESS["UI_FORM_ENTITY_FIELD_EMPTY"] = "field is empty";
 ?>

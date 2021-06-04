@@ -4,7 +4,8 @@ use \Bitrix\Main\Application;
 use Bitrix\Main\Localization\Loc;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions < "U")
@@ -33,13 +34,13 @@ $USER_FIELD_MANAGER->AdminListAddFilterFields($entity_id, $filterFields);
 $lAdmin->InitFilter($filterFields);
 $filter = array();
 
-if (strlen($filter_name) > 0)
+if ($filter_name <> '')
 	$filter["?NAME"] = $filter_name;
 
-if (strlen($filter_location_id) > 0)
+if ($filter_location_id <> '')
 	$filter["LOCATION_ID"] = $filter_location_id;
 
-if (strlen($filter_active) > 0 && $filter_active != 'NOT_REF')
+if ($filter_active <> '' && $filter_active != 'NOT_REF')
 	$filter["ACTIVE"] = $filter_active;
 
 $USER_FIELD_MANAGER->AdminListAddFilter(CompanyTable::getUfId(), $filter);
@@ -119,7 +120,7 @@ if (($ids = $lAdmin->GroupAction()) && $saleModulePermissions >= "W")
 				if ($dbRes->fetch())
 				{
 					$lAdmin->AddGroupError(Loc::getMessage("SALE_COMPANY_ERROR_DELETE_LINK"), $id);
-					continue;
+					continue 2;
 				}
 
 				$result = CompanyTable::delete($id);

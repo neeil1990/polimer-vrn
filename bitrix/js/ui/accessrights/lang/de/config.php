@@ -1,0 +1,18 @@
+<?
+$MESS["JS_UI_ACCESSRIGHTS_ADD"] = "Hinzufügen";
+$MESS["JS_UI_ACCESSRIGHTS_COPY_ROLE"] = "Rolle kopieren";
+$MESS["JS_UI_ACCESSRIGHTS_CREATE_ROLE"] = "Rolle erstellen";
+$MESS["JS_UI_ACCESSRIGHTS_DEPARTMENTS"] = "Abteilungen";
+$MESS["JS_UI_ACCESSRIGHTS_EMPLOYEES_AND_DEPARTMENTS"] = "Mitarbeiter und Abteilungen";
+$MESS["JS_UI_ACCESSRIGHTS_POPUP_CANCEL"] = "Abbrechen";
+$MESS["JS_UI_ACCESSRIGHTS_POPUP_REMOVE"] = "Löschen";
+$MESS["JS_UI_ACCESSRIGHTS_POPUP_REMOVE_THIS_ROLE"] = "Möchten Sie diese Rolle wirklich löschen?";
+$MESS["JS_UI_ACCESSRIGHTS_REMOVE"] = "Löschen";
+$MESS["JS_UI_ACCESSRIGHTS_ROLES"] = "Rollen";
+$MESS["JS_UI_ACCESSRIGHTS_ROLE_NAME"] = "Rollenname";
+$MESS["JS_UI_ACCESSRIGHTS_ROLE_REMOVE"] = "Rolle wurde gelöscht.";
+$MESS["JS_UI_ACCESSRIGHTS_SOCNETGROUP"] = "Projektgruppen";
+$MESS["JS_UI_ACCESSRIGHTS_STAFF"] = "Mitarbeiter";
+$MESS["JS_UI_ACCESSRIGHTS_STTINGS_HAVE_BEEN_SAVED"] = "Einstellungen wurden gespeichert.";
+$MESS["JS_UI_ACCESSRIGHTS_USER_GROUPS"] = "Nutzergruppen";
+?>

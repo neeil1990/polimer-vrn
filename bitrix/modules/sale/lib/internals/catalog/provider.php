@@ -1318,13 +1318,6 @@ final class Provider
 			/** @var Sale\ShipmentItemStore $shipmentItemStore */
 			foreach ($shipmentItemStoreCollection as $shipmentItemStore)
 			{
-				/** @var Sale\BasketItem $basketItem */
-				if (!$basketItem = $shipmentItemStore->getBasketItem())
-				{
-					throw new Main\ObjectNotFoundException('Entity "BasketItem" not found');
-				}
-
-				//				$basketCode = $basketItem->getBasketCode();
 				$productId = $basketItem->getProductId();
 
 				$storeId = $shipmentItemStore->getStoreId();
@@ -1645,9 +1638,9 @@ final class Provider
 	 */
 	private static function clearProviderName($providerName)
 	{
-		if (substr($providerName, 0, 1) == "\\")
+		if (mb_substr($providerName, 0, 1) == "\\")
 		{
-			$providerName = substr($providerName, 1);
+			$providerName = mb_substr($providerName, 1);
 		}
 
 		return trim($providerName);

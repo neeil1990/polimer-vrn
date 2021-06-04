@@ -13,6 +13,7 @@ use Bitrix\Main,
 	Bitrix\Main\Loader,
 	Bitrix\Iblock\InheritedProperty\ElementValues,
 	Bitrix\Iblock,
+	Bitrix\Catalog,
 	Bitrix\Currency;
 
 $this->setFrameMode(false);
@@ -32,7 +33,7 @@ $arParams["NAME"] = trim($arParams["NAME"]);
 if ($arParams["NAME"] == '')
 	$arParams["NAME"] = "CATALOG_COMPARE_LIST";
 
-if (strlen($arParams["ELEMENT_SORT_FIELD"])<=0)
+if ($arParams["ELEMENT_SORT_FIELD"] == '')
 	$arParams["ELEMENT_SORT_FIELD"]="sort";
 
 if (!preg_match('/^(asc|desc|nulls)(,asc|,desc|,nulls){0,1}$/i', $arParams["ELEMENT_SORT_ORDER"]))
@@ -55,7 +56,7 @@ $arParams["SECTION_ID_VARIABLE"] = trim($arParams["SECTION_ID_VARIABLE"]);
 if ($arParams["SECTION_ID_VARIABLE"] == '' || !preg_match("/^[A-Za-z_][A-Za-z01-9_]*$/", $arParams["SECTION_ID_VARIABLE"]))
 	$arParams["SECTION_ID_VARIABLE"] = "SECTION_ID";
 
-if (!is_array($arParams["PROPERTY_CODE"]))
+if (!isset($arParams["PROPERTY_CODE"]) || !is_array($arParams["PROPERTY_CODE"]))
 	$arParams["PROPERTY_CODE"] = array();
 foreach($arParams["PROPERTY_CODE"] as $k=>$v)
 	if ($v==="")
@@ -73,7 +74,7 @@ foreach($arParams["OFFERS_FIELD_CODE"] as $k=>$v)
 	if ($v==="")
 		unset($arParams["OFFERS_FIELD_CODE"][$k]);
 
-if (!is_array($arParams["OFFERS_PROPERTY_CODE"]))
+if (!isset($arParams["OFFERS_PROPERTY_CODE"]) || !is_array($arParams["OFFERS_PROPERTY_CODE"]))
 	$arParams["OFFERS_PROPERTY_CODE"] = array();
 foreach($arParams["OFFERS_PROPERTY_CODE"] as $k=>$v)
 	if ($v==="")
@@ -438,7 +439,7 @@ Processing of the Buy link
 $strError = "";
 if (isset($_REQUEST[$arParams["ACTION_VARIABLE"]]) && isset($_REQUEST[$arParams["PRODUCT_ID_VARIABLE"]]))
 {
-	$action = strtoupper($_REQUEST[$arParams["ACTION_VARIABLE"]]);
+	$action = mb_strtoupper($_REQUEST[$arParams["ACTION_VARIABLE"]]);
 	$productID = (int)$_REQUEST[$arParams["PRODUCT_ID_VARIABLE"]];
 	if (($action == "COMPARE_ADD2BASKET" || $action == "COMPARE_BUY") && $productID > 0)
 	{
@@ -479,7 +480,7 @@ if (isset($_REQUEST[$arParams["ACTION_VARIABLE"]]) && isset($_REQUEST[$arParams[
 		}
 	}
 }
-if (strlen($strError)>0)
+if ($strError <> '')
 {
 	ShowError($strError);
 	return;
@@ -557,6 +558,59 @@ if (!empty($arCompare) && is_array($arCompare))
 	}
 	unset($arOffers);
 
+	$usePropertyFeatures = Iblock\Model\PropertyFeature::isEnabledFeatures();
+	if ($usePropertyFeatures)
+	{
+		$properties = [];
+		$list = Iblock\Model\PropertyFeature::getListPageShowPropertyCodes(
+			$arParams['IBLOCK_ID'],
+			['CODE' => 'Y']
+		);
+		if (!empty($list))
+		{
+			$properties = $list;
+		}
+		$list = Iblock\Model\PropertyFeature::getDetailPageShowPropertyCodes(
+			$arParams['IBLOCK_ID'],
+			['CODE' => 'Y']
+		);
+		if (!empty($list))
+		{
+			$properties = array_unique(array_merge($properties, $list));
+		}
+		$arParams['PROPERTY_CODE'] = $properties;
+		if ($catalogIncluded && $arResult['OFFERS_IBLOCK_ID'] > 0)
+		{
+			$properties = [];
+			$list = Iblock\Model\PropertyFeature::getListPageShowPropertyCodes(
+				$arResult['OFFERS_IBLOCK_ID'],
+				['CODE' => 'Y']
+			);
+			if (!empty($list))
+			{
+				$properties = $list;
+			}
+			$list = Iblock\Model\PropertyFeature::getDetailPageShowPropertyCodes(
+				$arResult['OFFERS_IBLOCK_ID'],
+				['CODE' => 'Y']
+			);
+			if (!empty($list))
+			{
+				$properties = array_merge($properties, $list);
+			}
+			$list = Catalog\Product\PropertyCatalogFeature::getOfferTreePropertyCodes(
+				$arResult['OFFERS_IBLOCK_ID'],
+				['CODE' => 'Y']
+			);
+			if (!empty($list))
+			{
+				$properties = array_merge($properties, $list);
+			}
+			$arParams['OFFERS_PROPERTY_CODE'] = array_unique($properties);
+		}
+		unset($list, $properties);
+	}
+
 	$arSelect = array(
 		"ID",
 		"IBLOCK_ID",
@@ -573,7 +627,7 @@ if (!empty($arCompare) && is_array($arCompare))
 		"CHECK_PERMISSIONS" => "Y",
 	);
 	$arFilter["IBLOCK_ID"] = (
-	$arResult["OFFERS_IBLOCK_ID"] > 0
+		$arResult["OFFERS_IBLOCK_ID"] > 0
 		? array($arParams["IBLOCK_ID"], $arResult["OFFERS_IBLOCK_ID"])
 		: $arParams["IBLOCK_ID"]
 	);
@@ -624,7 +678,7 @@ if (!empty($arCompare) && is_array($arCompare))
 		array("delete_system_params" => true)
 	);
 
-	$arResult['~COMPARE_URL_TEMPLATE'] = $currentPath.(stripos($currentPath, '?') === false ? '?' : '&');
+	$arResult['~COMPARE_URL_TEMPLATE'] = $currentPath.(mb_stripos($currentPath, '?') === false ? '?' : '&');
 	$arResult['COMPARE_URL_TEMPLATE'] = htmlspecialcharsbx($arResult['~COMPARE_URL_TEMPLATE']);
 	$rawCompareTemplateWithAction = $arResult['~COMPARE_URL_TEMPLATE'].$arParams['ACTION_VARIABLE'];
 	$compareTemplateWithAction = $arResult['COMPARE_URL_TEMPLATE'].$arParams['ACTION_VARIABLE'];
@@ -802,7 +856,7 @@ if (!empty($arCompare) && is_array($arCompare))
 						$boolArr = is_array($prop['VALUE']);
 						if (
 							($boolArr && !empty($prop["VALUE"]))
-							|| (!$boolArr && strlen($prop["VALUE"]) > 0)
+							|| (!$boolArr && $prop["VALUE"] <> '')
 						)
 						{
 							$arItem['OFFER_DISPLAY_PROPERTIES'][$pid] = CIBlockFormatProperties::GetDisplayValue($arOffer, $prop, 'catalog_out');
@@ -846,7 +900,7 @@ if (!empty($arCompare) && is_array($arCompare))
 					$boolArr = is_array($prop['VALUE']);
 					if (
 						($boolArr && !empty($prop["VALUE"]))
-						|| (!$boolArr && strlen($prop["VALUE"]) > 0)
+						|| (!$boolArr && $prop["VALUE"] <> '')
 					)
 					{
 						$arItem['DISPLAY_PROPERTIES'][$pid] = CIBlockFormatProperties::GetDisplayValue($arItem, $prop, 'catalog_out');

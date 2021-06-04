@@ -17,6 +17,10 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 use \Bitrix\Rest\AppTable;
 use \Bitrix\Rest\Marketplace\Client;
 use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Rest\Engine\Access;
+use \Bitrix\Main\UI\PageNavigation;
+
+$APPLICATION->SetTitle(Loc::getMessage("MARKETPLACE_INSTALLED"));
 
 if(!\Bitrix\Main\Loader::includeModule('rest'))
 {
@@ -25,9 +29,36 @@ if(!\Bitrix\Main\Loader::includeModule('rest'))
 
 $arResult['ADMIN'] = \CRestUtil::isAdmin();
 
-if(!$arResult['ADMIN'] || !\Bitrix\Rest\OAuthService::getEngine()->isRegistered())
+if(!$arResult['ADMIN'])
 {
+	ShowError(GetMessage("RMI_ACCESS_DENIED"));
 	return;
+}
+else if (!\Bitrix\Rest\OAuthService::getEngine()->isRegistered())
+{
+	try
+	{
+		\Bitrix\Rest\OAuthService::register();
+	}
+	catch(\Bitrix\Main\SystemException $e)
+	{
+		ShowError($e->getMessage());
+		return;
+	}
+	if (!\Bitrix\Rest\OAuthService::getEngine()->isRegistered())
+	{
+		ShowError(GetMessage("RMI_ACCESS_DENIED_OAUTH_SERVICE_IS_NOT_REGISTERED"));
+		return;
+	}
+}
+
+$arParams['NAVIGATION_NAME'] = $arParams['NAVIGATION_NAME'] ?? 'PAGE_MARKET_INSTALLED';
+$arParams['NAVIGATION_PAGE_SIZE'] = 20;
+$arResult['SUBSCRIPTION_BUY_URL'] = \Bitrix\Rest\Marketplace\Url::getSubscriptionBuyUrl();
+
+if (!\Bitrix\Main\ModuleManager::isModuleInstalled('bitrix24'))
+{
+	$arResult['POPUP_BUY_SUBSCRIPTION_PRIORITY'] = true;
 }
 
 $arResult["FILTER"]["FILTER_ID"] = "marketplace_installed";
@@ -39,28 +70,69 @@ if (isset($_POST["action"]) && $_POST["action"] == "setFilter" && check_bitrix_s
 {
 	$this->arResult["AJAX_MODE"] = true;
 }
+$curUri = new \Bitrix\Main\Web\Uri(
+	$this->request->getRequestUri()
+);
+$curUri->deleteParams(
+	[
+		$arParams['NAVIGATION_NAME'],
+		'amp;'.$arParams['NAVIGATION_NAME'],
+		'amp;IFRAME_TYPE',
+		'amp;IFRAME'
+	]
+);
+
+$arResult['CUR_URI'] = $curUri->getUri();
 
 $arCodes = array();
-$updateCodes = array();
-$updateStatuses = array();
 
 AppTable::updateAppStatusInfo();
+Client::getNumUpdates();
 
-$dbApps = AppTable::getList(array(
-	'filter' => array(
-		'!=STATUS' => AppTable::STATUS_LOCAL,
-	),
-	'select' => array(
-		'*', 'MENU_NAME' => 'LANG.MENU_NAME',
-	)
-));
+$arResult["NAV_OBJECT"] = new PageNavigation($arParams['NAVIGATION_NAME']);
+$arResult["NAV_OBJECT"]
+	->allowAllRecords(false)
+	->setPageSize($arParams['NAVIGATION_PAGE_SIZE'])
+	->initFromUri();
 
+$filter = [
+	'!=STATUS' => AppTable::STATUS_LOCAL,
+];
+
+if (isset($filterData["ACTIVE"]))
+{
+	$filter['=ACTIVE'] = $filterData["ACTIVE"] === AppTable::ACTIVE ? AppTable::ACTIVE : AppTable::INACTIVE;
+}
+
+if (isset($filterData["UPDATES"]))
+{
+	$appUpdates = Client::getAvailableUpdate();
+	if ($filterData["UPDATES"] === 'Y')
+	{
+		$filter['=CODE'] = array_keys($appUpdates);
+	}
+	elseif ($filterData["UPDATES"] === 'N')
+	{
+		$filter['!=CODE'] = array_keys($appUpdates);
+	}
+}
+
+$dbApps = AppTable::getList(
+	[
+		'filter' => $filter,
+		'select' => [
+			'*',
+			'MENU_NAME' => 'LANG.MENU_NAME',
+		],
+		'offset' => $arResult['NAV_OBJECT']->getOffset(),
+		'limit' => $arResult['NAV_OBJECT']->getLimit(),
+		'count_total' => true,
+	]
+);
+
+$arResult['NAV_OBJECT']->setRecordCount($dbApps->getCount());
 while ($app = $dbApps->Fetch())
 {
-	if (isset($filterData["ACTIVE"] ) && $filterData["ACTIVE"] != $app["ACTIVE"])
-	{
-		continue;
-	}
 
 	$arCodes[] = $app["CODE"];
 	$app['APP_STATUS'] = AppTable::getAppStatusInfo($app, str_replace(
@@ -74,87 +146,71 @@ while ($app = $dbApps->Fetch())
 		$app['APP_STATUS']['MESSAGE_REPLACE']['#DAYS#'] = FormatDate("ddiff", time(), time() + 24 * 60 * 60 * $app['APP_STATUS']['MESSAGE_REPLACE']["#DAYS#"]);
 	}
 
-	$arResult["ITEMS"][$app["CODE"]] = $app;
+	$app['REST_ACCESS'] = Access::isAvailable($app["CODE"]) && Access::isAvailableCount(Access::ENTITY_TYPE_APP, $app['CODE']);
 
-	if ($app["ACTIVE"] == "Y")
+	if (!$app['REST_ACCESS'])
 	{
-		$updateCodes[$app["CODE"]] = $app["VERSION"];
-		$updateStatuses[$app["CODE"]] = $app["STATUS"];
+		$app['REST_ACCESS_HELPER_CODE'] = Access::getHelperCode(Access::ACTION_INSTALL, Access::ENTITY_TYPE_APP, $app);
 	}
+
+	$arResult["ITEMS"][$app["CODE"]] = $app;
 }
+
 
 if (!empty($arCodes))
 {
 	$arAppsBuy = Client::getBuy($arCodes);
 
-	foreach ($arAppsBuy["ITEMS"] as $key => $app)
+	if (is_array($arAppsBuy))
 	{
-		$arResult['ITEMS'][$key]['VER'] = $app["VER"];
-		$arResult['ITEMS'][$key]['NAME'] = $app["NAME"];
-		$arResult['ITEMS'][$key]['ICON'] = $app["ICON"];
-		$arResult['ITEMS'][$key]['DESC'] = $app["DESC"];
-		$arResult['ITEMS'][$key]['PUBLIC'] = $app["PUBLIC"];
-		$arResult['ITEMS'][$key]['DEMO'] = $app["DEMO"];
-		$arResult['ITEMS'][$key]['PARTNER_NAME'] = $app["PARTNER_NAME"];
-		$arResult['ITEMS'][$key]['PARTNER_URL'] = $app["PARTNER_URL"];
-		$arResult['ITEMS'][$key]['CAN_INSTALL'] = \CRestUtil::canInstallApplication($app);
-
-		if(is_array($app["PRICE"]) && !empty($app["PRICE"]) && $arResult['ADMIN'])
+		foreach ($arAppsBuy['ITEMS'] as $key => $app)
 		{
-			$arResult['ITEMS'][$key]['PRICE'] = $app["PRICE"];
-			$arResult['ITEMS'][$key]['PRICE'] = $app["PRICE"];
-			$arResult['ITEMS'][$key]['BUY'] = array();
-			foreach($app["PRICE"] as $num => $price)
+			if (isset($filterData['UPDATES']) && $filterData['UPDATES'] === 'Y')
 			{
-				if($num > 1)
+				if ($app['TYPE'] === AppTable::TYPE_CONFIGURATION)
 				{
-					$arResult['ITEMS'][$key]['BUY'][] = array(
-						'LINK' => Client::getBuyLink($num, $app['CODE']),
-						'TEXT' => Loc::getMessage("RMP_APP_TIME_LIMIT_".$num).' - '.$price
-					);
+					unset($arResult['ITEMS'][$key]);
+					continue;
+				}
+				$arResult['ITEMS'][$key]['UPDATES_AVAILABLE'] = 'Y';
+			}
+
+			$arResult['ITEMS'][$key]['VER'] = $app["VER"];
+			$arResult['ITEMS'][$key]['NAME'] = $app["NAME"];
+			$arResult['ITEMS'][$key]['ICON'] = $app["ICON"];
+			$arResult['ITEMS'][$key]['DESC'] = $app["DESC"];
+			$arResult['ITEMS'][$key]['PUBLIC'] = $app["PUBLIC"];
+			$arResult['ITEMS'][$key]['DEMO'] = $app["DEMO"];
+			$arResult['ITEMS'][$key]['PARTNER_NAME'] = $app["PARTNER_NAME"];
+			$arResult['ITEMS'][$key]['PARTNER_URL'] = $app["PARTNER_URL"];
+			$arResult['ITEMS'][$key]['OTHER_REGION'] = $app["OTHER_REGION"];
+			$arResult['ITEMS'][$key]['VENDOR_SHOP_LINK'] = $app["VENDOR_SHOP_LINK"];
+			$arResult['ITEMS'][$key]['TYPE'] = $app["TYPE"];
+			$arResult['ITEMS'][$key]['CAN_INSTALL'] = \CRestUtil::canInstallApplication($app);
+
+			if (
+				is_array($app["PRICE"])
+				&& !empty($app["PRICE"])
+				&& $arResult['ADMIN']
+				&& $app['BY_SUBSCRIPTION'] !== 'Y'
+			)
+			{
+				$arResult['ITEMS'][$key]['PRICE'] = $app["PRICE"];
+				$arResult['ITEMS'][$key]['PRICE'] = $app["PRICE"];
+				$arResult['ITEMS'][$key]['BUY'] = array();
+				foreach ($app["PRICE"] as $num => $price) {
+					if ($num > 1) {
+						$arResult['ITEMS'][$key]['BUY'][] = array(
+							'LINK' => Client::getBuyLink($num, $app['CODE']),
+							'TEXT' => Loc::getMessage("RMP_APP_TIME_LIMIT_" . $num) . ' - ' . $price
+						);
+					}
 				}
 			}
 		}
 	}
 }
 
-// updates
-$arUpdatesItems = array();
-
-if (!empty($updateCodes))
-{
-	$curNumUpdates = Client::getAvailableUpdateNum();
-
-	$arUpdates = \Bitrix\Rest\Marketplace\Client::getUpdates($updateCodes);
-	if(is_array($arUpdates) && !empty($arUpdates))
-	{
-		$newNumUpdates = Client::getAvailableUpdateNum();
-		if ($curNumUpdates != $newNumUpdates)
-		{
-			$arResult["NEW_NUM_UPDATES"] = $newNumUpdates;
-		}
-
-		foreach ($arUpdates["ITEMS"] as $key => $app)
-		{
-			$arResult['ITEMS'][$app["CODE"]]["UPDATES_AVAILABLE"] = "Y";
-			$arResult['ITEMS'][$app["CODE"]]["STATUS"] = $updateStatuses[$app["CODE"]];
-
-			if ($filterData["UPDATES"] == "Y")
-			{
-				$arUpdatesItems[$app["CODE"]] = $arResult['ITEMS'][$app["CODE"]];
-			}
-			elseif ($filterData["UPDATES"] == "N")
-			{
-				unset($arResult['ITEMS'][$app["CODE"]]);
-			}
-		}
-	}
-}
-
-if (isset($filterData["UPDATES"]) && $filterData["UPDATES"] == "Y")
-{
-	$arResult['ITEMS'] = $arUpdatesItems;
-}
 
 $arResult['FILTER']['FILTER'] = array(
 	array(
@@ -183,7 +239,6 @@ $this->arResult["FILTER"]["FILTER_PRESETS"] = array(
 
 CJSCore::Init(array('marketplace'));
 
-$APPLICATION->SetTitle(Loc::getMessage("MARKETPLACE_INSTALLED"));
 
 $this->IncludeComponentTemplate();
 ?>

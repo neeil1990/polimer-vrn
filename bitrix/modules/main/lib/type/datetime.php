@@ -31,32 +31,45 @@ class DateTime extends Date
 				$format = static::getFormat();
 			}
 
-			$parsedValue = date_parse_from_format($format, $time);
-			//Ignore errors when format is longer than date
-			//or date string is longer than format
-			if ($parsedValue['error_count'] > 1)
+			$parsedValue = $this->parse($format, $time);
+
+			if($parsedValue === false)
 			{
-				if (
-					current($parsedValue['errors']) !== 'Trailing data'
-					&& current($parsedValue['errors']) !== 'Data missing'
-				)
+				throw new Main\ObjectException("Incorrect date/time: ".$time);
+			}
+
+			if(isset($parsedValue["timestamp"]))
+			{
+				$this->value->setTimestamp($parsedValue["timestamp"]);
+			}
+			else
+			{
+				if(isset($parsedValue["zone_type"]) && $parsedValue["zone_type"] == 1)
 				{
-					throw new Main\ObjectException("Incorrect date/time: ".$time);
+					if(isset($parsedValue["zone"]) && $parsedValue["zone"] <> 0)
+					{
+						$this->setTimeZone(new \DateTimeZone(static::secondsToOffset($parsedValue["zone"])));
+					}
 				}
-			}
 
-			$this->value->setDate($parsedValue['year'], $parsedValue['month'], $parsedValue['day']);
-			$this->value->setTime($parsedValue['hour'], $parsedValue['minute'], $parsedValue['second']);
+				$microseconds = 0;
+				if($parsedValue['fraction'] > 0)
+				{
+					$microseconds = intval($parsedValue['fraction'] * 1000000);
+				}
 
-			if (
-				isset($parsedValue["relative"])
-				&& isset($parsedValue["relative"]["second"])
-				&& $parsedValue["relative"]["second"] != 0
-			)
-			{
-				$this->value->add(new \DateInterval("PT".$parsedValue["relative"]["second"]."S"));
-			}
+				$this->value->setDate($parsedValue['year'], $parsedValue['month'], $parsedValue['day']);
+				$this->value->setTime($parsedValue['hour'], $parsedValue['minute'], $parsedValue['second'], $microseconds);
+  			}
 		}
+	}
+
+	public static function secondsToOffset($seconds)
+	{
+		$absSeconds = abs($seconds);
+		$hours = sprintf("%02d", floor($absSeconds / 3600));
+		$minutes = gmdate("i", $absSeconds % 3600);
+		return ($seconds < 0? "-" : "+").$hours.$minutes;
 	}
 
 	/**
@@ -121,12 +134,13 @@ class DateTime extends Date
 	 * @param int $hour Hour value.
 	 * @param int $minute Minute value.
 	 * @param int $second Second value.
+	 * @param int $microseconds Microseconds value.
 	 *
 	 * @return DateTime
 	 */
-	public function setTime($hour, $minute, $second = 0)
+	public function setTime($hour, $minute, $second = 0, $microseconds = 0)
 	{
-		$this->value->setTime($hour, $minute, $second);
+		$this->value->setTime($hour, $minute, $second, $microseconds);
 		return $this;
 	}
 
@@ -197,9 +211,13 @@ class DateTime extends Date
 	 *
 	 * @return string
 	 */
-	protected static function getCultureFormat(Context\Culture $culture)
+	protected static function getCultureFormat(Context\Culture $culture = null)
 	{
-		return $culture->getDateTimeFormat();
+		if($culture)
+		{
+			return $culture->getDateTimeFormat();
+		}
+		return "DD.MM.YYYY HH:MI:SS";
 	}
 
 	/**
@@ -211,7 +229,6 @@ class DateTime extends Date
 	 */
 	public static function createFromPhp(\DateTime $datetime)
 	{
-		/** @var DateTime $d */
 		$d = new static();
 		$d->value = clone $datetime;
 		return $d;
@@ -226,7 +243,6 @@ class DateTime extends Date
 	 */
 	public static function createFromTimestamp($timestamp)
 	{
-		/** @var DateTime $d */
 		$d = new static();
 		$d->value->setTimestamp($timestamp);
 		return $d;

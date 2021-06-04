@@ -276,7 +276,7 @@
 		this.DOM.outerWrap.className = 'calendar-resbook-webform-wrapper';
 	};
 
-	// region *ResourceBookingViewControlAbstract*
+	// region *+ResourceBookingViewControlAbstract*
 	function ResourceBookingViewControlAbstract(params)
 	{
 		this.name = null;
@@ -414,7 +414,7 @@
 	};
 	//endregion
 
-	// region 'UserSelector'
+	// region '+UserSelector'
 	function ViewFormUsersControl(params)
 	{
 		ViewFormUsersControl.superclass.constructor.apply(this, arguments);
@@ -559,7 +559,7 @@
 	// endregion
 
 
-	// region 'ResourceSelector'
+	// region '+ResourceSelector'
 	function ViewFormResourcesControl(params)
 	{
 		ViewFormResourcesControl.superclass.constructor.apply(this, arguments);
@@ -596,7 +596,7 @@
 		{
 			this.allResourceList.forEach(function(item)
 			{
-				if (BX.util.in_array(item.id, this.data.value))
+				if (BX.util.in_array(parseInt(item.id), this.data.value))
 				{
 					this.resourceList.push(item);
 				}
@@ -738,10 +738,13 @@
 
 		this.handleSettingsData(this.data);
 
-		this.dropdownSelect.setSettings({
-			values: this.serviceList,
-			selected: this.getSelectedService()
-		});
+		if (this.dropdownSelect)
+		{
+			this.dropdownSelect.setSettings({
+				values: this.serviceList,
+				selected: this.getSelectedService()
+			});
+		}
 
 		if (this.setDataConfig())
 		{
@@ -763,7 +766,12 @@
 		{
 			this.allServiceList.forEach(function(service)
 			{
-				this.serviceIndex[this.prepareServiceId(service.name)] = service;
+				if (BX.type.isPlainObject(service)
+					&& BX.type.isString(service.name)
+					&& BX.util.trim(service.name) !== '')
+				{
+					this.serviceIndex[this.prepareServiceId(service.name)] = service;
+				}
 			}, this);
 		}
 
@@ -773,12 +781,14 @@
 			var dataValueRaw = BX.type.isArray(this.data.value) ? this.data.value : this.data.value.split('|');
 			dataValueRaw.forEach(function(id)
 			{
-				if (this.serviceIndex[id])
+				var service = this.serviceIndex[this.prepareServiceId(id)];
+				if (BX.type.isPlainObject(service)
+					&& BX.type.isString(service.name)
+					&& BX.util.trim(service.name) !== '')
 				{
 					this.serviceList.push({
-						id: this.prepareServiceId(this.serviceIndex[id].name),
-						//id: this.serviceIndex[id].name,
-						title: this.serviceIndex[id].name + ' - ' + BX.Calendar.UserField.ResourceBooking.getDurationLabel(this.serviceIndex[id].duration)
+						id: this.prepareServiceId(service.name),
+						title: service.name + ' - ' + BX.Calendar.UserField.ResourceBooking.getDurationLabel(service.duration)
 					});
 				}
 			}, this);
@@ -796,10 +806,9 @@
 
 	ViewFormServicesControl.prototype.prepareServiceId = function(str)
 	{
-		return BX.translit(str).replace(/[^a-z0-9_]/ig, "_");
+		return BX.type.isString(str) ? BX.translit(str).replace(/[^a-z0-9_]/ig, "_") : str;
 	};
 	//endregion
-
 
 	// region 'DurationSelector'
 	function ViewFormDurationControl(params)
@@ -1540,7 +1549,15 @@
 		this.setDataConfig();
 
 		this.timeFrom = this.data.timeFrom || params.timeFrom || 7;
-		this.timeTo = this.data.timeTo || params.timeTo || 20;
+		if (params.timeFrom !== undefined)
+		{
+			this.timeFrom = params.timeFrom;
+		}
+		this.timeTo = this.data.timeTo || 20;
+		if (params.timeTo !== undefined)
+		{
+			this.timeTo = params.timeTo;
+		}
 		this.SLOTS_ROW_AMOUNT = 6;
 		this.id = 'time-selector-' + Math.round(Math.random() * 1000);
 		this.popupSelectId = this.id + '-select-popup';
@@ -1620,10 +1637,10 @@
 
 			if (this.timezone)
 			{
-				if (!this.DOM.timezoneLabelWrap)
+				if (!this.DOM.timezoneLabelWrap || !BX.isNodeInDom(this.DOM.timezoneLabelWrap))
 				{
-					this.DOM.timezoneLabelWrap = this.DOM.labelWrap.appendChild(BX.create("span", {
-						props: {className: 'calendar-resbook-webform-timezone-title'}
+					this.DOM.timezoneLabelWrap = this.DOM.labelWrap.appendChild(BX.create("div", {
+						props: {className: 'calendar-resbook-webform-block-title-timezone'}
 					}));
 				}
 				BX.adjust(this.DOM.timezoneLabelWrap, {html: BX.message('USER_TYPE_RESOURCE_TIMEZONE').replace('#TIMEZONE#', this.timezone + ' ' + this.timezoneOffsetLabel)});
@@ -1822,7 +1839,7 @@
 				innerWrap.appendChild(BX.create("div", {
 					attrs: {
 						'data-bx-resbook-time-meta': 'slot' + (slot.booked ? '-off' : ''),
-						'data-bx-resbook-slot': slot.time,
+						'data-bx-resbook-slot': slot.time.toString(),
 						className: 'calendar-resbook-webform-block-col-item'
 						+ (slot.selected ? ' calendar-resbook-webform-block-col-item-select' : '')
 						+ (slot.booked ? ' calendar-resbook-webform-block-col-item-off' : '')
@@ -2278,7 +2295,7 @@
 			this.values.forEach(function(item)
 			{
 				var className = 'menu-popup-no-icon';
-				if (BX.util.in_array(item.id, this.selected))
+				if (BX.util.in_array(parseInt(item.id), this.selected))
 				{
 					className += ' menu-item-selected';
 				}

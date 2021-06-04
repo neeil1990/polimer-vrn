@@ -21,9 +21,9 @@ if($arID = $lAdmin->GroupAction())
 {
 	foreach($arID as $ID)
 	{
-		if(strlen($ID)<=0)
+		if($ID == '')
 			continue;
-		$ID = IntVal($ID);
+		$ID = intval($ID);
 		switch($_REQUEST['action'])
 		{
 		case "delete":
@@ -214,12 +214,12 @@ while($arRes = $rsData->Fetch()):
 				';
 			elseif($key == 'Last_SQL_Error')
 			{
-				$bHasSQLError = strlen($value) > 0;
+				$bHasSQLError = $value <> '';
 				$html .= '
 				<tr>
 					<td width="50%" align=right>'.$key.':</td>
 					<td align=left>'.(
-						strlen($value) > 0?
+						$value <> ''?
 						"<span style=\"color:red\">".$value."</span>":
 						"<span style=\"color:green\">".$value."</span>"
 					).'</td>
@@ -239,7 +239,7 @@ while($arRes = $rsData->Fetch()):
 		}
 		$html .= '</table>';
 	}
-	elseif(strlen($arSlaveStatus))
+	elseif($arSlaveStatus <> '')
 	{
 		$html = $arSlaveStatus;
 		$Slave_IO_Running = 'No';
@@ -299,24 +299,24 @@ while($arRes = $rsData->Fetch()):
 		"ACTION" => $lAdmin->ActionRedirect('cluster_slave_edit.php?lang='.LANGUAGE_ID.'&group_id='.$arRes["GROUP_ID"].'&ID='.$arRes["ID"])
 	);
 
-	if(strlen($arRes["MASTER_ID"]))
+	if($arRes["MASTER_ID"] <> '')
 	{
 		if($arRes["STATUS"] == "ONLINE")
 		{
 			$arActions[] = array(
 				"TEXT" => GetMessage("CLU_SLAVE_LIST_PAUSE"),
-				"ACTION"=>$lAdmin->ActionDoGroup($arRes["ID"], "pause", 'group_id='.($group_id ?: 'all'))
+				"ACTION" => $lAdmin->ActionDoGroup($arRes["ID"], "pause", 'group_id='.($group_id?: 'all'))
 			);
 		}
 		elseif($arRes["STATUS"] == "PAUSED")
 		{
 			$arActions[] = array(
 				"TEXT" => GetMessage("CLU_SLAVE_LIST_RESUME"),
-				"ACTION"=>$lAdmin->ActionDoGroup($arRes["ID"], "resume", 'group_id='.($group_id ?: 'all'))
+				"ACTION" => $lAdmin->ActionDoGroup($arRes["ID"], "resume", 'group_id='.($group_id?: 'all'))
 			);
 			$arActions[] = array(
 				"TEXT" => GetMessage("CLU_SLAVE_LIST_STOP"),
-				"ACTION"=>$lAdmin->ActionDoGroup($arRes["ID"], "stop", 'group_id='.($group_id ?: 'all'))
+				"ACTION" => $lAdmin->ActionDoGroup($arRes["ID"], "stop", 'group_id='.($group_id?: 'all'))
 			);
 		}
 	}

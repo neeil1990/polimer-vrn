@@ -7,6 +7,7 @@ use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Sale\Cashbox\Internals\CashboxConnectTable;
 use Bitrix\Sale\Cashbox\Internals\CashboxTable;
+use Bitrix\Sale\Internals\CashboxRestHandlerTable;
 use Bitrix\Sale\Internals\CollectableEntity;
 use Bitrix\Sale\Result;
 
@@ -48,6 +49,39 @@ final class Manager
 		{
 			if (Restrictions\Manager::checkService($cashbox['ID'], $entity) === Restrictions\Manager::SEVERITY_NONE)
 				$result[$cashbox['ID']] = $cashbox;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param array $parameters
+	 * @return Main\ORM\Query\Result
+	 * @throws Main\ArgumentException
+	 * @throws Main\ObjectPropertyException
+	 * @throws Main\SystemException
+	 */
+	public static function getList(array $parameters = [])
+	{
+		return CashboxTable::getList($parameters);
+	}
+
+	/**
+	 * Returns a list of all the registered rest cashbox handlers
+	 * Structure: handler code => handler data
+	 * @return array
+	 * @throws Main\ArgumentException
+	 * @throws Main\ObjectPropertyException
+	 * @throws Main\SystemException
+	 */
+	public static function getRestHandlersList()
+	{
+		$result = [];
+
+		$handlerList = CashboxRestHandlerTable::getList()->fetchAll();
+		foreach ($handlerList as $handler)
+		{
+			$result[$handler['CODE']] = $handler;
 		}
 
 		return $result;
@@ -202,17 +236,17 @@ final class Manager
 	/**
 	 * @param $cashboxId
 	 * @param Check $check
-	 * @return Result
+	 * @return array
 	 */
 	public static function buildConcreteCheckQuery($cashboxId, Check $check)
 	{
-		$result = new Result();
-
 		$cashbox = static::getObjectById($cashboxId);
 		if ($cashbox)
+		{
 			return $cashbox->buildCheckQuery($check);
+		}
 
-		return $result;
+		return [];
 	}
 
 	/**
@@ -226,7 +260,10 @@ final class Manager
 		$cacheManager = Main\Application::getInstance()->getManagedCache();
 		$cacheManager->clean(Manager::CACHE_ID);
 
-		if (is_subclass_of($data['HANDLER'], '\Bitrix\Sale\Cashbox\ICheckable'))
+		if (
+			is_subclass_of($data['HANDLER'], ICheckable::class)
+			|| is_subclass_of($data['HANDLER'], ICorrection::class)
+		)
 		{
 			static::addCheckStatusAgent();
 		}
@@ -283,39 +320,6 @@ final class Manager
 	}
 
 	/**
-	 * @param $cashboxId
-	 * @param Main\Error $error
-	 * @return void
-	 */
-	public static function writeToLog($cashboxId, Main\Error $error)
-	{
-		if (static::getTraceErrorLevel() === static::LEVEL_TRACE_E_IGNORED)
-			return;
-
-		if ($error instanceof Errors\Error || $error instanceof Errors\Warning)
-		{
-			if (static::DEBUG_MODE === true || $error::LEVEL_TRACE <= static::getTraceErrorLevel())
-			{
-				$data = array(
-					'CASHBOX_ID' => $cashboxId,
-					'MESSAGE' => $error->getMessage(),
-					'DATE_INSERT' => new DateTime()
-				);
-
-				Internals\CashboxErrLogTable::add($data);
-			}
-		}
-	}
-
-	/**
-	 * @return int
-	 */
-	private static function getTraceErrorLevel()
-	{
-		return static::LEVEL_TRACE_E_ERROR;
-	}
-
-	/**
 	 * @return bool
 	 */
 	public static function isSupportedFFD105()
@@ -329,7 +333,18 @@ final class Manager
 				continue;
 			/** @var Cashbox $handler */
 			$handler = $cashbox['HANDLER'];
-			if (
+			$isRestHandler = $handler === '\Bitrix\Sale\Cashbox\CashboxRest';
+			if ($isRestHandler)
+			{
+				$handlerCode = $cashbox['SETTINGS']['REST']['REST_CODE'];
+				$restHandlers = self::getRestHandlersList();
+				$currentHandler = $restHandlers[$handlerCode];
+				if ($currentHandler['SETTINGS']['SUPPORTS_FFD105'] !== 'Y')
+				{
+					return false;
+				}
+			}
+			elseif (
 				!is_callable(array($handler, 'isSupportedFFD105')) ||
 				!$handler::isSupportedFFD105()
 			)
@@ -349,48 +364,70 @@ final class Manager
 	{
 		$cashboxList = static::getListFromCache();
 		if (!$cashboxList)
+		{
 			return '';
+		}
 
-		$availableCashboxList = array();
+		$availableCashboxList = [];
 		foreach ($cashboxList as $item)
 		{
 			$cashbox = Cashbox::create($item);
-			if ($cashbox instanceof ICheckable)
+			if (
+				$cashbox instanceof ICheckable
+				|| $cashbox instanceof ICorrection
+			)
 			{
 				$availableCashboxList[$item['ID']] = $cashbox;
 			}
 		}
 
 		if (!$availableCashboxList)
+		{
 			return '';
+		}
 
-		$parameters = array(
-			'filter' => array(
+		$parameters = [
+			'filter' => [
 				'=STATUS' => 'P',
-				'CASHBOX_ID' => array_keys($availableCashboxList),
+				'@CASHBOX_ID' => array_keys($availableCashboxList),
 				'=CASHBOX.ACTIVE' => 'Y'
-			),
+			],
 			'limit' => 5
-		);
+		];
 		$dbRes = CheckManager::getList($parameters);
 		while ($checkInfo = $dbRes->fetch())
 		{
-			/** @var Cashbox|ICheckable $cashbox */
+			/** @var Cashbox|ICheckable|ICorrection $cashbox */
 			$cashbox = $availableCashboxList[$checkInfo['CASHBOX_ID']];
 			if ($cashbox)
 			{
-				$checkTypeMap = CheckManager::getCheckTypeMap();
-				$check = Check::create($checkTypeMap[$checkInfo['TYPE']]);
-				if (!$check)
-					continue;
+				$check = CheckManager::getObjectById($checkInfo['ID']);
 
-				$check->init($checkInfo);
-				$result = $cashbox->check($check);
+				if ($check instanceof CorrectionCheck)
+				{
+					$result = $cashbox->checkCorrection($check);
+				}
+				elseif ($check instanceof Check)
+				{
+					$result = $cashbox->check($check);
+				}
+				else
+				{
+					continue;
+				}
+
 				if (!$result->isSuccess())
 				{
 					foreach ($result->getErrors() as $error)
 					{
-						static::writeToLog($cashbox->getField('ID'), $error);
+						if ($error instanceof Errors\Warning)
+						{
+							Logger::addWarning($error->getMessage(), $cashbox->getField('ID'));
+						}
+						else
+						{
+							Logger::addError($error->getMessage(), $cashbox->getField('ID'));
+						}
 					}
 				}
 			}
@@ -399,4 +436,25 @@ final class Manager
 		return static::CHECK_STATUS_AGENT;
 	}
 
+	/**
+	 * @param $cashboxId
+	 * @param Main\Error $error
+	 * @throws Main\ArgumentNullException
+	 * @throws Main\ArgumentOutOfRangeException
+	 * @throws Main\ArgumentTypeException
+	 * @throws Main\ObjectException
+	 *
+	 * @deprecated Use \Bitrix\Sale\Cashbox\Logger instead
+	 */
+	public static function writeToLog($cashboxId, Main\Error $error)
+	{
+		if ($error instanceof Errors\Warning)
+		{
+			Logger::addWarning($error->getMessage(), $cashboxId);
+		}
+		else
+		{
+			Logger::addError($error->getMessage(), $cashboxId);
+		}
+	}
 }

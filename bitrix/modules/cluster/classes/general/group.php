@@ -56,7 +56,7 @@ class CClusterGroup
 			return false;
 
 		$strUpdate = $DB->PrepareUpdate("b_cluster_group", $arFields);
-		if(strlen($strUpdate) > 0)
+		if($strUpdate <> '')
 		{
 			$strSql = "
 				UPDATE b_cluster_group SET
@@ -78,7 +78,7 @@ class CClusterGroup
 		unset($arFields["ID"]);
 
 		$arFields["NAME"] = trim($arFields["NAME"]);
-		if(strlen($arFields["NAME"]) <= 0)
+		if($arFields["NAME"] == '')
 		{
 			$aMsg[] = array("id" => "NAME", "text" => GetMessage("CLU_GROUP_EMPTY_NAME"));
 		}
@@ -110,8 +110,8 @@ class CClusterGroup
 		$arQueryOrder = array();
 		foreach($arOrder as $strColumn => $strDirection)
 		{
-			$strColumn = strtoupper($strColumn);
-			$strDirection = strtoupper($strDirection)=="ASC"? "ASC": "DESC";
+			$strColumn = mb_strtoupper($strColumn);
+			$strDirection = mb_strtoupper($strDirection) == "ASC"? "ASC": "DESC";
 			switch($strColumn)
 			{
 				case "ID":
@@ -125,7 +125,7 @@ class CClusterGroup
 		$arQuerySelect = array();
 		foreach($arSelect as $strColumn)
 		{
-			$strColumn = strtoupper($strColumn);
+			$strColumn = mb_strtoupper($strColumn);
 			switch($strColumn)
 			{
 				case "ID":

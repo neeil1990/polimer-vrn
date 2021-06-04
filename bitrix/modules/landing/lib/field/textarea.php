@@ -24,7 +24,16 @@ class Textarea extends \Bitrix\Landing\Field\Text
 		?>name="<?= \htmlspecialcharsbx(isset($params['name_format'])
 				? str_replace('#field_code#', $this->code, $params['name_format'])
 				: $this->code)?>" <?
-		?> ><?= \htmlspecialcharsbx($this->value)?></textarea>
+		?> ><?= \htmlspecialcharsbx($this->value ? $this->value : $this->default)?></textarea>
 		<?
+	}
+
+	/**
+	 * Gets true, if current value is empty.
+	 * @return bool
+	 */
+	public function isEmptyValue()
+	{
+		return $this->value === '';
 	}
 }

@@ -19,8 +19,8 @@ $componentParameters = array(
 	'PATH_TO_EDIT' => $arResult['PATH_TO_EDIT'],
 	'PATH_TO_TIME' => $arResult['PATH_TO_TIME'],
 	'SET_TITLE' => 'Y',
-	'CAN_VIEW' => Security\Access::current()->canViewAds(),
-	'CAN_EDIT' => Security\Access::current()->canModifyAds(),
+	'CAN_VIEW' => Security\Access::getInstance()->canViewAds(),
+	'CAN_EDIT' => Security\Access::getInstance()->canModifyAds(),
 	'MESS' => [
 		'SENDER_LETTER_TIME_TMPL_TITLE_NEW' => Loc::getMessage('SENDER_ADS_LETTER_TIME_TMPL_TITLE_NEW'),
 		'SENDER_LETTER_TIME_TMPL_TITLE_EXISTS' => Loc::getMessage('SENDER_ADS_LETTER_TIME_TMPL_TITLE_EXISTS'),
@@ -29,7 +29,8 @@ $componentParameters = array(
 		'SENDER_LETTER_TIME_TMPL_DATE_SEND' => Loc::getMessage('SENDER_ADS_LETTER_TIME_TMPL_DATE_SEND'),
 		'SENDER_LETTER_TIME_COMP_TITLE' => Loc::getMessage('SENDER_ADS_LETTER_TIME_TMPL_ACT_SEND')
 	],
-	'MESSAGE_CODE_LIST' => \Bitrix\Sender\Message\Factory::getAdsMessageCodes(),
+	'MESSAGE_CODE_LIST' => array_merge(\Bitrix\Sender\Message\Factory::getAdsMessageCodes(),
+		\Bitrix\Sender\Message\Factory::getMarketingMessageCodes()),
 );
 if ($_REQUEST['IFRAME'] == 'Y')
 {

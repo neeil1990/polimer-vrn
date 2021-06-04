@@ -1,12 +1,15 @@
-<?
-include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/bizproc/classes/general/runtimeservice.php");
+<?php
+
+use Bitrix\Main;
 
 class CBPAllTrackingService
 	extends CBPRuntimeService
 {
-	protected $skipTypes = array();
-	protected $forcedModeWorkflows = array();
-	protected static $userGroupsCache = array();
+	protected $skipTypes = [];
+	protected $forcedModeWorkflows = [];
+	protected static $userGroupsCache = [];
+
+	private $cutQueue = [];
 
 	public function Start(CBPRuntime $runtime = null)
 	{
@@ -14,7 +17,9 @@ class CBPAllTrackingService
 
 		$skipTypes = \Bitrix\Main\Config\Option::get("bizproc", "log_skip_types", CBPTrackingType::ExecuteActivity.','.CBPTrackingType::CloseActivity);
 		if ($skipTypes !== '')
+		{
 			$this->skipTypes = explode(',', $skipTypes);
+		}
 	}
 
 	public function DeleteAllWorkflowTracking($workflowId)
@@ -27,7 +32,7 @@ class CBPAllTrackingService
 		global $DB;
 
 		$workflowId = trim($workflowId);
-		if (strlen($workflowId) <= 0)
+		if ($workflowId == '')
 			throw new Exception("workflowId");
 
 		$dbResult = $DB->Query(
@@ -147,12 +152,12 @@ class CBPAllTrackingService
 		{
 			$user = $matches[2];
 
-			$l = strlen("user_");
-			if (substr($user, 0, $l) == "user_")
+			$l = mb_strlen("user_");
+			if (mb_substr($user, 0, $l) == "user_")
 			{
-				$result = CBPHelper::ConvertUserToPrintableForm(intval(substr($user, $l)));
+				$result = CBPHelper::ConvertUserToPrintableForm(intval(mb_substr($user, $l)));
 			}
-			elseif (strpos($user, 'group_') === 0)
+			elseif (mb_strpos($user, 'group_') === 0)
 			{
 				$result = htmlspecialcharsbx(CBPHelper::getExtendedGroupName($user));
 			}
@@ -169,7 +174,7 @@ class CBPAllTrackingService
 		}
 		elseif ($matches[1] == "group")
 		{
-			if (strpos($matches[2], 'group_') === 0)
+			if (mb_strpos($matches[2], 'group_') === 0)
 			{
 				$result = htmlspecialcharsbx(CBPHelper::getExtendedGroupName($matches[2]));
 			}
@@ -215,11 +220,11 @@ class CBPAllTrackingService
 			return;
 
 		$workflowId = trim($workflowId);
-		if (strlen($workflowId) <= 0)
+		if ($workflowId == '')
 			throw new Exception("workflowId");
 
 		$actionName = trim($actionName);
-		if (strlen($actionName) <= 0)
+		if ($actionName == '')
 			throw new Exception("actionName");
 
 		$type = intval($type);
@@ -231,8 +236,13 @@ class CBPAllTrackingService
 
 		$DB->Query(
 			"INSERT INTO b_bp_tracking(WORKFLOW_ID, TYPE, MODIFIED, ACTION_NAME, ACTION_TITLE, EXECUTION_STATUS, EXECUTION_RESULT, ACTION_NOTE, MODIFIED_BY) ".
-			"VALUES('".$DB->ForSql($workflowId, 32)."', ".intval($type).", ".$DB->CurrentTimeFunction().", '".$DB->ForSql($actionName, 128)."', '".$DB->ForSql($actionTitle, 255)."', ".intval($executionStatus).", ".intval($executionResult).", ".(strlen($actionNote) > 0 ? "'".$DB->ForSql($actionNote)."'" : "NULL").", ".($modifiedBy > 0 ? $modifiedBy : "NULL").")"
+			"VALUES('".$DB->ForSql($workflowId, 32)."', ".intval($type).", ".$DB->CurrentTimeFunction().", '".$DB->ForSql($actionName, 128)."', '".$DB->ForSql($actionTitle, 255)."', ".intval($executionStatus).", ".intval($executionResult).", ".($actionNote <> '' ? "'".$DB->ForSql($actionNote)."'" : "NULL").", ".($modifiedBy > 0 ? $modifiedBy : "NULL").")"
 		);
+
+		if (self::getLogSizeLimit() && !$this->isForcedMode($workflowId))
+		{
+			$this->cutLogSizeDeferred($workflowId);
+		}
 	}
 
 	public static function GetList($arOrder = array("ID" => "DESC"), $arFilter = array(), $arGroupBy = false, $arNavStartParams = false, $arSelectFields = array())
@@ -265,9 +275,9 @@ class CBPAllTrackingService
 				"SELECT ".$arSqls["SELECT"]." ".
 				"FROM b_bp_tracking T ".
 				"	".$arSqls["FROM"]." ";
-			if (strlen($arSqls["WHERE"]) > 0)
+			if ($arSqls["WHERE"] <> '')
 				$strSql .= "WHERE ".$arSqls["WHERE"]." ";
-			if (strlen($arSqls["GROUPBY"]) > 0)
+			if ($arSqls["GROUPBY"] <> '')
 				$strSql .= "GROUP BY ".$arSqls["GROUPBY"]." ";
 
 			$dbRes = $DB->Query($strSql, false, "File: ".__FILE__."<br>Line: ".__LINE__);
@@ -281,27 +291,27 @@ class CBPAllTrackingService
 			"SELECT ".$arSqls["SELECT"]." ".
 			"FROM b_bp_tracking T ".
 			"	".$arSqls["FROM"]." ";
-		if (strlen($arSqls["WHERE"]) > 0)
+		if ($arSqls["WHERE"] <> '')
 			$strSql .= "WHERE ".$arSqls["WHERE"]." ";
-		if (strlen($arSqls["GROUPBY"]) > 0)
+		if ($arSqls["GROUPBY"] <> '')
 			$strSql .= "GROUP BY ".$arSqls["GROUPBY"]." ";
-		if (strlen($arSqls["ORDERBY"]) > 0)
+		if ($arSqls["ORDERBY"] <> '')
 			$strSql .= "ORDER BY ".$arSqls["ORDERBY"]." ";
 
-		if (is_array($arNavStartParams) && IntVal($arNavStartParams["nTopCount"]) <= 0)
+		if (is_array($arNavStartParams) && intval($arNavStartParams["nTopCount"]) <= 0)
 		{
 			$strSql_tmp =
 				"SELECT COUNT('x') as CNT ".
 				"FROM b_bp_tracking T ".
 				"	".$arSqls["FROM"]." ";
-			if (strlen($arSqls["WHERE"]) > 0)
+			if ($arSqls["WHERE"] <> '')
 				$strSql_tmp .= "WHERE ".$arSqls["WHERE"]." ";
-			if (strlen($arSqls["GROUPBY"]) > 0)
+			if ($arSqls["GROUPBY"] <> '')
 				$strSql_tmp .= "GROUP BY ".$arSqls["GROUPBY"]." ";
 
 			$dbRes = $DB->Query($strSql_tmp, false, "File: ".__FILE__."<br>Line: ".__LINE__);
 			$cnt = 0;
-			if (strlen($arSqls["GROUPBY"]) <= 0)
+			if ($arSqls["GROUPBY"] == '')
 			{
 				if ($arRes = $dbRes->Fetch())
 					$cnt = $arRes["CNT"];
@@ -317,7 +327,7 @@ class CBPAllTrackingService
 		}
 		else
 		{
-			if (is_array($arNavStartParams) && IntVal($arNavStartParams["nTopCount"]) > 0)
+			if (is_array($arNavStartParams) && intval($arNavStartParams["nTopCount"]) > 0)
 				$strSql .= "LIMIT ".intval($arNavStartParams["nTopCount"]);
 
 			$dbRes = $DB->Query($strSql, false, "File: ".__FILE__."<br>Line: ".__LINE__);
@@ -336,13 +346,103 @@ class CBPAllTrackingService
 			$days = 90;
 		}
 
+		$completed = self::shouldClearCompletedTracksOnly() ? "= 'Y'" : "IN ('N', 'Y')";
+
 		$strSql = "DELETE t FROM b_bp_tracking t".
-			" WHERE t.COMPLETED = 'Y' ".
+			" WHERE t.COMPLETED {$completed} ".
 			" AND t.MODIFIED < DATE_SUB(NOW(), INTERVAL ".$days." DAY)".
-			" AND t.TYPE <> 6";
+			" AND t.TYPE IN (0,1,2,3,4,5,7,8,9)";
 		$bSuccess = $DB->Query($strSql, true);
 
 		return $bSuccess;
+	}
+
+	private function cutLogSize(string $workflowId, int $size): bool
+	{
+		global $DB;
+
+		$queryResult = $DB->Query(
+			sprintf(
+				"SELECT ID FROM b_bp_tracking"
+				. " WHERE WORKFLOW_ID = '%s' AND `TYPE` IN (0,1,2,3,4,5,7,8,9) ORDER BY ID DESC LIMIT %d,100",
+				$DB->ForSql($workflowId),
+				$size
+			)
+		);
+
+		$ids = [];
+		while ($row = $queryResult->fetch())
+		{
+			$ids[] = $row['ID'];
+		}
+
+		if ($ids)
+		{
+			$DB->Query(
+				sprintf(
+					'DELETE FROM b_bp_tracking WHERE ID IN (%s)',
+					implode(',', $ids)
+				),
+				true
+			);
+		}
+
+		return true;
+	}
+
+	private function cutLogSizeDeferred(string $workflowId)
+	{
+		$this->cutQueue[$workflowId] = true;
+		$this->setCutJob();
+	}
+
+	private function setCutJob()
+	{
+		static $inserted = false;
+
+		if (!$inserted)
+		{
+			Main\Application::getInstance()->addBackgroundJob(
+				[$this, 'doBackgroundCut'],
+				[],
+				Main\Application::JOB_PRIORITY_LOW - 10
+			);
+			$inserted = true;
+		}
+	}
+
+	public function doBackgroundCut()
+	{
+		$size = self::getLogSizeLimit();
+		$list = array_keys($this->cutQueue);
+		$this->cutQueue = [];//clear
+
+		foreach ($list as $workflowId)
+		{
+			$this->cutLogSize($workflowId, $size);
+		}
+	}
+
+	private static function getLogSizeLimit(): int
+	{
+		static $limit;
+		if ($limit === null)
+		{
+			$limit = Main\ModuleManager::isModuleInstalled('bitrix24') ? 50 : 0;
+		}
+
+		return $limit;
+	}
+
+	private static function shouldClearCompletedTracksOnly(): bool
+	{
+		if (Main\ModuleManager::isModuleInstalled('bitrix24'))
+		{
+			//more logic later
+			return false;
+		}
+
+		return true;
 	}
 }
 

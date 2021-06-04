@@ -155,16 +155,16 @@ else
 									<tr>
 										<td>
 											<?=GetMessage("SPCR1_LOGIN")?> <span class="starrequired">*</span><br />
-											<input type="text" name="USER_LOGIN" maxlength="25" size="25" value="<?=$arResult["DEFAULT_USER_LOGIN"]?>" />&nbsp;&nbsp;&nbsp;
+											<input type="text" name="USER_LOGIN" maxlength="50" size="25" value="<?=$arResult["DEFAULT_USER_LOGIN"]?>" />&nbsp;&nbsp;&nbsp;
 										</td>
 									</tr>
 									<tr>
 										<td>
 											<?=GetMessage("SPCR1_PASSWORD")?> <span class="starrequired">*</span><br />
-											<input type="password" name="USER_PASSWORD" maxlength="25" size="25" />&nbsp;&nbsp;&nbsp;
+											<input type="password" name="USER_PASSWORD" maxlength="255" size="25" />&nbsp;&nbsp;&nbsp;
 										</td>
 									</tr>
-									<?if (strlen($arParams["REGISTER_PAGE"]) > 0):?>
+									<?if ($arParams["REGISTER_PAGE"] <> ''):?>
 										<tr>
 											<td>
 												<a href="<?=$arParams["REGISTER_PAGE"]?>?forgot_password=yes&amp;back_url=<?=urlencode($arResult["CURRENT_PAGE"]) ?>"><?=GetMessage("SPCR1_FORG_PASSWORD")?></a>

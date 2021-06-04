@@ -1,6 +1,7 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 
 use Bitrix\Main,
+	Bitrix\Main\Localization\Loc,
 	Bitrix\Sale;
 
 class SaleBasketLineComponent extends CBitrixComponent
@@ -147,12 +148,12 @@ class SaleBasketLineComponent extends CBitrixComponent
 	{
 		if ($this->arParams['HIDE_ON_BASKET_PAGES'] == 'Y')
 		{
-			$currentPage = strtolower(\Bitrix\Main\Context::getCurrent()->getRequest()->getRequestedPage());
-			$basketPage = strtolower($this->arParams['PATH_TO_BASKET']);
-			$orderPage = strtolower($this->arParams['PATH_TO_ORDER']);
+			$currentPage = mb_strtolower(\Bitrix\Main\Context::getCurrent()->getRequest()->getRequestedPage());
+			$basketPage = mb_strtolower($this->arParams['PATH_TO_BASKET']);
+			$orderPage = mb_strtolower($this->arParams['PATH_TO_ORDER']);
 			if (
-				strncmp($currentPage, $basketPage, strlen($basketPage)) == 0
-				|| strncmp($currentPage, $orderPage, strlen($orderPage)) == 0
+				strncmp($currentPage, $basketPage, mb_strlen($basketPage)) == 0
+				|| strncmp($currentPage, $orderPage, mb_strlen($orderPage)) == 0
 			)
 				$this->disableUseBasket = true;
 		}
@@ -186,6 +187,7 @@ class SaleBasketLineComponent extends CBitrixComponent
 
 		$this->arResult = array(
 			"TOTAL_PRICE" => 0,
+			"TOTAL_PRICE_RAW" => 0,
 			"NUM_PRODUCTS" => 0,
 			"CATEGORIES" => array(),
 			"ERROR_MESSAGE" => '',
@@ -217,17 +219,49 @@ class SaleBasketLineComponent extends CBitrixComponent
 
 			$this->arResult["NUM_PRODUCTS"] = \Bitrix\Sale\BasketComponentHelper::getFUserBasketQuantity($this->getFuserId(), $this->getSiteId());
 		}
+		$this->arResult["TOTAL_PRICE_RAW"] = $this->arResult["TOTAL_PRICE"];
 
-		if($this->arParams["SHOW_TOTAL_PRICE"] == "Y")
-			$this->arResult["TOTAL_PRICE"] = CCurrencyLang::CurrencyFormat($this->arResult["TOTAL_PRICE"], CSaleLang::GetLangCurrency($this->getSiteId()), true);
+		if ($this->arParams["SHOW_TOTAL_PRICE"] == "Y")
+		{
+			$this->arResult["TOTAL_PRICE"] = CCurrencyLang::CurrencyFormat(
+				$this->arResult["TOTAL_PRICE"],
+				Sale\Internals\SiteCurrencyTable::getSiteCurrency($this->getSiteId()),
+				true
+			);
+		}
 
-		$productS = BasketNumberWordEndings($this->arResult["NUM_PRODUCTS"]);
-		$this->arResult["PRODUCT(S)"] = GetMessage("TSB1_PRODUCT") . $productS;
-
-		// compatibility!
-		$this->arResult["PRODUCTS"] = str_replace("#END#", $productS,
-			str_replace("#NUM#", $this->arResult["NUM_PRODUCTS"], GetMessage("TSB1_BASKET_TEXT"))
+		$messages = [
+			'ZERO' => 'BX_CP_SBBL_MESS_POSITION_DESCR_0',
+			'ONE' => 'BX_CP_SBBL_MESS_POSITION_DESCR_1',
+			'TEN' => 'BX_CP_SBBL_MESS_POSITION_DESCR_10_20',
+			'MOD_ONE' => 'BX_CP_SBBL_MESS_POSITION_DESCR_MOD_1',
+			'MOD_TWO' => 'BX_CP_SBBL_MESS_POSITION_DESCR_MOD_2_4',
+			'OTHER' => 'BX_CP_SBBL_MESS_POSITION_DESCR_OTHER'
+		];
+		$this->arResult['BASKET_COUNT_DESCRIPTION'] = $this->getBasketCountDescription(
+			$this->arResult["NUM_PRODUCTS"],
+			$messages
 		);
+
+		// compatibility begin!
+		$messages = [
+			'ZERO' => 'BX_CP_SBBL_MESS_POSITION_SHORT_DESCR_0',
+			'ONE' => 'BX_CP_SBBL_MESS_POSITION_SHORT_DESCR_1',
+			'TEN' => 'BX_CP_SBBL_MESS_POSITION_SHORT_DESCR_10_20',
+			'MOD_ONE' => 'BX_CP_SBBL_MESS_POSITION_SHORT_DESCR_MOD_1',
+			'MOD_TWO' => 'BX_CP_SBBL_MESS_POSITION_SHORT_DESCR_MOD_2_4',
+			'OTHER' => 'BX_CP_SBBL_MESS_POSITION_SHORT_DESCR_OTHER'
+		];
+		$this->arResult['PRODUCT(S)'] = $this->getBasketCountDescription(
+			$this->arResult["NUM_PRODUCTS"],
+			$messages
+		);
+		$this->arResult["PRODUCTS"] = Loc::getMessage(
+			'BX_CP_SBBL_MESS_TOTAL_POSITITON',
+			['#VALUE#' => $this->arResult['BASKET_COUNT_DESCRIPTION']]
+		);
+		// compatibility end!
+		unset($messages);
 
 		// output
 		if ($this->arParams['AJAX'] == 'Y')
@@ -257,7 +291,12 @@ class SaleBasketLineComponent extends CBitrixComponent
 		if ($currentFuser <= 0)
 			return $result;
 
-		$fullBasket = Sale\Basket::loadItemsForFUser($currentFuser, $this->getSiteId());
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+
+		/** @var Sale\Basket $basketClass */
+		$basketClass = $registry->getBasketClassName();
+
+		$fullBasket = $basketClass::loadItemsForFUser($currentFuser, $this->getSiteId());
 		if ($fullBasket->isEmpty())
 			return $result;
 
@@ -419,7 +458,7 @@ class SaleBasketLineComponent extends CBitrixComponent
 			{
 				foreach ($arProductData[$arItem["PRODUCT_ID"]] as $key => $value)
 				{
-					if (strpos($key, "PROPERTY_") !== false || in_array($key, $arImgFields))
+					if (mb_strpos($key, "PROPERTY_") !== false || in_array($key, $arImgFields))
 						$arItem[$key] = $value;
 				}
 			}
@@ -431,7 +470,7 @@ class SaleBasketLineComponent extends CBitrixComponent
 					$fieldVal = (in_array($field, $arImgFields)) ? $field : $field."_VALUE";
 					$parentId = $arSku2Parent[$arItem["PRODUCT_ID"]];
 
-					if ((!isset($arItem[$fieldVal]) || (isset($arItem[$fieldVal]) && strlen($arItem[$fieldVal]) == 0))
+					if ((!isset($arItem[$fieldVal]) || (isset($arItem[$fieldVal]) && $arItem[$fieldVal] == ''))
 						&& (isset($arProductData[$parentId][$fieldVal]) && !empty($arProductData[$parentId][$fieldVal]))) // can be array or string
 					{
 						$arItem[$fieldVal] = $arProductData[$parentId][$fieldVal];
@@ -609,6 +648,50 @@ class SaleBasketLineComponent extends CBitrixComponent
 
 		return $result;
 	}
+
+	/**
+	 * @param int $count
+	 * @param array $messages
+	 * @return string
+	 */
+	protected static function getBasketCountDescription(int $count, array $messages)
+	{
+		if ($count < 0)
+			return '';
+
+		$val = ($count < 100 ? $count : $count % 100);
+		$dec = $val % 10;
+
+		if ($val == 0)
+		{
+			$messageId = 'ZERO';
+		}
+		elseif ($val == 1)
+		{
+			$messageId = 'ONE';
+		}
+		elseif ($val >= 10 && $val <= 20)
+		{
+			$messageId = 'TEN';
+		}
+		elseif ($dec == 1)
+		{
+			$messageId = 'MOD_ONE';
+		}
+		elseif (2 <= $dec && $dec <= 4)
+		{
+			$messageId = 'MOD_TWO';
+		}
+		else
+		{
+			$messageId = 'OTHER';
+		}
+
+		return (isset($messages[$messageId])
+			? Loc::getMessage($messages[$messageId], ['#VALUE#' => $count])
+			: ''
+		);
+	}
 }
 
 // Compatibility
@@ -624,13 +707,13 @@ if (!function_exists('BasketNumberWordEndings'))
 
 		if ($lang=="ru")
 		{
-			if (strlen($num)>1 && substr($num, strlen($num)-2, 1)=="1")
+			if (mb_strlen($num) > 1 && mb_substr($num, mb_strlen($num) - 2, 1) == "1")
 			{
 				return $arEnds[0];
 			}
 			else
 			{
-				$c = IntVal(substr($num, strlen($num)-1, 1));
+				$c = intval(mb_substr($num, mb_strlen($num) - 1, 1));
 				if ($c==0 || ($c>=5 && $c<=9))
 					return $arEnds[1];
 				elseif ($c==1)
@@ -641,7 +724,7 @@ if (!function_exists('BasketNumberWordEndings'))
 		}
 		elseif ($lang=="en")
 		{
-			if (IntVal($num)>1)
+			if (intval($num)>1)
 			{
 				return "s";
 			}

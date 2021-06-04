@@ -1,65 +1,44 @@
-(function (exports,main_polyfill_intersectionobserver,ui_vue) {
+this.BX = this.BX || {};
+(function (exports,ui_vue,ui_vue_vuex,im_lib_logger,im_const,im_lib_utils,im_lib_clipboard) {
 	'use strict';
 
 	/**
-	 * Bitrix Messenger
-	 * Dialog Vue component
+	 * Bitrix im dialog mobile
+	 * Dialog vue component
 	 *
 	 * @package bitrix
-	 * @subpackage im
+	 * @subpackage mobile
 	 * @copyright 2001-2019 Bitrix
 	 */
-	var TemplateType = Object.freeze({
-	  message: 'message',
-	  delimiter: 'delimiter',
-	  group: 'group',
-	  historyLoader: 'historyLoader',
-	  unreadLoader: 'unreadLoader',
-	  button: 'button'
-	});
-	var ObserverType = Object.freeze({
-	  history: 'history',
-	  unread: 'unread',
-	  read: 'read',
-	  none: 'none'
-	});
-	var LoadButtonTypes = Object.freeze({
-	  before: 'before',
-	  after: 'after'
-	});
-	var ReferenceClassName = Object.freeze({
-	  listItem: 'bx-im-dialog-list-item-reference',
-	  listItemBody: 'bx-im-dialog-list-item-content-reference',
-	  listUnreadLoader: 'bx-im-dialog-list-unread-loader-reference'
-	});
-	ui_vue.Vue.component('bx-messenger-dialog', {
-	  /**
-	   * @emits 'requestHistory' {lastId: number, limit: number}
-	   * @emits 'requestUnread' {lastId: number, limit: number}
-	   * @emits 'readMessage' {id: number}
-	   * @emits 'click' {event: MouseEvent}
-	   * @emits 'clickByUserName' {userData: object, event: MouseEvent}
-	   * @emits 'clickByMessageMenu' {message: object, event: MouseEvent}
-	   * @emits 'clickByCommand' {type: string, value: string, event: MouseEvent}
-	   */
+	/**
+	 * @notice Do not mutate or clone this component! It is under development.
+	 */
 
-	  /**
-	   * @listens props.listenEventScrollToBottom {force:boolean} (global|application) -- scroll dialog to bottom, see more in methods.onScrollToBottom()
-	   * @listens props.listenEventRequestHistory {count:number} (application)
-	   * @listens props.listenEventRequestUnread {count:number} (application)
-	   */
+	ui_vue.Vue.component('bx-im-component-dialog', {
 	  props: {
+	    chatId: {
+	      default: 0
+	    },
 	    userId: {
 	      default: 0
 	    },
 	    dialogId: {
 	      default: 0
 	    },
-	    chatId: {
-	      default: 0
+	    enableGestureQuote: {
+	      default: true
 	    },
-	    messageLimit: {
-	      default: 20
+	    enableGestureQuoteFromRight: {
+	      default: true
+	    },
+	    enableGestureMenu: {
+	      default: false
+	    },
+	    showMessageUserName: {
+	      default: true
+	    },
+	    showMessageAvatar: {
+	      default: true
 	    },
 	    listenEventScrollToBottom: {
 	      default: ''
@@ -70,811 +49,454 @@
 	    listenEventRequestUnread: {
 	      default: ''
 	    },
-	    enableEmotions: {
-	      default: true
-	    },
-	    enableDateActions: {
-	      default: true
-	    },
-	    enableCreateContent: {
-	      default: true
-	    },
-	    showMessageAvatar: {
-	      default: true
-	    },
-	    showMessageMenu: {
-	      default: true
+	    listenEventSendReadMessages: {
+	      default: ''
 	    }
 	  },
 	  data: function data() {
 	    return {
-	      showScrollButton: false,
-	      messageShowCount: 0,
-	      messageExtraCount: 0,
-	      unreadLoaderShow: false,
-	      unreadLoaderBlocked: false,
-	      historyLoaderBlocked: false,
-	      historyLoaderShow: false,
-	      startMessageLimit: 0,
-	      TemplateType: TemplateType,
-	      ObserverType: ObserverType,
-	      ReferenceClassName: ReferenceClassName
+	      dialogState: 'loading',
+	      dialogDiskFolderId: 0,
+	      dialogChatId: 0,
+	      scrollToBottomEvent: this.listenEventScrollToBottom,
+	      requestHistoryEvent: this.listenEventRequestHistory,
+	      requestUnreadEvent: this.listenEventRequestUnread,
+	      sendReadMessagesEvent: this.listenEventSendReadMessages
 	    };
 	  },
 	  created: function created() {
-	    this.scrollIsChanged = false;
-	    this.scrollBlocked = false;
-	    this.scrollButtonDiff = 30;
-	    this.scrollButtonShowTimeout = null;
-	    this.scrollPosition = 0;
-	    this.scrollPositionChangeTime = new Date().getTime();
-	    this.observers = {};
-	    this.requestHistoryInterval = null;
-	    this.requestUnreadInterval = null;
-	    this.lastAuthorId = 0;
-	    this.firstMessageId = null;
-	    this.firstUnreadMessageId = null;
-	    this.lastMessageId = null;
-	    this.dateFormatFunction = null;
-	    this.cacheGroupTitle = {};
-	    this.waitLoadHistory = false;
-	    this.waitLoadUnread = false;
-	    this.readMessageQueue = [];
-	    this.unreadLoaderBlocked = this.dialog.counter === 0;
-	    this.startMessageLimit = this.messageLimit;
-
-	    if (this.listenEventScrollToBottom) {
-	      ui_vue.Vue.event.$on(this.listenEventScrollToBottom, this.onScrollToBottom);
-	      this.$root.$on(this.listenEventScrollToBottom, this.onScrollToBottom);
+	    if (!this.listenEventScrollToBottom) {
+	      this.scrollToBottomEvent = im_const.EventType.dialog.scrollToBottom;
 	    }
 
-	    if (this.listenEventRequestHistory) {
-	      this.$root.$on(this.listenEventRequestHistory, this.onRequestHistoryAnswer);
+	    if (!this.listenEventRequestHistory) {
+	      this.requestHistoryEvent = im_const.EventType.dialog.requestHistoryResult;
 	    }
 
-	    if (this.listenEventRequestUnread) {
-	      this.$root.$on(this.listenEventRequestUnread, this.onRequestUnreadAnswer);
+	    if (!this.listenEventRequestUnread) {
+	      this.requestUnreadEvent = im_const.EventType.dialog.requestUnreadResult;
 	    }
 
-	    window.addEventListener('focus', this.onWindowFocus);
-	    window.addEventListener('blur', this.onWindowBlur);
+	    if (!this.listenEventSendReadMessages) {
+	      this.sendReadMessagesEvent = im_const.EventType.dialog.sendReadMessages;
+	    }
+
+	    this.requestData();
 	  },
-	  beforeDestroy: function beforeDestroy() {
-	    this.observers = {};
-	    clearTimeout(this.scrollButtonShowTimeout);
-	    clearInterval(this.requestHistoryInterval);
-	    clearInterval(this.requestUnreadInterval);
-
-	    if (this.listenEventScrollToBottom) {
-	      ui_vue.Vue.event.$off(this.listenEventScrollToBottom, this.onScrollToBottom);
-	      this.$root.$off(this.listenEventScrollToBottom, this.onScrollToBottom);
-	    }
-
-	    if (this.listenEventRequestHistory) {
-	      this.$root.$off(this.listenEventRequestHistory, this.onRequestHistoryAnswer);
-	    }
-
-	    if (this.listenEventRequestUnread) {
-	      this.$root.$off(this.listenEventRequestUnread, this.onRequestUnreadAnswer);
-	    }
-
-	    window.removeEventListener('focus', this.onWindowFocus);
-	    window.removeEventListener('blur', this.onWindowBlur);
-	  },
-	  mounted: function mounted() {
-	    var body = this.$refs.body;
-	    var unreadId = this.dialog.unreadId;
-
-	    if (unreadId) {
-	      Utils.scrollToFirstUnreadMessage(this, this.collection, unreadId, true);
-	    } else {
-	      body.scrollTop = body.scrollHeight - body.offsetHeight;
-	    }
-
-	    this.windowFocused = document.hasFocus();
-	  },
-	  beforeUpdate: function beforeUpdate() {
-	    var body = this.$refs.body;
-
-	    if (this.scrollBlocked) {
-	      this.scrollIsChanged = false;
-	    } else {
-	      this.scrollIsChanged = body.scrollTop + this.scrollButtonDiff >= body.scrollHeight - body.offsetHeight;
-
-	      if (!this.scrollIsChanged && !this.showScrollButton && this.unreadCounter > 1) {
-	        this.showScrollButton = true;
-	      }
+	  watch: {
+	    dialogId: function dialogId() {
+	      this.requestData();
 	    }
 	  },
-	  updated: function updated() {
-	    var _this = this;
-
-	    if (!this.scrollIsChanged) {
-	      return;
-	    }
-
-	    this.$nextTick(function () {
-	      var body = _this.$refs.body;
-
-	      if (_this.scrollIsChanged) {
-	        if (!_this.windowFocused && _this.unreadCounter > 0 && !_this.showScrollButton) {
-	          Utils.scrollToFirstUnreadMessage(_this, _this.collection, _this.firstUnreadMessageId);
-	          return;
-	        }
-
-	        _this.scrollTo(function () {
-	          clearTimeout(_this.scrollButtonShowTimeout);
-
-	          if (_this.showScrollButton && _this.windowFocused) {
-	            _this.showScrollButton = false;
-	          }
-	        });
-	      }
-	    });
-	  },
-	  computed: {
+	  computed: babelHelpers.objectSpread({
+	    EventType: function EventType() {
+	      return im_const.EventType;
+	    },
 	    localize: function localize() {
-	      return ui_vue.Vue.getFilteredPhrases('IM_MESSENGER_DIALOG_', this.$root.$bitrixMessages);
+	      return Object.assign({}, ui_vue.Vue.getFilteredPhrases('IM_DIALOG_', this.$root.$bitrixMessages), ui_vue.Vue.getFilteredPhrases('IM_UTILS_', this.$root.$bitrixMessages));
 	    },
-	    dialog: function dialog() {
-	      var dialog = this.$store.getters['dialogues/get'](this.dialogId);
-	      return dialog ? dialog : this.$store.getters['dialogues/getBlank']();
-	    },
-	    collection: function collection() {
-	      return this.$store.getters['messages/get'](this.chatId);
-	    },
-	    elementsWithLimit: function elementsWithLimit() {
-	      var _this2 = this;
+	    widgetClassName: function widgetClassName(state) {
+	      var className = ['bx-mobilechat-wrapper'];
 
-	      var start = this.collection.length - (this.messageExtraCount + this.messageLimit);
-
-	      if (!this.historyLoaderShow || start < 0) {
-	        start = 0;
+	      if (this.showMessageDialog) {
+	        className.push('bx-mobilechat-chat-start');
 	      }
 
-	      var collection = [];
-	      var lastAuthorId = 0;
-	      var groupNode = {};
-	      var slicedCollection = start == 0 ? this.collection : this.collection.slice(start, this.collection.length);
-	      this.messageShowCount = slicedCollection.length;
-
-	      if (this.messageShowCount > 0) {
-	        this.firstMessageId = slicedCollection[0].id;
-	        this.lastMessageId = slicedCollection[slicedCollection.length - 1].id;
-	      }
-
-	      if (this.collection.length >= this.messageLimit && this.collection.length >= this.messageShowCount && this.historyLoaderBlocked === false) {
-	        this.historyLoaderShow = true;
-	      } else {
-	        this.historyLoaderShow = false;
-	      }
-
-	      this.firstUnreadMessageId = 0;
-	      slicedCollection.forEach(function (element) {
-	        var group = _this2._groupTitle(element.date);
-
-	        if (!groupNode[group.id]) {
-	          groupNode[group.id] = true;
-	          collection.push(Blocks.getGroup(group.id, group.title));
-	        } else if (lastAuthorId != element.authorId) {
-	          collection.push(Blocks.getDelimiter(element.id));
-	        }
-
-	        collection.push(element);
-	        lastAuthorId = element.authorId;
-
-	        if (element.unread) {
-	          if (!_this2.firstUnreadMessageId) {
-	            _this2.firstUnreadMessageId = element.id;
-	          }
-	        }
-	      });
-
-	      if (this.dialog.unreadLastId > this.lastMessageId && this.unreadLoaderBlocked === false) {
-	        this.unreadLoaderShow = true;
-	      } else {
-	        this.unreadLoaderShow = false;
-	      }
-
-	      return collection;
+	      return className.join(' ');
 	    },
-	    statusWriting: function statusWriting() {
-	      if (this.dialog.writingList.length == 0) return '';
-	      var users = this.dialog.writingList.map(function (element) {
-	        return element.userName;
-	      });
-	      return this.localize.IM_MESSENGER_DIALOG_WRITES_MESSAGE.replace('#USER#', users.join(', '));
+	    quotePanelData: function quotePanelData() {
+	      var result = {
+	        id: 0,
+	        title: '',
+	        description: '',
+	        color: ''
+	      };
+
+	      if (!this.showMessageDialog || !this.dialog.quoteId) {
+	        return result;
+	      }
+
+	      var message = this.$store.getters['messages/getMessage'](this.dialog.chatId, this.dialog.quoteId);
+
+	      if (!message) {
+	        return result;
+	      }
+
+	      var user = this.$store.getters['users/get'](message.authorId);
+	      var files = this.$store.getters['files/getList'](this.dialog.chatId);
+	      return {
+	        id: this.dialog.quoteId,
+	        title: message.params.NAME ? message.params.NAME : user ? user.name : '',
+	        color: user ? user.color : '',
+	        description: im_lib_utils.Utils.text.purify(message.text, message.params, files, this.localize)
+	      };
 	    },
-	    statusReaded: function statusReaded() {
+	    isDialog: function isDialog() {
+	      return im_lib_utils.Utils.dialog.isChatId(this.dialog.dialogId);
+	    },
+	    isGestureQuoteSupported: function isGestureQuoteSupported() {
 	      return false;
 	    },
-	    unreadCounter: function unreadCounter() {
-	      return this.dialog.counter > 999 ? 999 : this.dialog.counter;
+	    isDarkBackground: function isDarkBackground() {
+	      return this.application.options.darkBackground;
+	    },
+	    showMessageDialog: function showMessageDialog() {
+	      var result = this.messageCollection && this.messageCollection.length > 0;
+
+	      if (result) {
+	        this.dialogState = 'show';
+	      } else if (this.dialog && this.dialog.init) {
+	        this.dialogState = 'empty';
+	      } else {
+	        this.dialogState = 'loading';
+	      }
+
+	      return result;
+	    },
+	    dialog: function dialog() {
+	      var dialog = this.$store.getters['dialogues/get'](this.application.dialog.dialogId);
+	      return dialog ? dialog : this.$store.getters['dialogues/getBlank']();
+	    },
+	    messageCollection: function messageCollection() {
+	      return this.$store.getters['messages/get'](this.application.dialog.chatId);
 	    }
-	  },
+	  }, ui_vue_vuex.Vuex.mapState({
+	    application: function application(state) {
+	      return state.application;
+	    }
+	  })),
 	  methods: {
-	    onDialogClick: function onDialogClick(event) {
-	      if (ui_vue.Vue.testNode(event.target, {
-	        className: 'bx-im-message-command'
-	      })) {
-	        this.onCommandClick(event);
-	      }
+	    requestData: function requestData() {
+	      var _query,
+	          _this = this;
 
-	      this.windowFocused = true;
-	      this.$emit('click', {
-	        event: event
-	      });
-	    },
-	    onCommandClick: function onCommandClick(event) {
-	      var value = '';
+	      console.log('4. requestData'); //this.requestDataSend = true;
 
-	      if (event.target.dataset.entity === 'send' || event.target.dataset.entity === 'put') {
-	        value = event.target.nextSibling.innerHTML;
-	      } else if (event.target.dataset.entity === 'call') {
-	        value = event.target.dataset.command;
-	      }
+	      var query = (_query = {}, babelHelpers.defineProperty(_query, im_const.RestMethodHandler.mobileBrowserConstGet, [im_const.RestMethod.mobileBrowserConstGet, {}]), babelHelpers.defineProperty(_query, im_const.RestMethodHandler.imChatGet, [im_const.RestMethod.imChatGet, {
+	        dialog_id: this.dialogId
+	      }]), babelHelpers.defineProperty(_query, im_const.RestMethodHandler.imDialogMessagesGetInit, [im_const.RestMethod.imDialogMessagesGet, {
+	        dialog_id: this.dialogId,
+	        limit: this.$root.$bitrixController.application.getRequestMessageLimit(),
+	        convert_text: 'Y'
+	      }]), _query);
 
-	      this.$emit('clickByCommand', {
-	        type: event.target.dataset.entity,
-	        value: value,
-	        event: event
-	      });
-	    },
-	    onScroll: function onScroll(event) {
-	      var _this3 = this;
-
-	      this.scrollPosition = event.target.scrollTop;
-	      this.scrollPositionChangeTime = new Date().getTime();
-	      clearTimeout(this.scrollButtonShowTimeout);
-	      this.scrollButtonShowTimeout = setTimeout(function () {
-	        if (event.target.scrollTop + _this3.scrollButtonDiff >= event.target.scrollHeight - event.target.offsetHeight) {
-	          if (_this3.showScrollButton && !_this3.unreadLoaderShow && _this3.windowFocused) {
-	            _this3.showScrollButton = false;
-	          }
-	        } else {
-	          if (!_this3.showScrollButton) {
-	            _this3.showScrollButton = true;
-	          }
-	        }
-	      }, 200);
-
-	      if (event.target.scrollTop == event.target.scrollHeight - event.target.offsetHeight) {
-	        clearTimeout(this.scrollButtonShowTimeout);
-
-	        if (this.showScrollButton && !this.unreadLoaderShow && this.windowFocused) {
-	          this.showScrollButton = false;
-	        }
-	      }
-	    },
-	    scrollToBottom: function scrollToBottom() {
-	      var _this4 = this;
-
-	      var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-	      var body = this.$refs.body;
-
-	      if (this.dialog.counter > 0) {
-	        var scrollToMessageId = this.dialog.counter > 1 ? this.firstUnreadMessageId : this.lastMessageId;
-	        Utils.scrollToFirstUnreadMessage(this, this.collection, scrollToMessageId);
-
-	        if (this.dialog.counter < this.startMessageLimit) {
-	          this.messageExtraCount = 0;
-	          this.historyLoaderShow = true;
-	          this.historyLoaderBlocked = false;
-	        }
-
-	        return true;
-	      }
-
-	      this.showScrollButton = false;
-
-	      if (force) {
-	        body.scrollTop = body.scrollHeight - body.offsetHeight;
-	        this.messageExtraCount = 0;
-	        this.historyLoaderShow = true;
-	        this.historyLoaderBlocked = false;
+	      if (im_lib_utils.Utils.dialog.isChatId(this.dialogId)) {
+	        query[im_const.RestMethodHandler.imUserGet] = [im_const.RestMethod.imUserGet, {}];
 	      } else {
-	        this.scrollTo(function () {
-	          _this4.messageExtraCount = 0;
-	          _this4.historyLoaderShow = true;
-	          _this4.historyLoaderBlocked = false;
-	        });
-	      }
-	    },
-	    scrollTo: function scrollTo(params) {
-	      var _this5 = this;
-
-	      var body = this.$refs.body;
-
-	      if (typeof params === 'function') {
-	        params = {
-	          callback: params
-	        };
+	        query[im_const.RestMethodHandler.imUserListGet] = [im_const.RestMethod.imUserListGet, {
+	          id: [this.userId, this.dialogId]
+	        }];
 	      }
 
-	      if (!body) {
-	        if (params.callback && typeof params.callback === 'function') {
-	          params.callback();
-	        }
-
-	        return true;
-	      }
-
-	      var _params = params,
-	          _params$start = _params.start,
-	          start = _params$start === void 0 ? body.scrollTop : _params$start,
-	          _params$end = _params.end,
-	          end = _params$end === void 0 ? body.scrollHeight - body.offsetHeight : _params$end,
-	          _params$increment = _params.increment,
-	          increment = _params$increment === void 0 ? 20 : _params$increment,
-	          callback = _params.callback,
-	          _params$duration = _params.duration,
-	          duration = _params$duration === void 0 ? 300 : _params$duration;
-	      var diff = end - start;
-	      var currentPosition = 0;
-
-	      var easeInOutQuad = function easeInOutQuad(current, start, diff, duration) {
-	        current /= duration / 2;
-
-	        if (current < 1) {
-	          return diff / 2 * current * current + start;
-	        }
-
-	        current--;
-	        return -diff / 2 * (current * (current - 2) - 1) + start;
-	      };
-
-	      var requestFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function (callback) {
-	        window.setTimeout(callback, 1000 / 60);
-	      };
-
-	      var animateScroll = function animateScroll() {
-	        currentPosition += increment;
-	        _this5.$refs.body.scrollTop = easeInOutQuad(currentPosition, start, diff, duration);
-
-	        if (currentPosition < duration) {
-	          requestFrame(animateScroll);
-	        } else {
-	          if (callback && typeof callback === 'function') {
-	            callback();
-	          }
-	        }
-	      };
-
-	      animateScroll();
-	    },
-	    onScrollToBottom: function onScrollToBottom() {
-	      var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-	      event.force = event.force === true;
-	      this.scrollToBottom(event.force);
-	      return true;
-	    },
-	    onWindowFocus: function onWindowFocus() {
-	      var _this6 = this;
-	      this.windowFocused = true;
-	      this.readMessageQueue = this.readMessageQueue.map(function (messageId) {
-	        _this6.requestReadMessage(messageId);
-
-	        return false;
-	      });
-	    },
-	    onWindowBlur: function onWindowBlur() {
-	      this.windowFocused = false;
-	    },
-	    requestHistoryDelayed: function requestHistoryDelayed() {
-	      var _this7 = this;
-
-	      if (this.requestHistoryInterval) {
-	        BX.Messenger.Logger.log('bx-messenger-dialog.methods.requestHistoryDelayed: skipped');
-	        return false;
-	      }
-
-	      if (this.scrollPositionChangeTime + 100 < new Date().getTime() && this.$refs.body.scrollTop >= 0) {
-	        clearInterval(this.requestHistoryInterval);
-	        this.requestHistoryInterval = null;
-	        this.requestHistory();
-	        return true;
-	      }
-
-	      clearInterval(this.requestHistoryInterval);
-	      this.requestHistoryInterval = setInterval(function () {
-	        if (_this7.scrollPositionChangeTime + 100 < new Date().getTime() && _this7.$refs.body.scrollTop >= 0) {
-	          clearInterval(_this7.requestHistoryInterval);
-	          _this7.requestHistoryInterval = null;
-
-	          _this7.requestHistory();
-
-	          return true;
-	        }
-	      }, 50);
-	      return true;
-	    },
-	    requestHistory: function requestHistory() {
-	      if (this.waitLoadHistory) {
-	        BX.Messenger.Logger.log('bx-messenger-dialog.methods.requestHistory: waitLoadHistory not empty');
-	        return false;
-	      }
-
-	      this.waitLoadHistory = true;
-	      var length = this.collection.length;
-	      var messageShowCount = this.messageShowCount;
-
-	      if (length > messageShowCount) {
-	        var element = this.$refs.body.getElementsByClassName(ReferenceClassName.listItem)[0];
-	        this.messageExtraCount += this.messageLimit;
-	        Utils.scrollToElementAfterLoadHistory(this, element);
-	        return true;
-	      }
-
-	      this.$emit('requestHistory', {
-	        lastId: this.firstMessageId
-	      });
-	    },
-	    requestUnreadDelayed: function requestUnreadDelayed() {
-	      var _this8 = this;
-
-	      if (this.requestUnreadInterval) {
-	        BX.Messenger.Logger.log('bx-messenger-dialog.methods.requestUnreadDelayed: skipped');
-	        return false;
-	      }
-
-	      var body = this.$refs.body;
-
-	      if (this.scrollPositionChangeTime + 100 < new Date().getTime() && body.scrollTop <= body.scrollHeight - body.offsetHeight) {
-	        clearInterval(this.requestUnreadInterval);
-	        this.requestUnreadInterval = null;
-	        this.requestUnread();
-	        return true;
-	      }
-
-	      clearInterval(this.requestUnreadInterval);
-	      this.requestUnreadInterval = setInterval(function () {
-	        if (_this8.scrollPositionChangeTime + 100 < new Date().getTime() && body.scrollTop <= body.scrollHeight - body.offsetHeight) {
-	          clearInterval(_this8.requestUnreadInterval);
-	          _this8.requestUnreadInterval = null;
-
-	          _this8.requestUnread();
-
-	          return true;
-	        }
-	      }, 50);
-	      return true;
-	    },
-	    onRequestHistoryAnswer: function onRequestHistoryAnswer() {
-	      var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-	      if (event.error) {
-	        this.historyLoaderBlocked = false;
-	      } else {
-	        this.historyLoaderBlocked = event.count < this.startMessageLimit;
-	        this.messageExtraCount += event.count;
-	      }
-
-	      if (this.historyLoaderBlocked) {
-	        this.historyLoaderShow = false;
-	      }
-
-	      var element = this.$refs.body.getElementsByClassName(ReferenceClassName.listItem)[0];
-
-	      if (event.count > 0) {
-	        Utils.scrollToElementAfterLoadHistory(this, element);
-	      } else if (event.error) {
-	        element.scrollIntoView(true);
-	        this.waitLoadHistory = false;
-	      } else {
-	        this.$refs.body.scrollTop = 0;
-	        this.waitLoadHistory = false;
-	      }
-
-	      return true;
-	    },
-	    requestUnread: function requestUnread() {
-	      if (this.waitLoadUnread) {
-	        BX.Messenger.Logger.log('bx-messenger-dialog.methods.requestUnread: waitLoadUnread not empty');
-	        return false;
-	      }
-
-	      this.waitLoadUnread = true;
-	      this.$emit('requestUnread', {
-	        lastId: this.lastMessageId
-	      });
-	    },
-	    onRequestUnreadAnswer: function onRequestUnreadAnswer() {
-	      var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-	      if (event.error) {
-	        this.historyLoaderBlocked = false;
-	      } else {
-	        this.unreadLoaderBlocked = event.count < this.startMessageLimit;
-	        this.messageExtraCount += event.count;
-	      }
-
-	      if (this.unreadLoaderBlocked) {
-	        this.unreadLoaderShow = false;
-	      }
-
-	      var body = this.$refs.body;
-
-	      if (event.count > 0) {
-	        Utils.scrollToElementAfterLoadUnread(this);
-	      } else if (event.error) {
-	        var element = this.$refs.body.getElementsByClassName(ReferenceClassName.listUnreadLoader)[0];
-
-	        if (element) {
-	          body.scrollTop = body.scrollTop - element.offsetHeight * 2;
-	        } else {
-	          body.scrollTop = body.scrollHeight - body.offsetHeight;
-	        }
-
-	        this.waitLoadUnread = false;
-	      } else {
-	        body.scrollTop = body.scrollHeight - body.offsetHeight;
-	        this.waitLoadUnread = false;
-	      }
-
-	      return true;
-	    },
-	    readMessage: function readMessage(messageId) {
-	      if (this.windowFocused) {
-	        this.$emit('readMessage', {
-	          id: messageId
-	        });
-	      } else {
-	        this.readMessageQueue.push(messageId);
-	      }
-	    },
-	    requestReadMessage: function requestReadMessage(messageId) {
-	      this.$emit('readMessage', {
-	        id: messageId
-	      });
-	    },
-	    onClickByUserName: function onClickByUserName(event) {
-	      this.$emit('clickByUserName', event);
-	    },
-	    onClickByMessageMenu: function onClickByMessageMenu(event) {
-	      this.$emit('clickByMessageMenu', event);
-	    },
-	    onClickByMessageRetry: function onClickByMessageRetry(event) {
-	      this.$emit('clickByMessageRetry', event);
-	    },
-	    _getDateFormat: function _getDateFormat() {
-	      var _this9 = this;
-
-	      if (this.dateFormatFunction) {
-	        return this.dateFormatFunction;
-	      }
-
-	      this.dateFormatFunction = Object.create(BX.Main.Date);
-
-	      if (this.$root.$bitrixMessages) {
-	        this.dateFormatFunction._getMessage = function (phrase) {
-	          return _this9.$root.$bitrixMessages[phrase];
-	        };
-	      }
-
-	      return this.dateFormatFunction;
-	    },
-	    _groupTitle: function _groupTitle(date) {
-	      var id = Utils.getDateFormat(date);
-
-	      if (this.cacheGroupTitle[id]) {
-	        return {
-	          id: id,
-	          title: this.cacheGroupTitle[id]
-	        };
-	      }
-
-	      var dateFormat = BX.Messenger.Utils.getDateFormatType(BX.Messenger.Const.DateFormat.groupTitle, this.$root.$bitrixMessages);
-	      this.cacheGroupTitle[id] = this._getDateFormat().format(dateFormat, date);
-	      return {
-	        id: id,
-	        title: this.cacheGroupTitle[id]
-	      };
-	    }
-	  },
-	  directives: {
-	    'bx-messenger-dialog-observer': {
-	      inserted: function inserted(element, bindings, vnode) {
-	        if (bindings.value == ObserverType.none) {
+	      this.$root.$bitrixController.restClient.callBatch(query, function (response) {
+	        if (!response) {
+	          //this.requestDataSend = false;
+	          //this.setError('EMPTY_RESPONSE', 'Server returned an empty response.');
 	          return false;
 	        }
 
-	        if (!vnode.context.observers[bindings.value]) {
-	          vnode.context.observers[bindings.value] = Utils.getMessageLoaderObserver({
-	            type: bindings.value,
-	            context: vnode.context
+	        var constGet = response[im_const.RestMethodHandler.mobileBrowserConstGet];
+
+	        if (constGet.error()) ; else {
+	          _this.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.mobileBrowserConstGet, constGet);
+	        }
+
+	        var userGet = response[im_const.RestMethodHandler.imUserGet];
+
+	        if (userGet && !userGet.error()) {
+	          _this.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imUserGet, userGet);
+	        }
+
+	        var userListGet = response[im_const.RestMethodHandler.imUserListGet];
+
+	        if (userListGet && !userListGet.error()) {
+	          _this.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imUserListGet, userListGet);
+	        }
+
+	        var chatGetResult = response[im_const.RestMethodHandler.imChatGet];
+
+	        if (!chatGetResult.error()) {
+	          _this.dialogChatId = chatGetResult.data().id;
+	          _this.dialogDiskFolderId = chatGetResult.data().disk_folder_id;
+	        } // TODO imChatGet
+
+
+	        _this.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imChatGet, chatGetResult);
+
+	        var dialogMessagesGetResult = response[im_const.RestMethodHandler.imDialogMessagesGetInit];
+
+	        if (dialogMessagesGetResult.error()) ; else {
+	          //this.timer.stop('data', 'load', true);
+	          // this.$root.$bitrixController.getStore().dispatch('dialogues/saveDialog', {
+	          // 	dialogId: this.$root.$bitrixController.application.getDialogId(),
+	          // 	chatId: this.$root.$bitrixController.application.getChatId(),
+	          // });
+	          if (_this.$root.$bitrixController.pullCommandHandler) ;
+
+	          _this.$root.$bitrixController.getStore().dispatch('application/set', {
+	            dialog: {
+	              enableReadMessages: true
+	            }
+	          }).then(function () {
+	            _this.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imDialogMessagesGetInit, dialogMessagesGetResult);
+	          }); //this.processSendMessages();
+
+	        } //this.requestDataSend = false;
+
+	      }, false, false, im_lib_utils.Utils.getLogTrackingParams({
+	        name: 'im.dialog',
+	        dialog: this.$root.$bitrixController.application.getDialogData()
+	      }));
+	      return new Promise(function (resolve, reject) {
+	        return resolve();
+	      });
+	    },
+	    getDialogHistory: function getDialogHistory(lastId) {
+	      var _this2 = this;
+
+	      var limit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.$root.$bitrixController.application.getRequestMessageLimit();
+	      this.$root.$bitrixController.restClient.callMethod(im_const.RestMethod.imDialogMessagesGet, {
+	        'CHAT_ID': this.dialogChatId,
+	        'LAST_ID': lastId,
+	        'LIMIT': limit,
+	        'CONVERT_TEXT': 'Y'
+	      }).then(function (result) {
+	        _this2.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imDialogMessagesGet, result);
+
+	        _this2.$root.$emit(im_const.EventType.dialog.requestHistoryResult, {
+	          count: result.data().messages.length
+	        });
+	      }).catch(function (result) {
+	        _this2.$root.$emit(im_const.EventType.dialog.requestHistoryResult, {
+	          error: result.error().ex
+	        });
+	      });
+	    },
+	    getDialogUnread: function getDialogUnread(lastId) {
+	      var _this3 = this;
+
+	      var limit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.$root.$bitrixController.application.getRequestMessageLimit();
+
+	      if (this.promiseGetDialogUnreadWait) {
+	        return this.promiseGetDialogUnread;
+	      }
+
+	      this.promiseGetDialogUnread = new BX.Promise();
+	      this.promiseGetDialogUnreadWait = true;
+
+	      if (!lastId) {
+	        lastId = this.$root.$bitrixController.getStore().getters['messages/getLastId'](this.dialogChatId);
+	      }
+
+	      if (!lastId) {
+	        this.$root.$emit(im_const.EventType.dialog.requestUnreadResult, {
+	          error: {
+	            error: 'LAST_ID_EMPTY',
+	            error_description: 'LastId is empty.'
+	          }
+	        });
+	        this.promiseGetDialogUnread.reject();
+	        this.promiseGetDialogUnreadWait = false;
+	        return this.promiseGetDialogUnread;
+	      }
+
+	      this.$root.$bitrixController.application.readMessage(lastId, true, true).then(function () {
+	        var _query2;
+
+	        // this.timer.start('data', 'load', .5, () => {
+	        // 	console.warn("ChatDialog.requestData: slow connection show progress icon");
+	        // 	app.titleAction("setParams", {useProgress: true, useLetterImage: false});
+	        // });
+	        var query = (_query2 = {}, babelHelpers.defineProperty(_query2, im_const.RestMethodHandler.imDialogRead, [im_const.RestMethod.imDialogRead, {
+	          dialog_id: _this3.dialogId,
+	          message_id: lastId
+	        }]), babelHelpers.defineProperty(_query2, im_const.RestMethodHandler.imChatGet, [im_const.RestMethod.imChatGet, {
+	          dialog_id: _this3.dialogId
+	        }]), babelHelpers.defineProperty(_query2, im_const.RestMethodHandler.imDialogMessagesGetUnread, [im_const.RestMethod.imDialogMessagesGet, {
+	          chat_id: _this3.dialogChatId,
+	          first_id: lastId,
+	          limit: limit,
+	          convert_text: 'Y'
+	        }]), _query2);
+
+	        _this3.$root.$bitrixController.restClient.callBatch(query, function (response) {
+	          if (!response) {
+	            _this3.$root.$emit(im_const.EventType.dialog.requestUnreadResult, {
+	              error: {
+	                error: 'EMPTY_RESPONSE',
+	                error_description: 'Server returned an empty response.'
+	              }
+	            });
+
+	            _this3.promiseGetDialogUnread.reject();
+
+	            _this3.promiseGetDialogUnreadWait = false;
+	            return false;
+	          }
+
+	          var chatGetResult = response[im_const.RestMethodHandler.imChatGet];
+
+	          if (!chatGetResult.error()) {
+	            _this3.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imChatGet, chatGetResult);
+	          }
+
+	          var dialogMessageUnread = response[im_const.RestMethodHandler.imDialogMessagesGetUnread];
+
+	          if (dialogMessageUnread.error()) {
+	            _this3.$root.$emit(im_const.EventType.dialog.requestUnreadResult, {
+	              error: dialogMessageUnread.error().ex
+	            });
+	          } else {
+	            _this3.$root.$bitrixController.executeRestAnswer(im_const.RestMethodHandler.imDialogMessagesGetUnread, dialogMessageUnread);
+
+	            _this3.$root.$emit(im_const.EventType.dialog.requestUnreadResult, {
+	              firstMessageId: dialogMessageUnread.data().messages.length > 0 ? dialogMessageUnread.data().messages[0].id : 0,
+	              count: dialogMessageUnread.data().messages.length
+	            }); //app.titleAction("setParams", {useProgress: false, useLetterImage: true});
+	            //this.timer.stop('data', 'load', true);
+
+	          }
+
+	          _this3.promiseGetDialogUnread.fulfill(response);
+
+	          _this3.promiseGetDialogUnreadWait = false;
+	        }, false, false, im_lib_utils.Utils.getLogTrackingParams({
+	          name: im_const.RestMethodHandler.imDialogMessagesGetUnread,
+	          dialog: _this3.$root.$bitrixController.application.getDialogData()
+	        }));
+	      });
+	      return this.promiseGetDialogUnread;
+	    },
+	    logEvent: function logEvent(name) {
+	      for (var _len = arguments.length, params = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        params[_key - 1] = arguments[_key];
+	      }
+
+	      im_lib_logger.Logger.info.apply(im_lib_logger.Logger, [name].concat(params));
+	    },
+	    onDialogRequestHistory: function onDialogRequestHistory(event) {
+	      this.getDialogHistory(event.lastId);
+	    },
+	    onDialogRequestUnread: function onDialogRequestUnread(event) {
+	      this.getDialogUnread(event.lastId);
+	    },
+	    onDialogMessageClickByUserName: function onDialogMessageClickByUserName(event) {
+	      this.$root.$bitrixController.application.replyToUser(event.user.id, event.user);
+	    },
+	    onDialogMessageClickByUploadCancel: function onDialogMessageClickByUploadCancel(event) {
+	      this.$root.$bitrixController.application.cancelUploadFile(event.file.id);
+	    },
+	    onDialogMessageClickByCommand: function onDialogMessageClickByCommand(event) {
+	      if (event.type === 'put') {
+	        this.$root.$bitrixApplication.insertText({
+	          text: event.value + ' '
+	        });
+	      } else if (event.type === 'send') {
+	        this.$root.$bitrixApplication.addMessage(event.value);
+	      } else {
+	        im_lib_logger.Logger.warn('Unprocessed command', event);
+	      }
+	    },
+	    onDialogMessageClickByMention: function onDialogMessageClickByMention(event) {
+	      if (event.type === 'USER') {
+	        this.$root.$bitrixController.application.openProfile(event.value);
+	      } else if (event.type === 'CHAT') {
+	        this.$root.$bitrixController.application.openDialog(event.value);
+	      } else if (event.type === 'CALL') {
+	        this.$root.$bitrixController.application.openPhoneMenu(event.value);
+	      }
+	    },
+	    onDialogMessageMenuClick: function onDialogMessageMenuClick(event) {
+	      im_lib_logger.Logger.warn('Message menu:', event);
+	      this.$root.$bitrixController.application.openMessageMenu(event.message);
+	    },
+	    onDialogMessageRetryClick: function onDialogMessageRetryClick(event) {
+	      im_lib_logger.Logger.warn('Message retry:', event);
+	      this.$root.$bitrixController.application.retrySendMessage(event.message);
+	    },
+	    onDialogReadMessage: function onDialogReadMessage(event) {
+	      this.$root.$bitrixController.application.readMessage(event.id);
+	    },
+	    onDialogReadedListClick: function onDialogReadedListClick(event) {
+	      this.$root.$bitrixController.application.openReadedList(event.list);
+	    },
+	    onDialogQuoteMessage: function onDialogQuoteMessage(event) {
+	      this.$root.$bitrixController.application.quoteMessage(event.message.id);
+	    },
+	    onDialogMessageReactionSet: function onDialogMessageReactionSet(event) {
+	      this.$root.$bitrixController.application.reactMessage(event.message.id, event.reaction);
+	    },
+	    onDialogMessageReactionListOpen: function onDialogMessageReactionListOpen(event) {
+	      this.$root.$bitrixController.application.openMessageReactionList(event.message.id, event.values);
+	    },
+	    onDialogMessageClickByChatTeaser: function onDialogMessageClickByChatTeaser(event) {
+	      var _this4 = this;
+
+	      this.$root.$bitrixController.application.joinParentChat(event.message.id, 'chat' + event.message.params.CHAT_ID).then(function (dialogId) {
+	        _this4.openDialog(dialogId);
+	      }).catch(function () {});
+	      return true;
+	    },
+	    onDialogMessageClickByKeyboardButton: function onDialogMessageClickByKeyboardButton(data) {
+	      var _this5 = this;
+
+	      if (data.action === 'ACTION') {
+	        var _data$params = data.params,
+	            dialogId = _data$params.dialogId,
+	            messageId = _data$params.messageId,
+	            botId = _data$params.botId,
+	            action = _data$params.action,
+	            value = _data$params.value;
+
+	        if (action === 'SEND') {
+	          this.$root.$bitrixApplication.addMessage(value);
+	          setTimeout(function () {
+	            return _this5.$root.$bitrixController.application.emit(im_const.EventType.dialog.scrollToBottom, {
+	              duration: 300,
+	              cancelIfScrollChange: false
+	            });
+	          }, 300);
+	        } else if (action === 'PUT') {
+	          this.$root.$bitrixApplication.insertText({
+	            text: value + ' '
+	          });
+	        } else if (action === 'CALL') ; else if (action === 'COPY') {
+	          im_lib_clipboard.Clipboard.copy(value);
+	          BX.UI.Notification.Center.notify({
+	            content: this.localize.IM_DIALOG_CLIPBOARD_COPY_SUCCESS,
+	            autoHideDelay: 4000
 	          });
 	        }
 
-	        vnode.context.observers[bindings.value].observe(element);
-	        return true;
-	      },
-	      unbind: function unbind(element, bindings, vnode) {
-	        if (bindings.value == ObserverType.none) {
-	          return true;
-	        }
-
-	        if (vnode.context.observers[bindings.value]) {
-	          vnode.context.observers[bindings.value].unobserve(element);
-	        }
-
 	        return true;
 	      }
-	    }
-	  },
-	  template: "\n\t\t<div class=\"bx-im-dialog\" @click=\"onDialogClick\">\t\n\t\t\t<div class=\"bx-im-dialog-list\" @scroll.passive=\"onScroll\" ref=\"body\">\n\t\t\t\t<template v-if=\"historyLoaderShow\">\n\t\t\t\t\t<div class=\"bx-im-dialog-load-more bx-im-dialog-load-more-history\" v-bx-messenger-dialog-observer=\"ObserverType.history\">\n\t\t\t\t\t\t<span class=\"bx-im-dialog-load-more-text\">{{ localize.IM_MESSENGER_DIALOG_LOAD_MESSAGES }}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</template>\n\t\t\t\t<transition-group tag=\"div\" class=\"bx-im-dialog-list-box\" name=\"bx-im-dialog-message-animation\" >\n\t\t\t\t\t<template v-for=\"element in elementsWithLimit\">\n\t\t\t\t\t\t<template v-if=\"element.templateType == TemplateType.message\">\n\t\t\t\t\t\t\t<div :class=\"['bx-im-dialog-list-item', ReferenceClassName.listItem, ReferenceClassName.listItem+'-'+element.id]\" :data-message-id=\"element.id\" :key=\"element.templateId\" v-bx-messenger-dialog-observer=\"element.unread? ObserverType.read: ObserverType.none\">\t\t\t\n\t\t\t\t\t\t\t\t<component :is=\"element.params.COMPONENT_ID\"\n\t\t\t\t\t\t\t\t\t:userId=\"userId\" \n\t\t\t\t\t\t\t\t\t:dialogId=\"dialogId\"\n\t\t\t\t\t\t\t\t\t:chatId=\"chatId\"\n\t\t\t\t\t\t\t\t\t:message=\"element\"\n\t\t\t\t\t\t\t\t\t:enableEmotions=\"enableEmotions\"\n\t\t\t\t\t\t\t\t\t:enableDateActions=\"enableDateActions\"\n\t\t\t\t\t\t\t\t\t:enableCreateContent=\"showMessageMenu\"\n\t\t\t\t\t\t\t\t\t:showAvatar=\"showMessageAvatar\"\n\t\t\t\t\t\t\t\t\t:showMenu=\"showMessageMenu\"\n\t\t\t\t\t\t\t\t\t:referenceContentClassName=\"ReferenceClassName.listItem\"\n\t\t\t\t\t\t\t\t\t:referenceContentBodyClassName=\"ReferenceClassName.listItemBody\"\n\t\t\t\t\t\t\t\t\t@clickByUserName=\"onClickByUserName\"\n\t\t\t\t\t\t\t\t\t@clickByMessageMenu=\"onClickByMessageMenu\"\n\t\t\t\t\t\t\t\t\t@clickByMessageRetry=\"onClickByMessageRetry\"\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</template>\n\t\t\t\t\t\t<template v-else-if=\"element.templateType == TemplateType.group\">\n\t\t\t\t\t\t\t<div class=\"bx-im-dialog-group\" :key=\"element.templateId\">\n\t\t\t\t\t\t\t\t<div class=\"bx-im-dialog-group-date\">{{ element.text }}</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</template>\n\t\t\t\t\t\t<template v-else-if=\"element.templateType == TemplateType.delimiter\">\n\t\t\t\t\t\t\t<div class=\"bx-im-dialog-delimiter\" :key=\"element.templateId\" ></div>\n\t\t\t\t\t\t</template>\n\t\t\t\t\t</template>\n\t\t\t\t</transition-group>\n\t\t\t\t<template v-if=\"unreadLoaderShow\">\n\t\t\t\t\t<div :class=\"['bx-im-dialog-load-more', 'bx-im-dialog-load-more-unread', ReferenceClassName.listUnreadLoader]\" v-bx-messenger-dialog-observer=\"ObserverType.unread\">\n\t\t\t\t\t\t<span class=\"bx-im-dialog-load-more-text\">{{ localize.IM_MESSENGER_DIALOG_LOAD_MESSAGES }}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</template>\n\t\t\t\t<transition name=\"bx-im-dialog-status\">\n\t\t\t\t\t<template v-if=\"statusWriting\">\n\t\t\t\t\t\t<div class=\"bx-im-dialog-status\">\n\t\t\t\t\t\t\t<span class=\"bx-im-dialog-status-writing\"></span>\n\t\t\t\t\t\t\t{{ statusWriting }}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</template>\n\t\t\t\t\t<template v-else-if=\"statusReaded\">\n\t\t\t\t\t\t<div class=\"bx-im-dialog-status\">\n\t\t\t\t\t\t\t<span class=\"bx-im-dialog-status-readed\"></span>\n\t\t\t\t\t\t\t{{ statusReaded }}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</template>\n\t\t\t\t</transition>\n\t\t\t</div>\n\t\t\t<transition name=\"bx-im-dialog-scroll-button\">\n\t\t\t\t<div v-show=\"showScrollButton || unreadLoaderShow && unreadCounter\" class=\"bx-im-dialog-scroll-button\" @click=\"scrollToBottom()\">\n\t\t\t\t\t<div v-show=\"unreadCounter\" class=\"bx-im-dialog-scroll-button-counter\">\n\t\t\t\t\t\t<div class=\"bx-im-dialog-scroll-button-counter-digit\">{{unreadCounter}}</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"bx-im-dialog-scroll-button-arrow\"></div>\n\t\t\t\t</div>\n\t\t\t</transition>\n\t\t</div>\n\t"
-	});
-	var Utils = {
-	  getDateFormat: function getDateFormat(date) {
-	    return date.toJSON().slice(0, 10);
-	  },
-	  scrollToFirstUnreadMessage: function scrollToFirstUnreadMessage(context, collection) {
-	    var unreadId = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-	    var force = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-	    var body = context.$refs.body;
-	    var element = false;
 
-	    if (unreadId !== null) {
-	      element = body.getElementsByClassName(ReferenceClassName.listItem + '-' + unreadId)[0];
-	    }
-
-	    if (!element) {
-	      for (var index = collection.length - 1; index >= 0; index--) {
-	        if (!collection[index].unread) {
-	          break;
-	        }
-
-	        unreadId = collection[index].id;
+	      if (data.action === 'COMMAND') {
+	        var _data$params2 = data.params,
+	            _dialogId = _data$params2.dialogId,
+	            _messageId = _data$params2.messageId,
+	            _botId = _data$params2.botId,
+	            command = _data$params2.command,
+	            params = _data$params2.params;
+	        this.$root.$bitrixController.restClient.callMethod(im_const.RestMethod.imMessageCommand, {
+	          'MESSAGE_ID': _messageId,
+	          'DIALOG_ID': _dialogId,
+	          'BOT_ID': _botId,
+	          'COMMAND': command,
+	          'COMMAND_PARAMS': params
+	        });
+	        return true;
 	      }
 
-	      element = body.getElementsByClassName(ReferenceClassName.listItem + '-' + unreadId)[0];
-	    }
-
-	    var end = 0;
-
-	    if (element) {
-	      end = element.offsetTop - 20;
-	    } else {
-	      end = body.scrollHeight - body.offsetHeight;
-	    }
-
-	    if (force) {
-	      body.scrollTop = end;
-	    } else {
-	      context.scrollTo({
-	        end: end
-	      });
-	    }
-	  },
-	  scrollToElementAfterLoadHistory: function scrollToElementAfterLoadHistory(context, element) {
-	    if (!element) {
-	      context.waitLoadHistory = false;
 	      return false;
+	    },
+	    onDialogClick: function onDialogClick(event) {},
+	    onQuotePanelClose: function onQuotePanelClose() {
+	      this.$root.$bitrixController.quoteMessageClear();
 	    }
-
-	    var elementBody = element.getElementsByClassName(ReferenceClassName.listItemBody)[0];
-
-	    if (elementBody) {
-	      element = elementBody;
-	    }
-
-	    var previousOffsetTop = element.offsetTop;
-	    context.$nextTick(function () {
-	      if (!element) {
-	        return false;
-	      }
-
-	      context.$refs.body.scrollTop = element.offsetTop - previousOffsetTop;
-	      context.waitLoadHistory = false;
-	    });
 	  },
-	  scrollToElementAfterLoadUnread: function scrollToElementAfterLoadUnread(context) {
-	    context.scrollBlocked = true;
-	    context.showScrollButton = true;
-	    context.$nextTick(function () {
-	      context.scrollBlocked = false;
-	      context.waitLoadUnread = false;
-	    });
-	  },
-	  getMessageLoaderObserver: function getMessageLoaderObserver(config) {
-	    if (typeof window.IntersectionObserver === 'undefined' || config.value == ObserverType.none) {
-	      return {
-	        observe: function observe() {},
-	        unobserve: function unobserve() {}
-	      };
-	    }
+	  template: "\n\t\t<div :class=\"widgetClassName\">\n\t\t\t<div :class=\"['bx-mobilechat-box', {'bx-mobilechat-box-dark-background': isDarkBackground}]\">\n\t\t\t\t<template v-if=\"application.error.active\">\n\t\t\t\t\t<div class=\"bx-mobilechat-body\">\n\t\t\t\t\t\t<div class=\"bx-mobilechat-warning-window\">\n\t\t\t\t\t\t\t<div class=\"bx-mobilechat-warning-icon\"></div>\n\t\t\t\t\t\t\t<template v-if=\"application.error.description\"> \n\t\t\t\t\t\t\t\t<div class=\"bx-mobilechat-help-title bx-mobilechat-help-title-sm bx-mobilechat-warning-msg\" v-html=\"application.error.description\"></div>\n\t\t\t\t\t\t\t</template> \n\t\t\t\t\t\t\t<template v-else>\n\t\t\t\t\t\t\t\t<div class=\"bx-mobilechat-help-title bx-mobilechat-help-title-md bx-mobilechat-warning-msg\">{{localize.IM_DIALOG_ERROR_TITLE}}</div>\n\t\t\t\t\t\t\t\t<div class=\"bx-mobilechat-help-title bx-mobilechat-help-title-sm bx-mobilechat-warning-msg\">{{localize.IM_DIALOG_ERROR_DESC}}</div>\n\t\t\t\t\t\t\t</template> \n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</template>\t\t\t\n\t\t\t\t<template v-else>\n\t\t\t\t\t<div :class=\"['bx-mobilechat-body', {'bx-mobilechat-body-with-message': dialogState == 'show'}]\" key=\"with-message\">\n\t\t\t\t\t\t<template v-if=\"dialogState == 'loading'\">\n\t\t\t\t\t\t\t<div class=\"bx-mobilechat-loading-window\">\n\t\t\t\t\t\t\t\t<svg class=\"bx-mobilechat-loading-circular\" viewBox=\"25 25 50 50\">\n\t\t\t\t\t\t\t\t\t<circle class=\"bx-mobilechat-loading-path\" cx=\"50\" cy=\"50\" r=\"20\" fill=\"none\" stroke-miterlimit=\"10\"/>\n\t\t\t\t\t\t\t\t\t<circle class=\"bx-mobilechat-loading-inner-path\" cx=\"50\" cy=\"50\" r=\"20\" fill=\"none\" stroke-miterlimit=\"10\"/>\n\t\t\t\t\t\t\t\t</svg>\n\t\t\t\t\t\t\t\t<h3 class=\"bx-mobilechat-help-title bx-mobilechat-help-title-md bx-mobilechat-loading-msg\">{{localize.IM_DIALOG_LOADING}}</h3>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</template>\n\t\t\t\t\t\t<template v-else-if=\"dialogState == 'empty'\">\n\t\t\t\t\t\t\t<div class=\"bx-mobilechat-loading-window\">\n\t\t\t\t\t\t\t\t<h3 class=\"bx-mobilechat-help-title bx-mobilechat-help-title-md bx-mobilechat-loading-msg\">{{localize.IM_DIALOG_EMPTY}}</h3>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</template>\n\t\t\t\t\t\t<template v-else>\n\t\t\t\t\t\t\t<div class=\"bx-mobilechat-dialog\">\n\t\t\t\t\t\t\t\t<bx-im-view-dialog\n\t\t\t\t\t\t\t\t\t:userId=\"userId\" \n\t\t\t\t\t\t\t\t\t:dialogId=\"dialogId\"\n\t\t\t\t\t\t\t\t\t:chatId=\"dialogChatId\"\n\t\t\t\t\t\t\t\t\t:messageLimit=\"application.dialog.messageLimit\"\n\t\t\t\t\t\t\t\t\t:messageExtraCount=\"application.dialog.messageExtraCount\"\n\t\t\t\t\t\t\t\t\t:enableReadMessages=\"application.dialog.enableReadMessages\"\n\t\t\t\t\t\t\t\t\t:enableReactions=\"true\"\n\t\t\t\t\t\t\t\t\t:enableDateActions=\"false\"\n\t\t\t\t\t\t\t\t\t:enableCreateContent=\"false\"\n\t\t\t\t\t\t\t\t\t:enableGestureQuote=\"enableGestureQuote\"\n\t\t\t\t\t\t\t\t\t:enableGestureQuoteFromRight=\"enableGestureQuoteFromRight\"\n\t\t\t\t\t\t\t\t\t:enableGestureMenu=\"enableGestureMenu\"\n\t\t\t\t\t\t\t\t\t:showMessageUserName=\"showMessageUserName\"\n\t\t\t\t\t\t\t\t\t:showMessageAvatar=\"showMessageAvatar\"\n\t\t\t\t\t\t\t\t\t:showMessageMenu=\"false\"\n\t\t\t\t\t\t\t\t\t:listenEventScrollToBottom=\"scrollToBottomEvent\"\n\t\t\t\t\t\t\t\t\t:listenEventRequestHistory=\"listenEventRequestHistory\"\n\t\t\t\t\t\t\t\t\t:listenEventRequestUnread=\"listenEventRequestUnread\"\n\t\t\t\t\t\t\t\t\t:listenEventSendReadMessages=\"listenEventSendReadMessages\"\n\t\t\t\t\t\t\t\t\t@readMessage=\"onDialogReadMessage\"\n\t\t\t\t\t\t\t\t\t@quoteMessage=\"onDialogQuoteMessage\"\n\t\t\t\t\t\t\t\t\t@requestHistory=\"onDialogRequestHistory\"\n\t\t\t\t\t\t\t\t\t@requestUnread=\"onDialogRequestUnread\"\n\t\t\t\t\t\t\t\t\t@clickByCommand=\"onDialogMessageClickByCommand\"\n\t\t\t\t\t\t\t\t\t@clickByMention=\"onDialogMessageClickByMention\"\n\t\t\t\t\t\t\t\t\t@clickByUserName=\"onDialogMessageClickByUserName\"\n\t\t\t\t\t\t\t\t\t@clickByMessageMenu=\"onDialogMessageMenuClick\"\n\t\t\t\t\t\t\t\t\t@clickByMessageRetry=\"onDialogMessageRetryClick\"\n\t\t\t\t\t\t\t\t\t@clickByUploadCancel=\"onDialogMessageClickByUploadCancel\"\n\t\t\t\t\t\t\t\t\t@clickByReadedList=\"onDialogReadedListClick\"\n\t\t\t\t\t\t\t\t\t@setMessageReaction=\"onDialogMessageReactionSet\"\n\t\t\t\t\t\t\t\t\t@openMessageReactionList=\"onDialogMessageReactionListOpen\"\n\t\t\t\t\t\t\t\t\t@clickByKeyboardButton=\"onDialogMessageClickByKeyboardButton\"\n\t\t\t\t\t\t\t\t\t@clickByChatTeaser=\"onDialogMessageClickByChatTeaser\"\n\t\t\t\t\t\t\t\t\t@click=\"onDialogClick\"\n\t\t\t\t\t\t\t\t />\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<bx-im-view-quote-panel :id=\"quotePanelData.id\" :title=\"quotePanelData.title\" :description=\"quotePanelData.description\" :color=\"quotePanelData.color\" @close=\"onQuotePanelClose\"/>\n\t\t\t\t\t\t</template>\n\t\t\t\t\t</div>\n\t\t\t\t</template>\n\t\t\t</div>\n\t\t</div>\n\t"
+	});
 
-	    var observerCallback, observerOptions;
-
-	    if (config.type == ObserverType.read) {
-	      observerCallback = function observerCallback(entries, observer) {
-	        entries.forEach(function (entry) {
-	          var sendReadEvent = false;
-
-	          if (entry.isIntersecting) {
-	            if (entry.intersectionRatio >= 1) {
-	              sendReadEvent = true;
-	            } else if (entry.intersectionRatio > 0 && entry.rootBounds.height < entry.boundingClientRect.height + 20 && entry.intersectionRect.height > entry.rootBounds.height - 20) {
-	              sendReadEvent = true;
-	            }
-	          }
-
-	          if (sendReadEvent) {
-	            config.context.readMessage(entry.target.dataset.messageId);
-	            config.context.observers[config.type].unobserve(entry.target);
-	          }
-	        });
-	      };
-
-	      observerOptions = {
-	        root: config.context.$refs.body,
-	        threshold: new Array(101).fill(0).map(function (zero, index) {
-	          return index * 0.01;
-	        })
-	      };
-	    } else {
-	      observerCallback = function observerCallback(entries, observer) {
-	        entries.forEach(function (entry) {
-	          if (entry.isIntersecting && entry.intersectionRatio > 0) {
-	            if (config.type == ObserverType.unread) {
-	              config.context.requestUnreadDelayed();
-	            } else {
-	              config.context.requestHistoryDelayed();
-	            }
-	          }
-	        });
-	      };
-
-	      observerOptions = {
-	        root: config.context.$refs.body,
-	        threshold: [0, 0.01, 0.99, 1]
-	      };
-	    }
-
-	    return new IntersectionObserver(observerCallback, observerOptions);
-	  }
-	};
-	var Blocks = {
-	  getDelimiter: function getDelimiter() {
-	    var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-	    return {
-	      templateId: 'delimiter' + id,
-	      templateType: TemplateType.delimiter
-	    };
-	  },
-	  getGroup: function getGroup() {
-	    var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-	    var text = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-	    return {
-	      templateId: 'group' + id,
-	      templateType: TemplateType.group,
-	      text: text
-	    };
-	  },
-	  getHistoryLoader: function getHistoryLoader() {
-	    return {
-	      templateId: 'historyLoader',
-	      templateType: TemplateType.historyLoader
-	    };
-	  },
-	  getUnreadLoader: function getUnreadLoader() {
-	    return {
-	      templateId: 'unreadLoader',
-	      templateType: TemplateType.unreadLoader
-	    };
-	  },
-	  getLoadButton: function getLoadButton() {
-	    var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-	    var text = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-	    var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : LoadButtonTypes.before;
-	    return {
-	      templateId: 'loadButton' + id + type,
-	      templateType: TemplateType.button,
-	      text: text,
-	      type: type,
-	      messageId: id
-	    };
-	  }
-	};
-
-}((this.window = this.window || {}),BX,BX));
+}((this.BX.Messenger = this.BX.Messenger || {}),BX,BX,BX.Messenger.Lib,BX.Messenger.Const,BX.Messenger.Lib,BX.Messenger.Lib));
 //# sourceMappingURL=dialog.bundle.js.map

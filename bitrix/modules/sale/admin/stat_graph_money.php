@@ -1,14 +1,8 @@
 <?
-/*
-##############################################
-# Bitrix: SiteManager                        #
-# Copyright (c) 2004 Bitrix                  #
-# http://www.bitrix.ru                       #
-# mailto:admin@bitrix.ru                     #
-##############################################
-*/
+
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+
+\Bitrix\Main\Loader::includeModule('sale');
 
 $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions == "D")
@@ -125,7 +119,7 @@ if (!empty($filter_find) && is_array($filter_find))
 
 foreach($filter_site_id as $v)
 {
-	if(strlen($arAvCur[$v]) > 0 && strlen($arCurrencyInfo[$arAvCur[$v]]) > 0)
+	if($arAvCur[$v] <> '' && $arCurrencyInfo[$arAvCur[$v]] <> '')
 	{
 		$arCurrency[$arAvCur[$v]] = $arCurrencyInfo[$arAvCur[$v]];
 

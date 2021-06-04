@@ -1,9 +1,13 @@
 <?php
 
 use Bitrix\Main\Localization\Loc;
-use Bitrix\Mail\Internals\MessageAccessTable;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
+
+\Bitrix\Main\UI\Extension::load(['ui.icons.b24']);
+
+$bodyClass = $APPLICATION->getPageProperty('BodyClass', false);
+$APPLICATION->setPageProperty('BodyClass', trim(sprintf('%s %s', $bodyClass, 'pagetitle-toolbar-field-view pagetitle-mail-view')));
 
 $message = $arResult['MESSAGE'];
 
@@ -12,79 +16,35 @@ $this->setViewTarget('pagetitle_icon');
 ?>
 
 <span class="mail-msg-title-icon mail-msg-title-icon-<?=($message['__is_outcome'] ? 'outcome' : 'income') ?>"></span>
-<span class="mail-msg-title-icon-placeholder ">&nbsp;</span>
 
 <?
 
 $this->endViewTarget();
 
-$createMenu = array(
-	'TASKS_TASK' => array(
-		'title' => Loc::getMessage('MAIL_MESSAGE_CREATE_TASK_BTN'),
-		'href' => \CHTTP::urlAddParams(
-			\CComponentEngine::makePathFromTemplate(
-				$arParams['PATH_TO_USER_TASKS_TASK'],
-				array(
-					'action' => 'edit',
-					'task_id' => '0',
-				)
-			),
-			array(
-				'TITLE' => rawurlencode(Loc::getMessage(
-					'MAIL_MESSAGE_TASK_TITLE',
-					array(
-						'#SUBJECT#' => $message['SUBJECT'] ?: Loc::getMessage('MAIL_MESSAGE_EMPTY_SUBJECT_PLACEHOLDER')
-					)
-				)),
-				'UF_MAIL_MESSAGE' => (int) $message['ID'],
-			)
-		),
-	),
-	'CRM_ACTIVITY' => array(
-		'title' => Loc::getMessage('MAIL_MESSAGE_CREATE_CRM_BTN'),
-	),
-	'CRM_EXCLUDE' => array(
-		'title' => Loc::getMessage('MAIL_MESSAGE_CREATE_CRM_EXCLUDE_BTN'),
-	),
-	'BLOG_POST' => array(
-		'title' => Loc::getMessage('MAIL_MESSAGE_CREATE_LF_BTN'),
-		'disabled' => true,
-	),
-	'IM_CHAT' => array(
-		'title' => Loc::getMessage('MAIL_MESSAGE_CREATE_IM_BTN'),
-		'disabled' => true,
-	),
-	'CALENDAR_EVENT' => array(
-		'title' => Loc::getMessage('MAIL_MESSAGE_CREATE_EVENT_BTN'),
-		'disabled' => true,
-	),
-);
-
-foreach ($createMenu as $id => $item)
-{
-	$createMenu[$id]['id'] = $id;
-	$createMenu[$id]['binded'] = (bool) preg_grep(sprintf('/%s-\d+/', preg_quote($id)), $message['BIND']);
-}
-
-$createMenu['__default'] = &$createMenu[\CUserOptions::getOption('mail', 'default_create_action', 'TASKS_TASK')];
-
 if (SITE_TEMPLATE_ID == 'bitrix24' || $_REQUEST['IFRAME'] == 'Y' && $_REQUEST['IFRAME_TYPE'] == 'SIDE_SLIDER')
 {
-	$this->setViewTarget('pagetitle');
+	$this->setViewTarget('inside_pagetitle');
 }
 
 ?>
 
-<? if (!empty($message['BIND_LINKS']) && !empty(@call_user_func_array('array_merge', (array) $message['BIND_LINKS']))): ?>
-	<div class="mail-msg-header-control-item mail-msg-header-control-select" id="mail-msg-additional-switch">
-		<div class="mail-msg-header-control-text"><?=Loc::getMessage('MAIL_MESSAGE_EXT_BLOCK_LINK') ?></div>
-		<div class="mail-msg-header-control-triangle"></div>
-	</div>
-<? endif ?>
+<div class="pagetitle-container mail-pagetitle-flexible-space"></div>
+<div class="mail-msg-header-group">
+	<? if (!empty($message['BIND_LINKS']) && !empty(@call_user_func_array('array_merge', (array) $message['BIND_LINKS']))): ?>
+		<div class="mail-msg-header-control-item mail-msg-header-control-select" id="mail-msg-additional-switch">
+			<div class="mail-msg-header-control-text"><?=Loc::getMessage('MAIL_MESSAGE_EXT_BLOCK_LINK') ?></div>
+			<div class="mail-msg-header-control-triangle"></div>
+		</div>
+	<? endif ?>
 
-<div class="ui-btn-double ui-btn-primary"> 
-	<a class="ui-btn-main" id="mail-msg-view-create-btn"><?=$createMenu['__default']['title'] ?></a> 
-	<a class="ui-btn-extra" id="mail-msg-view-create-menu-btn"></a> 
+	<? $APPLICATION->includeComponent(
+		'bitrix:mail.message.actions',
+		'',
+		array(
+			'MESSAGE' => $message,
+			'PATH_TO_USER_TASKS_TASK' => $arParams['PATH_TO_USER_TASKS_TASK'],
+		)
+	); ?>
 </div>
 
 <?
@@ -119,9 +79,7 @@ BX.ready(function ()
 			array(
 				'id' => $message['MAILBOX_ID'],
 			)
-		)) ?>',
-		createMenu: <?=\Bitrix\Main\Web\Json::encode($createMenu) ?>,
-		isCrmEnabled: <?= CUtil::PhpToJSObject($arResult['CRM_ENABLE'] === 'Y'); ?>
+		)) ?>'
 	});
 
 	BX.bind(
@@ -165,8 +123,9 @@ BX.ready(function ()
 $renderBindLink = function ($item)
 {
 	return sprintf(
-		'<a href="%s" class="mail-additional-item-value">%s</a>',
+		'<a href="%s" class="mail-additional-item-value" onclick="%s">%s</a>',
 		htmlspecialcharsbx($item['href']),
+		empty($item['onclick']) ? '' : htmlspecialcharsbx($item['onclick']),
 		htmlspecialcharsbx($item['title'])
 	);
 };
@@ -212,6 +171,26 @@ $renderBindLink = function ($item)
 	?>
 
 	<div style="display: none; "></div>
+	<?php if (isset($arResult['iCalEvent'])): ?>
+	 <div class="mail-msg-view-header-set ical-event-container">
+		<div class="mail-msg-view-header-set-info">
+			<div class="mail-msg-view-header-set-icon"></div>
+			<div class="mail-msg-view-header-set-param">
+				<div class="mail-msg-view-header-set-title">
+					<?php echo Loc::getMessage('MAIL_MESSAGE_ICAL_INVITATION'), ': ', $arResult['iCalEvent']['NAME']; ?>
+				</div>
+				<div class="mail-msg-view-header-set-prev">
+					<?php echo FormatDateFromDB($arResult['iCalEvent']['DATE_FROM'], 'D, d F Y'); ?>
+				</div>
+			</div>
+		</div>
+		<div
+			class="mail-msg-view-header-set-controls ical-event-control"
+			data-messageid="<?php echo intval($message['ID']) ?>"
+		>
+		</div>
+	</div>
+	<?php endif ?>
 	<div class="mail-msg-view-details" data-id="<?=intval($message['ID']) ?>"
 		id="mail-msg-view-details-<?=intval($message['ID']) ?>">
 		<? include __DIR__ . '/__body.php'; ?>
@@ -233,10 +212,17 @@ $renderBindLink = function ($item)
 
 <script type="text/javascript">
 
+<? $emailMaxSize = (int) \Bitrix\Main\Config\Option::get('main', 'max_file_size', 0); ?>
+
 BX.message({
 	MAIL_MESSAGE_AJAX_ERROR: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_AJAX_ERROR')) ?>',
 	MAIL_MESSAGE_NEW_EMPTY_RCPT: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_NEW_EMPTY_RCPT')) ?>',
 	MAIL_MESSAGE_NEW_UPLOADING: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_NEW_UPLOADING')) ?>',
+	MAIL_MESSAGE_MAX_SIZE: <?=$emailMaxSize ?>,
+	MAIL_MESSAGE_MAX_SIZE_EXCEED: '<?=\CUtil::jsEscape(Loc::getMessage(
+		'MAIL_MESSAGE_MAX_SIZE_EXCEED',
+		['#SIZE#' => \CFile::formatSize($emailMaxSize)]
+	)) ?>',
 	MAIL_MESSAGE_READ_CONFIRMED_SHORT: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_READ_CONFIRMED_SHORT')) ?>',
 	MAIL_MESSAGE_DELETE_CONFIRM: '<?=\CUtil::jsEscape(Loc::getMessage('CRM_ACT_EMAIL_DELETE_CONFIRM')) ?>',
 	MAIL_MESSAGE_SPAM_CONFIRM: '<?=\CUtil::jsEscape(Loc::getMessage('CRM_ACT_EMAIL_SPAM_CONFIRM')) ?>',
@@ -247,7 +233,43 @@ BX.message({
 	MAIL_MESSAGE_SEND_SUCCESS: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_SEND_SUCCESS')) ?>',
 	MAIL_MESSAGE_LIST_NOTIFY_ADDED_TO_CRM: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_LIST_NOTIFY_ADDED_TO_CRM')) ?>',
 	MAIL_MESSAGE_LIST_NOTIFY_ADD_TO_CRM_ERROR: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_LIST_NOTIFY_ADD_TO_CRM_ERROR')) ?>',
-	MAIL_MESSAGE_LIST_NOTIFY_EXCLUDED_FROM_CRM: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_LIST_NOTIFY_EXCLUDED_FROM_CRM')) ?>'
+	MAIL_MESSAGE_LIST_NOTIFY_EXCLUDED_FROM_CRM: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_LIST_NOTIFY_EXCLUDED_FROM_CRM')) ?>',
+	MAIL_MESSAGE_ICAL_NOTIFY_ACCEPT: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_ICAL_NOTIFY_ACCEPT')) ?>',
+	MAIL_MESSAGE_ICAL_NOTIFY_REJECT: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_ICAL_NOTIFY_REJECT')) ?>',
+	MAIL_MESSAGE_ICAL_NOTIFY_ERROR: '<?=\CUtil::jsEscape(Loc::getMessage('MAIL_MESSAGE_ICAL_NOTIFY_ERROR')) ?>'
 });
+
+BX.bindDelegate(document.body, 'click', {className: 'ical-event-control-button'}, function ()
+{
+	var messageId = this.parentNode.dataset.messageid;
+	var action = this.dataset.action;
+	var button = this;
+
+	button.classList.add('ui-btn-wait');
+
+	BX.ajax.runComponentAction('bitrix:mail.client', 'ical', {
+		mode: 'ajax',
+		data: {messageId, action}
+	}).then(
+		function ()
+		{
+			button.classList.remove('ui-btn-wait');
+			notify(BX.message(action === 'cancelled' ? 'MAIL_MESSAGE_ICAL_NOTIFY_REJECT' : 'MAIL_MESSAGE_ICAL_NOTIFY_ACCEPT'));
+		},
+		function ()
+		{
+			button.classList.remove('ui-btn-wait');
+			notify(BX.message('MAIL_MESSAGE_ICAL_NOTIFY_ERROR'));
+		}
+	);
+});
+
+function notify(message)
+{
+	top.BX.UI.Notification.Center.notify({
+		autoHideDelay: 2000,
+		content: message
+	});
+}
 
 </script>

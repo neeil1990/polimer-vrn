@@ -14,7 +14,7 @@ $saleModulePermissions = $APPLICATION->GetGroupRight("sale");
 if ($saleModulePermissions == "D")
 	$APPLICATION->AuthForm(GetMessage("ACCESS_DENIED"));
 
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sale/include.php");
+\Bitrix\Main\Loader::includeModule('sale');
 
 if(!CBXFeatures::IsFeatureEnabled('SaleRecurring'))
 {
@@ -30,7 +30,7 @@ IncludeModuleLangFile(__FILE__);
 
 $sTableID = "tbl_sale_recurring";
 
-$oSort = new CAdminSorting($sTableID, "ID", "asc");
+$oSort = new CAdminUiSorting($sTableID, "ID", "asc");
 $lAdmin = new CAdminUiList($sTableID, $oSort);
 
 $filterFields = array(
@@ -114,7 +114,7 @@ if (($arID = $lAdmin->GroupAction()) && $saleModulePermissions >= "U")
 
 	foreach ($arID as $ID)
 	{
-		if (strlen($ID) <= 0)
+		if ($ID == '')
 			continue;
 
 		switch ($_REQUEST['action'])
@@ -219,8 +219,8 @@ while ($arRecurring = $dbResultList->NavNext(false))
 	}
 
 	$fieldValue  = "[<a href=\"".$urlToUser."\">".$arRecurring["USER_ID"]."</a>] ";
-	$fieldValue .= htmlspecialcharsEx($arRecurring["USER_NAME"].((strlen($arRecurring["USER_NAME"])<=0 ||
-				strlen($arRecurring["USER_LAST_NAME"])<=0) ? "" : " ").$arRecurring["USER_LAST_NAME"])."<br>";
+	$fieldValue .= htmlspecialcharsEx($arRecurring["USER_NAME"].(($arRecurring["USER_NAME"] == '' ||
+				$arRecurring["USER_LAST_NAME"] == '') ? "" : " ").$arRecurring["USER_LAST_NAME"])."<br>";
 	$fieldValue .= htmlspecialcharsEx($arRecurring["USER_LOGIN"])."&nbsp;&nbsp;&nbsp; ";
 	$fieldValue .= "<a href=\"mailto:".htmlspecialcharsbx($arRecurring["USER_EMAIL"])."\">".
 		htmlspecialcharsEx($arRecurring["USER_EMAIL"])."</a>";

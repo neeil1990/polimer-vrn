@@ -9,7 +9,7 @@ use \Bitrix\Main\Localization\Loc;
 return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NAME'),
-		'section' => array('columns'),
+		'section' => array('columns', 'news'),
 	),
 	'cards' => array(
 		'.landing-block-node-card' => array(
@@ -18,6 +18,11 @@ return array(
 		),
 	),
 	'nodes' => array(
+		'.landing-block-node-card-bgimg' => array(
+			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDBGIMG'),
+			'type' => 'img',
+			'dimensions' => array('width' => 1024, 'height' => 683),
+		),
 		'.landing-block-node-card-icon' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDICON'),
 			'type' => 'icon',
@@ -33,11 +38,6 @@ return array(
 		'.landing-block-node-card-link' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDLINK'),
 			'type' => 'link',
-		),
-		'.landing-block-node-card-bgimg' => array(
-			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDBGIMG'),
-			'type' => 'img',
-			'dimensions' => array('width' => 1024, 'height' => 683),
 		),
 	),
 	'style' => array(
@@ -55,11 +55,11 @@ return array(
 		),
 		'.landing-block-node-card-link' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDLINK'),
-			'type' => 'typo',
+			'type' => 'typo-link',
 		),
 		'.landing-block-node-card-icon-container' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDICON'),
-			'type' => 'color',
+			'type' => ['color', 'text-align'],
 		),
 		'.landing-block-node-card-link-container' => array(
 			'name' => Loc::getMessage('LANDING_BLOCK_37.2.FOUR_IMG_WITH_TEXT_BLOCKS_NODES_LANDINGBLOCKNODECARDLINK'),

@@ -1,6 +1,8 @@
 <?
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED!==true)die();
 
+use \Bitrix\Main\Loader;
+
 /**
  * Class UIPageSliderWrapperComponent
  */
@@ -17,7 +19,7 @@ class UIPageSliderWrapperComponent extends \CBitrixComponent
 		return
 			$this->request->get('IFRAME') === 'Y' ||
 			isset($this->arParams['IFRAME_MODE']) && $this->arParams['IFRAME_MODE'] === true
-		;
+			;
 	}
 
 	/**
@@ -25,6 +27,8 @@ class UIPageSliderWrapperComponent extends \CBitrixComponent
 	 */
 	public function executeComponent()
 	{
+		global $USER;
+
 		if (!isset($this->arParams['POPUP_COMPONENT_PARAMS']) || !is_array($this->arParams['POPUP_COMPONENT_PARAMS']))
 		{
 			$this->arParams['POPUP_COMPONENT_PARAMS'] = [];
@@ -38,6 +42,24 @@ class UIPageSliderWrapperComponent extends \CBitrixComponent
 		if (empty($this->arParams['EDITABLE_TITLE_SELECTOR']))
 		{
 			$this->arParams['EDITABLE_TITLE_SELECTOR'] = null;
+		}
+		if (!isset($this->arParams['POPUP_COMPONENT_PARENT']))
+		{
+			$this->arParams['POPUP_COMPONENT_PARENT'] = false;
+		}
+		if (!isset($this->arParams['POPUP_COMPONENT_USE_BITRIX24_THEME']))
+		{
+			$this->arParams['POPUP_COMPONENT_USE_BITRIX24_THEME'] = "N";
+		}
+		else
+		{
+			if (
+				!isset($this->arParams["POPUP_COMPONENT_BITRIX24_THEME_FOR_USER_ID"])
+				|| intval($this->arParams["POPUP_COMPONENT_BITRIX24_THEME_FOR_USER_ID"]) < 0
+			)
+			{
+				$this->arParams["POPUP_COMPONENT_BITRIX24_THEME_FOR_USER_ID"] = $USER->GetID();
+			}
 		}
 
 		$notification = [
@@ -66,6 +88,7 @@ class UIPageSliderWrapperComponent extends \CBitrixComponent
 		$this->arParams['USE_PADDING'] = isset($this->arParams['USE_PADDING']) ? (bool) $this->arParams['USE_PADDING'] : true;
 		$this->arParams['BUTTONS'] = isset($this->arParams['BUTTONS']) ? $this->arParams['BUTTONS'] : [];
 		$this->arParams['PAGE_MODE'] = isset($this->arParams['PAGE_MODE']) ? (bool) $this->arParams['PAGE_MODE'] : true;
+		$this->arParams['RETURN_CONTENT'] = isset($this->arParams['RETURN_CONTENT']) ? (bool) $this->arParams['RETURN_CONTENT'] : false;
 		$this->arParams['PAGE_MODE_OFF_BACK_URL'] = isset($this->arParams['PAGE_MODE_OFF_BACK_URL']) ? $this->arParams['PAGE_MODE_OFF_BACK_URL'] : '/';
 		$this->arParams['CLOSE_AFTER_SAVE'] = isset($this->arParams['CLOSE_AFTER_SAVE']) ? (bool) $this->arParams['CLOSE_AFTER_SAVE'] : false;
 		$this->arParams['RELOAD_PAGE_AFTER_SAVE'] = isset($this->arParams['RELOAD_PAGE_AFTER_SAVE']) ? (bool) $this->arParams['RELOAD_PAGE_AFTER_SAVE'] : false;
@@ -86,6 +109,21 @@ class UIPageSliderWrapperComponent extends \CBitrixComponent
 			$this->arParams['RELOAD_PAGE_AFTER_SAVE'] = false;
 		}
 
+		$this->arResult["SKIP_NOTIFICATION"] = $this->request->get("notifyAfterSave") === "N";
+
+		if (
+			Loader::includeModule("intranet")
+			&& $this->arParams["POPUP_COMPONENT_USE_BITRIX24_THEME"] === "Y"
+			&& SITE_TEMPLATE_ID === "bitrix24"
+		)
+		{
+			$this->arResult["SHOW_BITRIX24_THEME"] = "Y";
+		}
+		else
+		{
+			$this->arResult["SHOW_BITRIX24_THEME"] = "N";
+		}
+
 		if ($this->isPageSliderContext() && !self::$isWrapperCalled)
 		{
 			self::$isWrapperCalled = true;
@@ -95,8 +133,21 @@ class UIPageSliderWrapperComponent extends \CBitrixComponent
 			$APPLICATION->RestartBuffer();
 			$this->includeComponentTemplate();
 
-			require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/epilog_after.php');
-			exit;
+			if ($this->arParams['RETURN_CONTENT'])
+			{
+				foreach (GetModuleEvents("main", "OnEpilog", true) as $arEvent)
+				{
+					ExecuteModuleEventEx($arEvent);
+				}
+
+				return $APPLICATION->EndBufferContentMan();
+			}
+			else
+			{
+				require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/epilog_after.php');
+				exit;
+			}
+
 		}
 		elseif ($this->arParams['PAGE_MODE'] || self::$isWrapperCalled)
 		{

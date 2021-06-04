@@ -27,6 +27,8 @@ final class Manager
 	const FORM_FIELDS_TYPE_ADD = 20;
 	const FORM_FIELDS_TYPE_ACTION = 30;
 
+	protected static $isChangedShipmentNeedsMark = true;
+
 	/**
 	 * @param int $shipmentId
 	 * @param int $requestId
@@ -1046,7 +1048,9 @@ final class Manager
 				'DELIVERY_DOC_DATE' => $shipmentResult->getDeliveryDocDate()
 			));
 
+			static::$isChangedShipmentNeedsMark = false;
 			$res = $shipments[$shipmentId]->getOrder()->save();
+			static::$isChangedShipmentNeedsMark = true;
 
 			if (!$res->isSuccess())
 				$result->addError(new Main\Error(Loc::getMessage('SALE_DLVR_REQ_MNGR_ERROR_SAVE_SHIPMENT').'"'.$shipmentId.'"'));
@@ -1070,7 +1074,7 @@ final class Manager
 	 */
 	public static function onBeforeShipmentSave(&$order, &$shipment)
 	{
-		if(self::isShipmentSent($shipment->getId()))
+		if(static::$isChangedShipmentNeedsMark && self::isShipmentSent($shipment->getId()))
 		{
 			self::setMarkerShipmentChanged($order, $shipment);
 		}

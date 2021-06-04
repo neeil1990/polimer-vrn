@@ -2,8 +2,8 @@
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 
 use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\Web\Json;
 use Bitrix\Main\UI\Extension;
+use Bitrix\Main\Web\Json;
 
 /** @var \CAllMain $APPLICATION */
 /** @var array $arParams */
@@ -32,11 +32,23 @@ $containerId = 'sender-start-container';
 	<?if (!empty($arResult['MESSAGES']['ADS']['TILES'])):?>
 		<div class="sender-start-block">
 			<div class="sender-start-title">
+				<?=Loc::getMessage('SENDER_START_CREATE_AUDIENCE')?>
+			</div>
+			<?$APPLICATION->IncludeComponent("bitrix:ui.tile.list", "", [
+				'ID' => 'sender-start-ads',
+				'LIST' => $arResult['MESSAGES']['ADS']['TILES'],
+			]);?>
+		</div>
+	<?endif;?>
+
+	<?if (!empty($arResult['MESSAGES']['MARKETING']['TILES'])):?>
+		<div class="sender-start-block">
+			<div class="sender-start-title">
 				<?=Loc::getMessage('SENDER_START_CREATE_AD')?>
 			</div>
 			<?$APPLICATION->IncludeComponent("bitrix:ui.tile.list", "", [
-				'ID' => 'sender-start-ad',
-				'LIST' => $arResult['MESSAGES']['ADS']['TILES'],
+				'ID' => 'sender-start-marketing',
+				'LIST' => $arResult['MESSAGES']['MARKETING']['TILES'],
 			]);?>
 		</div>
 	<?endif;?>
@@ -49,6 +61,19 @@ $containerId = 'sender-start-container';
 			<?$APPLICATION->IncludeComponent("bitrix:ui.tile.list", "", [
 				'ID' => 'sender-start-rc',
 				'LIST' => $arResult['MESSAGES']['RC']['TILES'],
+			]);?>
+		</div>
+	<?endif;?>
+
+
+	<?if (!empty($arResult['MESSAGES']['TOLOKA']['TILES'])):?>
+		<div class="sender-start-block">
+			<div class="sender-start-title">
+				<?=Loc::getMessage('SENDER_START_CREATE_TOLOKA')?>
+			</div>
+			<?$APPLICATION->IncludeComponent("bitrix:ui.tile.list", "", [
+				'ID' => 'sender-start-toloka',
+				'LIST' => $arResult['MESSAGES']['TOLOKA']['TILES'],
 			]);?>
 		</div>
 	<?endif;?>

@@ -28,7 +28,7 @@ class Numerator
 	private $type;
 	private $name;
 	/** @var NumberGenerator[] */
-	private $generators;
+	private $generators = [];
 	private $id;
 
 	const NUMERATOR_DEFAULT_TYPE = 'DEFAULT';
@@ -629,7 +629,7 @@ class Numerator
 		{
 			foreach ($words as $word)
 			{
-				if (stripos($this->template, $word) !== false)
+				if (mb_stripos($this->template, $word) !== false)
 				{
 					$generatorTypes[$type] = 1;
 				}

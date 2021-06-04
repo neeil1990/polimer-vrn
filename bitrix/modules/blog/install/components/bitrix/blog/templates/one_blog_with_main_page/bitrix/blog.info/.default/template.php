@@ -4,7 +4,7 @@ if(!empty($arResult))
 {
 	?>
 	<div class="blog-info">
-	<?if(strlen($arResult["Avatar_FORMATED"])>0)
+	<?if($arResult["Avatar_FORMATED"] <> '')
 	{
 		?>
 		<?=$arResult["Avatar_FORMATED"]?>
@@ -39,7 +39,7 @@ if(!empty($arResult))
 		?><br /><div align="left" style="padding-left:20px;">
 		<table cellspacing="0" cellpadding="2" class="blog-info" style="width:0%;"><?
 		foreach ($arResult["BLOG_PROPERTIES"]["DATA"] as $FIELD_NAME => $arBlogField):
-			if(strlen($arBlogField["VALUE"])>0):?>
+			if($arBlogField["VALUE"] <> ''):?>
 				<tr>
 					<td valign="top"><b><?=$arBlogField["EDIT_FORM_LABEL"]?>:</b></td>
 					<td valign="top">

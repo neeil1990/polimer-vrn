@@ -4,7 +4,7 @@ namespace Bitrix\Sale\Delivery\Requests;
 use Bitrix\Sale\Delivery\Services;
 use Bitrix\Sale\Internals;
 use Bitrix\Sale\Shipment;
-use Bitrix\Sale\Order;
+use Bitrix\Sale;
 
 
 /**
@@ -23,7 +23,7 @@ class Helper
 	 */
 	public static function getShipmentEditLink($shipmentId, $text = '', $orderId = 0, $languageId = LANGUAGE_ID)
 	{
-		if(strlen($text) <= 0)
+		if($text == '')
 			$text = strval($shipmentId);
 
 		if(intval($orderId) <= 0)
@@ -56,7 +56,7 @@ class Helper
 	 */
 	public static function getDeliveryEditLink($deliveryId, $deliveryName = '', $languageId = LANGUAGE_ID)
 	{
-		if(strlen($deliveryName) <= 0)
+		if($deliveryName == '')
 		{
 			$delivery = Services\Manager::getObjectById($deliveryId);
 			$deliveryName = !!$delivery ? $delivery->getNameWithParent().' ['.intval($deliveryId).']' : intval($deliveryId);
@@ -78,7 +78,7 @@ class Helper
 	 */
 	public static function getRequestViewLink($requestId, $text = '', $languageId = LANGUAGE_ID)
 	{
-		if(strlen($text) <= 0)
+		if($text == '')
 			$text = strval($requestId);
 
 		return '<a href="/bitrix/admin/sale_delivery_request_view.php'.
@@ -100,6 +100,10 @@ class Helper
 		if(empty($shipmentIds))
 			return array();
 
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+		/** @var Sale\Order $orderClass */
+		$orderClass = $registry->getOrderClassName();
+
 		$result = array();
 
 		$res = Internals\ShipmentTable::getList(array(
@@ -111,7 +115,7 @@ class Helper
 
 		while($shp = $res->fetch())
 		{
-			$order = Order::load($shp['ORDER_ID']);
+			$order = $orderClass::load($shp['ORDER_ID']);
 
 			foreach($order->getShipmentCollection() as $shipment)
 			{

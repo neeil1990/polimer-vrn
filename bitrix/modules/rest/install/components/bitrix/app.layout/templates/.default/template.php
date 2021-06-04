@@ -4,7 +4,6 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 	die();
 }
 
-
 /**
  * Bitrix vars
  *
@@ -16,19 +15,26 @@ if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
  * @global CUser $USER
  */
 
+if($arParams['IS_SLIDER'])
+{
+	$bodyClass = $APPLICATION->getPageProperty("BodyClass", false);
+	$bodyClasses = "app-layout-subscribe-slider-modifier";
+	if($arParams['USE_PADDING'] != 'N')
+	{
+		$bodyClasses .= " app-layout-subscribe-renew-modifier-75";
+	}
+	$APPLICATION->setPageProperty("BodyClass", trim(sprintf("%s %s", $bodyClass, $bodyClasses)));
+}
+
 if($arResult['APP_STATUS']['PAYMENT_NOTIFY'] == 'Y')
 {
-	if($arResult['IS_ADMIN'])
-	{
-		$arResult['APP_STATUS']['MESSAGE_SUFFIX'] .= '_A';
-	}
 
 	if(isset($arResult['APP_STATUS']['MESSAGE_REPLACE']['#DAYS#']))
 	{
 		$arResult['APP_STATUS']['MESSAGE_REPLACE']['#DAYS#']++;
 	}
 ?>
-<div class="app-update-avail"><?=GetMessage('PAYMENT_MESSAGE'.$arResult['APP_STATUS']['MESSAGE_SUFFIX'], $arResult['APP_STATUS']['MESSAGE_REPLACE'])?></div>
+<div class="app-update-avail"><?=\Bitrix\Rest\AppTable::getStatusMessage($arResult['APP_STATUS']['MESSAGE_SUFFIX'], $arResult['APP_STATUS']['MESSAGE_REPLACE'])?></div>
 <?
 	if($arResult['APP_STATUS']['PAYMENT_ALLOW'] == 'N')
 	{
@@ -52,7 +58,7 @@ endif;
 $frameName = $arResult['CURRENT_HOST'].'|'.($arResult['CURRENT_HOST_SECURE']?1:0).'|'.$arResult['APP_SID'];
 
 $url = $arResult['APP_URL'];
-$url .= (strpos($url, '?') === false ? '?' : '&');
+$url .= (mb_strpos($url, '?') === false ? '?' : '&');
 /*
 ?>
 <a href="javascript:void(0)" onclick="BX.rest.AppLayout.get('<?=$arResult['APP_SID']?>').reInstall();">Reinstall app</a>
@@ -110,8 +116,11 @@ if($arParams['PLACEMENT'] !== \Bitrix\Rest\PlacementTable::PLACEMENT_DEFAULT)
 	$formHtml = ob_get_clean();
 }
 ?>
-<div id="appframe_layout_<?=$arResult['APP_SID']?>" <? if(!empty($frameStyle)) echo ' style="'.implode(';', $frameStyle).'"' ?> class="app-frame-layout">
-	<iframe id="appframe_<?=$arResult['APP_SID']?>" name="<?=htmlspecialcharsbx($frameName)?>" frameborder="0" class="app-frame app-loading" style="height: 100%; width: 100%;" allow="geolocation *; microphone *; camera *"></iframe>
+<div
+	id="appframe_layout_<?=$arResult['APP_SID']?>" <? if(!empty($frameStyle)) echo ' style="'.implode(';', $frameStyle).'"' ?>
+	class="app-frame-layout<?=($arParams['PLACEMENT'] === \Bitrix\Rest\PlacementTable::PLACEMENT_DEFAULT) ? ' app-frame-layout-default' : ''?>"
+>
+	<iframe id="appframe_<?=$arResult['APP_SID']?>" name="<?=htmlspecialcharsbx($frameName)?>" frameborder="0" class="app-frame app-loading" allow="geolocation *; microphone *; camera *"></iframe>
 	<div id="appframe_loading_<?=$arResult['APP_SID']?>" class="app-loading-msg" <?if($arParams['SHOW_LOADER'] === 'N'):?> style="display: none;"<?endif;?>>
 		<?=GetMessage('REST_LOADING', array('#APP_NAME#' =>  htmlspecialcharsbx($arResult['APP_NAME'])))?>
 	</div>
@@ -145,6 +154,7 @@ BX.rest.AppLayout.set(
 		staticHtml: <?=$arResult['APP_STATIC'] ? 'true' : 'false'?>,
 		appOptions: <?=\CUtil::PhpToJsObject($arResult['APP_OPTIONS'])?>,
 		userOptions: <?=\CUtil::PhpToJsObject($arResult['USER_OPTIONS'])?>,
+		placementId: '<?=($arParams['PLACEMENT_ID'] > 0) ? intVal($arParams['PLACEMENT_ID']) : 0; ?>',
 		placementOptions: <?=\CUtil::PhpToJsObject($arParams['PLACEMENT_OPTIONS'])?>
 
 	}

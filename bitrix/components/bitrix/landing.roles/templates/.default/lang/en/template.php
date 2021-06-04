@@ -9,5 +9,5 @@ $MESS["LANDING_TPL_BUTTON_SAVE"] = "Save";
 $MESS["LANDING_TPL_COL_ROLE"] = "Role";
 $MESS["LANDING_TPL_COL_ROLES"] = "Roles";
 $MESS["LANDING_TPL_EXTENDED_MODE"] = "Extended roles are enabled. You can now assign permissions for an individual site.";
-$MESS["LANDING_TPL_TITLE"] = "Access permissions";
+$MESS["LANDING_TPL_TITLE"] = "Access Permissions";
 ?>

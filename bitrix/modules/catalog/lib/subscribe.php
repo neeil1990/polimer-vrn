@@ -588,8 +588,8 @@ class SubscribeTable extends Entity\DataManager
 		/* Compatibility with the sale subscribe option */
 		$notifyOption = Option::get('sale', 'subscribe_prod');
 		$notify = array();
-		if(strlen($notifyOption) > 0)
-			$notify = unserialize($notifyOption);
+		if($notifyOption <> '')
+			$notify = unserialize($notifyOption, ['allowed_classes' => false]);
 		if(is_array($notify))
 		{
 			$listSiteId = array();
@@ -655,7 +655,7 @@ class SubscribeTable extends Entity\DataManager
 		foreach($listSubscribe as $key => $subscribeData)
 		{
 			$pageUrl = self::getPageUrl($subscribeData, $detailPageUrlGroupByItemId);
-			if (!strlen($pageUrl))
+			if ($pageUrl == '')
 			{
 				continue;
 			}
@@ -712,18 +712,11 @@ class SubscribeTable extends Entity\DataManager
 			$unsubscribeUrl = '';
 			if (Loader::includeModule('landing'))
 			{
-				$sysPages = \Bitrix\Landing\Syspage::get($subscribeData['LANDING_SITE_ID']);
-				$landing = \Bitrix\Landing\Landing::createInstance(
-					$sysPages['personal']['LANDING_ID'], ['blocks_limit' => 1]
+				$unsubscribeUrl = \Bitrix\Landing\Syspage::getSpecialPage(
+					$subscribeData['LANDING_SITE_ID'],
+					'personal',
+					['SECTION' => 'subscribe']
 				);
-				if ($landing->exist())
-				{
-					$siteUrl = \Bitrix\Landing\Site::getPublicUrl($landing->getSiteId());
-					$unsubscribeUrl = \CHTTP::urlAddParams(
-						$siteUrl.$landing->getPublicUrl($sysPages['personal']['LANDING_ID']),
-						['SECTION' => 'subscribe']
-					);
-				}
 			}
 		}
 		else
@@ -742,7 +735,7 @@ class SubscribeTable extends Entity\DataManager
 
 		if ($protocol = Option::get('main', 'mail_link_protocol'))
 		{
-			if (strrpos($protocol, '://') === false)
+			if (mb_strrpos($protocol, '://') === false)
 				$protocol .= '://';
 		}
 		else

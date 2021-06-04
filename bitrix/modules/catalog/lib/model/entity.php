@@ -2,6 +2,7 @@
 namespace Bitrix\Catalog\Model;
 
 use Bitrix\Main,
+	Bitrix\Main\ORM,
 	Bitrix\Main\Localization\Loc;
 
 Loc::loadMessages(__FILE__);
@@ -10,38 +11,48 @@ abstract class Entity
 {
 	const PREFIX_OLD = 'OLD_';
 
-	private static $entity = null;
+	public const EVENT_ON_BUILD_CACHED_FIELD_LIST = 'OnBuildCachedFieldList';
 
-	/** @var null|Main\Entity\DataManager Tablet object */
+	public const FIELDS_MAIN = 0x0001;
+	public const FIELDS_UF = 0x0002;
+	public const FIELDS_ALL = self::FIELDS_MAIN|self::FIELDS_UF;
+
+	private static $entity = [];
+
+	/** @var ORM\Data\DataManager Tablet object */
 	private $tablet = null;
 	/** @var array Table scalar fields list */
-	private $tabletFields = array();
+	private $tabletFields = [];
+	/** @var array User fields list */
+	private $tabletUserFields = [];
 	/** @var null|Main\DB\Result Database result object */
 	private $result = null;
 	/** @var array Entity cache */
-	private $cache = array();
+	private $cache = [];
 	/** @var array internal */
-	private $cacheModifyed = array();
+	private $cacheModifyed = [];
 
-	private $fields = array();
+	private $fields = [];
 	private $fieldsCount = 0;
-	private $aliases = array();
-	private $fieldMask = array();
-	private $fetchCutMask = array();
+	private $aliases = [];
+	private $fieldMask = [];
+	private $fetchCutMask = [];
 
 	public function __construct()
 	{
-		$this->createEntityTablet();
+		$this->initEntityTablet();
 		$this->initEntityCache();
 
 		$this->result = null;
-		$this->fetchCutMask = array();
+		$this->fetchCutMask = [];
 	}
 
 	/**
+	 * Returns entity class.
+	 *
 	 * @return Entity
 	 */
-	public static function getEntity()
+	public static function getEntity(): Entity
 	{
 		$className = get_called_class();
 		if (empty(self::$entity[$className]))
@@ -54,7 +65,17 @@ abstract class Entity
 		return self::$entity[$className];
 	}
 
-	public static function getList(array $parameters)
+	/**
+	 * Entity getList with change cache. Need for use before add/update/delete entity row.
+	 *
+	 * @param array $parameters
+	 * @return Entity
+	 * @throws Main\ArgumentException
+	 * @throws Main\ObjectNotFoundException
+	 * @throws Main\ObjectPropertyException
+	 * @throws Main\SystemException
+	 */
+	public static function getList(array $parameters): Entity
 	{
 		$entity = static::getEntity();
 		$parameters = $entity->prepareTabletQueryParameters($parameters);
@@ -62,6 +83,12 @@ abstract class Entity
 		return $entity;
 	}
 
+	/**
+	 * Entity fetch. Work with entity change cache.
+	 *
+	 * @param Main\Text\Converter|null $converter
+	 * @return array|bool|false
+	 */
 	public function fetch(Main\Text\Converter $converter = null)
 	{
 		if ($this->result === null)
@@ -70,7 +97,7 @@ abstract class Entity
 		if (!$row)
 		{
 			$this->result = null;
-			$this->fetchCutMask = array();
+			$this->fetchCutMask = [];
 			return false;
 		}
 		if (empty($this->fields))
@@ -84,24 +111,35 @@ abstract class Entity
 		return $row;
 	}
 
-	public static function clearCache()
+	/**
+	 * Clear all cache for entity.
+	 *
+	 * @return void
+	 */
+	public static function clearCache(): void
 	{
 		static::getEntity()->clearEntityCache();
 	}
 
-	public static function add(array $data)
+	/**
+	 * Add entity item. Use instead of DataManager method.
+	 *
+	 * @param array $data
+	 * @return ORM\Data\AddResult
+	 */
+	public static function add(array $data): ORM\Data\AddResult
 	{
-		$result = new Main\Entity\AddResult();
+		$result = new ORM\Data\AddResult();
 
 		$entity = static::getEntity();
 
 		static::normalize($data);
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_BEFORE_ADD))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_BEFORE_ADD))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_BEFORE_ADD,
+				ORM\Data\DataManager::EVENT_ON_BEFORE_ADD,
 				$data
 			);
 			$event->send();
@@ -116,11 +154,11 @@ abstract class Entity
 			return $result;
 		unset($result);
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_ADD))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_ADD))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_ADD,
+				ORM\Data\DataManager::EVENT_ON_ADD,
 				$data
 			);
 			$event->send();
@@ -136,18 +174,18 @@ abstract class Entity
 				$entity->setEntityCacheItem((int)$result->getId(), $result->getData(), false);
 		}
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_AFTER_ADD))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_AFTER_ADD))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_AFTER_ADD,
-				array(
+				ORM\Data\DataManager::EVENT_ON_AFTER_ADD,
+				[
 					'id' => $result->getId(),
 					'fields' => $data['fields'],
 					'external_fields' => $data['external_fields'],
 					'actions' => $data['actions'],
 					'success' => $success
-				)
+				]
 			);
 			$event->send();
 			unset($event);
@@ -161,25 +199,32 @@ abstract class Entity
 		return $result;
 	}
 
-	public static function update($id, array $data)
+	/**
+	 * Update entity item. Use instead of DataManager method.
+	 *
+	 * @param int $id
+	 * @param array $data
+	 * @return ORM\Data\UpdateResult
+	 */
+	public static function update($id, array $data): ORM\Data\UpdateResult
 	{
-		$result = new Main\Entity\UpdateResult();
+		$result = new ORM\Data\UpdateResult();
 
 		$entity = static::getEntity();
 
 		static::normalize($data);
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_BEFORE_UPDATE))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_BEFORE_UPDATE))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_BEFORE_UPDATE,
-				array(
+				ORM\Data\DataManager::EVENT_ON_BEFORE_UPDATE,
+				[
 					'id' => $id,
 					'fields' => $data['fields'],
 					'external_fields' => $data['external_fields'],
 					'actions' => $data['actions']
-				)
+				]
 			);
 			$event->send();
 
@@ -193,17 +238,17 @@ abstract class Entity
 			return $result;
 		unset($result);
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_UPDATE))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_UPDATE))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_UPDATE,
-				array(
+				ORM\Data\DataManager::EVENT_ON_UPDATE,
+				[
 					'id' => $id,
 					'fields' => $data['fields'],
 					'external_fields' => $data['external_fields'],
 					'actions' => $data['actions']
-				)
+				]
 			);
 			$event->send();
 			unset($event);
@@ -218,18 +263,18 @@ abstract class Entity
 				$entity->modifyEntityCacheItem($id, $data['fields']);
 		}
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_AFTER_UPDATE))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_AFTER_UPDATE))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_AFTER_UPDATE,
-				array(
+				ORM\Data\DataManager::EVENT_ON_AFTER_UPDATE,
+				[
 					'id' => $id,
 					'fields' => $data['fields'],
 					'external_fields' => $data['external_fields'],
 					'actions' => $data['actions'],
 					'success' => $success
-				)
+				]
 			);
 			$event->send();
 			unset($event);
@@ -243,18 +288,24 @@ abstract class Entity
 		return $result;
 	}
 
-	public static function delete($id)
+	/**
+	 * Delete entity item. Use instead of DataManager method.
+	 *
+	 * @param int $id
+	 * @return ORM\Data\DeleteResult
+	 */
+	public static function delete($id): ORM\Data\DeleteResult
 	{
-		$result = new Main\Entity\DeleteResult();
+		$result = new ORM\Data\DeleteResult();
 
 		$entity = static::getEntity();
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_BEFORE_DELETE))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_BEFORE_DELETE))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_BEFORE_DELETE,
-				array('id' => $id)
+				ORM\Data\DataManager::EVENT_ON_BEFORE_DELETE,
+				['id' => $id]
 			);
 			$event->send();
 
@@ -262,12 +313,12 @@ abstract class Entity
 				return $result;
 		}
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_DELETE))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_DELETE))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_DELETE,
-				array('id' => $id)
+				ORM\Data\DataManager::EVENT_ON_DELETE,
+				['id' => $id]
 			);
 			$event->send();
 			unset($event);
@@ -281,12 +332,12 @@ abstract class Entity
 		if ($success)
 			$entity->expireEntityCacheItem((int)$id);
 
-		if (Event::existEventHandlers($entity, Main\Entity\DataManager::EVENT_ON_AFTER_DELETE))
+		if (Event::existEventHandlers($entity, ORM\Data\DataManager::EVENT_ON_AFTER_DELETE))
 		{
 			$event = new Event(
 				$entity,
-				Main\Entity\DataManager::EVENT_ON_AFTER_DELETE,
-				array('id' => $id, 'success' => $success)
+				ORM\Data\DataManager::EVENT_ON_AFTER_DELETE,
+				['id' => $id, 'success' => $success]
 			);
 			$event->send();
 			unset($event);
@@ -300,7 +351,14 @@ abstract class Entity
 		return $result;
 	}
 
-	public static function setCacheItem($id, array $row)
+	/**
+	 * Fill item cache data. Do not use without good reason.
+	 *
+	 * @param int $id
+	 * @param array $row
+	 * @return void
+	 */
+	public static function setCacheItem($id, array $row): void
 	{
 		$id = (int)$id;
 		if ($id <= 0 || empty($row))
@@ -308,7 +366,14 @@ abstract class Entity
 		static::getEntity()->setEntityCacheItem($id, $row, false);
 	}
 
-	public static function getCacheItem($id, $load = false)
+	/**
+	 * Returns item cache.
+	 *
+	 * @param int $id
+	 * @param bool $load
+	 * @return array|null
+	 */
+	public static function getCacheItem($id, bool $load = false): ?array
 	{
 		$id = (int)$id;
 		if ($id <= 0)
@@ -316,7 +381,14 @@ abstract class Entity
 		return static::getEntity()->getEntityCacheItem($id, $load);
 	}
 
-	public static function clearCacheItem($id)
+	/**
+	 * Clear item cache. Do not use without good reason.
+	 *
+	 * @param int $id
+	 * @return void
+	 * @noinspection PhpUnused
+	 */
+	public static function clearCacheItem($id): void
 	{
 		$id = (int)$id;
 		if ($id <= 0)
@@ -325,24 +397,66 @@ abstract class Entity
 	}
 
 	/**
+	 * Returns entity tablet name.
+	 *
 	 * @return string
 	 */
-	public static function getTabletClassName()
+	public static function getTabletClassName(): string
 	{
 		return '';
 	}
 
 	/**
+	 * Returns list of tablet field names, include user fields.
+	 *
+	 * @param int $fields
 	 * @return array
 	 */
-	public static function getCachedFieldList()
+	public static function getTabletFieldNames(int $fields = self::FIELDS_MAIN): array
 	{
-		return array();
+		$result = [];
+		$entity = static::getEntity();
+		if ($fields & self::FIELDS_MAIN)
+		{
+			$result = array_keys($entity->tabletFields);
+		}
+		if ($fields & self::FIELDS_UF)
+		{
+			$list = array_keys($entity->tabletUserFields);
+			if (!empty($list))
+			{
+				$result = (empty($result)
+					? $list
+					: array_merge($result, $list)
+				);
+			}
+			unset($list);
+		}
+
+		unset($entity);
+		return $result;
 	}
 
-	protected function getTablet()
+	/**
+	 * Returns fields list in cache.
+	 *
+	 * @return array
+	 */
+	public static function getCachedFieldList(): array
 	{
-		if (!($this->tablet instanceof Main\Entity\DataManager))
+		$entity = static::getEntity();
+		return $entity->fields;
+	}
+
+	/**
+	 * Returns entity table object.
+	 *
+	 * @return ORM\Data\DataManager
+	 * @throws Main\ObjectNotFoundException
+	 */
+	protected function getTablet(): ORM\Data\DataManager
+	{
+		if (!($this->tablet instanceof ORM\Data\DataManager))
 			throw new Main\ObjectNotFoundException(sprintf(
 				'Tablet not found in entity `%s`',
 				get_class($this)
@@ -350,31 +464,54 @@ abstract class Entity
 		return $this->tablet;
 	}
 
-	protected static function prepareForAdd(Main\Entity\AddResult $result, $id, array &$data)
+	/**
+	 * Check and modify fields before add entity item. Need for entity automation.
+	 *
+	 * @param ORM\Data\AddResult $result
+	 * @param int|null $id
+	 * @param array &$data
+	 * @return void
+	 */
+	protected static function prepareForAdd(ORM\Data\AddResult $result, $id, array &$data): void
 	{
 		$data = static::getEntity()->checkTabletWhiteList($data);
 		if (empty($data))
 		{
-			$result->addError(new Main\Entity\EntityError(sprintf(
-				'Empty data fo add in entity `%s`',
+			$result->addError(new ORM\EntityError(sprintf(
+				'Empty data for add in entity `%s`',
 				get_called_class()
 			)));
 		}
 	}
 
-	protected static function prepareForUpdate(Main\Entity\UpdateResult $result, $id, array &$data)
+	/**
+	 * Check and modify fields before update entity item. Need for entity automation.
+	 *
+	 * @param ORM\Data\UpdateResult $result
+	 * @param int $id
+	 * @param array &$data
+	 * @return void
+	 */
+	protected static function prepareForUpdate(ORM\Data\UpdateResult $result, $id, array &$data): void
 	{
 		$data = static::getEntity()->checkTabletWhiteList($data);
 		if (empty($data))
 		{
-			$result->addError(new Main\Entity\EntityError(sprintf(
-				'Empty data fo update in entity `%s`',
+			$result->addError(new ORM\EntityError(sprintf(
+				'Empty data for update in entity `%s`',
 				get_called_class()
 			)));
 		}
 	}
 
-	protected static function deleteNoDemands($id)
+	/**
+	 * Delete entity item without entity events (tablet events only).
+	 *
+	 * @param int $id
+	 * @return ORM\Data\DeleteResult
+	 * @throws Main\ObjectNotFoundException
+	 */
+	protected static function deleteNoDemands($id): ORM\Data\DeleteResult
 	{
 		$entity = static::getEntity();
 
@@ -395,16 +532,18 @@ abstract class Entity
 	}
 
 	/**
-	 * @param array $data
+	 * Normalize data before prepare. Convert fields list into complex structure.
+	 *
+	 * @param array &$data
 	 * @return void
 	 */
-	protected static function normalize(array &$data)
+	protected static function normalize(array &$data): void
 	{
-		$result = array(
-			'fields' => array(),
-			'external_fields' => array(),
-			'actions' => array()
-		);
+		$result = [
+			'fields' => [],
+			'external_fields' => [],
+			'actions' => []
+		];
 
 		if (isset($data['fields']) && is_array($data['fields']))
 		{
@@ -423,34 +562,137 @@ abstract class Entity
 		unset($result);
 	}
 
-	protected static function runAddExternalActions($id, array $data){}
-
-	protected static function runUpdateExternalActions($id, array $data){}
-
-	protected static function runDeleteExternalActions($id){}
-
 	/**
+	 * Run core automation after add entity item.
+	 *
+	 * @param int $id
+	 * @param array $data
 	 * @return void
 	 */
-	private function createEntityTablet()
+	protected static function runAddExternalActions($id, array $data): void {}
+
+	/**
+	 * Run core automation after update entity item.
+	 *
+	 * @param int $id
+	 * @param array $data
+	 * @return void
+	 */
+	protected static function runUpdateExternalActions($id, array $data): void {}
+
+	/**
+	 * Run core automation after delete entity item.
+	 *
+	 * @param int $id
+	 * @return void
+	 */
+	protected static function runDeleteExternalActions($id): void {}
+
+	/**
+	 * Returns entity default fields list for caching.
+	 *
+	 * @return array
+	 */
+	protected static function getDefaultCachedFieldList(): array
+	{
+		return [];
+	}
+
+	/**
+	 * Init entity table object.
+	 * @internal
+	 *
+	 * @return void
+	 */
+	private function initEntityTablet(): void
 	{
 		$tabletClassName = static::getTabletClassName();
 		$this->tablet = new $tabletClassName;
-		$this->tabletFields = $this->tablet->getEntity()->getScalarFields();
+		$this->tabletFields = [];
+		$this->tabletUserFields = [];
+
+		$entity = $this->tablet->getEntity();
+		$checkUseFields = $entity->getUfId() !== null;
+		$list = $entity->getFields();
+		foreach ($list as $field)
+		{
+			if ($field instanceof ORM\Fields\ScalarField)
+			{
+				$this->tabletFields[$field->getName()] = true;
+			}
+			elseif ($checkUseFields && $field instanceof ORM\Fields\UserTypeField)
+			{
+				$this->tabletUserFields[$field->getName()] = true;
+			}
+		}
+		unset($field, $list);
+		unset($checkUseFields);
+		unset($entity, $tabletClassName);
 	}
 
-	private function initEntityCache()
+	/**
+	 * Build entity cache environment.
+	 * @internal
+	 *
+	 * @return void
+	 */
+	private function initEntityCache(): void
 	{
 		$this->clearEntityCache();
 
-		$this->aliases = array();
-		$this->fieldMask = array();
-		$this->fields = static::getCachedFieldList();
+		$this->aliases = [];
+		$this->fieldMask = [];
+		$fieldList = static::getDefaultCachedFieldList();
+		if (Event::existEventHandlers($this, self::EVENT_ON_BUILD_CACHED_FIELD_LIST))
+		{
+			$event = new Event(
+				$this,
+				self::EVENT_ON_BUILD_CACHED_FIELD_LIST
+			);
+			$event->send();
+
+			foreach($event->getResults() as $eventResult)
+			{
+				if ($eventResult->getType() == Main\EventResult::SUCCESS)
+				{
+					$addFields = $eventResult->getParameters();
+					if (!empty($addFields) && is_array($addFields))
+					{
+						foreach ($addFields as $alias => $field)
+						{
+							if (!isset($this->tabletFields[$field]))
+							{
+								continue;
+							}
+							$index = array_search($field, $fieldList);
+							if (is_int($alias))
+							{
+								if ($index === false || !is_int($index))
+								{
+									$fieldList[] = $field;
+								}
+							}
+							else
+							{
+								if ($index !== $alias)
+								{
+									$fieldList[$alias] = $field;
+								}
+							}
+						}
+					}
+				}
+			}
+			unset($eventResult, $event);
+		}
+
+		$this->fields = $fieldList;
+		unset($fieldList);
 		if (!empty($this->fields))
 		{
 			foreach ($this->fields as $alias => $field)
 			{
-				if (is_numeric($alias))
+				if (is_int($alias))
 				{
 					$this->fieldMask[$field] = true;
 				}
@@ -465,15 +707,28 @@ abstract class Entity
 		$this->fieldsCount = count($this->fields);
 	}
 
-	private function clearEntityCache()
+	/**
+	 * Remove all entity cache.
+	 * @internal
+	 *
+	 * @return void
+	 */
+	private function clearEntityCache(): void
 	{
-		$this->cache = array();
-		$this->cacheModifyed = array();
+		$this->cache = [];
+		$this->cacheModifyed = [];
 	}
 
-	private function prepareTabletQueryParameters(array $parameters)
+	/**
+	 * Add cached fields to entity getList parameters.
+	 * @internal
+	 *
+	 * @param array $parameters
+	 * @return array
+	 */
+	private function prepareTabletQueryParameters(array $parameters): array
 	{
-		$this->fetchCutMask = array();
+		$this->fetchCutMask = [];
 
 		if (empty($this->fields))
 			return $parameters;
@@ -489,7 +744,7 @@ abstract class Entity
 		{
 			$existField = false;
 			$index = array_search($field, $select);
-			if ($index !== false && is_numeric($index))
+			if ($index !== false && is_int($index))
 				$existField = true;
 			if ($existField)
 				continue;
@@ -502,7 +757,14 @@ abstract class Entity
 		return $parameters;
 	}
 
-	private function replaceFieldToAlias(array &$row)
+	/**
+	 * If exists fields alias, result row is modified.
+	 * @internal
+	 *
+	 * @param array &$row
+	 * @return void
+	 */
+	private function replaceFieldToAlias(array &$row): void
 	{
 		if (empty($this->aliases))
 			return;
@@ -515,34 +777,66 @@ abstract class Entity
 		unset($alias, $field);
 	}
 
-	private function checkTabletWhiteList(array $fields)
+	/**
+	 * Filter row by tablet fields (include uf fields, if exists).
+	 * @internal
+	 *
+	 * @param array $fields
+	 * @return array
+	 */
+	private function checkTabletWhiteList(array $fields): array
 	{
-		return array_intersect_key($fields, $this->tabletFields);
+		$baseFields = array_intersect_key($fields, $this->tabletFields);
+		if (!empty($this->tabletUserFields))
+		{
+			$userFields = array_intersect_key($fields, $this->tabletUserFields);
+			if (!empty($userFields))
+			{
+				$baseFields = $baseFields + $userFields;
+			}
+			unset($userFields);
+		}
+		return $baseFields;
 	}
 
 	/* entity cache item tools */
 
-	private function loadEntityCacheItem($id)
+	/**
+	 * Load cached fields for entity item.
+	 * @internal
+	 *
+	 * @param int $id
+	 * @return void
+	 */
+	private function loadEntityCacheItem($id): void
 	{
 		if (isset($this->cache[$id]))
 			return;
 		if (empty($this->fields))
 			return;
 
-		$row = $this->getTablet()->getList(array(
+		$iterator = $this->getTablet()->getList([
 			'select' => array_values($this->fields),
-			'filter' => array('=ID' => $id)
-		))->fetch();
+			'filter' => ['=ID' => $id]
+		]);
+		$row = $iterator->fetch();
+		unset($iterator);
 		if (!empty($row))
 			$this->setEntityCacheItem($id, $row, true);
 		unset($row);
 	}
 
-	private function getEntityCacheItem($id, $load = false)
+	/**
+	 * Internal method for get entity item cache.
+	 * @internal
+	 *
+	 * @param int $id
+	 * @param bool $load
+	 * @return array
+	 */
+	private function getEntityCacheItem($id, bool $load = false)
 	{
-		$load = ($load === true);
-
-		$result = array();
+		$result = [];
 		if (!isset($this->cache[$id]) && $load && !empty($this->fields))
 			$this->loadEntityCacheItem($id);
 		if (isset($this->cache[$id]))
@@ -551,7 +845,16 @@ abstract class Entity
 		return $result;
 	}
 
-	private function setEntityCacheItem($id, array $row, $replaceAliases = false)
+	/**
+	 * Internal method for setting entity item cache.
+	 * @internal
+	 *
+	 * @param int $id
+	 * @param array $row
+	 * @param bool $replaceAliases
+	 * @return void
+	 */
+	private function setEntityCacheItem($id, array $row, bool $replaceAliases = false): void
 	{
 		if (empty($this->fieldMask))
 			return;
@@ -566,7 +869,15 @@ abstract class Entity
 		unset($data);
 	}
 
-	private function modifyEntityCacheItem($id, array $row)
+	/**
+	 * Internal method for modify entity item cache.
+	 * @internal
+	 *
+	 * @param int $id
+	 * @param array $row
+	 * @return void
+	 */
+	private function modifyEntityCacheItem($id, array $row): void
 	{
 		if (empty($this->fieldMask))
 			return;
@@ -585,7 +896,15 @@ abstract class Entity
 		unset($data);
 	}
 
-	private function expireEntityCacheItem($id, $copy = false)
+	/**
+	 * Internal method for marked entity item cache as modified.
+	 * @internal
+	 *
+	 * @param int $id
+	 * @param bool $copy
+	 * @return void
+	 */
+	private function expireEntityCacheItem($id, bool $copy = false): void
 	{
 		if (empty($this->fields))
 			return;
@@ -595,7 +914,7 @@ abstract class Entity
 		if (isset($this->cacheModifyed[$id]))
 			return;
 
-		$oldData = array();
+		$oldData = [];
 		foreach (array_keys($this->fieldMask) as $field)
 			$oldData[self::PREFIX_OLD.$field] = $this->cache[$id][$field];
 		unset($field);
@@ -608,7 +927,14 @@ abstract class Entity
 		$this->cacheModifyed[$id] = true;
 	}
 
-	private function clearEntityCacheItem($id)
+	/**
+	 * Clear entity cache for item.
+	 * @internal
+	 *
+	 * @param int $id
+	 * @return void
+	 */
+	private function clearEntityCacheItem($id): void
 	{
 		if (isset($this->cache[$id]))
 			unset($this->cache[$id]);

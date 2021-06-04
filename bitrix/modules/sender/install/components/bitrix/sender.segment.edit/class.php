@@ -1,37 +1,45 @@
 <?
 
-use Bitrix\Main\Localization\Loc;
-use Bitrix\Main\ErrorCollection;
 use Bitrix\Main\Context;
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
-use Bitrix\Main\Loader;
-use Bitrix\Main\Error;
-
+use Bitrix\Sender\Access\ActionDictionary;
+use Bitrix\Sender\Access\Service\RoleDealCategoryService;
 use Bitrix\Sender\Connector;
+use Bitrix\Sender\ContactListTable;
 use Bitrix\Sender\Entity;
-use Bitrix\Sender\Segment;
+use Bitrix\Sender\GroupTable;
+use Bitrix\Sender\Integration\Crm;
+use Bitrix\Sender\ListTable;
+use Bitrix\Sender\Posting\SegmentDataBuilder;
 use Bitrix\Sender\Security;
+use Bitrix\Sender\Segment;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 {
 	die();
 }
 
+if (!Bitrix\Main\Loader::includeModule('sender'))
+{
+	ShowError('Module `sender` not installed');
+	die();
+}
+
 Loc::loadMessages(__FILE__);
 
-class SenderSegmentEditComponent extends CBitrixComponent
+class SenderSegmentEditComponent extends Bitrix\Sender\Internals\CommonSenderComponent
 {
-	/** @var ErrorCollection $errors */
-	protected $errors;
+	/**
+	 * @var Entity\Segment
+	 */
+	private $entitySegment;
 
-	/** @var Entity\Segment $entitySegment */
-	protected $entitySegment;
-
-	protected function checkRequiredParams()
-	{
-		return $this->errors->count() == 0;
-	}
+	/**
+	 * @var array
+	 */
+	private $usedConnectors;
 
 	protected function initParams()
 	{
@@ -39,6 +47,10 @@ class SenderSegmentEditComponent extends CBitrixComponent
 
 		$this->arParams['ID'] = isset($this->arParams['ID']) ? (int) $this->arParams['ID'] : 0;
 		$this->arParams['ID'] = $this->arParams['ID'] ? $this->arParams['ID'] : (int) $this->request->get('ID');
+		$this->arParams['IS_NEW'] = $this->arParams['IS_NEW'] ?? 'N';
+
+
+		$this->arParams['USER_ID'] = $this->arParams['USER_ID'] ?? $this->userId;
 
 		if (!isset($this->arParams['DATA_TYPE_ID']))
 		{
@@ -56,12 +68,12 @@ class SenderSegmentEditComponent extends CBitrixComponent
 			?
 			$this->arParams['CAN_EDIT']
 			:
-			Security\Access::current()->canModifySegments();
+			Security\Access::getInstance()->canModifySegments();
 		$this->arParams['CAN_VIEW_CONN_DATA'] = isset($this->arParams['CAN_VIEW_CONN_DATA'])
 			?
 			$this->arParams['CAN_VIEW_CONN_DATA']
 			:
-			Security\Access::current()->canModifySegments();
+			$this->accessController->check(ActionDictionary::ACTION_SEGMENT_CLIENT_VIEW);
 	}
 
 	protected function preparePost()
@@ -71,28 +83,62 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		{
 			$settings = array();
 		}
+
 		$data = Array(
 			'NAME' => trim($this->request->get('NAME')),
 			'HIDDEN' => $this->request->get('HIDDEN') == 'Y' ? 'Y' : 'N',
 			'ENDPOINTS' => Connector\Manager::getEndpointFromFields($settings)
 		);
 
-		$this->entitySegment->mergeData($data)->save();
-		$this->errors->add($this->entitySegment->getErrors());
+		foreach ($data["ENDPOINTS"] as $endpoint)
+		{
+			if(
+				$endpoint["CODE"] === 'crm_client'
+				&& !empty($endpoint["FIELDS"])
+				&& !isset($endpoint["FIELDS"]["DEAL_CATEGORY_ID"])
+			)
+			{
+				$this->errors->add(
+					[
+						new \Bitrix\Main\Error(Loc::getMessage('SENDER_SEGMENT_FILTER_DEAL_CATEGORY_ID_ERROR'))
+					]
+				);
+			}
+
+		}
+
+		if($this->errors->isEmpty())
+		{
+			$this->entitySegment->mergeData($data)->save();
+			$this->errors->add($this->entitySegment->getErrors());
+		}
 
 		if ($this->errors->isEmpty())
 		{
-			$path = str_replace('#id#', $this->entitySegment->getId(), $this->arParams['PATH_TO_EDIT']);
-			$uri = new Uri($path);
-			if ($this->request->get('IFRAME') == 'Y')
+			$this->redirectToLocal();
+		}
+	}
+
+	private function redirectToLocal($viewContinue = false)
+	{
+		$path = str_replace('#id#', $this->entitySegment->getId(), $this->arParams['PATH_TO_EDIT']);
+		$uri = new Uri($path);
+		if ($this->request->get('IFRAME') == 'Y')
+		{
+			$uri->addParams(array('IFRAME' => 'Y'));
+			if(!$viewContinue)
 			{
-				$uri->addParams(array('IFRAME' => 'Y'));
 				$uri->addParams(array('IS_SAVED' => 'Y'));
 			}
-			$path = $uri->getLocator();
-
-			LocalRedirect($path);
 		}
+
+		if ($this->arParams['IS_NEW'] === 'Y')
+		{
+			$uri->addParams(array('IS_NEW' => 'Y'));
+		}
+		$path = $uri->getLocator();
+
+		LocalRedirect($path);
 	}
 
 	protected function prepareResult()
@@ -108,7 +154,7 @@ class SenderSegmentEditComponent extends CBitrixComponent
 			);
 		}
 
-		if (!Security\Access::current()->canViewSegments())
+		if (!Security\Access::getInstance()->canViewSegments())
 		{
 			Security\AccessChecker::addError($this->errors);
 			return false;
@@ -119,15 +165,51 @@ class SenderSegmentEditComponent extends CBitrixComponent
 
 		$this->entitySegment = new Entity\Segment($this->arParams['ID']);
 		$this->entitySegment->setFilterOnlyMode($this->arParams['ONLY_CONNECTOR_FILTERS']);
+
+
+		if ($this->arParams['ID'] === 0)
+		{
+			$this->entitySegment->mergeData([
+				'NAME' => Loc::getMessage('SENDER_SEGMENT_EDIT_TMPL_PATTERN_TITLE', [
+					'%date%' => \FormatDate('j F', (new \Bitrix\Main\Type\DateTime())),
+				])
+			])->save();
+
+			$this->arParams['IS_NEW'] = 'Y';
+
+			$this->redirectToLocal(true);
+		}
+
+		$this->arResult['PREPARED'] = in_array($this->entitySegment->getData()['STATUS'], [
+			GroupTable::STATUS_NEW,
+			GroupTable::STATUS_DONE,
+			GroupTable::STATUS_READY_TO_USE,
+		]);
+
 		$this->arResult['ROW'] = $this->entitySegment->getData();
+		$this->arResult['CAN_ADD_PERSONAL_CONTACTS'] = $this
+			->accessController
+			->check(ActionDictionary::ACTION_SEGMENT_CLIENT_PERSONAL_EDIT);
 
 		$connectors = Connector\Manager::getConnectorList();
+		$initialEndpoints = [];
+
 		foreach ($connectors as $connector)
 		{
 			$connector->setDataTypeId(null);
+
+			if($connector instanceof Connector\BaseFilter)
+			{
+				$initialEndpoints[] = [
+					'CODE' => $connector->getCode(),
+					'FIELDS' => [],
+					'MODULE_ID' => $connector->getModuleId(),
+				];
+			}
 		}
 
 		$this->arResult['CONNECTOR'] = array();
+		$this->arResult['IS_NEW'] = $this->request->get('IS_NEW') === 'Y';
 		$this->prepareAvailableConnectors($connectors);
 
 		if ($this->request->isPost() && check_bitrix_sessid() && $this->arParams['CAN_EDIT'])
@@ -136,18 +218,26 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		}
 
 		$endpoints = $this->entitySegment->get('ENDPOINTS');
-		if (!is_array($endpoints))
+		if (!is_array($endpoints) || empty($endpoints))
 		{
-			$endpoints = array();
+			$endpoints = $initialEndpoints;
 		}
+
 		$filters = Connector\Manager::getFieldsFromEndpoint($endpoints);
+
 		$this->prepareExistedConnectors($connectors, $filters);
 		$this->prepareExistedContacts();
 
 
 		$this->arResult['SEGMENT_TILE'] = Segment\TileView::create()->getTile($this->arParams['ID']);
-		$this->arResult['IS_SAVED'] = $this->request->get('IS_SAVED') == 'Y';
+		$this->arResult['IS_SAVED'] = $this->request->get('IS_SAVED') === 'Y';
 		$this->arResult['HIDDEN'] = $this->request->get('hidden') === 'Y';
+
+		if (Bitrix\Main\Loader::includeModule('pull'))
+		{
+			\CPullWatch::Add($this->userId, SegmentDataBuilder::FILTER_COUNTER_TAG);
+		}
+
 
 		return true;
 	}
@@ -197,10 +287,10 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		$this->arResult['CONTACTS']['ID'] = $listId;
 		$this->arResult['CONTACTS']['VALUE'] = "{\"LIST_ID\":$listId}";
 
-		$row = \Bitrix\Sender\ListTable::getRowById($listId);
+		$row = ListTable::getRowById($listId);
 		if ($row)
 		{
-			$row['COUNT'] = \Bitrix\Sender\ContactListTable::getCount(array('=LIST_ID' => $listId));
+			$row['COUNT'] = ContactListTable::getCount(array('=LIST_ID' => $listId));
 			if (!$this->arParams['SHOW_CONTACT_SETS'])
 			{
 				$row['NAME'] = str_replace(
@@ -222,7 +312,7 @@ class SenderSegmentEditComponent extends CBitrixComponent
 	 * @param array $filters Filters.
 	 * @return void
 	 */
-	protected function prepareExistedConnectors($connectors, array $filters)
+	protected function prepareExistedConnectors($connectors, array &$filters)
 	{
 		$result = array();
 
@@ -231,7 +321,10 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		$dataCounters = array();
 		foreach($connectors as $connector)
 		{
-			if(!isset($filters[$connector->getModuleId()]))
+			if(
+				!isset($filters[$connector->getModuleId()]) ||
+				$this->checkConnectorAccessDenied($connector)
+			)
 			{
 				continue;
 			}
@@ -243,6 +336,7 @@ class SenderSegmentEditComponent extends CBitrixComponent
 			}
 
 			$fieldValuesList = $filters[$connector->getModuleId()][$connector->getCode()];
+			$existedNamedCounters = [];
 			foreach($fieldValuesList as $fieldValues)
 			{
 				$connector->setFieldFormName('post_form');
@@ -253,11 +347,42 @@ class SenderSegmentEditComponent extends CBitrixComponent
 				$connector->setFieldValues($fieldValues);
 
 				$connectorData = $this->prepareConnectorData($connector);
-				$connectorData['NUM'] = $counter;
-				$connectorData['FORM'] = str_replace('%CONNECTOR_NUM%', $counter, $connectorData['FORM']);
+
+				if($connectorData['SAVED_FILTER_ID'])
+				{
+					$connectorData['FILTER_ID'] = $connectorData['SAVED_FILTER_ID'];
+				}
+				else
+				{
+					$connectorData['FILTER_ID'] = preg_replace('/--filter--([^-]+)--/', '%CONNECTOR_NUM%', $connectorData['FILTER_ID']);
+				}
+
+				if (preg_match('/--filter--([^-]+)--/', $connectorData['FORM'], $matches))
+				{
+					$namedCounter = $matches[1];
+					if (in_array($namedCounter, $existedNamedCounters))
+					{
+						$namedCounter .= $counter;
+					}
+					else
+					{
+						$existedNamedCounters[] = $namedCounter;
+					}
+
+
+					$namedCounter = $connectorData['NAMED_CONNECTOR'] ?? '--filter--'.$namedCounter.'--';
+					$connectorData['NUM'] = $namedCounter;
+					$connectorData['FORM'] = preg_replace('/--filter--([^-]+)--/', $namedCounter, $connectorData['FORM']);
+				}
+				else
+				{
+					$connectorData['NUM'] = $counter;
+				}
+				$connectorData['FORM'] = str_replace('%CONNECTOR_NUM%', $connectorData['NUM'], $connectorData['FORM']);
 
 				$addressCounter += $connectorData['COUNT']['summary'];
 
+				$this->prepareConnectorDataCounter($connectorData, $connector, true);
 				$connectorData['COUNTER'] = Json::encode($connectorData['COUNT']);
 				$connectorData['COUNT'] = $connectorData['COUNT']['summary'];
 
@@ -273,6 +398,31 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		Entity\Segment::updateAddressCounters($this->entitySegment->getId(), $dataCounters);
 	}
 
+	private function prepareConnectorDataCounter(&$connectorData, $connector, $calcCount = false)
+	{
+		$isIncrementally = $connector instanceof Connector\IncrementallyConnector;
+
+		if ($isIncrementally && $connectorData['SAVED_FILTER_ID'])
+		{
+			$segmentBuilder = new SegmentDataBuilder(
+				$this->arParams['ID'],
+				$connectorData['SAVED_FILTER_ID']
+			);
+		}
+
+		$dataCounter = $calcCount
+			? (
+			$segmentBuilder
+				? $segmentBuilder->calculateCurrentFilterCount()
+				: $connector->getDataCounter()
+			)
+			: new Connector\DataCounter([]);
+
+		$dataCounterCloned = clone $dataCounter;
+		$connectorData['COUNT'] = $dataCounterCloned->leave($this->arParams['DATA_TYPE_ID'])->getArray();
+		$connectorData['DATA_COUNTER'] = $dataCounter;
+	}
+
 	/**
 	 * @param Connector\Base[] $connectors Connectors.
 	 * @return void
@@ -282,7 +432,8 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		$result = array();
 		foreach($connectors as $connector)
 		{
-			if ($this->arParams['ONLY_CONNECTOR_FILTERS'] && !($connector instanceof Connector\BaseFilter))
+			if ($this->arParams['ONLY_CONNECTOR_FILTERS'] && !($connector instanceof Connector\BaseFilter) ||
+				$this->checkConnectorAccessDenied($connector))
 			{
 				continue;
 			}
@@ -295,32 +446,51 @@ class SenderSegmentEditComponent extends CBitrixComponent
 		$this->arResult['CONNECTOR']['AVAILABLE'] = $result;
 	}
 
-	protected function prepareConnectorData(Connector\Base $connector, $calcCount = true)
+	private function checkConnectorAccessDenied($connector)
 	{
-		$dataCounter = $calcCount ? $connector->getDataCounter() : new Connector\DataCounter([]);
-		$dataCounterCloned = clone $dataCounter;
+		return
+			($connector->getCode() === 'crm_lead'
+			 && !$this->accessController->check(ActionDictionary::ACTION_SEGMENT_LEAD_EDIT))
+			||
+			($connector->getCode() === 'crm_client'
+			 && !$this->accessController->check(ActionDictionary::ACTION_SEGMENT_CLIENT_EDIT)
+			)
+			||
+			($connector->getCode() === 'contact_list'
+			 && !$this->accessController->check(ActionDictionary::ACTION_SEGMENT_CLIENT_PERSONAL_EDIT)
+			);
+
+	}
+
+	protected function prepareConnectorData(Connector\Base $connector, $checkFilter = true)
+	{
+		$filters = $connector instanceof Connector\BaseFilter ? $connector::getUiFilterFields() : [];
+		$fieldValues = $connector->getFieldValues();
+
+		if($connector instanceof Crm\Connectors\Client)
+		{
+			$this->filterAbleDealCategories($filters);
+		}
+
+		$connector->setFieldValues($fieldValues);
 
 		$connectorData = array(
 			'ID' => $connector->getId(),
 			'NAME' => $connector->getName(),
 			'CODE' => $connector->getCode(),
 			'MODULE_ID' => $connector->getModuleId(),
-			'FORM' => $connector->getForm(),
-			'COUNT' => $dataCounterCloned->leave($this->arParams['DATA_TYPE_ID'])->getArray(),
-			'DATA_COUNTER' => $dataCounter,
+			'FORM' => method_exists($connector, 'getCustomForm')
+				? $connector->getCustomForm(['filter' => $filters])
+				: $connector->getForm(),
 			'IS_FILTER' => $connector instanceof Connector\BaseFilter,
 			'IS_RESULT_VIEWABLE' => $connector->isResultViewable() ? 'Y' : 'N',
 			'FILTER_ID' => '',
-			'FILTER_RAW' => $connector->getFieldValues(),
+			'FILTER_RAW' => $fieldValues,
 			'FILTER' => Json::encode(
 				$this->prepareFieldValues(
-					$connector->getFieldValues(),
+					$fieldValues,
 					(
-						$connector instanceof Connector\BaseFilter
-							?
-							$connector::getUiFilterFields()
-							:
-							[]
+						$filters
 					)
 				)
 			),
@@ -331,10 +501,86 @@ class SenderSegmentEditComponent extends CBitrixComponent
 			$connectorData['FILTER_ID'] = $connector->getUiFilterId();
 		}
 
+		if($checkFilter)
+		{
+			$endpoints = $this->entitySegment->getData()['ENDPOINTS'];
+
+			$this->usedConnectors = $this->usedConnectors ?? [];
+
+			foreach($endpoints as $endpoint)
+			{
+				if(
+					$endpoint['CODE'] === $connector->getCode()
+					&& $endpoint['FILTER_ID']
+					&& !in_array($endpoint['FILTER_ID'], $this->usedConnectors)
+				)
+				{
+					$connectorData['SAVED_FILTER_ID'] = htmlspecialcharsbx($endpoint['FILTER_ID']);
+					$connectorData['NAMED_CONNECTOR'] = htmlspecialcharsbx(
+						str_replace(
+							"{$endpoint['MODULE_ID']}_{$endpoint['CODE']}_",
+							"",
+							$endpoint['FILTER_ID']
+						)
+					);
+					$this->usedConnectors[] = $endpoint['FILTER_ID'];
+					break;
+				}
+			}
+		}
+
 		$hiddenName = $connector->getFieldName('bx_aux_hidden_field');
 		$connectorData['FORM'] .= '<input type="hidden" name="'	. $hiddenName . '" value="0">';
 
 		return $connectorData;
+	}
+
+	private function filterAbleDealCategories(&$filters)
+	{
+		$defaultCategory = [];
+		foreach ($filters as $key => $filter)
+		{
+			if($filter['id'] === Crm\Connectors\Client::DEAL_CATEGORY_ID)
+			{
+				$dealCategories = (new RoleDealCategoryService())
+					->getFilteredDealCategories($this->userId, $filter['items']);
+
+				$filters[$key]['items'] = $dealCategories;
+				if(!empty($dealCategories))
+				{
+					$defaultCategory[Crm\Connectors\Client::DEAL_CATEGORY_ID] = array_keys($dealCategories)[0];
+				}
+				continue;
+			}
+			if($filter['id'] === 'DEAL_STAGE_ID')
+			{
+				$dealCategories = (new RoleDealCategoryService())
+					->getFilteredDealCategories($this->userId, Crm\Connectors\Client::getDealCategoryList());
+
+				$currentItems = $filters[$key]['items'];
+				$items = [];
+				foreach ($currentItems as $itemCode => $item)
+				{
+					$data = explode(":", $itemCode);
+					if(count($data) > 1)
+					{
+						$dealCategoryId = (int)substr($data[0], 1);
+						if(isset($dealCategories[$dealCategoryId]))
+						{
+							$items[$itemCode] = $item;
+						}
+
+						continue;
+					}
+
+					$items[$itemCode] = $item;
+				}
+
+				$filters[$key]['items'] = $items;
+			}
+		}
+
+		return $defaultCategory;
 	}
 
 	protected function prepareFieldValues(array $fieldValues, array $fields)
@@ -407,28 +653,17 @@ class SenderSegmentEditComponent extends CBitrixComponent
 
 	public function executeComponent()
 	{
-		$this->errors = new \Bitrix\Main\ErrorCollection();
-		if (!Loader::includeModule('sender'))
-		{
-			$this->errors->setError(new Error('Module `sender` is not installed.'));
-			$this->printErrors();
-			return;
-		}
+		parent::executeComponent();
+		parent::prepareResultAndTemplate();
+	}
 
-		$this->initParams();
-		if (!$this->checkRequiredParams())
-		{
-			$this->printErrors();
-			return;
-		}
+	public function getEditAction()
+	{
+		return ActionDictionary::ACTION_SEGMENT_EDIT;
+	}
 
-		if (!$this->prepareResult())
-		{
-			$this->printErrors();
-			return;
-		}
-
-		$this->printErrors();
-		$this->includeComponentTemplate();
+	public function getViewAction()
+	{
+		return ActionDictionary::ACTION_SEGMENT_VIEW;
 	}
 }

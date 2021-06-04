@@ -69,13 +69,13 @@ function showMenuLinkInput(ind, url)
 
 			BX.adjust(it, {
 				attrs : {"bx-height" : it.offsetHeight},
-				style : { 
-					overflow : "hidden", 
+				style : {
+					overflow : "hidden",
 					display : 'block'
 				},
 				children : [
 					BX.create('BR'),
-					BX.create('DIV', { 
+					BX.create('DIV', {
 						attrs : {id : id},
 						children : [
 							BX.create('SPAN', {attrs : {"className" : "menu-popup-item-left"}}),
@@ -86,7 +86,7 @@ function showMenuLinkInput(ind, url)
 											attrs : {
 												id : id + '-input',
 												type : "text",
-												value : url 
+												value : url
 											},
 											style : {
 												height : pos["height"] + 'px',
@@ -190,60 +190,16 @@ function blogShowImagePopup(src)
 		offsetLeft: 0
 	});
 
-	setTimeout(function(){waitPopupBlogImage.adjustPosition()}, 100);	
+	setTimeout(function(){waitPopupBlogImage.adjustPosition()}, 100);
 	waitPopupBlogImage.show();
 
 }
 
 function __blogPostSetFollow(log_id)
 {
-	var
-		strFollowOld = (BX("log_entry_follow_" + log_id).getAttribute("data-follow") == "Y" ? "Y" : "N"),
-		strFollowNew = (strFollowOld == "Y" ? "N" : "Y"),
-		followNode = BX("log_entry_follow_" + log_id);
-
-	if (followNode)
-	{
-		BX.findChild(followNode, { tagName: 'a' }).innerHTML = BX.message('sonetBPFollow' + strFollowNew);
-		followNode.setAttribute("data-follow", strFollowNew);
-	}
-
-	var actionUrl = BX.message('sonetBPSetPath');
-	actionUrl = BX.util.add_url_param(actionUrl, {
-		b24statAction: (strFollowNew == 'Y' ? 'setFollow' : 'setUnfollow')
+	return BX.Livefeed.FeedInstance.changeFollow({
+		logId: log_id
 	});
-
-	BX.ajax({
-		url: actionUrl,
-		method: 'POST',
-		dataType: 'json',
-		data: {
-			log_id: log_id,
-			action: "change_follow",
-			follow: strFollowNew,
-			sessid: BX.bitrix_sessid(),
-			site: BX.message('sonetBPSiteId')
-		},
-		onsuccess: function(data) {
-			if (
-				data["SUCCESS"] != "Y"
-				&& followNode
-			)
-			{
-				BX.findChild(followNode, { tagName: 'a' }).innerHTML = BX.message('sonetBPFollow' + strFollowOld);
-				followNode.setAttribute("data-follow", strFollowOld);
-			}
-		},
-		onfailure: function(data) {
-			if (followNode)
-			{
-				BX.findChild(followNode, { tagName: 'a' }).innerHTML = BX.message('sonetBPFollow' + strFollowOld);
-				followNode.setAttribute("data-follow", strFollowOld);
-			}
-		}
-	});
-
-	return false;
 }
 
 (function() {
@@ -254,28 +210,66 @@ function __blogPostSetFollow(log_id)
 	};
 
 	BX.SBPostMenu.showMenu = function(params) {
+
 		if (
 			typeof params == 'undefined'
-			|| typeof params.postId == 'undefined'
-			|| parseInt(params.postId) <= 0
-			|| typeof params.bindNode == 'undefined'
-			|| !BX(params.bindNode)
+			|| typeof params.event === 'undefined'
 		)
 		{
 			return false;
 		}
 
-		BX.PopupMenu.destroy('blog-post-' + params.postId);
+		var bindNode = params.event.currentTarget;
+		if (!BX.type.isDomNode(bindNode))
+		{
+			return false;
+		}
 
-		var
-			isPublicPage = (typeof params.publicPage != 'undefined' && !!params.publicPage),
-			isTasksAvailable = (typeof params.tasksAvailable != 'undefined' && !!params.tasksAvailable),
-			pathToPost = (typeof params.pathToPost != 'undefined' ? params.pathToPost : ''),
-			urlToEdit = (typeof params.urlToEdit != 'undefined' ? params.urlToEdit : ''),
-			urlToHide = (typeof params.urlToHide != 'undefined' ? params.urlToHide : ''),
-			urlToDelete = (typeof params.urlToDelete != 'undefined' ? params.urlToDelete : ''),
-			voteId = (typeof params.voteId != 'undefined' ? parseInt(params.voteId) : false),
-			postType = (typeof params.postType != 'undefined' ? params.postType : false);
+		var menuNode = params.menuNode;
+		if (!BX.type.isDomNode(menuNode))
+		{
+			return false;
+		}
+
+		var postId = parseInt(menuNode.getAttribute('data-bx-post-id'));
+		if (postId <= 0)
+		{
+			return false;
+		}
+
+		BX.PopupMenu.destroy('blog-post-' + postId);
+
+		var isPublicPage = menuNode.getAttribute('data-bx-public-page');
+		isPublicPage = (isPublicPage === 'Y');
+
+		var isTasksAvailable = menuNode.getAttribute('data-bx-tasks-available');
+		isTasksAvailable = (isTasksAvailable === 'Y');
+
+		var isGroupReadOnly = menuNode.getAttribute('data-bx-group-read-only');
+		isGroupReadOnly = (isGroupReadOnly === 'Y');
+
+		var items = menuNode.getAttribute('data-bx-items');
+		try
+		{
+			items = JSON.parse(items);
+			if (!BX.type.isPlainObject(items))
+			{
+				items = {};
+			}
+		}
+		catch(e)
+		{
+			items = {};
+		}
+
+		var pathToPost = menuNode.getAttribute('data-bx-path-to-post');
+		var urlToEdit = menuNode.getAttribute('data-bx-path-to-edit');
+		var urlToHide = menuNode.getAttribute('data-bx-path-to-hide');
+		var urlToDelete = menuNode.getAttribute('data-bx-path-to-delete');
+		var urlToPub = menuNode.getAttribute('data-bx-path-to-pub');
+		var voteId = parseInt(menuNode.getAttribute('data-bx-vote-id'));
+		var postType = menuNode.getAttribute('data-bx-post-type');
+		var serverName = menuNode.getAttribute('data-bx-server-name');
 
 		if (BX.type.isNotEmptyString(urlToHide))
 		{
@@ -290,7 +284,7 @@ function __blogPostSetFollow(log_id)
 			return false;
 		}
 
-		var menuWaiterPopup = new BX.PopupWindow('blog-post-' + params.postId + '-waiter', params.bindNode, {
+		var menuWaiterPopup = new BX.PopupWindow('blog-post-' + postId + '-waiter', bindNode, {
 			offsetLeft: -14,
 			offsetTop: 4,
 			lightShadow: false,
@@ -305,285 +299,286 @@ function __blogPostSetFollow(log_id)
 			}
 		}, 300);
 
-		BX.ajax({
-			url: '/bitrix/components/bitrix/socialnetwork.blog.post/ajax.php',
-			method: 'POST',
-			dataType: 'json',
+		BX.ajax.runAction('socialnetwork.api.livefeed.blogpost.getData', {
 			data: {
-				sessid : BX.bitrix_sessid(),
-				siteId : BX.message('SITE_ID'),
-				action : 'get_data',
-				postId : parseInt(params.postId),
-				public : (isPublicPage ? 'Y' : 'N'),
-				mobile : 'N',
-				group_readonly : (typeof params.group_readonly != 'undefined' && !!params.group_readonly ? 'Y' : 'N'),
-				pathToPost : pathToPost,
-				voteId: voteId
+				params: {
+					postId : postId,
+					public : (isPublicPage ? 'Y' : 'N'),
+					mobile : 'N',
+					groupReadOnly : (isGroupReadOnly ? 'Y' : 'N'),
+					pathToPost : pathToPost,
+					voteId: voteId,
+					checkModeration : 'Y',
+				}
 			},
-			onsuccess: function(postData) {
-				if (
-					typeof postData == 'undefined'
-					|| typeof postData.perms == 'undefined'
-					|| (
-						postData.perms <= 'D' // \Bitrix\Blog\Item\Permissions::DENY
-						&& (
-							typeof params.items == 'undefined'
-							|| params.items.length <= 0
-						)
-					)
-				)
-				{
-					menuWaiterPopup.destroy();
-					return false;
-				}
+		}).then(function (response) {
 
-				var menuItems = [];
+			var postData = response.data;
 
-				if(!BX.util.in_array(postType, ["DRAFT", "MODERATION"]))
-				{
-					if (
-						postData.isGroupReadOnly != 'Y'
-						&& parseInt(BX.message('USER_ID')) > 0
-						&& (parseInt(postData.logId) > 0)
-					)
-					{
-						var isFavorites = (parseInt(postData.logFavoritesUserId) > 0);
-						menuItems.push({
-							text: BX.message(isFavorites ? "sonetLMenuFavoritesTitleY" : "sonetLMenuFavoritesTitleN"),
-							onclick: function(e) {
-								__logChangeFavorites(
-									parseInt(postData.logId),
-									'log_entry_favorites_' + parseInt(postData.logId),
-									(isFavorites ? 'N' : 'Y'),
-									true
-								);
-								return false;
-							}
-						});
-					}
-
-					var serverName = params.serverName;
-
-					menuItems.push({
-						text: BX.message('BLOG_HREF'),
-						href: postData.urlToPost,
-						class: 'feed-entry-popup-menu-link'
-					});
-
-					menuItems.push({
-						text: '<span id="post-menu-' + postData.logId + '-link-text">' + BX.message('BLOG_LINK') + '</span>' +
-							'<span id="post-menu-' + postData.logId + '-link-icon-animate" class="post-menu-link-icon-wrap">' +
-								'<span class="post-menu-link-icon" id="post-menu-' + postData.logId + '-link-icon-done" style="display: none;">' +
-
-								'</span>' +
-							'</span>',
-						onclick: function(e) {
-							showMenuLinkInput(
-								parseInt(postData.logId),
-								serverName + postData.urlToPost
-							);
-							return false;
-						},
-						class: 'feed-entry-popup-menu-link'
-					});
-
-					if (
-						parseInt(BX.message('USER_ID')) > 0
-						&& postData.isGroupReadOnly != 'Y'
-						&& postData.isShareForbidden != 'Y'
-					)
-					{
-						menuItems.push({
-							text: BX.message('BLOG_SHARE'),
-							onclick: function() {
-								showSharing(
-									parseInt(params.postId),
-									parseInt(postData.authorId)
-								);
-								this.popupWindow.close();
-							}
-						});
-					}
-
-					if (
-						postData.perms >= 'W' // \Bitrix\Blog\Item\Permissions::FULL
-						|| (
-							postData.perms >= 'P' // \Bitrix\Blog\Item\Permissions::WRITE
-							&& postData.authorId == BX.message('USER_ID')
-						)
-					)
-					{
-						menuItems.push({
-							text: BX.message('BLOG_BLOG_BLOG_EDIT'),
-							href: urlToEdit
-						});
-					}
-
-					if(postData.perms >= 'T') // \Bitrix\Blog\Item\Permissions::MODERATE
-					{
-						menuItems.push({
-							text: BX.message('BLOG_MES_HIDE'),
-							onclick: function() {
-								if(confirm(BX.message('BLOG_MES_HIDE_POST_CONFIRM')))
-								{
-									window.location = urlToHide;
-									this.popupWindow.close();
-								}
-							}
-						});
-					}
-
-					if (postData.perms >= 'W') //  // \Bitrix\Blog\Item\Permissions::FULL
-					{
-						menuItems.push({
-							text: BX.message('BLOG_BLOG_BLOG_DELETE'),
-							onclick: function() {
-								if (confirm(BX.message('BLOG_MES_DELETE_POST_CONFIRM')))
-								{
-									if (urlToDelete.length > 0)
-									{
-										window.location = urlToDelete.replace('#del_post_id#', parseInt(params.postId));
-									}
-									else
-									{
-										window.deleteBlogPost(parseInt(params.postId));
-									}
-									this.popupWindow.close();
-								}
-							}
-						});
-					}
-
-					if (
-						isTasksAvailable
-						&& postData.perms > 'D'
-					)
-					{
-						menuItems.push({
-							text: BX.message('BLOG_POST_CREATE_TASK'),
-							onclick: function(e) {
-								var target = e.target || e.srcElement;
-
-								oLF.createTask({
-									entityType: 'BLOG_POST',
-									entityId: parseInt(params.postId)
-								});
-								this.popupWindow.close();
-								return e.preventDefault();
-							}
-						});
-					}
-
-					if (postData.urlToVoteExport.length > 0)
-					{
-						menuItems.push({
-							text: BX.message('BLOG_POST_VOTE_EXPORT'),
-							href: postData.urlToVoteExport
-						});
-					}
-				}
-
-				var
-					onclickHandler = null,
-					menuItem = null,
-					item = null;
-
-				if (typeof params.items != 'undefined')
-				{
-					for (var key in params.items)
-					{
-						if (params.items.hasOwnProperty(key))
-						{
-							item = params.items[key];
-
-							menuItem = {};
-							if (typeof item.text_php != 'undefined')
-							{
-								menuItem.text = item.text_php;
-							}
-
-							if (typeof item.onclick != 'undefined')
-							{
-								eval("onclickHandler = " + item.onclick);
-								menuItem.onclick = onclickHandler;
-							}
-							else if (typeof item.href != 'undefined')
-							{
-								menuItem.href = item.href;
-							}
-
-							menuItems.push(menuItem);
-						}
-					}
-				}
-
-				var popupEvents = (
-					typeof params.logId != 'undefined' && parseInt(params.logId) > 0
-						? {
-							onPopupShow : function(ob)
-							{
-								if (BX('log_entry_favorites_' + parseInt(params.logId)))
-								{
-									var menuItems = BX.findChildren(ob.contentContainer, {'className' : 'menu-popup-item-text'}, true);
-									if (menuItems != null)
-									{
-										for (var i = 0; i < menuItems.length; i++)
-										{
-											if (
-												menuItems[i].innerHTML == BX.message('sonetLMenuFavoritesTitleY')
-												|| menuItems[i].innerHTML == BX.message('sonetLMenuFavoritesTitleN')
-											)
-											{
-												var favoritesMenuItem = menuItems[i];
-												break;
-											}
-										}
-									}
-
-									if (typeof favoritesMenuItem != 'undefined')
-									{
-										BX(favoritesMenuItem).innerHTML = (
-											BX.hasClass(BX('log_entry_favorites_' + parseInt(params.logId)), 'feed-post-important-switch-active')
-												? BX.message('sonetLMenuFavoritesTitleY')
-												: BX.message('sonetLMenuFavoritesTitleN')
-										);
-									}
-								}
-
-								if (BX('post-menu-' + parseInt(params.logId) + '-link'))
-								{
-									var linkMenuItem = BX.findChild(ob.popupContainer, {className: 'feed-entry-popup-menu-link'}, true, false);
-									if (linkMenuItem)
-									{
-										var height = parseInt(!!linkMenuItem.getAttribute('bx-height') ? linkMenuItem.getAttribute('bx-height') : 0);
-										if (height > 0)
-										{
-											BX('post-menu-' + parseInt(params.logId) + '-link').style.display = 'none';
-											linkMenuItem.setAttribute('bx-status', 'hidden');
-											linkMenuItem.style.height = height + 'px';
-										}
-									}
-								}
-							}
-						}
-						: {}
-				);
-
-				menuWaiterPopup.destroy();
-				BX.PopupMenu.show('blog-post-' + params.postId, params.bindNode, menuItems,
-					{
-						offsetLeft: -14,
-						offsetTop: 4,
-						lightShadow: false,
-						angle: {position: 'top', offset: 50},
-						events: popupEvents
-					});
-				return false;
-			},
-			onfailure: function(data) {
+			if (
+				postData.perms <= 'D' // \Bitrix\Blog\Item\Permissions::DENY
+				&& items.length <= 0
+			)
+			{
 				menuWaiterPopup.destroy();
 				return false;
 			}
+
+			var menuItems = [];
+
+			if(!BX.util.in_array(postType, [ 'DRAFT', 'MODERATION' ]))
+			{
+				if (
+					parseInt(BX.message('USER_ID')) > 0
+					&& (parseInt(postData.logId) > 0)
+				)
+				{
+					var isPinned = (parseInt(postData.logPinnedUserId) > 0);
+					menuItems.push({
+						text: BX.message(isPinned ? 'SONET_EXT_LIVEFEED_MENU_TITLE_PINNED_Y' : 'SONET_EXT_LIVEFEED_MENU_TITLE_PINNED_N'),
+						onclick: function (e)
+						{
+							BX.Livefeed.PinnedPanelInstance.changePinned({
+								logId: parseInt(postData.logId),
+								newState: (isPinned ? 'N' : 'Y'),
+								event: e,
+								node: bindNode
+							});
+							this.popupWindow.close();
+							return e.preventDefault();
+						}
+					});
+				}
+
+				if (
+					postData.isGroupReadOnly != 'Y'
+					&& parseInt(BX.message('USER_ID')) > 0
+					&& (parseInt(postData.logId) > 0)
+				)
+				{
+					var isFavorites = (parseInt(postData.logFavoritesUserId) > 0);
+					menuItems.push({
+						text: BX.message(isFavorites ? "SONET_EXT_LIVEFEED_MENU_TITLE_FAVORITES_Y" : "SONET_EXT_LIVEFEED_MENU_TITLE_FAVORITES_N"),
+						onclick: function (e)
+						{
+							__logChangeFavorites(
+								parseInt(postData.logId),
+								'log_entry_favorites_' + parseInt(postData.logId),
+								(isFavorites ? 'N' : 'Y'),
+								true,
+								e
+							);
+							return false;
+						}
+					});
+				}
+
+				menuItems.push({
+					text: BX.message('BLOG_HREF'),
+					href: postData.urlToPost,
+					class: 'feed-entry-popup-menu-link',
+					target: '_top'
+				});
+
+				menuItems.push({
+					html: '<span id="post-menu-' + postData.logId + '-link-text">' + BX.message('BLOG_LINK') + '</span>' +
+						'<span id="post-menu-' + postData.logId + '-link-icon-animate" class="post-menu-link-icon-wrap">' +
+						'<span class="post-menu-link-icon" id="post-menu-' + postData.logId + '-link-icon-done" style="display: none;">' +
+
+						'</span>' +
+						'</span>',
+					onclick: function (e)
+					{
+						showMenuLinkInput(
+							parseInt(postData.logId),
+							serverName + postData.urlToPost
+						);
+						return false;
+					},
+					class: 'feed-entry-popup-menu-link'
+				});
+
+				if (
+					parseInt(BX.message('USER_ID')) > 0
+					&& postData.isGroupReadOnly != 'Y'
+					&& postData.isShareForbidden != 'Y'
+				)
+				{
+					menuItems.push({
+						text: BX.message('BLOG_SHARE'),
+						onclick: function ()
+						{
+							showSharing(
+								postId,
+								parseInt(postData.authorId)
+							);
+							this.popupWindow.close();
+						}
+					});
+				}
+			}
+
+			if (
+				postData.perms >= 'W' // \Bitrix\Blog\Item\Permissions::FULL
+				|| (
+					postData.perms >= 'P' // \Bitrix\Blog\Item\Permissions::WRITE
+					&& postData.authorId == BX.message('USER_ID')
+				)
+			)
+			{
+				var editParams = {
+					text: BX.message('BLOG_BLOG_BLOG_EDIT'),
+				};
+				if (BX.type.isNotEmptyString(postData.backgroundCode))
+				{
+					editParams.onclick = function() {
+						BX.Livefeed.PostInstance.showBackgroundWarning({
+							urlToEdit: urlToEdit,
+							menuPopupWindow: this.popupWindow
+						});
+					}
+				}
+				else
+				{
+					editParams.href = urlToEdit;
+					editParams.target = '_top';
+				}
+				menuItems.push(editParams);
+			}
+
+			if(!BX.util.in_array(postType, [ 'DRAFT', 'MODERATION' ]))
+			{
+				if(postData.perms >= 'T') // \Bitrix\Blog\Item\Permissions::MODERATE
+				{
+					menuItems.push({
+						text: BX.message('BLOG_MES_HIDE'),
+						onclick: function() {
+							if(confirm(BX.message('BLOG_MES_HIDE_POST_CONFIRM')))
+							{
+								window.location = urlToHide;
+								this.popupWindow.close();
+							}
+						}
+					});
+				}
+
+				if (
+					isTasksAvailable
+					&& postData.perms > 'D'
+				)
+				{
+					menuItems.push({
+						text: BX.message('BLOG_POST_CREATE_TASK'),
+						onclick: function(e) {
+							var target = e.target || e.srcElement;
+
+							oLF.createTask({
+								entityType: 'BLOG_POST',
+								entityId: postId
+							});
+							this.popupWindow.close();
+							return e.preventDefault();
+						}
+					});
+				}
+
+				if (typeof BX.Landing !== 'undefined')
+				{
+					if (typeof BX.Landing.UI.Note.Menu.getMenuItem !== 'undefined')
+					{
+						menuItems.push(BX.Landing.UI.Note.Menu.getMenuItem('blog', postId));
+					}
+				}
+
+				if (postData.urlToVoteExport.length > 0)
+				{
+					menuItems.push({
+						text: BX.message('BLOG_POST_VOTE_EXPORT'),
+						href: postData.urlToVoteExport,
+						target: '_top'
+					});
+				}
+			}
+
+			if(
+				postType == 'DRAFT'
+				&& postData.allowModerate == 'Y'
+				&& BX.type.isNotEmptyString(urlToPub)
+			)
+			{
+				menuItems.push({
+					text: BX.message('BLOG_POST_MOD_PUB'),
+					href: urlToPub,
+					target: '_top'
+				});
+			}
+
+			if (postData.perms >= 'W') //  // \Bitrix\Blog\Item\Permissions::FULL
+			{
+				menuItems.push({
+					text: BX.message('BLOG_BLOG_BLOG_DELETE'),
+					onclick: function() {
+						if (confirm(BX.message('BLOG_MES_DELETE_POST_CONFIRM')))
+						{
+							if (urlToDelete.length > 0)
+							{
+								window.location = urlToDelete.replace('#del_post_id#', postId);
+							}
+							else
+							{
+								window.deleteBlogPost(postId);
+							}
+							this.popupWindow.close();
+						}
+					}
+				});
+			}
+
+			var
+				onclickHandler = null,
+				menuItem = null,
+				item = null;
+
+
+			for (var key in items)
+			{
+				if (items.hasOwnProperty(key))
+				{
+					item = items[key];
+
+					menuItem = {};
+					if (typeof item.text_php != 'undefined')
+					{
+						menuItem.text = item.text_php;
+					}
+
+					if (typeof item.onclick != 'undefined')
+					{
+						eval("onclickHandler = " + item.onclick);
+						menuItem.onclick = onclickHandler;
+					}
+					else if (typeof item.href != 'undefined')
+					{
+						menuItem.href = item.href;
+					}
+
+					menuItems.push(menuItem);
+				}
+			}
+
+			menuWaiterPopup.destroy();
+			BX.PopupMenu.show('blog-post-' + postId, bindNode, menuItems,
+				{
+					offsetLeft: -14,
+					offsetTop: 4,
+					lightShadow: false,
+					angle: {position: 'top', offset: 50},
+					events: {}
+				});
+			return false;
+		}, function (response) {
+			menuWaiterPopup.destroy();
+			return false;
 		});
 	};
 
@@ -626,17 +621,21 @@ function __blogPostSetFollow(log_id)
 			start : { width : start_anim },
 			finish : { width : 1 },
 			transition : BX.easing.makeEaseOut(BX.easing.transitions.quad),
-			step : BX.delegate(function(state) { this.btn.style.width = state.width +'px' }, this),
+			step : BX.delegate(function(state) {
+				this.btn.style.width = state.width +'px'
+			}, this),
 			complete : BX.delegate(function(){
 				this.btn.innerHTML = '';
 				this.btn.appendChild(text_block);
-				var width_2 = text_block.offsetWidth,
-					easing_2 = new BX.easing({
+				var width_2 = text_block.scrollWidth + 31; // 31 - image width
+				var easing_2 = new BX.easing({
 						duration : 300,
 						start : { width_2:0 },
 						finish : { width_2:width_2 },
 						transition : BX.easing.makeEaseOut(BX.easing.transitions.quad),
-						step : BX.delegate(function(state){ this.btn.style.width = state.width_2 + 'px'; }, this)
+						step : BX.delegate(function(state){
+							this.btn.style.width = state.width_2 + 'px';
+						}, this)
 					});
 					easing_2.animate();
 				}, this)
@@ -663,31 +662,59 @@ function __blogPostSetFollow(log_id)
 		window['obj'] = this;
 		this.wait('show');
 		var data = {
-			options : [{ post_id : this.postId, name : "BLOG_POST_IMPRTNT", value : "Y"}],
-			sessid : BX.bitrix_sessid()},
-			url = this.node.getAttribute('bx-url');
+			options: [
+				{
+					post_id: this.postId,
+					name: 'BLOG_POST_IMPRTNT',
+					value : 'Y'
+				}
+			],
+			sessid: BX.bitrix_sessid()
+		};
+		BX.onCustomEvent(this.node, 'onSend', [ data ]);
 
-		BX.onCustomEvent(this.node, "onSend", [data]);
-		data = BX.ajax.prepareData(data);
-		if (data)
-		{
-			url += (url.indexOf('?') !== -1 ? "&" : "?") + data;
-			data = '';
-		}
+		BX.ajax.runAction('socialnetwork.api.livefeed.blogpost.important.vote', {
+			data: {
+				params: {
+					POST_ID : this.postId
+				}
+			},
+		}).then(function (response) {
+			if (
+				!BX.type.isNotEmptyString(response.data.success)
+				|| response.data.success != 'Y'
+			)
+			{
+				return false;
+			}
 
-		BX.ajax({
-			'method': 'GET',
-			'url': url,
-			'dataType': 'json',
-			'onsuccess': BX.delegate(function(data){
-				this.busy = false;
-				this.wait('hide');
-				this.showClick();
-				BX.onCustomEvent(this.node, "onUserVote", [data]);
-				BX.onCustomEvent("onImportantPostRead", [this.postId, this.CID]);
-			}, this),
-			'onfailure': BX.delegate(function(data){ this.busy = false; this.wait('hide');}, this)
-		});
+			this.busy = false;
+			this.wait('hide');
+			this.showClick();
+			BX.onCustomEvent("onImportantPostRead", [this.postId, this.CID]);
+
+			BX.ajax.runAction('socialnetwork.api.livefeed.blogpost.important.getUsers', {
+				data: {
+					params: {
+						POST_ID: this.postId,
+						NAME: 'BLOG_POST_IMPRTNT',
+						VALUE: 'Y',
+						PAGE_NUMBER: data.iNumPage,
+						PATH_TO_USER: data.PATH_TO_USER,
+						NAME_TEMPLATE: data.NAME_TEMPLATE
+					}
+				}
+			}).then(function(response) {
+				var resultData = response.data;
+				BX.onCustomEvent(this.node, "onUserVote", [ resultData ]);
+			}.bind(this), function(response) {
+
+			}.bind(this));
+
+		}.bind(this), function (response) {
+			this.busy = false;
+			this.wait('hide');
+		}.bind(this));
 	};
 
 	top.SBPImpPostCounter = function(node, postId, params) {
@@ -762,7 +789,7 @@ function __blogPostSetFollow(log_id)
 			}
 			else
 				this.node.setAttribute("inumpage", 1);
-			BX.adjust(this.parentNode, {style : {display : "inline-block"}});
+			BX.adjust(this.parentNode, {style : {display : "flex"}});
 		}
 		else
 		{
@@ -831,45 +858,49 @@ function __blogPostSetFollow(log_id)
 		if (this.node.getAttribute("inumpage") != "done")
 		{
 			this.node.setAttribute("status", "busy");
-			BX.ajax({
-				url: "/bitrix/components/bitrix/socialnetwork.blog.blog/users.php",
-				method: 'POST',
-				dataType: 'json',
-				data: {
-					'ID' : this.postId,
-					'post_id' : this.postId,
-					'name' : "BLOG_POST_IMPRTNT",
-					'value' : "Y",
-					'iNumPage' : this.node.getAttribute("inumpage"),
-					'PATH_TO_USER' : this.pathToUser,
-					'NAME_TEMPLATE' : this.nameTemplate,
-					'sessid': BX.bitrix_sessid(),
-					'lang': BX.message('LANGUAGE_ID'),
-					'site': BX.message('SITE_ID')
-				},
-				onsuccess: BX.proxy(function(data){
-					if (!!data && !!data.items)
-					{
-						var res = false;
-						for (var ii in data.items) {
-							this.data.push(data.items[ii]);
-						}
-						if (data.StatusPage == "done")
-						{
-							this.node.setAttribute("inumpage", "done");
-						}
 
-						this.make((this.node.getAttribute("inumpage") != "done"));
+			BX.ajax.runAction('socialnetwork.api.livefeed.blogpost.important.getUsers', {
+				data: {
+					params: {
+						POST_ID: this.postId,
+						NAME: 'BLOG_POST_IMPRTNT',
+						VALUE: 'Y',
+						PAGE_NUMBER: this.node.getAttribute("inumpage"),
+						PATH_TO_USER: this.pathToUser,
+						NAME_TEMPLATE: this.nameTemplate
 					}
-					else
+				}
+			}).then(function(response) {
+				var resultData = response.data;
+
+				if (BX.type.isNotEmptyObject(resultData.items))
+				{
+					for (var ii in resultData.items)
 					{
-						this.node.setAttribute("inumpage", "done");
+						if (resultData.items.hasOwnProperty(ii))
+						{
+							this.data.push(resultData.items[ii]);
+						}
 					}
-					this.node.firstChild.innerHTML = data["RecordCount"];
-					this.node.setAttribute("status", "ready");
-				}, this),
-				onfailure: BX.proxy(function(data){ this.node.setAttribute("status", "ready"); }, this)
-			});
+					if (resultData.StatusPage == 'done')
+					{
+						this.node.setAttribute('inumpage', 'done');
+					}
+
+					this.make((this.node.getAttribute('inumpage') != 'done'));
+				}
+				else
+				{
+					this.node.setAttribute('inumpage', 'done');
+				}
+				this.node.firstChild.innerHTML = resultData['RecordCount'];
+				this.node.setAttribute('status', 'ready');
+			}.bind(this), function(response) {
+				if (!!this.popup) {
+					this.popup.close();
+				}
+				this.node.setAttribute('status', 'ready');
+			}.bind(this));
 		}
 	};
 	top.SBPImpPostCounter.prototype.show = function()
@@ -1024,8 +1055,8 @@ function __blogPostSetFollow(log_id)
 		var res = BX.proxy_context;
 		if (res.scrollTop > (res.scrollHeight - res.offsetHeight) / 1.5)
 		{
-			BX.unbind(res, 'scroll' , BX.proxy(this.popupScrollCheck, this));
 			this.get();
+			BX.unbindAll(res);
 		}
 	}
 })(window);
@@ -1122,114 +1153,160 @@ window.closeSharing = function()
 window.sharingPost = function()
 {
 	var postId = BX('sharePostId').value;
-	var userId = BX('shareUserId').value;
 	var shareForm = BX('blogShare');
-	var actUrl = socBPDest.shareUrl.replace(/#post_id#/, postId).replace(/#user_id#/, userId);
-
-	actUrl = BX.util.remove_url_param(actUrl, [ 'b24statAction' ]);
-	actUrl = BX.util.add_url_param(actUrl, {
-		b24statAction: "sharePost"
-	});
 
 	if (BX('sharePostSubmitButton'))
 	{
 		BX.addClass(BX('sharePostSubmitButton'), 'ui-btn-clock');
 	}
 
-	shareForm.action = actUrl;
-	shareForm.target = '';
+	var i = 0,
+		name = '',
+		matches = null,
+		multiple = null,
+		key = null,
+		s = {
+			postId: postId,
+			pathToUser: oSBPostManager.pathToUser,
+			pathToPost: oSBPostManager.pathToPost,
+			readOnly: oSBPostManager.readOnly
+		};
 
-	var i, s = "";
-	var n = shareForm.elements.length;
-
-	var delim = '';
-	for(i=0; i<n; i++)
+	for(i = 0; i < shareForm.elements.length; i++)
 	{
-		if (s != '') delim = '&';
 		var el = shareForm.elements[i];
+
 		if (el.disabled)
+		{
 			continue;
+		}
+
+		name = el.name;
+		multiple = false;
+		matches = /^(.*)\[(.*)\]$/.exec(name);
+		if (matches)
+		{
+			name = matches[1];
+			multiple = true;
+			key = (BX.type.isNotEmptyString(matches[2]) ? matches[2] : false);
+		}
 
 		switch(el.type.toLowerCase())
 		{
 			case 'text':
 			case 'hidden':
-				s += delim + el.name + '=' + BX.util.urlencode(el.value);
+				if (multiple)
+				{
+					if (typeof s[name] == 'undefined')
+					{
+						s[name] = (key ? {} : []);
+					}
+					if (BX.type.isArray(s[name]))
+					{
+						s[name].push(el.value);
+					}
+					else if (key)
+					{
+						s[name][key] = el.value;
+					}
+				}
+				else
+				{
+					s[name] = el.value;
+				}
 				break;
 			default:
 				break;
 		}
 	}
-	s += "&save=Y&MODE=RECORD&AJAX_POST=Y&ENTITY_XML_ID=BLOG_" + postId;
 
 	var newNodes = renderSharingPost(postId);
 
-	BX.ajax({
-		method: 'POST',
-		dataType: 'json',
-		url: actUrl,
-		data: s,
-		onsuccess: function(data)
-		{
-			if (
-				typeof data == 'undefined'
-				|| typeof data.status == 'undefined'
-				|| data.status != 'success'
-			)
-			{
-				hideRenderedSharingNodes(newNodes);
-				if (
-					typeof data.status != 'undefined'
-					&& data.status == 'error'
-					&& typeof data.errorMessage != 'undefined'
-				)
-				{
-					var errorPopup = new BX.PopupWindow('error_popup', BX('blg-post-inform-' + postId), {
-						lightShadow : true,
-						offsetTop: -10,
-						offsetLeft: 100,
-						autoHide: true,
-						closeByEsc: true,
-						closeIcon: {
-							right : "5px",
-							top : "5px"
-						},
-						draggable: {
-							restrict:true
-						},
-						contentColor : 'white',
-						contentNoPaddings: true,
-						bindOptions: {position: "bottom"},
-						content : BX.create('DIV', {
-							props: {
-								className: 'feed-create-task-popup-content'
-							},
-							children: [
-								BX.create('DIV', {
-									props: {
-										className: 'feed-create-task-popup-description'
-									},
-									text: data.errorMessage
-								})
-							]
-						})
-					});
-
-					errorPopup.show();
-				}
-			}
-			else
-			{
-				var true_data = data;
-				BX.onCustomEvent(window, 'OnUCAfterRecordAdd', ['BLOG_' + postId, data, true_data]);
-			}
+	BX.ajax.runAction('socialnetwork.api.livefeed.blogpost.share', {
+		data: {
+			params: s,
+			MODE: 'RECORD', // main.post.list
+			ENTITY_XML_ID: 'BLOG_' + postId,
+			AJAX_POST: 'Y'
 		},
-		onfailure: function(data)
+		analyticsLabel: {
+			b24statAction: 'sharePost'
+		}
+	}).then(function(data) {
+
+		if (
+			!BX.type.isNotEmptyObject(data)
+			|| !BX.type.isNotEmptyString(data.status)
+			|| data.status != 'success'
+		)
 		{
 			hideRenderedSharingNodes(newNodes);
+
+			if (
+				!BX.type.isNotEmptyString(data.status)
+				&& data.status == 'error'
+				&& !!BX.type.isNotEmptyString(data.errorMessage)
+			)
+			{
+				sharingPostError({
+					postId: postId,
+					errorMessage: data.errorMessage
+				});
+			}
+
 		}
+		else
+		{
+			var true_data = data;
+			BX.onCustomEvent(window, 'OnUCAfterRecordAdd', ['BLOG_' + postId, data, true_data]);
+		}
+
+	}, function(response) {
+		sharingPostError({
+			postId: postId,
+			errorMessage: response.errors[0].message
+		});
+
+		hideRenderedSharingNodes(newNodes);
 	});
+
 	closeSharing();
+};
+
+window.sharingPostError = function(params)
+{
+	var errorPopup = new BX.PopupWindow('error_popup', BX('blg-post-inform-' + params.postId), {
+		lightShadow : true,
+		offsetTop: -10,
+		offsetLeft: 100,
+		autoHide: true,
+		closeByEsc: true,
+		closeIcon: {
+			right : "5px",
+			top : "5px"
+		},
+		draggable: {
+			restrict:true
+		},
+		contentColor : 'white',
+		contentNoPaddings: true,
+		bindOptions: {position: "bottom"},
+		content : BX.create('DIV', {
+			props: {
+				className: 'feed-create-task-popup-content'
+			},
+			children: [
+				BX.create('DIV', {
+					props: {
+						className: 'feed-create-task-popup-description'
+					},
+					text: params.errorMessage
+				})
+			]
+		})
+	});
+
+	errorPopup.show();
 };
 
 window.renderSharingPost = function(postId)
@@ -1343,11 +1420,17 @@ window.hideRenderedSharingNodes = function(newNodes)
 	BX.SBPostManager = function() {
 		this.inited = false;
 		this.tagLinkPattern = '';
+		this.readOnly = 'N';
+		this.pathToUser = '';
+		this.pathToPost = '';
 	};
 
 	BX.SBPostManager.prototype.init = function(params) {
 		this.tagLinkPattern = (BX.type.isNotEmptyString(params.tagLinkPattern) ? params.tagLinkPattern : '');
 		this.inited = true;
+		this.readOnly = (BX.type.isNotEmptyString(params.readOnly) && params.readOnly == 'Y' ? 'Y' : 'N');
+		this.pathToUser = (BX.type.isNotEmptyString(params.pathToUser) ? params.pathToUser : '');
+		this.pathToPost = (BX.type.isNotEmptyString(params.pathToPost) ? params.pathToPost : '');
 	};
 
 	BX.SBPostManager.prototype.clickTag = function(tagValue)

@@ -1,11 +1,21 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
-include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/bizproc/include.php");
+\Bitrix\Main\Loader::includeModule('bizproc');
 
 if (!check_bitrix_sessid())
 	die();
-if (!CBPDocument::CanUserOperateDocumentType(CBPCanUserOperateOperation::CreateWorkflow, $GLOBALS["USER"]->GetID(), $_REQUEST['DocumentType']))
+
+if (empty($_REQUEST['DocumentType']) || !is_array($_REQUEST['DocumentType']))
+{
 	die();
+}
+
+$user = new \CBPWorkflowTemplateUser(\CBPWorkflowTemplateUser::CurrentUser);
+
+if (!$user->isAdmin() && !CBPDocument::CanUserOperateDocumentType(CBPCanUserOperateOperation::ViewWorkflow, $user->getId(), $_REQUEST['DocumentType']))
+{
+	die();
+}
 
 CUtil::DecodeUriComponent($_REQUEST);
 CUtil::DecodeUriComponent($_POST);
@@ -24,6 +34,7 @@ $documentService = $runtime->GetService("DocumentService");
 
 $type = $_REQUEST['Type'];
 $value = $_REQUEST['Value'];
+$publicMode = (!empty($_REQUEST['RenderMode']) && $_REQUEST['RenderMode'] === 'public');
 
 if ($_REQUEST['Mode'] == "Type")
 {
@@ -70,7 +81,8 @@ else
 		$type,
 		$_REQUEST['Field'],
 		$value,
-		$_REQUEST['Als'] ? true : false
+		$_REQUEST['Als'] ? true : false,
+		$publicMode
 	);
 }
 

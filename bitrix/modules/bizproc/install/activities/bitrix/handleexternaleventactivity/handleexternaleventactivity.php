@@ -30,7 +30,7 @@ class CBPHandleExternalEventActivity
 		$arPermissionTmp = $this->Permission;
 		if (is_array($arPermissionTmp))
 			foreach ($arPermissionTmp as $val)
-				$v[] = (strpos($val, "{=") === 0 ? $val : "{=user:".$val."}");
+				$v[] = (mb_strpos($val, "{=") === 0 ? $val : "{=user:".$val."}");
 
 		if (count($v) > 0)
 			$this->WriteToTrackingService(str_replace(array("#EVENT#", "#VAL#"), array($this->name, implode(", ", $v)), GetMessage("BPHEEA_TRACK")));
@@ -92,6 +92,20 @@ class CBPHandleExternalEventActivity
 
 	public function OnExternalEvent($arEventParameters = array())
 	{
+		if ($this->onExternalEventHandler($arEventParameters))
+		{
+			$this->Unsubscribe($this);
+			$this->workflow->CloseActivity($this);
+		}
+	}
+
+	public function OnExternalDrivenEvent($arEventParameters = array())
+	{
+		return $this->onExternalEventHandler($arEventParameters);
+	}
+
+	private function onExternalEventHandler($arEventParameters = array())
+	{
 		if (count($this->Permission) > 0)
 		{
 			$arSenderGroups = (array_key_exists("Groups", $arEventParameters) ? $arEventParameters["Groups"] : array());
@@ -127,8 +141,7 @@ class CBPHandleExternalEventActivity
 			if (array_key_exists("User", $arEventParameters))
 				$this->SenderUserId = "user_".$arEventParameters["User"];
 
-			$this->Unsubscribe($this);
-			$this->workflow->CloseActivity($this);
+			return true;
 		}
 	}
 

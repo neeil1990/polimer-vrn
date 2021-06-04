@@ -21,8 +21,6 @@ class SectionRight implements RightEntity, Errorable
 	private $rightParam;
 	private $socnetGroupClosed = false;
 
-	private $errorCollection;
-
 	public function __construct(RightParam $rightParam)
 	{
 		$this->rightParam = $rightParam;

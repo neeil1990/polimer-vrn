@@ -7,6 +7,7 @@
 /** @var CBitrixComponentTemplate $this */
 /** @var CBitrixComponent $component */
 
+use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Config\Option;
 
@@ -68,19 +69,27 @@ else
 {
 	$textForActionSectionGrid = Loc::getMessage("CT_BLL_SHOW_SECTION_GRID");
 }
-if($arResult["CAN_READ"])
+if ($arResult["CAN_READ"])
 {
-	if($USER->IsAuthorized())
+	if ($USER->isAuthorized())
 	{
 		$listAction[] = array(
 			"id" => "showSectionGrid",
 			"text" => $textForActionSectionGrid,
 			"action" => "BX.Lists['".$arResult["JS_OBJECT"]."'].toogleSectionGrid();"
 		);
-
-		$url = CHTTP::urlAddParams((strpos($APPLICATION->GetCurPageParam(), "?") == false) ?
-			$arResult["EXPORT_EXCEL_URL"] : $arResult["EXPORT_EXCEL_URL"].substr($APPLICATION->GetCurPageParam(),
-				strpos($APPLICATION->GetCurPageParam(), "?")), array("ncc" => "y"));
+	}
+}
+else
+{
+	CUserOptions::setOption("lists_show_section_grid", $arResult["GRID_ID"], "N");
+}
+if ($arResult["CAN_EXPORT"])
+{
+	if ($USER->isAuthorized())
+	{
+		$url = CHTTP::urlAddParams((mb_strpos($APPLICATION->GetCurPageParam(), "?") == false) ?
+			$arResult["EXPORT_EXCEL_URL"] : $arResult["EXPORT_EXCEL_URL"].mb_substr($APPLICATION->GetCurPageParam(), mb_strpos($APPLICATION->GetCurPageParam(), "?")), array("ncc" => "y"));
 		$listAction[] = array(
 			"text" => Loc::getMessage("CT_BLL_EXPORT_IN_EXCEL"),
 			"url" => $url,
@@ -174,25 +183,20 @@ elseif(!IsModuleInstalled("intranet"))
 </div>
 <div class="pagetitle-container pagetitle-align-right-container <?=$pagetitleAlignRightContainer?>">
 	<? if($arResult["SECTION_ID"]):?>
-		<a href="<?=$arResult["LIST_PARENT_URL"]?>" class="lists-list-back">
+		<a href="<?=$arResult["LIST_PARENT_URL"]?>" class="ui-btn ui-btn-link ui-btn-themes lists-list-back">
 			<?=GetMessage("CT_BLL_SECTION_RETURN")?>
 		</a>
 	<?endif;?>
 	<? if($listAction):?>
-		<span id="lists-title-action" class="webform-small-button webform-small-button-transparent webform-small-button-dropdown">
-		<span class="webform-small-button-text"><?=Loc::getMessage("CT_BLL_TOOLBAR_ACTION")?></span>
-		<span id="lists-title-action-icon" class="webform-small-button-icon"></span>
-	</span>
+		<span id="lists-title-action" class="ui-btn ui-btn-light-border ui-btn-dropdown ui-btn-themes">
+			<?=Loc::getMessage("CT_BLL_TOOLBAR_ACTION")?>
+		</span>
 	<?endif;?>
 	<?if($arResult["CAN_ADD_ELEMENT"] || $arResult["CAN_EDIT_SECTIONS"]):?>
-		<span class="webform-small-button-separate-wrap">
-		<a href="<?=$arResult["LIST_NEW_ELEMENT_URL"]?>" class="
-			webform-small-button webform-small-button-blue" id="lists-title-action-add">
-			<span class="webform-small-button-icon"></span>
-			<span class="webform-small-button-text"><?=Loc::getMessage("CT_BLL_TOOLBAR_ADD")?></span>
-		</a>
-		<span class="webform-small-button-right-part" id="lists-title-action-select-add"></span>
-	</span>
+		<div class="ui-btn-split ui-btn-primary">
+			<a href="<?=$arResult["LIST_NEW_ELEMENT_URL"]?>" id="lists-title-action-add" class="ui-btn-main"><?=Loc::getMessage("CT_BLL_TOOLBAR_ADD")?></a>
+			<span id="lists-title-action-select-add" class="ui-btn-menu"></span>
+		</div>
 	<?endif?>
 </div>
 <?
@@ -241,6 +245,25 @@ if($shouldStartRebuildSeachableContent):?>
 		});
 	</script>
 <?endif;
+
+if (Loader::includeModule("socialnetwork"))
+{
+	$APPLICATION->includeComponent(
+		"bitrix:socialnetwork.copy.checker",
+		"",
+		[
+			"moduleId" => "iblock",
+			"queueId" => $arResult["IBLOCK_ID"],
+			"stepperClassName" => "Bitrix\\Iblock\\Copy\\Stepper\\Iblock",
+			"checkerOption" => "IblockGroupChecker_",
+			"errorOption" => "IblockGroupError_",
+			"titleMessage" => GetMessage("CT_BLL_GROUP_STEPPER_PROGRESS_TITLE"),
+			"errorMessage" => GetMessage("CT_BLL_GROUP_STEPPER_PROGRESS_ERROR"),
+		],
+		$component,
+		["HIDE_ICONS" => "Y"]
+	);
+}
 
 $APPLICATION->IncludeComponent(
 	"bitrix:main.ui.grid",

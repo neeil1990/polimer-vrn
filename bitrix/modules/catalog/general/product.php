@@ -130,7 +130,6 @@ class CAllCatalogProduct
 	 */
 	public static function ClearCache()
 	{
-		self::$arProductCache = [];
 		self::$vatCache = [];
 	}
 
@@ -153,14 +152,15 @@ class CAllCatalogProduct
 
 	/**
 	 * @deprecated deprecated since catalog 15.5.2
-	 * @see \Bitrix\Catalog\ProductTable::isExistProduct()
+	 * @see \Bitrix\Catalog\Model\Product::getCacheItem()
 	 *
 	 * @param int $intID
 	 * @return bool
 	 */
 	public static function IsExistProduct($intID)
 	{
-		return Catalog\ProductTable::isExistProduct($intID);
+		$data = Catalog\Model\Product::getCacheItem($intID, true);
+		return (!empty($data));
 	}
 
 	public static function CheckFields($ACTION, &$arFields, $ID = 0)
@@ -170,7 +170,7 @@ class CAllCatalogProduct
 		$arMsg = array();
 		$boolResult = true;
 
-		$ACTION = strtoupper($ACTION);
+		$ACTION = mb_strtoupper($ACTION);
 		$ID = (int)$ID;
 		if ($ACTION == "ADD" && (!is_set($arFields, "ID") || (int)$arFields["ID"]<=0))
 		{
@@ -248,7 +248,7 @@ class CAllCatalogProduct
 		if ((is_set($arFields, "PRICE_TYPE") || $ACTION=="ADD") && ($arFields["PRICE_TYPE"] != "R") && ($arFields["PRICE_TYPE"] != "T"))
 			$arFields["PRICE_TYPE"] = "S";
 
-		if ((is_set($arFields, "RECUR_SCHEME_TYPE") || $ACTION=="ADD") && (strlen($arFields["RECUR_SCHEME_TYPE"]) <= 0 || !in_array($arFields["RECUR_SCHEME_TYPE"], Catalog\ProductTable::getPaymentPeriods(false))))
+		if ((is_set($arFields, "RECUR_SCHEME_TYPE") || $ACTION=="ADD") && ($arFields["RECUR_SCHEME_TYPE"] == '' || !in_array($arFields["RECUR_SCHEME_TYPE"], Catalog\ProductTable::getPaymentPeriods(false))))
 		{
 			$arFields["RECUR_SCHEME_TYPE"] = self::TIME_PERIOD_DAY;
 		}
@@ -555,18 +555,18 @@ class CAllCatalogProduct
 		$field = (string)$field;
 		if ($field == '')
 			return false;
-		$field = strtoupper($field);
+		$field = mb_strtoupper($field);
 		if (strncmp($field, 'CATALOG_', 8) != 0)
 			return false;
 
 		$iNum = 0;
-		$field = substr($field, 8);
-		$p = strrpos($field, '_');
+		$field = mb_substr($field, 8);
+		$p = mb_strrpos($field, '_');
 		if ($p !== false && $p > 0)
 		{
-			$iNum = (int)substr($field, $p+1);
+			$iNum = (int)mb_substr($field, $p + 1);
 			if ($iNum > 0)
-				$field = substr($field, 0, $p);
+				$field = mb_substr($field, 0, $p);
 		}
 		return array(
 			'FIELD' => $field,
@@ -639,7 +639,7 @@ class CAllCatalogProduct
 					$arAllProps = array();
 					do
 					{
-						$strID = (strlen($arProp["CODE"])>0 ? $arProp["CODE"] : $arProp["ID"]);
+						$strID = ($arProp["CODE"] <> '' ? $arProp["CODE"] : $arProp["ID"]);
 						if (is_array($arProp["VALUE"]))
 						{
 							foreach ($arProp["VALUE"] as &$strOneValue)
@@ -1026,7 +1026,7 @@ class CAllCatalogProduct
 				return false;
 
 			$iterator = Catalog\PriceTable::getList(array(
-				'select' => array('ID', 'CATALOG_GROUP_ID', 'PRICE', 'CURRENCY'),
+				'select' => array('ID', 'CATALOG_GROUP_ID', 'PRICE', 'CURRENCY', 'PRICE_SCALE'),
 				'filter' => array(
 					'=PRODUCT_ID' => $intProductID,
 					'@CATALOG_GROUP_ID' => $priceTypeList,
@@ -1205,6 +1205,13 @@ class CAllCatalogProduct
 			{
 				$minimalPrice = $result;
 			}
+			elseif (
+				$minimalPrice['COMPARE_PRICE'] == $result['COMPARE_PRICE']
+				&& $minimalPrice['RAW_PRICE']['PRICE_SCALE'] > $result['RAW_PRICE']['PRICE_SCALE']
+			)
+			{
+				$minimalPrice = $result;
+			}
 
 			unset($currentPrice, $result);
 		}
@@ -1213,6 +1220,7 @@ class CAllCatalogProduct
 
 		$discountValue = ($minimalPrice['BASE_PRICE'] - $minimalPrice['PRICE']);
 
+		unset($minimalPrice['RAW_PRICE']['PRICE_SCALE']);
 		$arResult = array(
 			'PRICE' => $minimalPrice['RAW_PRICE'],
 			'RESULT_PRICE' => array(
@@ -1390,7 +1398,10 @@ class CAllCatalogProduct
 			}
 
 			$iterator = Catalog\PriceTable::getList(array(
-				'select' => array('ID', 'CATALOG_GROUP_ID', 'PRICE', 'CURRENCY', 'QUANTITY_FROM', 'QUANTITY_TO', 'PRODUCT_ID'),
+				'select' => array(
+					'ID', 'PRODUCT_ID', 'CATALOG_GROUP_ID',
+					'PRICE', 'CURRENCY', 'QUANTITY_FROM', 'QUANTITY_TO', 'PRICE_SCALE'
+				),
 				'filter' => array(
 					'=PRODUCT_ID' => array_keys($products),
 					'@CATALOG_GROUP_ID' => $priceTypeList
@@ -1682,11 +1693,19 @@ class CAllCatalogProduct
 			{
 				$minimalPrice[$basketCode] = $result;
 			}
+			elseif (
+				$minimalPrice[$basketCode]['COMPARE_PRICE'] == $result['COMPARE_PRICE']
+				&& $minimalPrice[$basketCode]['RAW_PRICE']['PRICE_SCALE'] > $result['RAW_PRICE']['PRICE_SCALE']
+			)
+			{
+				$minimalPrice[$basketCode] = $result;
+			}
 
 			unset($currentPrice, $result);
 
 			$discountValue = ($minimalPrice[$basketCode]['BASE_PRICE'] - $minimalPrice[$basketCode]['PRICE']);
 
+			unset($minimalPrice[$basketCode]['RAW_PRICE']['PRICE_SCALE']);
 			$productResult = array(
 				'PRICE' => $minimalPrice[$basketCode]['RAW_PRICE'],
 				'RESULT_PRICE' => array(
@@ -2546,6 +2565,8 @@ class CAllCatalogProduct
 	{
 		$possibleSalePrice = null;
 
+		$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+
 		if (empty($priceData))
 			return $possibleSalePrice;
 
@@ -2572,7 +2593,10 @@ class CAllCatalogProduct
 		}
 		if ($basket === null)
 		{
-			$basket = Sale\Basket::create($siteID);
+			/** @var Sale\Basket $basketClassName */
+			$basketClassName = $registry->getBasketClassName();
+
+			$basket = $basketClassName::create($siteID);
 			$basketItem = $basket->createItem('catalog', $intProductID);
 		}
 
@@ -2584,7 +2608,7 @@ class CAllCatalogProduct
 			'PRICE' => $priceData['PRICE'],
 			'BASE_PRICE' => $priceData['PRICE'],
 			'DISCOUNT_PRICE' => 0,
-			'CURRENCY' => $priceData['PRICE'],
+			'CURRENCY' => $priceData['CURRENCY'],
 			'CAN_BUY' => 'Y',
 			'DELAY' => 'N',
 			'PRICE_TYPE_ID' => (int)$priceData['CATALOG_GROUP_ID']
@@ -2607,6 +2631,7 @@ class CAllCatalogProduct
 
 		if ($freezeCoupons)
 			Sale\DiscountCouponsManager::unFreezeCouponStorage();
+		$discount->setExecuteModuleFilter(array('all', 'sale', 'catalog'));
 
 		if ($isCompatibilityUsed === true)
 		{

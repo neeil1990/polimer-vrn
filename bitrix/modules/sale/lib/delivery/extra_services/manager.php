@@ -190,7 +190,7 @@ class Manager
 				(isset($params["RIGHTS"][self::RIGHTS_CLIENT_IDX]) ? $params["RIGHTS"][self::RIGHTS_CLIENT_IDX] : "Y");
 		}
 
-		if(!isset($params["CLASS_NAME"]) || strlen($params["CLASS_NAME"]) <= 0 || !class_exists($params["CLASS_NAME"]))
+		if(!isset($params["CLASS_NAME"]) || $params["CLASS_NAME"] == '' || !class_exists($params["CLASS_NAME"]))
 			return $params;
 
 		if(!isset($params["ACTIVE"]))
@@ -215,7 +215,7 @@ class Manager
 	 */
 	public static function getAdminParamsControl($className, $name, array $params)
 	{
-		if(strlen($className) <= 0)
+		if($className == '')
 			throw new ArgumentNullException("className");
 
 		if(!is_callable($className.'::getAdminParamsControl'))
@@ -235,7 +235,7 @@ class Manager
 	 */
 	public function addItem($params, $currency, $value = null, array $additionalParams = array())
 	{
-		if(strlen($params["CLASS_NAME"]) <= 0 )
+		if($params["CLASS_NAME"] === '' )
 			return false;
 
 		if(!isset($params["CLASS_NAME"]))
@@ -244,13 +244,15 @@ class Manager
 		if(!class_exists($params["CLASS_NAME"]))
 			return false;
 
+		if(!is_subclass_of($params["CLASS_NAME"], Base::class))
+		{
+			throw new \Bitrix\Main\SystemException(
+				'Class "' . $params["CLASS_NAME"] . '" is not a subclass of the \Bitrix\Sale\Delivery\ExtraServices\Base'
+			);
+		}
+
 		$item = new $params["CLASS_NAME"]($params["ID"], $params, $currency, $value, $additionalParams);
-
-		if(!($item instanceof Base))
-			throw new SystemException("Class ".$params["CLASS_NAME"].' must extends \Bitrix\Sale\Delivery\ExtraServices\Base');
-
 		$this->items[$params["ID"]] =  $item;
-
 		return $params["ID"];
 	}
 

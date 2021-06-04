@@ -13,6 +13,9 @@
 
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\UI\Extension;
+
+Extension::load(["ui.buttons", "main.popup"]);
 
 $getTileTemplate = function () use ($arParams)
 {
@@ -50,6 +53,11 @@ $containerId .= $arParams['ID'] ?: 'def';
 			'captionMore' => CUtil::jSEscape(!empty($arParams['BUTTON_SELECT_CAPTION_MORE']) ? $arParams['BUTTON_SELECT_CAPTION_MORE'] : Loc::getMessage('UI_TILE_SELECTOR_SELECT'))
 		))?>);
 	});
+
+	BX.message({
+		UI_TILE_SELECTOR_MORE: '<?=CUtil::JSEscape(Loc::getMessage("UI_TILE_SELECTOR_MORE"))?>'
+	});
+
 </script>
 <span id="<?=htmlspecialcharsbx($containerId)?>" class="ui-tile-selector-selector-wrap<?=($arParams['READONLY'] ? ' readonly' : '')?>">
 	<span id="<?=htmlspecialcharsbx($containerId)?>-mask" class="ui-tile-selector-selector-mask"></span>
@@ -115,16 +123,24 @@ $containerId .= $arParams['ID'] ?: 'def';
 
 		endforeach;
 		?>
+		<span data-role="tile-more" class="ui-tile-selector-more" style="display: none;">
+			<span data-role="tile-item-name">...</span>
+		</span>
 		<input data-role="tile-input" type="text" class="ui-tile-selector-input" autocomplete="off" style="display: none;">
 
 		<?if ($arParams['SHOW_BUTTON_SELECT'] && !$arParams['READONLY']):?>
-			<span data-role="tile-select" class="ui-tile-selector-select">
-				<?if ($arParams['BUTTON_SELECT_CAPTION']):?>
-					<?=htmlspecialcharsbx($arParams['BUTTON_SELECT_CAPTION'])?>
-				<?else:?>
-					<?=Loc::getMessage('UI_TILE_SELECTOR_SELECT')?>
-				<?endif;?>
+			<span class="ui-tile-selector-select-container">
+				<span data-role="tile-select" class="ui-tile-selector-select">
+					<?if ($arParams['BUTTON_SELECT_CAPTION']):?>
+						<?=htmlspecialcharsbx($arParams['BUTTON_SELECT_CAPTION'])?>
+					<?else:?>
+						<?=Loc::getMessage('UI_TILE_SELECTOR_SELECT')?>
+					<?endif;?>
+				</span>
 			</span>
+		<?endif;?>
+		<?if ($arParams['LOCK']):?>
+			<span class="ui-tile-selector-lock-icon"></span>
 		<?endif;?>
 	</span>
 	<?if ($arParams['SHOW_BUTTON_ADD'] && !$arParams['READONLY']):?>

@@ -18,7 +18,7 @@ function _ShowStringPropertyField($name, $property_fields, $values, $bInitDef = 
 	if ($MULTIPLE_CNT <= 0 || $MULTIPLE_CNT > 30)
 		$MULTIPLE_CNT = 5;
 
-	$bInitDef = $bInitDef && (strlen($property_fields["DEFAULT_VALUE"]) > 0);
+	$bInitDef = $bInitDef && ($property_fields["DEFAULT_VALUE"] <> '');
 
 	$cnt = ($property_fields["MULTIPLE"] == "Y"? $MULTIPLE_CNT + ($bInitDef? 1: 0) : 1);
 
@@ -96,8 +96,8 @@ function _ShowStringPropertyField($name, $property_fields, $values, $bInitDef = 
 
 	if ($property_fields["MULTIPLE"] == "Y")
 	{
-		echo '<tr><td><input type="button" value="'.GetMessage("IBLOCK_AT_PROP_ADD").'" onClick="addNewRow(\'tb'.md5($name).'\')"></td></tr>';
-		echo "<script type=\"text/javascript\">BX.addCustomEvent('onAutoSaveRestore', function(ob, data) {for (var i in data){if (i.substring(0,".(strlen($name)+1).")=='".CUtil::JSEscape($name)."['){addNewRow('tb".md5($name)."')}}})</script>";
+		echo '<tr><td><input type="button" value="'.GetMessage("IBLOCK_AT_PROP_ADD").'" onClick="BX.IBlock.Tools.addNewRow(\'tb'.md5($name).'\')"></td></tr>';
+		echo "<script type=\"text/javascript\">BX.addCustomEvent('onAutoSaveRestore', function(ob, data) {for (var i in data){if (i.substring(0,".(mb_strlen($name) + 1).")=='".CUtil::JSEscape($name)."['){BX.IBlock.Tools.addNewRow('tb".md5($name)."')}}})</script>";
 	}
 
 	echo "</table>";
@@ -263,14 +263,6 @@ function _ShowFilePropertyField($name, $property_fields, $values, $max_file_size
 
 	if ($historyId > 0)
 	{
-		$inputParams = array(
-			'upload' => false,
-			'medialib' => false,
-			'file_dialog' => false,
-			'cloud' => false,
-			'del' => false,
-			'description' => false
-		);
 		$newUploaderParams = array(
 			'delete' => false,
 			'edit' => false
@@ -278,14 +270,6 @@ function _ShowFilePropertyField($name, $property_fields, $values, $max_file_size
 	}
 	else
 	{
-		$inputParams = array(
-			'upload' => true,
-			'medialib' => true,
-			'file_dialog' => true,
-			'cloud' => true,
-			'del' => true,
-			'description' => $property_fields["WITH_DESCRIPTION"] == "Y",
-		);
 		$newUploaderParams = array(
 			"upload" => true,
 			"medialib" => true,
@@ -293,15 +277,6 @@ function _ShowFilePropertyField($name, $property_fields, $values, $max_file_size
 			"cloud" => true
 		);
 	}
-	$oldUploaderParams = array(
-		"IMAGE" => "Y",
-		"PATH" => "Y",
-		"FILE_SIZE" => "Y",
-		"DIMENSIONS" => "Y",
-		"IMAGE_POPUP" => "Y",
-		"MAX_SIZE" => $maxSize
-	);
-	$newUploaderExists = class_exists('\Bitrix\Main\UI\FileInput', true);
 
 	if($property_fields["MULTIPLE"] == "N")
 	{
@@ -312,56 +287,6 @@ function _ShowFilePropertyField($name, $property_fields, $values, $max_file_size
 			else
 				$file_id = $val;
 
-			if ($newUploaderExists)
-			{
-				if ($bVarsFromForm)
-				{
-					$request = \Bitrix\Main\Context::getCurrent()->getRequest();
-					$number = 0;
-					if (preg_match("/PROP\\[(\d+)\\]/i", $name, $matches))
-					{
-						$number = $matches[1];
-					}
-					$prop = $request->isPost() ? $request->getPost("PROP") : $request->getQuery("PROP");
-					if ($number > 0 && is_array($prop) && array_key_exists($number, $prop))
-					{
-						$prop = $prop[$number];
-						if (!empty($prop) && is_array($prop))
-						{
-							if (!array_key_exists('tmp_name', $prop))
-								$prop = current($prop);
-							$file_id = $prop;
-						}
-					}
-				}
-				echo \Bitrix\Main\UI\FileInput::createInstance(
-					array(
-						"name" => $name."[".$key."]",
-						"id" => $name."[".$key."]_".mt_rand(1, 1000000),
-						"description" => $property_fields["WITH_DESCRIPTION"]=="Y",
-						"allowUpload" => "F",
-						"allowUploadExt" => $property_fields["FILE_TYPE"],
-						"maxCount" => 1
-					) + $newUploaderParams
-				)->show($file_id, $bVarsFromForm);
-			}
-			else
-			{
-				echo CFileInput::Show($name."[".$key."]", $file_id, $oldUploaderParams, $inputParams);
-			}
-			break;
-		}
-	}
-	else
-	{
-		$inputName = array();
-		foreach($values as $key=>$val)
-		{
-			$inputName[$name."[".$key."]"] = (is_array($val) && array_key_exists("VALUE", $val) ? $val["VALUE"] : $val);
-		}
-
-		if ($newUploaderExists)
-		{
 			if ($bVarsFromForm)
 			{
 				$request = \Bitrix\Main\Context::getCurrent()->getRequest();
@@ -375,29 +300,79 @@ function _ShowFilePropertyField($name, $property_fields, $values, $max_file_size
 				{
 					$prop = $prop[$number];
 					if (!empty($prop) && is_array($prop))
-						$values = $prop;
-				}
-
-				$inputName = array();
-				foreach($values as $key=>$val)
-				{
-					$inputName[$name."[".$key."]"] = $val;
+					{
+						if (!array_key_exists('tmp_name', $prop))
+							$prop = current($prop);
+						$file_id = $prop;
+					}
 				}
 			}
 			echo \Bitrix\Main\UI\FileInput::createInstance(
 				array(
-					"name" => $name."[n#IND#]",
-					"id" => $name."[n#IND#]_".mt_rand(1, 1000000),
+					"name" => $name."[".$key."]",
+					"id" => $name."[".$key."]_".mt_rand(1, 1000000),
 					"description" => $property_fields["WITH_DESCRIPTION"]=="Y",
 					"allowUpload" => "F",
-					"allowUploadExt" => $property_fields["FILE_TYPE"]
+					"allowUploadExt" => $property_fields["FILE_TYPE"],
+					"maxCount" => 1
 				) + $newUploaderParams
-			)->show($inputName, $bVarsFromForm);
+			)->show($file_id, $bVarsFromForm);
+			break;
 		}
-		else
+	}
+	else
+	{
+		$inputName = array();
+		foreach($values as $key=>$val)
 		{
-			echo CFileInput::ShowMultiple($inputName, $name."[n#IND#]", $oldUploaderParams, false, $inputParams);
+			$inputName[$name."[".$key."]"] = (is_array($val) && array_key_exists("VALUE", $val) ? $val["VALUE"] : $val);
 		}
+
+		if ($bVarsFromForm)
+		{
+			$request = \Bitrix\Main\Context::getCurrent()->getRequest();
+			$number = 0;
+			if (preg_match("/PROP\\[(\d+)\\]/i", $name, $matches))
+			{
+				$number = $matches[1];
+			}
+			$prop = $request->isPost() ? $request->getPost("PROP") : $request->getQuery("PROP");
+			if ($number > 0 && is_array($prop) && array_key_exists($number, $prop))
+			{
+				$prop = $prop[$number];
+				if (!empty($prop) && is_array($prop))
+				{
+					$clearProp = array();
+					foreach ($prop as $valueRowId => $valueRow)
+					{
+						$correct = true;
+						if (preg_match('/^n\d+$/', $valueRowId) && is_string($valueRow))
+						{
+							if (!preg_match('/^\d+$/', $valueRow))
+								$correct = false;
+						}
+						if ($correct)
+							$clearProp[$valueRowId] = $valueRow;
+					}
+					$values = $clearProp;
+				}
+			}
+
+			$inputName = array();
+			foreach($values as $key=>$val)
+			{
+				$inputName[$name."[".$key."]"] = $val;
+			}
+		}
+		echo \Bitrix\Main\UI\FileInput::createInstance(
+			array(
+				"name" => $name."[n#IND#]",
+				"id" => $name."[n#IND#]_".mt_rand(1, 1000000),
+				"description" => $property_fields["WITH_DESCRIPTION"]=="Y",
+				"allowUpload" => "F",
+				"allowUploadExt" => $property_fields["FILE_TYPE"]
+			) + $newUploaderParams
+		)->show($inputName, $bVarsFromForm);
 	}
 }
 
@@ -422,6 +397,7 @@ function _ShowListPropertyField($name, $property_fields, $values, $bInitDef = fa
 	{
 		$cnt = 0;
 		$wSel = false;
+		$res_tmp = '';
 		while($ar_enum = $prop_enums->Fetch())
 		{
 			$cnt++;
@@ -447,10 +423,10 @@ function _ShowListPropertyField($name, $property_fields, $values, $bInitDef = fa
 
 		if($cnt==1)
 			$res = $res_tmp;
-		elseif($multiple!="Y")
+		elseif($multiple!="Y" && $property_fields['IS_REQUIRED'] != 'Y')
 			$res = '<input type="radio" name="'.$name.'[]" value=""'.(!$wSel?" checked":"").' id="'.$uniq.'"><label for="'.$uniq.'">'.htmlspecialcharsex(($def_text ? $def_text : GetMessage("IBLOCK_AT_PROP_NO") )).'</label><br>'.$res;
 
-		if($multiple=="Y" || $cnt==1)
+		if($multiple=="Y" || $cnt==1 || $property_fields['IS_REQUIRED'] == 'Y')
 			$res = '<input type="hidden" name="'.$name.'" value="">'.$res;
 	}
 	else //list property as list
@@ -549,8 +525,8 @@ function _ShowUserPropertyField($name, $property_fields, $values, $bInitDef = fa
 					$html .= '&nbsp;';
 				$html .= '</td></tr>';
 
-				if(substr($key, -1, 1)=='n' && $max_val < intval(substr($key, 1)))
-					$max_val = intval(substr($key, 1));
+				if(mb_substr($key, -1, 1) == 'n' && $max_val < intval(mb_substr($key, 1)))
+					$max_val = intval(mb_substr($key, 1));
 				if($property_fields["MULTIPLE"] != "Y")
 				{
 					$bVarsFromForm = true;
@@ -565,7 +541,7 @@ function _ShowUserPropertyField($name, $property_fields, $values, $bInitDef = fa
 		|| ($bVarsFromForm && !$bMultiple && count($values) == 0) //Was not displayed
 	)
 	{
-		$bDefaultValue = is_array($property_fields["DEFAULT_VALUE"]) || strlen($property_fields["DEFAULT_VALUE"]);
+		$bDefaultValue = is_array($property_fields["DEFAULT_VALUE"]) || mb_strlen($property_fields["DEFAULT_VALUE"]);
 
 		if($property_fields["MULTIPLE"]=="Y")
 		{
@@ -623,7 +599,7 @@ function _ShowUserPropertyField($name, $property_fields, $values, $bInitDef = fa
 		&& !$bMultiple
 	)
 	{
-		$html .= '<tr><td><input type="button" value="'.GetMessage("IBLOCK_AT_PROP_ADD").'" onClick="addNewRow(\'tb'.md5($name).'\')"></td></tr>';
+		$html .= '<tr><td><input type="button" value="'.GetMessage("IBLOCK_AT_PROP_ADD").'" onClick="BX.IBlock.Tools.addNewRow(\'tb'.md5($name).'\')"></td></tr>';
 	}
 	$html .= '</table>';
 	echo $html;
@@ -1053,55 +1029,66 @@ class CEditorPopupControl
 	protected $width;
 	protected $height;
 	protected $initHtml = false;
+	/** @var bool  */
+	protected $filemanIncluded = null;
 
-	function __construct($width = 420, $height = 200)
+	public function __construct(int $width = 420, int $height = 200)
 	{
-		$this->width = intval($width);
-		$this->height = intval($height);
+		$this->width = $width;
+		$this->height = $height;
+		$this->filemanIncluded = Loader::includeModule('fileman');
 	}
 
-	function getControlHtml($name, $value, $maxLength = 255)
+	public function getEditorHtml(): string
 	{
 		$result = '';
-		if (!Loader::includeModule('fileman'))
-			return $result;
-
-		if (!$this->initHtml)
+		if (!$this->filemanIncluded || $this->initHtml)
 		{
-			$this->initHtml = true;
+			return $result;
+		}
+		$this->initHtml = true;
+		Main\Page\Asset::getInstance()->addJs('/bitrix/js/iblock/iblock_edit.js');
 
-			Main\Page\Asset::getInstance()->addJs('/bitrix/js/iblock/iblock_edit.js');
-
-			$result .= '<div id="popup_editor_start" style="display: none">';
-			ob_start();
-			$LHE = new CLightHTMLEditor;
-			$LHE->Show(array(
-				'height' => $height - 40,
-				'width' => '100%',
-				'content' => '',
-				'bResizable' => true,
-				'bUseFileDialogs' => false,
-				'bFloatingToolbar' => false,
-				'bArisingToolbar' => true,
-				'bAutoResize' => true,
-				'bSaveOnBlur' => true,
-				'bInitByJS' => true,
-				'jsObjName' => 'popup_editor',
-				'toolbarConfig' => array(
-					'Bold', 'Italic', 'Underline', 'Strike',
-					'CreateLink', 'DeleteLink',
-					'Source', 'BackColor', 'ForeColor',
-				),
-				'id' => 'popup_editor_id',
-			));
-			$result .= ob_get_contents();
-			ob_end_clean();
-			$result .= '</div>';
-			$result .= '<script>
+		$result .= '<div id="popup_editor_start" style="display: none">';
+		ob_start();
+		$LHE = new CLightHTMLEditor;
+		$LHE->Show(array(
+			'height' => $this->height - 40,
+			'width' => '100%',
+			'content' => '',
+			'bResizable' => true,
+			'bUseFileDialogs' => false,
+			'bFloatingToolbar' => false,
+			'bArisingToolbar' => true,
+			'bAutoResize' => true,
+			'bSaveOnBlur' => true,
+			'bInitByJS' => true,
+			'jsObjName' => 'popup_editor',
+			'toolbarConfig' => array(
+				'Bold', 'Italic', 'Underline', 'Strike',
+				'CreateLink', 'DeleteLink',
+				'Source', 'BackColor', 'ForeColor',
+			),
+			'id' => 'popup_editor_id',
+		));
+		$result .= ob_get_contents();
+		ob_end_clean();
+		$result .= '</div>';
+		$result .= '<script>
 				var popup_editor_dialog;
 				var popup_editor_manager = new JCPopupEditor('.$this->width.', '.$this->height.');
 			</script>';
-		}
+		return $result;
+	}
+
+	public function getControlHtml(string $name, string $value, $maxLength = 255): string
+	{
+		$result = '';
+		if (!$this->filemanIncluded)
+			return $result;
+
+		if (!$this->initHtml)
+			$result = $this->getEditorHtml();
 
 		$value = trim($value);
 		if ($value)

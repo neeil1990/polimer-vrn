@@ -19,7 +19,7 @@ class CAllPullStack
 			if ($newLastId < $arRes['ID'])
 				$newLastId = $arRes['ID'];
 
-			$data = unserialize($arRes['MESSAGE']);
+			$data = unserialize($arRes['MESSAGE'], ["allowed_classes" => false]);
 			$data['id'] = $arRes['ID'];
 			$data['extra'] = Array(
 				'server_time' => date('c'),
@@ -54,7 +54,7 @@ class CAllPullStack
 		}
 
 		$result = false;
-		if (strlen($params['module_id']) <= 0 || strlen($params['command']) <= 0)
+		if ($params['module_id'] == '' || $params['command'] == '')
 		{
 			return false;
 		}
@@ -76,13 +76,13 @@ class CAllPullStack
 		}
 
 		$arData = Array(
-			'module_id' => strtolower($params['module_id']),
+			'module_id' => mb_strtolower($params['module_id']),
 			'command' => $params['command'],
 			'params' => is_array($params['params'])? $params['params']: Array(),
 			'extra' => $extra
 		);
 
-		if (!is_array($channelId) && CPullOptions::GetQueueServerVersion() == 1)
+		if (!is_array($channelId) && !CPullOptions::IsServerShared() && CPullOptions::GetQueueServerVersion() == 1)
 		{
 			$arData['extra']['channel'] = $channelId;
 		}

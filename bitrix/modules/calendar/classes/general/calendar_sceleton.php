@@ -8,21 +8,27 @@ class CCalendarSceleton
 	public static function InitJS($config = array(), $data = array(), $additionalParams = array())
 	{
 		global $APPLICATION;
-		CJSCore::Init(array('ajax', 'window', 'popup', 'access', 'date', 'viewer', 'socnetlogdest','color_picker', 'sidepanel', 'clipboard'));
+		\Bitrix\Main\UI\Extension::load(['ajax', 'window', 'popup', 'access', 'date', 'viewer', 'color_picker','sidepanel', 'clipboard']);
+		\Bitrix\Main\UI\Extension::load(['ui.alerts', 'ui.buttons', 'ui.buttons.icons', 'ui.tooltip', 'ui.entity-selector', 'ui.forms', 'ui.hint']);
 
-		\Bitrix\Main\UI\Extension::load("ui.alerts");
-		\Bitrix\Main\UI\Extension::load("ui.buttons");
-		\Bitrix\Main\UI\Extension::load("ui.buttons.icons");
-		\Bitrix\Main\UI\Extension::load("ui.tooltip");
+		\Bitrix\Main\UI\Extension::load([
+			'calendar.util',
+			'calendar.entry',
+			'calendar.calendarsection',
+			'calendar.controls',
+			'calendar.sliderloader',
+//			'calendar.sync.interface',
+			'calendar.sync.manager',
+		]);
 
 		if(\Bitrix\Main\Loader::includeModule('rest'))
 		{
-			CJSCore::Init(array('applayout'));
+			\Bitrix\Main\UI\Extension::load('applayout');
 		}
 
 		if(\Bitrix\Main\Loader::includeModule('webservice'))
 		{
-			CJSCore::Init(array('stssync'));
+			\Bitrix\Main\UI\Extension::load('stssync');
 		}
 
 		if (\Bitrix\Main\Loader::includeModule('bitrix24') && !in_array(\CBitrix24::getLicenseType(), array('company', 'demo', 'edu', 'bis_inc', 'nfr')))
@@ -140,7 +146,7 @@ class CCalendarSceleton
 			return;
 
 		$url = CHTTP::urlDeleteParams($url, array("action", "sessid", "bx_event_calendar_request", "event_id", "reqId"));
-		$url = $url.(strpos($url,'?') === false ? '?' : '&').'action=userfield_save&bx_event_calendar_request=Y&'.bitrix_sessid_get();
+		$url = $url.(mb_strpos($url, '?') === false ? '?' : '&').'action=userfield_save&bx_event_calendar_request=Y&'.bitrix_sessid_get();
 ?>
 <form method="post" name="calendar-event-uf-form<?=$eventId?>" action="<?= $url?>" enctype="multipart/form-data" encoding="multipart/form-data">
 <input name="event_id" type="hidden" value="" />
@@ -240,6 +246,26 @@ class CCalendarSceleton
 			?></div><?
 		}
 		return $result;
+	}
+
+	/**
+	 * @param string $title
+	 * @param string $content
+	 * @return bool
+	 */
+	public static function showCalendarGridError(string $title, string $content = ''): bool
+	{
+		global $APPLICATION;
+		$APPLICATION->IncludeComponent(
+			"bitrix:calendar.grid.error",
+			"",
+			[
+				'TITLE' => $title,
+				'CONTENT' => $content,
+			]
+		);
+
+		return true;
 	}
 }
 ?>

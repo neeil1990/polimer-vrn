@@ -1,8 +1,10 @@
 <?php
 namespace Bitrix\Iblock;
 
-use Bitrix\Main\Entity;
+use Bitrix\Main\ORM;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\ORM\Event;
+
 Loc::loadMessages(__FILE__);
 
 /**
@@ -42,7 +44,7 @@ Loc::loadMessages(__FILE__);
  * @package Bitrix\Iblock
  **/
 
-class SectionTable extends Entity\DataManager
+class SectionTable extends ORM\Data\DataManager
 {
 	/**
 	 * Returns DB table name for entity
@@ -196,7 +198,7 @@ class SectionTable extends Entity\DataManager
 	public static function validateName()
 	{
 		return array(
-			new Entity\Validator\Length(null, 255),
+			new ORM\Fields\Validators\LengthValidator(null, 255),
 		);
 	}
 
@@ -208,7 +210,7 @@ class SectionTable extends Entity\DataManager
 	public static function validateCode()
 	{
 		return array(
-			new Entity\Validator\Length(null, 255),
+			new ORM\Fields\Validators\LengthValidator(null, 255),
 		);
 	}
 
@@ -220,7 +222,7 @@ class SectionTable extends Entity\DataManager
 	public static function validateXmlId()
 	{
 		return array(
-			new Entity\Validator\Length(null, 255),
+			new ORM\Fields\Validators\LengthValidator(null, 255),
 		);
 	}
 
@@ -232,7 +234,58 @@ class SectionTable extends Entity\DataManager
 	public static function validateTmpId()
 	{
 		return array(
-			new Entity\Validator\Length(null, 40),
+			new ORM\Fields\Validators\LengthValidator(null, 40),
 		);
+	}
+
+	public static function onAfterAdd(Event $event)
+	{
+		/** @var EO_Section $section */
+		$section = $event->getParameter('object');
+		$section->fill(['IBLOCK_ID', 'IBLOCK_SECTION_ID', 'NAME', 'SORT']);
+
+		// clear tag cache
+		\CIBlock::clearIblockTagCache($section->getIblockId());
+
+		// recount tree
+		\CAllIBlockSection::recountTreeAfterAdd($section->collectValues());
+	}
+
+	public static function onUpdate(Event $event)
+	{
+		/** @var EO_Section $section */
+		$section = $event->getParameter('object');
+
+		// save old fields
+		$oldValues = \CIBlockSection::GetList([], ["ID" => $section->getId(), "CHECK_PERMISSIONS" => "N"]);
+		$section->customData->set('RECOUNT_TREE_OLD_VALUES', $oldValues);
+	}
+
+	public static function onAfterUpdate(Event $event)
+	{
+		/** @var EO_Section $section */
+		$section = $event->getParameter('object');
+		$section->fill(['IBLOCK_ID', 'IBLOCK_SECTION_ID', 'NAME', 'SORT', 'ACTIVE']);
+
+		// clear tag cache
+		\CIBlock::clearIblockTagCache($section->getIblockId());
+
+		// recount tree
+		\CAllIBlockSection::recountTreeAfterUpdate($section->collectValues(), $section->customData->get('RECOUNT_TREE_OLD_VALUES'));
+	}
+
+	public static function onDelete(Event $event)
+	{
+		$section = static::wakeUpObject($event->getParameter('id'));
+		$section->fill(['IBLOCK_ID']);
+
+		// clear tag cache
+		\CIBlock::clearIblockTagCache($section->getIblockId());
+	}
+
+	public static function onAfterDelete(Event $event)
+	{
+		// recount tree
+		\CAllIBlockSection::recountTreeOnDelete(['ID' => $event->getParameter('id')]);
 	}
 }

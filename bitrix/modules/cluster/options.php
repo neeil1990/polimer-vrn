@@ -1,46 +1,79 @@
-<?
+<?php
+
 $module_id = "cluster";
 $RIGHT = $APPLICATION->GetGroupRight($module_id);
-if($RIGHT >= "R") :
+
+if ($RIGHT >= "R") :
+CModule::IncludeModule($module_id);
 
 IncludeModuleLangFile($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/main/options.php");
 IncludeModuleLangFile(__FILE__);
 
-$arAllOptions = Array(
-	array("max_slave_delay", GetMessage("CLUSTER_OPTIONS_MAX_SLAVE_DELAY")." ", array("text", 6)),
-);
+$options = [
+	["max_slave_delay", GetMessage("CLUSTER_OPTIONS_MAX_SLAVE_DELAY")." ", ["text", 6]],
+	["cache_type", GetMessage("CLUSTER_OPTIONS_CACHE_TYPE"), [
+		"select", [
+			'memcache' => GetMessage('CLUSTER_OPTIONS_CACHE_TYPE_MEMCACHE'),
+			'redis' => GetMessage('CLUSTER_OPTIONS_CACHE_TYPE_REDIS'),
+		]
+	]],
+	["heading", GetMessage("CLUSTER_OPTIONS_REDIS_SETTINGS"), ["heading", ""]],
+	["redis_pconnect", GetMessage("CLUSTER_REDIS_PCONNECT_SETTING"), ["checkbox", "Y"]],
 
-$aTabs = array(
-	array("DIV" => "edit1", "TAB" => GetMessage("MAIN_TAB_SET"), "ICON" => $module_id."_settings", "TITLE" => GetMessage("MAIN_TAB_TITLE_SET")),
-);
-$tabControl = new CAdminTabControl("tabControl", $aTabs);
+	["failower_settings", GetMessage("CLUSTER_OPTIONS_REDIS_FAILOWER_SETTINGS"), [
+		"select", [
+			"0" => GetMessage("REDIS_OPTIONS_FAILOWER_NONE"),
+			"1" => GetMessage("REDIS_OPTIONS_FAILOWER_ERROR"),
+			"2" => GetMessage("REDIS_OPTIONS_FAILOVER_DISTRIBUTE"),
+			"3" => GetMessage("REDIS_OPTIONS_FAILOVER_DISTRIBUTE_SLAVES"),
+		]
+	]],
+	["redis_timeoit", GetMessage("CLUSTER_OPTIONS_MAX_SLAVE_DELAY")." ", ["text", 6]],
+	["redis_read_timeout", GetMessage("CLUSTER_OPTIONS_MAX_SLAVE_DELAY")." ", ["text", 6]],
+];
 
-CModule::IncludeModule($module_id);
+$tabs = [[
+	"DIV" => "edit1",
+	"TAB" => GetMessage("MAIN_TAB_SET"),
+	"ICON" => $module_id."_settings",
+	"TITLE" => GetMessage("MAIN_TAB_TITLE_SET")
+]];
 
-if($REQUEST_METHOD=="POST" && strlen($Update.$Apply.$RestoreDefaults) > 0 && $RIGHT=="W" && check_bitrix_sessid())
+$tabControl = new CAdminTabControl("tabControl", $tabs);
+
+if ($REQUEST_METHOD == "POST" && $Update.$Apply.$RestoreDefaults <> '' && $RIGHT == "W" && check_bitrix_sessid())
 {
-	if(strlen($RestoreDefaults)>0)
+	if ($RestoreDefaults <> '')
 	{
 		COption::RemoveOption($module_id);
 	}
 	else
 	{
-		foreach($arAllOptions as $arOption)
+		foreach ($options as $option)
 		{
-			$name=$arOption[0];
-			$val=$_REQUEST[$name];
-			if($arOption[2][0]=="checkbox" && $val!="Y")
-				$val="N";
-			COption::SetOptionString($module_id, $name, $val, $arOption[1]);
+			$name = $option[0];
+			$val = $_REQUEST[$name];
+			if ($option[2][0] == "checkbox" && $val != "Y")
+			{
+				$val = "N";
+			}
+			COption::SetOptionString($module_id, $name, $val, $option[1]);
 		}
 	}
 
-	if(strlen($_REQUEST["back_url_settings"]) > 0)
+	$servers = CClusterRedis::loadConfig();
+	CClusterRedis::saveConfig($servers);
+
+	if ($_REQUEST["back_url_settings"] <> '')
 	{
-		if((strlen($Apply) > 0) || (strlen($RestoreDefaults) > 0))
+		if (($Apply <> '') || ($RestoreDefaults <> ''))
+		{
 			LocalRedirect($APPLICATION->GetCurPage()."?mid=".urlencode($module_id)."&lang=".urlencode(LANGUAGE_ID)."&back_url_settings=".urlencode($_REQUEST["back_url_settings"])."&".$tabControl->ActiveTabParam());
+		}
 		else
+		{
 			LocalRedirect($_REQUEST["back_url_settings"]);
+		}
 	}
 	else
 	{
@@ -48,39 +81,58 @@ if($REQUEST_METHOD=="POST" && strlen($Update.$Apply.$RestoreDefaults) > 0 && $RI
 	}
 }
 
-?>
-<form method="post" action="<?echo $APPLICATION->GetCurPage()?>?mid=<?=urlencode($module_id)?>&amp;lang=<?=LANGUAGE_ID?>">
-<?
+?><form method="post" action="<?echo $APPLICATION->GetCurPage()?>?mid=<?=urlencode($module_id)?>&amp;lang=<?=LANGUAGE_ID?>"><?
+
 $tabControl->Begin();
 $tabControl->BeginNextTab();
 
-	foreach($arAllOptions as $arOption):
-		$val = COption::GetOptionString($module_id, $arOption[0]);
-		$type = $arOption[2];
-	?>
-	<tr>
-		<td width="40%" nowrap <?if($type[0]=="textarea") echo 'class="adm-detail-valign-top"'?>>
-			<label for="<?echo htmlspecialcharsbx($arOption[0])?>"><?echo $arOption[1]?>:</label>
-		<td width="60%">
-			<?if($type[0]=="checkbox"):?>
-				<input type="checkbox" name="<?echo htmlspecialcharsbx($arOption[0])?>" id="<?echo htmlspecialcharsbx($arOption[0])?>" value="Y"<?if($val=="Y")echo" checked";?>>
-			<?elseif($type[0]=="text"):?>
-				<input type="text" size="<?echo $type[1]?>" maxlength="255" value="<?echo htmlspecialcharsbx($val)?>" name="<?echo htmlspecialcharsbx($arOption[0])?>" id="<?echo htmlspecialcharsbx($arOption[0])?>">
-			<?elseif($type[0]=="textarea"):?>
-				<textarea rows="<?echo $type[1]?>" cols="<?echo $type[2]?>" name="<?echo htmlspecialcharsbx($arOption[0])?>" id="<?echo htmlspecialcharsbx($arOption[0])?>"><?echo htmlspecialcharsbx($val)?></textarea>
-			<?endif?>
-		</td>
-	</tr>
-	<?endforeach?>
-<?$tabControl->Buttons();?>
-	<input <?if ($RIGHT<"W") echo "disabled" ?> type="submit" name="Update" value="<?=GetMessage("MAIN_SAVE")?>" title="<?=GetMessage("MAIN_OPT_SAVE_TITLE")?>" class="adm-btn-save">
-	<input <?if ($RIGHT<"W") echo "disabled" ?> type="submit" name="Apply" value="<?=GetMessage("MAIN_OPT_APPLY")?>" title="<?=GetMessage("MAIN_OPT_APPLY_TITLE")?>">
-	<?if(strlen($_REQUEST["back_url_settings"])>0):?>
-		<input <?if ($RIGHT<"W") echo "disabled" ?> type="button" name="Cancel" value="<?=GetMessage("MAIN_OPT_CANCEL")?>" title="<?=GetMessage("MAIN_OPT_CANCEL_TITLE")?>" onclick="window.location='<?echo htmlspecialcharsbx(CUtil::addslashes($_REQUEST["back_url_settings"]))?>'">
-		<input type="hidden" name="back_url_settings" value="<?=htmlspecialcharsbx($_REQUEST["back_url_settings"])?>">
-	<?endif?>
-	<input type="submit" name="RestoreDefaults" title="<?echo GetMessage("MAIN_HINT_RESTORE_DEFAULTS")?>" OnClick="confirm('<?echo AddSlashes(GetMessage("MAIN_HINT_RESTORE_DEFAULTS_WARNING"))?>')" value="<?echo GetMessage("MAIN_RESTORE_DEFAULTS")?>">
-	<?=bitrix_sessid_post();?>
-<?$tabControl->End();?>
-</form>
-<?endif;?>
+	foreach ($options as $option):
+
+		$type = $option[2];
+		if ($type[0] != "heading"):
+			$val = COption::GetOptionString($module_id, $option[0]);
+			?><tr><?
+				?><td width="40%" nowrap <?if($type[0]=="textarea") echo 'class="adm-detail-valign-top"'?>><?
+					?><label for="<?echo htmlspecialcharsbx($option[0])?>"><?echo $option[1]?>:</label><?
+				?><td width="60%"><?
+		endif;
+
+		if ($type[0] == "checkbox"):
+			?><input type="checkbox" name="<?=htmlspecialcharsbx($option[0]);?>" id="<?=htmlspecialcharsbx($option[0]);?>"value="Y"<? if ($val == "Y") echo " checked";?>><?
+		elseif ($type[0] == "text"):
+			?><input type="text" size="<?=$type[1]?>" maxlength="255" value="<?=htmlspecialcharsbx($val);?>"name="<?=htmlspecialcharsbx($option[0]);?>"id="<?=htmlspecialcharsbx($option[0]);?>"><?
+		elseif ($type[0] == "textarea"):
+			?><textarea rows="<?=$type[1];?>" cols="<?=$type[2];?>" name="<?=htmlspecialcharsbx($option[0]);?>"id="<?=htmlspecialcharsbx($option[0]);?>"><?=htmlspecialcharsbx($val);?></textarea><?
+		elseif ($type[0] == "select"):
+			?><select name="<?=htmlspecialcharsbx($option[0]);?>" ><?
+				foreach ($type[1] as $key => $value):
+					?><option value="<?=htmlspecialcharsbx($key);?>" <? if ($val == $key) echo 'selected="selected"'?>><?=htmlspecialcharsEx($value);?></option><?
+				endforeach
+			?></select><?
+		elseif ($type[0] == "heading"):
+			?><tr class="heading"><td colspan="2"><b><?=$option[1];?></b></td></tr><?
+		endif;
+
+		if ($type[0] != "heading"):
+			?></td></tr><?
+		endif;
+
+	endforeach;
+
+$tabControl->Buttons();
+
+	?><input <?if ($RIGHT<"W") echo "disabled" ?> type="submit" name="Update" value="<?=GetMessage("MAIN_SAVE")?>" title="<?=GetMessage("MAIN_OPT_SAVE_TITLE")?>" class="adm-btn-save"><?
+	?><input <?if ($RIGHT<"W") echo "disabled" ?> type="submit" name="Apply" value="<?=GetMessage("MAIN_OPT_APPLY")?>" title="<?=GetMessage("MAIN_OPT_APPLY_TITLE")?>"><?
+
+	if ($_REQUEST["back_url_settings"] <> ''):
+		?><input <?if ($RIGHT<"W") echo "disabled" ?> type="button" name="Cancel" value="<?=GetMessage("MAIN_OPT_CANCEL")?>" title="<?=GetMessage("MAIN_OPT_CANCEL_TITLE")?>" onclick="window.location='<?echo htmlspecialcharsbx(CUtil::addslashes($_REQUEST["back_url_settings"]))?>'"><?
+		?><input type="hidden" name="back_url_settings" value="<?=htmlspecialcharsbx($_REQUEST["back_url_settings"])?>"><?
+	endif;
+
+	?><input type="submit" name="RestoreDefaults" title="<?echo GetMessage("MAIN_HINT_RESTORE_DEFAULTS")?>" OnClick="confirm('<?echo AddSlashes(GetMessage("MAIN_HINT_RESTORE_DEFAULTS_WARNING"))?>')" value="<?echo GetMessage("MAIN_RESTORE_DEFAULTS")?>">
+	<?=bitrix_sessid_post();
+	$tabControl->End();
+?></form><?
+endif;
+
+?>

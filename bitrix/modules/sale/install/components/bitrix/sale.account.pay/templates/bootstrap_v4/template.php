@@ -23,7 +23,7 @@ else
 {
 	if ($arParams['REFRESHED_COMPONENT_MODE'] === 'Y')
 	{
-		$wrapperId = str_shuffle(substr($arResult['SIGNED_PARAMS'],0,10));
+		$wrapperId = str_shuffle(mb_substr($arResult['SIGNED_PARAMS'], 0, 10));
 		?>
 		<div class="bx-sap row">
 			<div class="col" id="bx-sap<?=$wrapperId?>">
@@ -57,7 +57,7 @@ else
 						<div class="col form-horizontal">
 							<h3 class="mb-2"><?=Loc::getMessage("SAP_SUM")?></h3>
 							<div class="form-group row">
-								<div class='col-3 input-group'>
+								<div class='col-12 col-md-4 input-group'>
 									<?
 									$inputElement = "
 										<input type='text' placeholder='0.00' 
@@ -65,15 +65,11 @@ else
 											."name=".CUtil::JSEscape(htmlspecialcharsbx($arParams["VAR"]))." "
 											.($arParams['SELL_USER_INPUT'] === 'N' ? "disabled" :"").
 										">";
-									$tempCurrencyRow = trim(str_replace("#", "", $arResult['FORMATED_CURRENCY']));
-									$labelWrapper = "
+									$currencyRow = "
 										<div class='input-group-append'>
-											<span class='input-group-text' id='inputGroupPrepend'>".$tempCurrencyRow."</span>
+											<span class='input-group-text' id='inputGroupPrepend'>".$arResult['FORMATED_CURRENCY']."</span>
 										</div>";
-									$currencyRow = str_replace($tempCurrencyRow, $labelWrapper, $arResult['FORMATED_CURRENCY']);
-									$currencyRow = str_replace($tempCurrencyRow, $labelWrapper, $arResult['FORMATED_CURRENCY']);
-									$currencyRow = str_replace("#", $inputElement, $currencyRow);
-									echo $currencyRow;
+									echo $inputElement.$currencyRow;
 									?>
 								</div>
 							</div>

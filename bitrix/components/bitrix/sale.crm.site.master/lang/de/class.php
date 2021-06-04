@@ -1,0 +1,24 @@
+<?
+$MESS["SALE_CSM_MODULE_NOT_INSTALL"] = "Das Modul Onlineshop ist nicht installiert.";
+$MESS["SALE_CSM_TITLE"] = "Bestellungen im Bitrix24 konvertieren";
+$MESS["SALE_CSM_WIZARD_STEP_NOT_FOUND"] = "Datei mit dem Schritt #STEP_NAME# wurde nicht gefunden";
+$MESS["SALE_CSM_WIZARD_TEMPLATE_NOT_FOUND"] = "Datei mit der Assistentenvorlage wurde nicht gefunden";
+$MESS["SALE_CSM_WIZARD_ERROR_SESSION_EXPIRED"] = "Ihre Sitzung ist abgelaufen.";
+$MESS["SALE_CSM_ACCESS_DENIED"] = "Zugriff verweigert.";
+$MESS["SALE_CSM_MODULE_CALENDAR_NAME"] = "Kalender";
+$MESS["SALE_CSM_MODULE_CRM_NAME"] = "CRM";
+$MESS["SALE_CSM_MODULE_DAV_NAME"] = "DAV";
+$MESS["SALE_CSM_MODULE_DISK_NAME"] = "Drive";
+$MESS["SALE_CSM_MODULE_IMCONNECTOR_NAME"] = "Connectors f?r externe Messenger";
+$MESS["SALE_CSM_MODULE_IMOPENLINES_NAME"] = "Kommunikationskan?le";
+$MESS["SALE_CSM_MODULE_IM_NAME"] = "Instant Messaging";
+$MESS["SALE_CSM_MODULE_INTRANET_NAME"] = "Intranet";
+$MESS["SALE_CSM_MODULE_MEETING_NAME"] = "Meetings and Briefings";
+$MESS["SALE_CSM_MODULE_MOBILEAPP_NAME"] = "Mobile Plattform";
+$MESS["SALE_CSM_MODULE_MOBILE_NAME"] = "Mobile Anwendunng";
+$MESS["SALE_CSM_MODULE_PULL_NAME"] = "Push and Pull";
+$MESS["SALE_CSM_MODULE_TASKS_NAME"] = "Aufgaben";
+$MESS["SALE_CSM_MODULE_TIMEMAN_NAME"] = "Arbeitszeitmanagement";
+$MESS["SALE_CSM_MODULE_VOXIMPLANT_NAME"] = "Telefonie";
+$MESS["ORDER_CRM_SITE_MASTER_ACCESS_DENIED"] = "Zugriff verweigert.";
+$MESS["SALE_CSM_MODULE_MAIN_NAME"] = "Hauptmodul";

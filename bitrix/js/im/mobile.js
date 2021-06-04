@@ -814,7 +814,7 @@ BX.ImMobile.prototype.mobileActionReady = function()
 			BX.create("div", { props : { className : "bx-messenger-textarea-open-invite" }, children : [
 				BX.create("div", { props : { className : "bx-messenger-textarea-open-invite-text-box" }, children: [
 					BX.create("div", { props : { className : "bx-messenger-textarea-open-invite-text-box-element" }, children: [
-						this.popupMessengerTextareaOpenText = BX.create("div", { props : { className : "bx-messenger-textarea-open-invite-text" }, html: BX.message('IM_O_INVITE_TEXT')})
+						this.popupMessengerTextareaOpenText = BX.create("div", { props : { className : "bx-messenger-textarea-open-invite-text" }, html: BX.message('IM_O_INVITE_TEXT_NEW')})
 					]})
 				]}),
 				this.popupMessengerTextareaOpenJoin = BX.create("div", { props : { className : "bx-messenger-textarea-open-invite-join bx-notifier-item-button bx-notifier-item-button-confirm bx-notifier-item-button-accept" }, html: BX.message('IM_O_INVITE_JOIN')})
@@ -2075,7 +2075,7 @@ BX.ImMessengerMobile.prototype.dialogStatusRedrawDelay = function(params)
 				}
 				if (this.chat[chatId].owner == this.BXIM.userId)
 				{
-					items.push({ icon: 'pause', name: BX.message(session.pin == "Y"? "IM_M_OL_PAUSE_OFF": "IM_M_OL_PAUSE_ON"), action:BX.delegate(function() {  this.linesTogglePinMode(); }, this)});
+					items.push({ icon: 'pause', name: BX.message(session.pin == "Y"? "IM_M_OL_ASSIGN_OFF": "IM_M_OL_ASSIGN_ON"), action:BX.delegate(function() {  this.linesTogglePinMode(); }, this)});
 					if (session.crm != 'Y')
 					{
 						items.push({ name: BX.message('IM_M_OL_ADD_LEAD'), action:BX.delegate(function() {  this.linesCreateLead(); }, this)});
@@ -2590,11 +2590,11 @@ BX.ImMessengerMobile.prototype.redrawChatHeaderDelay = function()
 			}
 			else if (this.chat[chatId].type == 'open')
 			{
-				BXMobileApp.UI.Page.TopBar.title.setDetailText(BX.message("IM_CL_OPEN_CHAT"));
+				BXMobileApp.UI.Page.TopBar.title.setDetailText(BX.message("IM_CL_OPEN_CHAT_NEW"));
 			}
 			else
 			{
-				BXMobileApp.UI.Page.TopBar.title.setDetailText(BX.message("IM_CL_CHAT_2"));
+				BXMobileApp.UI.Page.TopBar.title.setDetailText(BX.message("IM_CL_CHAT_NEW"));
 			}
 		}
 		BXMobileApp.UI.Page.TopBar.title.setImage(BX.MessengerCommon.isBlankAvatar(this.chat[chatId].avatar)? BX.MessengerCommon.getDefaultAvatar(avatarType): this.chat[chatId].avatar);
@@ -3123,7 +3123,7 @@ BX.ImMessengerMobile.prototype.openMessageMenu = function(messageId)
 		});
 
 		sheetButtons.push({
-			title: BX.message("IM_MENU_TO_POST"),
+			title: BX.message("IM_MENU_TO_POST_2"),
 			callback: BX.delegate(function () { BX.MessengerCommon.shareMessageAjax(messageId, 'POST') }, this)
 		});
 	}
@@ -3400,7 +3400,7 @@ BX.ImDiskManagerMobile.prototype.uploadFromDisk = function(selected, text)
 	{
 		this.files[chatId]['disk'+fileId] = {
 			'id': 'disk'+fileId,
-			'tempId': 'disk'+fileId,
+			'templateId': 'disk'+fileId,
 			'chatId': chatId,
 			'date': new Date(selected[fileId].modifyDateInt*1000),
 			'type': 'file',
@@ -3569,7 +3569,7 @@ BX.ImDiskManagerMobile.prototype.diskChatDialogFileInited = function(id, file, a
 
 	this.files[chatId][id] = {
 		'id': id,
-		'tempId': id,
+		'templateId': id,
 		'chatId': chatId,
 		'date': new Date(),
 		'type': file.isImage? 'image': 'file',

@@ -10,13 +10,14 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_0.MENU_1_NAME_NEW'),
 		'section' => 'menu',
+		'dynamic' => false,
 		'subtype' => 'menu',
 		'subtype_params' => array(
 			'selector' => '.landing-block-node-menu-list-item-link',
 			'count' => 5,
 			'source' => 'catalog',
 		),
-		'version' => '18.4.0',
+		'version' => '18.4.0', // old param for backward compatibility. Can used for old versions of module via repo. Do not delete!
 	),
 	'cards' => array(
 		'.landing-block-node-menu-list-item' => array(
@@ -43,7 +44,7 @@ return array(
 	),
 	'style' => array(
 		'block' => array(
-			'type' => array('block-default-wo-paddings'),
+			'type' => array('block-default-wo-paddings', 'header-on-scroll', 'header-position'),
 		),
 		'nodes' => array(
 			'.landing-block-node-menu-list-item-link' => array(
@@ -57,7 +58,7 @@ return array(
 		),
 	),
 	'assets' => array(
-		'ext' => array('landing_menu'),
+		'ext' => array('landing_menu', 'landing_header'),
 	),
 	'groups' => array(
 		'logo' => Loc::getMessage('LANDING_BLOCK_0.MENU_1_NODES_LANDINGBLOCKNODEMENULOGO'),

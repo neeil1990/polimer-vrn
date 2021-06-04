@@ -103,11 +103,34 @@ class Robot
 			? $this->bizprocActivity['Properties'] : array();
 	}
 
-	public function getProperty($name)
+	public function setProperties(array $properties): self
 	{
-		$name = (string)$name;
+		$this->bizprocActivity['Properties'] = $properties;
+		return $this;
+	}
+
+	public function getProperty(string $name)
+	{
 		$properties = $this->getProperties();
 		return array_key_exists($name, $properties) ? $properties[$name] : null;
+	}
+
+	public function setProperty(string $name, $value)
+	{
+		$properties = $this->getProperties();
+		$properties[$name] = $value;
+		return $this->setProperties($properties);
+	}
+
+	public function getReturnProperties(): array
+	{
+		return \CBPRuntime::GetRuntime(true)->getActivityReturnProperties($this->getType());
+	}
+
+	public function getReturnProperty(string $name): ?array
+	{
+		$props = $this->getReturnProperties();
+		return ($props && isset($props[$name])) ? $props[$name] : null;
 	}
 
 	public function getTitle()
@@ -123,6 +146,11 @@ class Robot
 	public function getType()
 	{
 		return $this->bizprocActivity['Type'];
+	}
+
+	public function getDescription(): ?array
+	{
+		return \CBPRuntime::GetRuntime(true)->GetActivityDescription($this->getType());
 	}
 
 	public function toArray()

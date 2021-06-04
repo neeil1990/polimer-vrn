@@ -20,7 +20,7 @@ abstract class CIBlockPropertyMapInterface
 	{
 		$arResult = array('VALUE' => '');
 
-		if (strlen($value['VALUE']) > 0)
+		if ($value['VALUE'] <> '')
 		{
 			$arCoords = explode(',', $value['VALUE'], 2);
 
@@ -38,7 +38,7 @@ abstract class CIBlockPropertyMapInterface
 	{
 		$arResult = array('VALUE' => '');
 
-		if (strlen($value['VALUE']) > 0)
+		if ($value['VALUE'] <> '')
 		{
 			$arCoords = explode(',', $value['VALUE'], 2);
 
@@ -58,13 +58,13 @@ abstract class CIBlockPropertyMapInterface
 		$strMapKeys = COPtion::GetOptionString('fileman', 'map_'.$map_type.'_keys');
 
 		$strDomain = $_SERVER['HTTP_HOST'];
-		$wwwPos = strpos($strDomain, 'www.');
+		$wwwPos = mb_strpos($strDomain, 'www.');
 		if ($wwwPos === 0)
-			$strDomain = substr($strDomain, 4);
+			$strDomain = mb_substr($strDomain, 4);
 
 		if ($strMapKeys)
 		{
-			$arMapKeys = unserialize($strMapKeys);
+			$arMapKeys = unserialize($strMapKeys, ['allowed_classes' => false]);
 
 			if (array_key_exists($strDomain, $arMapKeys))
 				$MAP_KEY = $arMapKeys[$strDomain];
@@ -88,6 +88,9 @@ class CIBlockPropertyMapGoogle extends CIBlockPropertyMapInterface
 			"ConvertFromDB" => array(__CLASS__,"ConvertFromDB"),
 			"GetSettingsHTML" => array(__CLASS__, "GetSettingsHTML"),
 			"PrepareSettings" => array(__CLASS__, "PrepareSettings"),
+			'GetUIEntityEditorProperty' => array(__CLASS__, 'GetUIEntityEditorProperty'),
+			'GetUIEntityEditorPropertyEditHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyEditHtml'),
+			'GetUIEntityEditorPropertyViewHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyViewHtml'),
 		);
 	}
 
@@ -140,7 +143,7 @@ class CIBlockPropertyMapGoogle extends CIBlockPropertyMapInterface
 		if ($strHTMLControlName["MODE"] != "FORM_FILL")
 			return '<input type="text" name="'.htmlspecialcharsbx($strHTMLControlName['VALUE']).'" value="'.htmlspecialcharsbx($value['VALUE']).'" />';
 
-		if (strlen($value['VALUE']) > 0)
+		if ($value['VALUE'] <> '')
 		{
 			list($POINT_LAT, $POINT_LON) = explode(',', $value['VALUE'], 2);
 			$bHasValue = true;
@@ -414,11 +417,15 @@ function updatePointPosition_<?echo $MAP_ID?>__n<?=$googleMapLastNumber?>_(obPoi
 	obInput.value = null == obP ? '' : obP[0] + ',' + obP[1];
 	BX('point_<?echo $MAP_ID?>__n<?=$googleMapLastNumber?>_lat').value = obP ? obP[0] : '';
 	BX('point_<?echo $MAP_ID?>__n<?=$googleMapLastNumber?>_lon').value = obP ? obP[1] : '';
+	if (obPoint.pixel)
+	{
+		BX.onCustomEvent(window, 'onAddGoogleMapPoint');
+	}
 }
 
-   BX.ready(function(){
-   	setTimeout(BXWaitForMap_<?echo $MAP_ID?>__n<?=$googleMapLastNumber?>_, 100);
-   });
+BX.ready(function() {
+	setTimeout(BXWaitForMap_<?echo $MAP_ID?>__n<?=$googleMapLastNumber?>_, 100);
+});
 
 var jsGoogleCESearch_<?echo $MAP_ID;?> = {
 	bInited: false,
@@ -649,7 +656,7 @@ var jsGoogleCESearch_<?echo $MAP_ID;?> = {
 	public static function GetPublicViewHTML($arProperty, $value, $arParams)
 	{
 		$s = '';
-		if(strlen($value["VALUE"])>0)
+		if($value["VALUE"] <> '')
 		{
 			$value = parent::ConvertFromDB($arProperty, $value);
 			if ($arParams['MODE'] == 'CSV_EXPORT')
@@ -676,6 +683,8 @@ var jsGoogleCESearch_<?echo $MAP_ID;?> = {
 								),
 							),
 						)),
+						'MAP_WIDTH' => $arParams['WIDTH'] ?? null,
+						'MAP_HEIGHT' => $arParams['HEIGHT'] ?? null,
 						'MAP_ID' => 'MAP_GOOGLE_VIEW_'.$arProperty['IBLOCK_ID'].'_'.$arProperty['ID'].'__n'.$googleMapLastNumber.'_',
 						'DEV_MODE' => 'Y',
 						'API_KEY' => $apiKey
@@ -689,6 +698,79 @@ var jsGoogleCESearch_<?echo $MAP_ID;?> = {
 		}
 
 		return $s;
+	}
+	public static function GetUIEntityEditorProperty($settings, $value)
+	{
+		return [
+			'type' => 'custom'
+		];
+	}
+
+	public static function GetUIEntityEditorPropertyEditHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$paramsHTMLControl = [
+			'VALUE' => $params['FIELD_NAME'] ?? '',
+			'MODE' => 'FORM_FILL',
+		];
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			$value = [];
+			if (is_array($params['VALUE']))
+			{
+				foreach ($params['VALUE'] as $element)
+				{
+					$value[] = ['VALUE' => $element];
+				}
+			}
+		}
+		else
+		{
+			$value = [
+				'VALUE' => $params['VALUE'] ?? ''
+			];
+		}
+
+		return static::GetPropertyFieldHtml($settings, $value, $paramsHTMLControl);
+	}
+
+	public static function GetUIEntityEditorPropertyViewHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$paramsHTMLControl = [
+			'VALUE' => $params['FIELD_NAME'] ?? '',
+		];
+
+		if (isset($params['WIDTH']))
+		{
+			$paramsHTMLControl['WIDTH'] = $params['WIDTH'];
+		}
+		if (isset($params['HEIGHT']))
+		{
+			$paramsHTMLControl['HEIGHT'] = $params['HEIGHT'];
+		}
+
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			$multipleResult = '';
+			if (is_array($params['VALUE']))
+			{
+				foreach ($params['VALUE'] as $element)
+				{
+					$value = ['VALUE' => $element];
+					$multipleResult .=  static::GetPublicViewHTML($settings, $value, $paramsHTMLControl) . '<br>';
+				}
+			}
+			return $multipleResult;
+		}
+		else
+		{
+			$value = [
+				'VALUE' => $params['VALUE'] ?? ''
+			];
+		}
+
+		return static::GetPublicViewHTML($settings, $value, $paramsHTMLControl);
 	}
 }
 
@@ -707,6 +789,9 @@ class CIBlockPropertyMapYandex extends CIBlockPropertyMapInterface
 			"ConvertFromDB" => array(__CLASS__, "ConvertFromDB"),
 			"GetSettingsHTML" => array(__CLASS__, "GetSettingsHTML"),
 			"PrepareSettings" => array(__CLASS__, "PrepareSettings"),
+			'GetUIEntityEditorProperty' => array(__CLASS__, 'GetUIEntityEditorProperty'),
+			'GetUIEntityEditorPropertyEditHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyEditHtml'),
+			'GetUIEntityEditorPropertyViewHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyViewHtml'),
 		);
 	}
 
@@ -760,7 +845,7 @@ function saveYandexKey(domain, input)
 			'HIDE' => array('ROW_COUNT', 'COL_COUNT', 'SMART_FILTER', 'FILTRABLE', 'SEARCHABLE', 'WITH_DESCRIPTION'),
 			'SET' => array('SMART_FILTER' => 'N', 'FILTRABLE' => 'N', 'SEARCHABLE' => 'N')
 		);
-		
+
 		return '';
 	}
 
@@ -790,7 +875,7 @@ function saveYandexKey(domain, input)
 		if ($strHTMLControlName["MODE"] != "FORM_FILL")
 			return '<input type="text" name="'.htmlspecialcharsbx($strHTMLControlName['VALUE']).'" value="'.htmlspecialcharsbx($value['VALUE']).'" />';
 
-		if (strlen($value['VALUE']) > 0)
+		if ($value['VALUE'] <> '')
 		{
 			list($POINT_LAT, $POINT_LON) = explode(',', $value['VALUE'], 2);
 			$bHasValue = true;
@@ -900,7 +985,7 @@ function saveYandexKey(domain, input)
 			}
 			if (k.length <= 1)
 			{
-				window.addNewRow(BX('point_<?echo $MAP_ID?>__n0_lat').parentNode.parentNode.parentNode.parentNode.id);
+				BX.IBlock.Tools.addNewRow(BX('point_<?echo $MAP_ID?>__n0_lat').parentNode.parentNode.parentNode.parentNode.id)
 			}
 			k = (k.length) ? Math.min.apply(null, k) : i;
 			var obPnt = 'obPoint_<?echo $MAP_ID?>__n'+k+'_',
@@ -1072,9 +1157,9 @@ function saveYandexKey(domain, input)
 		BX('point_<?echo $MAP_ID?>__n<?=$yandexMapLastNumber?>_lon').value = obPoint ? obPoint[1] : '';
 	}
 
-	BX.ready(function(){
+	BX.ready(function() {
 		setTimeout(BXWaitForMap_<?echo $MAP_ID?>__n<?=$yandexMapLastNumber?>_, 100);
-   });
+	});
 
 	var jsYandexCESearch_<?echo $MAP_ID;?> = {
 
@@ -1148,7 +1233,7 @@ function saveYandexKey(domain, input)
 
 		handleError: function(error)
 		{
-			alert(this.jsMess.mess_error + ': ' + error.message);
+			alert(window.jsAdminYandexMess.mess_error + ': ' + error.message);
 		},
 
 		setResultsCoordinates: function()
@@ -1292,9 +1377,9 @@ function saveYandexKey(domain, input)
 		if ($arProperty['MULTIPLE'] == 'Y')
 			$yandexMapID = $arProperty['ID'];
 
-		if (strlen($value['VALUE']) > 0)
+		if ($value['VALUE'] <> '')
 		{
-			list($POINT_LAT, $POINT_LON) = explode(',', $value['VALUE'], 2);
+			[$POINT_LAT, $POINT_LON] = explode(',', $value['VALUE'], 2);
 			$bHasValue = true;
 		}
 		else
@@ -1656,11 +1741,11 @@ function saveYandexKey(domain, input)
 		BX('point_<?echo $MAP_ID?>__n<?=$yandexMapLastNumber?>_lon').value = obPoint ? obPoint[1] : '';
 	}
 
-   BX.ready(function(){
-   	setTimeout(BXWaitForMap_<?echo $MAP_ID?>__n<?=$yandexMapLastNumber?>_, 100);
-   });
+	BX.ready(function() {
+		setTimeout(BXWaitForMap_<?echo $MAP_ID?>__n<?=$yandexMapLastNumber?>_, 100);
+	});
 
-   var jsYandexCESearch_<?echo $MAP_ID;?> = {
+	var jsYandexCESearch_<?echo $MAP_ID;?> = {
 
 		bInited: false,
 
@@ -1732,7 +1817,7 @@ function saveYandexKey(domain, input)
 
 		handleError: function(error)
 		{
-			alert(this.jsMess.mess_error + ': ' + error.message);
+			alert(window.jsAdminYandexMess.mess_error + ': ' + error.message);
 		},
 
 		setResultsCoordinates: function()
@@ -1869,7 +1954,7 @@ function saveYandexKey(domain, input)
 		$s = '';
 		if ($arParams['MODE'] == 'CSV_EXPORT')
 		{
-			if (strlen($value["VALUE"])>0)
+			if ($value["VALUE"] <> '')
 			{
 				$coordValue = parent::ConvertFromDB($arProperty, $value);
 				$s = $coordValue["VALUE"];
@@ -1878,7 +1963,7 @@ function saveYandexKey(domain, input)
 		}
 		else
 		{
-			if(strlen($value["VALUE"])>0)
+			if($value["VALUE"] <> '')
 			{
 				$value = parent::ConvertFromDB($arProperty, $value);
 				$arCoords = explode(',', $value['VALUE']);
@@ -1909,6 +1994,71 @@ function saveYandexKey(domain, input)
 		}
 
 		return $s;
+	}
+
+	public static function GetUIEntityEditorProperty($settings, $value)
+	{
+		return [
+			'type' => 'custom'
+		];
+	}
+
+	public static function GetUIEntityEditorPropertyEditHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$paramsHTMLControl = [
+			'VALUE' => $params['FIELD_NAME'] ?? '',
+			'MODE' => 'FORM_FILL'
+		];
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			$value = [];
+			if (is_array($params['VALUE']))
+			{
+				foreach ($params['VALUE'] as $element)
+				{
+					$value[] = ['VALUE' => $element];
+				}
+			}
+		}
+		else
+		{
+			$value = [
+				'VALUE' => $params['VALUE'] ?? ''
+			];
+		}
+
+		return static::GetPublicEditHTML($settings, $value, $paramsHTMLControl);
+	}
+
+	public static function GetUIEntityEditorPropertyViewHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$paramsHTMLControl = [
+			'VALUE' => $params['FIELD_NAME'] ?? '',
+		];
+
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			$multipleResult = '';
+			if (is_array($params['VALUE']))
+			{
+				foreach ($params['VALUE'] as $element)
+				{
+					$value = ['VALUE' => $element];
+					$multipleResult .=  static::GetPublicViewHTML($settings, $value, $paramsHTMLControl) . '<br>';
+				}
+			}
+			return $multipleResult;
+		}
+		else
+		{
+			$value = [
+				'VALUE' => $params['VALUE'] ?? ''
+			];
+		}
+
+		return static::GetPublicViewHTML($settings, $value, $paramsHTMLControl);
 	}
 }
 
@@ -1946,7 +2096,7 @@ class CVideoProperty
 		if(is_array($arProperty[$key]))
 		{
 			if (isset($arProperty[$key]["BUFFER_LENGTH"]))
-				$arSet["BUFFER_LENGTH"] = intVal($arProperty[$key]["BUFFER_LENGTH"]);
+				$arSet["BUFFER_LENGTH"] = intval($arProperty[$key]["BUFFER_LENGTH"]);
 
 			if (isset($arProperty[$key]["CONTROLBAR"]))
 				$arSet["CONTROLBAR"] = $arProperty[$key]["CONTROLBAR"];
@@ -1955,7 +2105,7 @@ class CVideoProperty
 				$arSet["AUTOSTART"] = $arProperty[$key]["AUTOSTART"] == "Y" ? "Y" : "N";
 
 			if (isset($arProperty[$key]["VOLUME"]))
-				$arSet["VOLUME"] = intVal($arProperty[$key]["VOLUME"]);
+				$arSet["VOLUME"] = intval($arProperty[$key]["VOLUME"]);
 
 			if (isset($arProperty[$key]["SKIN"]))
 				$arSet["SKIN"] = $arProperty[$key]["SKIN"];
@@ -2147,7 +2297,7 @@ table.bx-video-prop-tbl img.spacer{display:block;float:left;height:1px;margin-to
 <table class="bx-video-prop-tbl">
 	<tr class="bx-prop-main-title"><td colSpan="2"><?= GetMessage('IBLOCK_PROP_VIDEO_PARAMS_TITLE')?></td></tr>
 	<? if ($controlMode != "iblock_element_admin"): ?>
-		<? if(strlen($path) > 0):?>
+		<? if($path <> ''):?>
 			<tr class="heading"><td colSpan="2"><?= GetMessage('IBLOCK_PROP_VIDEO_PARAMS_TITLE_VIEW')?></td></tr>
 			<tr>
 				<td colSpan="2" style="text-align: center;">
@@ -2160,7 +2310,7 @@ table.bx-video-prop-tbl img.spacer{display:block;float:left;height:1px;margin-to
 					"WIDTH" => $val['width'],
 					"HEIGHT" => $val['height'],
 					"FILE_TITLE" => $val['title'],
-					"FILE_DURATION" => intVal($val['duration']),
+					"FILE_DURATION" => intval($val['duration']),
 					"FILE_AUTHOR" => $val['author'],
 					"FILE_DATE" => $val['date'],
 					"FILE_DESCRIPTION" => $val['desc'],
@@ -2193,7 +2343,7 @@ table.bx-video-prop-tbl img.spacer{display:block;float:left;height:1px;margin-to
 
 		<tr class="heading"><td colSpan="2"><?= GetMessage('IBLOCK_PROP_VIDEO_PARAMS_TITLE_MAIN')?></td></tr>
 
-		<? if(strlen($path) > 0):?>
+		<? if($path <> ''):?>
 			<tr>
 				<td class="bx-pr-title"><?= GetMessage('IBLOCK_PROP_VIDEO_FILE')?>:</td>
 				<td>
@@ -2217,8 +2367,8 @@ table.bx-video-prop-tbl img.spacer{display:block;float:left;height:1px;margin-to
 			<?endif;?>
 		<?endif;?>
 
-		<tr id="bx_video_new_path_row_<?= $id?>" <?if (strlen($path) > 0){ echo 'style="display: none;"'; }?>>
-			<td class="bx-pr-title" style="width: 300px;"><?= GetMessage(strlen($path) > 0 ? 'IBLOCK_PROP_VIDEO_PATH_NEW' : 'IBLOCK_PROP_VIDEO_PATH')?>:</td>
+		<tr id="bx_video_new_path_row_<?= $id?>" <?if ($path <> ''){ echo 'style="display: none;"'; }?>>
+			<td class="bx-pr-title" style="width: 300px;"><?= GetMessage($path <> '' ? 'IBLOCK_PROP_VIDEO_PATH_NEW' : 'IBLOCK_PROP_VIDEO_PATH')?>:</td>
 			<td style="width: 240px;">
 			<img src="/bitrix/images/1.gif" class="spacer" />
 			<div id="bx_video_path_cont1_<?= $id?>" style="display: none;">
@@ -2382,7 +2532,7 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 
 		if ($value["B_NEW_FILE"] != "N") // New video or replacing old
 		{
-			if (strlen($value["CUR_PATH"]) > 0 && $value["DEL_CUR_FILE"] == "Y" && CIBlockPropertyVideo::CheckFileInUploadDir($value["CUR_PATH"]))
+			if ($value["CUR_PATH"] <> '' && $value["DEL_CUR_FILE"] == "Y" && CIBlockPropertyVideo::CheckFileInUploadDir($value["CUR_PATH"]))
 			{
 				// del current file
 				$cur_path_ = $_SERVER["DOCUMENT_ROOT"].Rel2Abs("/", $value["CUR_PATH"]);
@@ -2397,11 +2547,11 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 			}
 
 			// Get video
-			if (strlen($value["PATH"]) > 0 )
+			if ($value["PATH"] <> '' )
 			{
 				$arRes["path"] = $value["PATH"];
 			}
-			else if (isset($value["FILE"]) && strlen($value["FILE"]["tmp_name"]) > 0)
+			else if (isset($value["FILE"]) && $value["FILE"]["tmp_name"] <> '')
 			{
 				$pathToDir = CIBlockPropertyVideo::GetUploadDirPath();
 				if (!$io->DirectoryExists($_SERVER["DOCUMENT_ROOT"].$pathToDir))
@@ -2409,10 +2559,10 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 
 				// 1. Convert name
 				$name = preg_replace("/[^a-zA-Z0-9_:\.]/is", "_", $value["FILE"]["name"]);
-				$baseNamePart = substr($name, 0, strrpos($name, '.'));
+				$baseNamePart = mb_substr($name, 0, mb_strrpos($name, '.'));
 				$ext = GetFileExtension($name);
 
-				if(strlen($ext) > 0 && !HasScriptExtension($name) && substr($name, 0, 1) != ".")
+				if($ext <> '' && !HasScriptExtension($name) && mb_substr($name, 0, 1) != ".")
 				{
 					$ind = 0;
 					// 2. Check if file already exists
@@ -2431,7 +2581,7 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 				}
 			}
 		}
-		elseif (strlen($value["CUR_PATH"]) > 0) // save current file
+		elseif ($value["CUR_PATH"] <> '') // save current file
 		{
 			if(preg_match("/^(http|https):\\/\\//", $value["CUR_PATH"]))
 				$arRes["path"] = $value["CUR_PATH"];
@@ -2440,8 +2590,8 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 		}
 
 		// Width  & height
-		$arRes["width"] = intVal($value["WIDTH"]);
-		$arRes["height"] = intVal($value["HEIGHT"]);
+		$arRes["width"] = intval($value["WIDTH"]);
+		$arRes["height"] = intval($value["HEIGHT"]);
 		if ($arRes["width"] < 0)
 			$arRes["width"] = 400;
 		if ($arRes["height"] < 0)
@@ -2463,8 +2613,10 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 
 	public static function BaseConvertFromDB($val = "")
 	{
-		if (!is_array($val) && strlen($val) > 0)
-			$val = unserialize($val);
+		if (!is_array($val) && $val <> '')
+		{
+			$val = unserialize($val, ['allowed_classes' => false]);
+		}
 		return $val ? $val : array();
 	}
 
@@ -2491,15 +2643,15 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 				}
 			}
 
-			if(strlen($val["FILE"]["tmp_name"]) > 0)
+			if($val["FILE"]["tmp_name"] <> '')
 			{
 				$name = $val["FILE"]["name"];
 				$name = preg_replace("/[^a-zA-Z0-9_:\.]/is", "_", $name);
 				$ext = GetFileExtension($name);
 
-				if(strlen($ext) == 0 || HasScriptExtension($name) || substr($name, 0, 1) == ".")
+				if($ext == '' || HasScriptExtension($name) || mb_substr($name, 0, 1) == ".")
 				{
-					$errors[] = GetMessage("IBLOCK_PROP_VIDEO_INCORRECT_EXT", array("#EXT#" => strtoupper($ext)));
+					$errors[] = GetMessage("IBLOCK_PROP_VIDEO_INCORRECT_EXT", array("#EXT#" => mb_strtoupper($ext)));
 				}
 				elseif (!is_uploaded_file($val["FILE"]["tmp_name"]))
 				{
@@ -2523,19 +2675,19 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 
 	public static function BaseGetAdminListViewHTML($val)
 	{
-		if (!is_array($val) || strlen($val["path"]) == 0)
+		if (!is_array($val) || $val["path"] == '')
 			return '';
 		return '<span style="white-space: nowrap;" title="'.htmlspecialcharsbx($val["path"]).'">'.GetMessage("IBLOCK_PROP_VIDEO").' ['.htmlspecialcharsex($val["path"]).']</span>';
 	}
 
 	public static function BaseGetPublicHTML($set, $val)
 	{
-		if (strlen($val["path"]) <= 0)
+		if ($val["path"] == '')
 			return '';
 
 		global $APPLICATION;
 		ob_start();
-		$title = strlen($val['title']) > 0 ? $val['title'] : "";
+		$title = $val['title'] <> '' ? $val['title'] : "";
 ?>
 <div title="<?= addslashes($title)?>">
 <?$APPLICATION->IncludeComponent(
@@ -2547,7 +2699,7 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 		"WIDTH" => $val['width'],
 		"HEIGHT" => $val['height'],
 		"FILE_TITLE" => $val['title'],
-		"FILE_DURATION" => intVal($val['duration']),
+		"FILE_DURATION" => intval($val['duration']),
 		"FILE_AUTHOR" => $val['author'],
 		"FILE_DATE" => $val['date'],
 		"FILE_DESCRIPTION" => $val['desc'],
@@ -2583,7 +2735,7 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 	{
 		if(!is_array($val) && is_string($val))
 		{
-			$val = unserialize($val);
+			$val = unserialize($val, ['allowed_classes' => false]);
 		}
 
 		if(!is_array($val))
@@ -2611,7 +2763,7 @@ function ChangeOrLeaveFile<?= $id?>(bChange)
 	public static function CheckFileInUploadDir($path = '')
 	{
 		$pathToDir = CVideoProperty::GetUploadDirPath();
-		return substr($path, 0, strlen($pathToDir)) == $pathToDir;
+		return mb_substr($path, 0, mb_strlen($pathToDir)) == $pathToDir;
 	}
 
 	public static function GetUploadDirPath()
@@ -2665,18 +2817,18 @@ if (!function_exists('getSkinsEx'))
 			if($f == "." || $f == ".." || $f == ".htaccess" || !is_file($basePath.'/'.$f))
 				continue;
 
-			$ext = strtolower(GetFileExtension($f));
+			$ext = mb_strtolower(GetFileExtension($f));
 			if (in_array($ext, $arSkinExt)) // We find skin
 			{
-				$name = substr($f, 0, - strlen($ext) - 1); // name of the skin
-				if (strlen($name) <= 0)
+				$name = mb_substr($f, 0, -mb_strlen($ext) - 1); // name of the skin
+				if ($name == '')
 					continue;
 
-				if (strpos($name, '.min') !== false)
+				if (mb_strpos($name, '.min') !== false)
 					continue;
 
 				$Skin = array('filename' => $f);
-				$Skin['name'] = strtoupper(substr($name, 0, 1)).strtolower(substr($name, 1));
+				$Skin['name'] = mb_strtoupper(mb_substr($name, 0, 1)).mb_strtolower(mb_substr($name, 1));
 				$Skin['the_path'] = $path;
 
 				// Try to find preview
@@ -2715,6 +2867,9 @@ class CIBlockPropertyVideo extends CVideoProperty
 			"PrepareSettings" => array(__CLASS__, "PrepareSettings"),
 			"GetAdminListViewHTML" => array(__CLASS__, "GetAdminListViewHTML"),
 			"GetLength" => array(__CLASS__, "GetLength"),
+			'GetUIEntityEditorProperty' => array(__CLASS__, 'GetUIEntityEditorProperty'),
+			'GetUIEntityEditorPropertyEditHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyEditHtml'),
+			'GetUIEntityEditorPropertyViewHtml' => array(__CLASS__, 'GetUIEntityEditorPropertyViewHtml'),
 		);
 	}
 
@@ -2767,7 +2922,7 @@ class CIBlockPropertyVideo extends CVideoProperty
 		{
 			if(
 				array_key_exists("PATH", $value["VALUE"])
-				&& strlen(trim($value["VALUE"]["PATH"])) > 0
+				&& trim($value["VALUE"]["PATH"]) <> ''
 			)
 				return 1;
 
@@ -2780,7 +2935,7 @@ class CIBlockPropertyVideo extends CVideoProperty
 
 			if(
 				array_key_exists("CUR_PATH", $value["VALUE"])
-				&& strlen(trim($value["VALUE"]["CUR_PATH"]))
+				&& mb_strlen(trim($value["VALUE"]["CUR_PATH"]))
 				&& !($value["VALUE"]["B_NEW_FILE"] === "Y" && $value["VALUE"]["DEL_CUR_FILE"] === "Y")
 			)
 				return 1;
@@ -2818,6 +2973,80 @@ class CIBlockPropertyVideo extends CVideoProperty
 	{
 		return CIBlockPropertyVideo::BaseOnSearchContent($value["VALUE"]);
 	}
+
+	public static function GetUIEntityEditorProperty($settings, $value)
+	{
+		return [
+			'type' => 'custom'
+		];
+	}
+
+	public static function GetUIEntityEditorPropertyEditHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			if (is_array($params['VALUE']))
+			{
+				$editor = '';
+
+				for($index = 0; $index < $params['SETTINGS']['MULTIPLE_CNT']; $index++)
+				{
+					$value = [
+						'VALUE' => $params['VALUE'][$index] ?? []
+					];
+					$paramsHTMLControl = [
+						'VALUE' => $params['FIELD_NAME'] . '[' . $index . ']' ?? '[' . $index . ']',
+					];
+					$editor .= static::GetPropertyFieldHtml($settings, $value, $paramsHTMLControl);
+				}
+
+				return $editor;
+			}
+		}
+
+		$value = [
+			'VALUE' => $params['VALUE'] ?? []
+		];
+		$paramsHTMLControl = [
+			'VALUE' => $params['FIELD_NAME'] ?? '',
+		];
+
+		return static::GetPropertyFieldHtml($settings, $value, $paramsHTMLControl);
+	}
+
+	public static function GetUIEntityEditorPropertyViewHtml(array $params = []) : string
+	{
+		$settings = $params['SETTINGS'] ?? [];
+		$paramsHTMLControl = [
+			'VALUE' => $params['FIELD_NAME'] ?? '',
+		];
+
+		if ($settings['MULTIPLE'] === 'Y')
+		{
+			$multipleResult = '';
+			if (is_array($params['VALUE']))
+			{
+				foreach ($params['VALUE'] as $element)
+				{
+					$value = [
+						'VALUE' => empty($element) ? [] : $element
+					];
+					$multipleResult .=  static::GetPublicViewHTML($settings, $value, $paramsHTMLControl) . '<br>';
+				}
+			}
+			return $multipleResult;
+		}
+		else
+		{
+			$value = [
+				'VALUE' => empty($params['VALUE']) ? [] : $params['VALUE']
+			];
+		}
+
+		return static::GetPublicViewHTML($settings, $value, $paramsHTMLControl);
+	}
 }
 
 // ### UserType for main module ###
@@ -2836,13 +3065,13 @@ class CUserTypeVideo extends CVideoProperty
 	public static function GetDBColumnType($arUserField)
 	{
 		global $DB;
-		switch(strtolower($DB->type))
+		switch($DB->type)
 		{
-			case "mysql":
+			case "MYSQL":
 				return "text";
-			case "oracle":
+			case "ORACLE":
 				return "varchar2(2000 char)";
-			case "mssql":
+			case "MSSQL":
 				return "varchar(2000)";
 		}
 	}

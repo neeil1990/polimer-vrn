@@ -67,6 +67,29 @@ class CBPGetUserActivity
 		return array_values($arUsers);
 	}
 
+	protected function getActiveUsers(array $users) : array
+	{
+		if (empty($users))
+		{
+			return [];
+		}
+
+		$dbUsers = CUser::GetList(
+			($sortBy = 'id'), ($sortOrder = 'asc'),
+			array(
+				'ID' => implode(' | ', $users),
+				'ACTIVE' => 'Y'
+			)
+		);
+
+		$activeUsers = array();
+		while($user = $dbUsers->Fetch())
+		{
+			$activeUsers[] = $user["ID"];
+		}
+		return $activeUsers;
+	}
+
 	public function Execute()
 	{
 		if (!CModule::IncludeModule("intranet"))
@@ -87,43 +110,22 @@ class CBPGetUserActivity
 		$arUsers = array();
 		if ($this->UserType == "boss")
 		{
-			$arUsers = $this->GetUsersList($this->UserParameter, false);
+			$arUsers = $this->getActiveUsers(
+				$this->GetUsersList($this->UserParameter, false)
+			);
+
 			if (count($arUsers) <= 0)
 			{
 				$this->GetUser = null;
 				return CBPActivityExecutionStatus::Closed;
 			}
 
-			$userId = $arUsers[0];
+			$userService = $this->workflow->GetRuntime()->getUserService();
+			$userId = (int) $arUsers[0];
+			$userDepartments = $userService->getUserDepartmentChains($userId);
 
-			$arUserDepartmentId = null;
-			$dbUser = CUser::GetByID($userId);
-			if ($arUser = $dbUser->Fetch())
-			{
-				if (isset($arUser["UF_DEPARTMENT"]))
-				{
-					if (!is_array($arUser["UF_DEPARTMENT"]))
-						$arUser["UF_DEPARTMENT"] = array($arUser["UF_DEPARTMENT"]);
-
-					foreach ($arUser["UF_DEPARTMENT"] as $v)
-						$arUserDepartmentId[] = $v;
-				}
-			}
-
-			$arUserDepartments = array();
-			$departmentIBlockId = COption::GetOptionInt('intranet', 'iblock_structure');
-			foreach ($arUserDepartmentId as $departmentId)
-			{
-				$ar = array();
-				$dbPath = CIBlockSection::GetNavChain($departmentIBlockId, $departmentId);
-				while ($arPath = $dbPath->GetNext())
-					$ar[] = $arPath["ID"];
-
-				$arUserDepartments[] = array_reverse($ar);
-			}
-
-			$arBoss = array();
-			foreach ($arUserDepartments as $arV)
+			$heads = [];
+			foreach ($userDepartments as $arV)
 			{
 				$maxLevel = $this->MaxLevel;
 				foreach ($arV as $level => $deptId)
@@ -131,31 +133,26 @@ class CBPGetUserActivity
 					if ($maxLevel > 0 && $level + 1 > $maxLevel)
 						break;
 
-					$dbRes = CIBlockSection::GetList(
-						array(),
-						array(
-							'IBLOCK_ID' => $departmentIBlockId,
-							'ID' => $deptId,
-						),
-						false,
-						array('ID', 'UF_HEAD')
-					);
-					while ($arRes = $dbRes->Fetch())
+					$departmentHead = $userService->getDepartmentHead($deptId);
+
+					if (
+						!$departmentHead
+						|| ($departmentHead === $userId)
+						|| ($skipAbsent && CIntranetUtils::IsUserAbsent($departmentHead))
+					)
 					{
-						if (($arRes["UF_HEAD"] == $userId) || (intval($arRes["UF_HEAD"]) <= 0)
-							|| ($skipAbsent && CIntranetUtils::IsUserAbsent($arRes["UF_HEAD"])))
-						{
-							$maxLevel++;
-							continue;
-						}
-						if (!in_array($arRes["UF_HEAD"], $arBoss))
-							$arBoss[] = $arRes["UF_HEAD"];
+						$maxLevel++;
+						continue;
+					}
+					if (!in_array($departmentHead, $heads, true))
+					{
+						$heads[] = $departmentHead;
 					}
 				}
 			}
 
 			$ar = array();
-			foreach ($arBoss as $v)
+			foreach ($heads as $v)
 				$ar[] = "user_".$v;
 
 			if (count($ar) == 0)
@@ -171,7 +168,9 @@ class CBPGetUserActivity
 		}
 		if ($this->UserType == "random")
 		{
-			$arUsers = $this->GetUsersList($this->UserParameter, $skipAbsent, $skipTimeman);
+			$arUsers = $this->getActiveUsers(
+				$this->GetUsersList($this->UserParameter, $skipAbsent, $skipTimeman)
+			);
 
 			if (count($arUsers) > 0)
 			{
@@ -193,7 +192,9 @@ class CBPGetUserActivity
 			$skipTimeman = false;
 		}
 
-		$arReserveUsers = $this->GetUsersList($this->ReserveUserParameter, $skipAbsent, $skipTimeman);
+		$arReserveUsers = $this->getActiveUsers(
+			$this->GetUsersList($this->ReserveUserParameter, $skipAbsent, $skipTimeman)
+		);
 		if (count($arReserveUsers) > 0)
 		{
 			if ($this->UserType == 'random')
@@ -313,7 +314,7 @@ class CBPGetUserActivity
 			$bUsersFieldEmpty = true;
 			foreach ($arTestProperties["UserParameter"] as $userId)
 			{
-				if (!is_array($userId) && (strlen(trim($userId)) > 0) || is_array($userId) && (count($userId) > 0))
+				if (!is_array($userId) && (trim($userId) <> '') || is_array($userId) && (count($userId) > 0))
 				{
 					$bUsersFieldEmpty = false;
 					break;
@@ -337,7 +338,7 @@ class CBPGetUserActivity
 			$bUsersFieldEmpty = true;
 			foreach ($arTestProperties["ReserveUserParameter"] as $userId)
 			{
-				if (!is_array($userId) && (strlen(trim($userId)) > 0) || is_array($userId) && (count($userId) > 0))
+				if (!is_array($userId) && (trim($userId) <> '') || is_array($userId) && (count($userId) > 0))
 				{
 					$bUsersFieldEmpty = false;
 					break;

@@ -10,6 +10,7 @@ return array(
 	'block' => array(
 		'name' => Loc::getMessage('LANDING_BLOCK_9_COPYRIGHT_NAME'),
 		'section' => array('footer'),
+		'dynamic' => false,
 	),
 	'cards' => array(),
 	'nodes' => array(

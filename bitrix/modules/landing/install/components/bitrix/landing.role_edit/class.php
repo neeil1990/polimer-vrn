@@ -53,7 +53,7 @@ class LandingRoleEditComponent extends LandingBaseFormComponent
 	{
 		$init = $this->init();
 
-		if (!\Bitrix\Landing\Rights::isAdmin())
+		if ($init && !Rights::isAdmin())
 		{
 			$init = false;
 			$this->addError(
@@ -67,6 +67,11 @@ class LandingRoleEditComponent extends LandingBaseFormComponent
 		{
 			$this->checkParam('ROLE_EDIT', 0);
 			$this->checkParam('PAGE_URL_ROLES', '');
+			$this->checkParam('TYPE', '');
+
+			\Bitrix\Landing\Site\Type::setScope(
+				$this->arParams['TYPE']
+			);
 
 			$this->id = $this->arParams['ROLE_EDIT'];
 			$this->redirectAfterSave = true;
@@ -77,12 +82,22 @@ class LandingRoleEditComponent extends LandingBaseFormComponent
 			{
 				// redraw presets title
 				$currentRole = $this->getRow();
-				foreach (Role::fetchAll() as $role)
+				if (
+					$currentRole['ID']['CURRENT'] &&
+					!$currentRole['TITLE']['CURRENT']
+				)
 				{
-					if ($role['XML_ID'] == $currentRole['XML_ID']['CURRENT'])
+					$rolesOriginal = Role::fetchAll();
+					foreach ($rolesOriginal as $role)
 					{
-						$currentRole['TITLE']['CURRENT'] = \htmlspecialcharsbx($role['TITLE']);
-						$currentRole['TITLE']['~CURRENT'] = $role['TITLE'];
+						if (
+							$role['XML_ID']  != '' &&
+							$role['XML_ID'] == $currentRole['XML_ID']['CURRENT']
+						)
+						{
+							$currentRole['TITLE']['CURRENT'] = \htmlspecialcharsbx($role['TITLE']);
+							$currentRole['TITLE']['~CURRENT'] = $role['TITLE'];
+						}
 					}
 				}
 				$this->arResult['ROLE'] = $currentRole;

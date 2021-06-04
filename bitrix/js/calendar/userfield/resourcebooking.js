@@ -41,7 +41,7 @@
 
 	BX.Calendar.UserField.ResourceBooking.prototype.showEditLayout = function()
 	{
-		this.allValuesValue = '';
+		this.allValuesValue = null;
 		this.DOM.dateTimeWrap = this.DOM.outerWrap.appendChild(BX.create("div", {props: { className: "calendar-resourcebook-content-block-detail-wrap calendar-resourcebook-content-block-detail-wrap-flex"}}));
 
 		var
@@ -105,6 +105,8 @@
 			},
 			props: {className: 'calendar-resbook-date-input calendar-resbook-field-datetime'}
 		}));
+
+		this.DOM.emptyInput = this.DOM.dateWrap.appendChild(BX.create('INPUT', {attrs: {value: '',type: 'text'}, props: {className: 'calendar-resbook-empty-input'}}));
 		// endregion
 
 		// region Time
@@ -288,6 +290,7 @@
 				});
 			}
 
+			////UserSelectorFieldEditControl
 			this.userSelector = new UserSelector({
 				wrapNode: this.DOM.userListWrap,
 				socnetDestination: this.params.socnetDestination,
@@ -360,11 +363,6 @@
 		}, this), 100);
 
 		setTimeout(BX.proxy(this.onChangeValues, this), 100);
-
-		// Mantis:107646
-		setTimeout(BX.proxy(function(){
-			BX.fireEvent(this.DOM.fromInput, 'change');
-		}, this), 100);
 	};
 
 	BX.Calendar.UserField.ResourceBooking.prototype.showSmallCalendar = function(e)
@@ -435,14 +433,12 @@
 					}})));
 		}
 
-		if (!this.allValuesValue)
-		{
-			this.allValuesValue = allValuesValue;
-		}
-		else if (this.allValuesValue !== allValuesValue)
+		if (this.allValuesValue !== null && this.allValuesValue !== allValuesValue)
 		{
 			BX.onCustomEvent(window, 'onCrmEntityEditorUserFieldExternalChanged', [this.params.controlId]);
+			BX.fireEvent(this.DOM.emptyInput, 'change');
 		}
+		this.allValuesValue = allValuesValue;
 	};
 
 	BX.Calendar.UserField.ResourceBooking.prototype.showPlannerPopup = function()
@@ -924,22 +920,9 @@
 
 	BX.Calendar.UserField.ResourceBooking.showLimitationPopup = function()
 	{
-		if (window.B24 && B24.licenseInfoPopup)
+		if (top.BX.getClass("BX.UI.InfoHelper"))
 		{
-			BX.ajax.runAction('calendar.api.resourcebookingajax.initb24limitation', {})
-				.then(function (response)
-				{
-					if (BX.type.isPlainObject(response.data))
-					{
-						B24.licenseInfoPopup.init(response.data);
-						B24.licenseInfoPopup.show(
-							'calendar_resourcebooking',
-							BX.message('USER_TYPE_RESOURCE_B24_LIMITATION_TITLE'),
-							BX.message('USER_TYPE_RESOURCE_B24_LIMITATION') +
-								' <a href="javascript:void(0);" onclick="if(top.BX.Helper){top.BX.Helper.show(\'redirect=detail&code=7481073\')}">' +
-							BX.message('USER_TYPE_RESOURCE_B24_LIMITATION_LINK') + '</a>');
-					}
-				});
+			top.BX.UI.InfoHelper.show('limit_crm_booking');
 		}
 	};
 
@@ -1603,7 +1586,6 @@
 	function SettingsSlider()
 	{
 		this.id = 'calendar_custom_settings_' + Math.round(Math.random() * 1000000);
-		this.zIndex = 3100;
 		this.sliderId = "calendar:resbook-settings-slider";
 
 		this.SLIDER_WIDTH = 400;
@@ -1710,13 +1692,12 @@
 		}
 	};
 
-
+	//class UserSelectorFieldEditControl
 	function UserSelector(params)
 	{
 		this.params = params || {};
 		this.id = this.params.id || 'user-selector-' + Math.round(Math.random() * 100000);
 		this.wrapNode = this.params.wrapNode;
-		this.zIndex = this.params.zIndex || 3100;
 		this.destinationInputName = this.params.inputName || 'EVENT_DESTINATION';
 		this.params.selectGroups = false;
 		this.addMessage = this.params.addMessage || BX.message('USER_TYPE_RESOURCE_ADD_USER');
@@ -1946,20 +1927,6 @@
 
 		openDialogCallback: function ()
 		{
-			if (BX.SocNetLogDestination.popupWindow)
-			{
-				// Fix zIndex for slider issues
-				BX.SocNetLogDestination.popupWindow.params.zIndex = this.zIndex;
-				BX.SocNetLogDestination.popupWindow.popupContainer.style.zIndex = this.zIndex;
-			}
-
-			if (BX.SocNetLogDestination.popupSearchWindow)
-			{
-				// Fix zIndex for slider issues
-				BX.SocNetLogDestination.popupSearchWindow.params.zIndex = this.zIndex;
-				BX.SocNetLogDestination.popupSearchWindow.popupContainer.style.zIndex = this.zIndex;
-			}
-
 			BX.style(this.socnetDestinationInputWrap, 'display', 'inline-block');
 			BX.style(this.socnetDestinationLink, 'display', 'none');
 			BX.focus(this.socnetDestinationInput);
@@ -2904,7 +2871,6 @@
 		this.currentValueIndex = params.valueIndex;
 		this.onChangeCallback = BX.type.isFunction(params.onChangeCallback) ? params.onChangeCallback : null;
 		this.onAfterMenuOpen = params.onAfterMenuOpen || null;
-		this.zIndex = params.zIndex || 1200;
 		this.disabled = params.disabled;
 		this.editable = params.editable !== false;
 		this.setFirstIfNotFound = !!params.setFirstIfNotFound;
@@ -3014,7 +2980,6 @@
 				{
 					closeByEsc : true,
 					autoHide : true,
-					zIndex: this.zIndex,
 					offsetTop: 0,
 					offsetLeft: 0
 				}
@@ -3721,6 +3686,7 @@
 				});
 			}
 
+			//UserSelectorFieldEditControl
 			this.userList = new BX.Calendar.UserField.ResourceBooking.UserSelector({
 				shown: fieldSettings.USE_USERS === 'Y',
 				outerWrap: this.userSelectorWrap,

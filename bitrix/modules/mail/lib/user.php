@@ -291,29 +291,12 @@ class User
 			return false;
 		}
 
-		$attachments = array();
-		if (is_array($message['files']))
-		{
-			$tmpDir = \CTempFile::getDirectoryName(6);
-			checkDirPath($tmpDir);
-
-			foreach($message['files'] as $key => $file)
-			{
-				if(
-					!is_uploaded_file($file['tmp_name'])
-					|| $file['size'] <= 0
-				)
-				{
-					continue;
-				}
-
-				$uploadFile = $tmpDir.bx_basename($file['name']);
-				if(move_uploaded_file($file['tmp_name'], $uploadFile))
-				{
-					$attachments[$key] = $uploadFile;
-				}
-			}
-		}
+		$attachments = array_filter(
+			array_combine(
+				array_column((array) $message['files'], 'name'),
+				array_column((array) $message['files'], 'tmp_name')
+			)
+		);
 
 		$addResult = User\MessageTable::add(array(
 			'TYPE' => $type,
@@ -363,7 +346,7 @@ class User
 				if (Main\Loader::includeModule('im'))
 				{
 					$title = trim($messageFields['SUBJECT']);
-					if (strlen($title) <= 0)
+					if ($title == '')
 					{
 						$title = trim($messageFields['CONTENT']);
 						$title = preg_replace("/\[ATTACHMENT\s*=\s*[^\]]*\]/is".BX_UTF_PCRE_MODIFIER, "", $title);
@@ -403,7 +386,7 @@ class User
 				$attachments = array();
 				if (!empty($messageFields['ATTACHMENTS']))
 				{
-					$tmpAttachments = unserialize($messageFields['ATTACHMENTS']);
+					$tmpAttachments = unserialize($messageFields['ATTACHMENTS'], ['allowed_classes' => false]);
 					if (is_array($tmpAttachments))
 					{
 						foreach($tmpAttachments as $key => $uploadFile)
@@ -414,6 +397,7 @@ class User
 								&& !empty($file)
 							)
 							{
+								$file['name'] = $key;
 								$attachments[$key] = $file;
 							}
 						}
@@ -470,7 +454,7 @@ class User
 
 	public static function getDefaultEmailFrom($serverName = false)
 	{
-		if (defined("BX24_HOST_NAME"))
+		if (Main\ModuleManager::isModuleInstalled('bitrix24') && defined("BX24_HOST_NAME"))
 		{
 			if(preg_match("/\\.bitrix24\\.([a-z]+|com\\.br)$/i", BX24_HOST_NAME))
 			{
@@ -480,14 +464,17 @@ class User
 			{
 				$domain = str_replace(".", "-", BX24_HOST_NAME).".bitrix24.com";
 			}
+
+			$defaultEmailFrom = "info@".$domain;
 		}
 		else
 		{
-			$domain = Main\Config\Option::get('main', 'server_name', $GLOBALS["SERVER_NAME"]);
-			$domain = ($serverName ?: $domain);
+			$defaultEmailFrom = Main\Config\Option::get('main', 'email_from', '');
+			if ($defaultEmailFrom == '')
+			{
+				$defaultEmailFrom = "info@".($serverName ?: Main\Config\Option::get('main', 'server_name', $GLOBALS["SERVER_NAME"]));
+			}
 		}
-
-		$defaultEmailFrom = "info@".$domain;
 
 		return $defaultEmailFrom;
 	}

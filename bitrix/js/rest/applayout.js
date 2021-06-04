@@ -34,6 +34,7 @@
 			proto: params.proto,
 			userOptions: params.userOptions,
 			appOptions: params.appOptions,
+			placementId: !!params.placementId ? params.placementId : 0,
 			placementOptions: params.placementOptions
 		};
 
@@ -56,8 +57,42 @@
 
 	BX.rest.AppLayout.openApplication = function(applicationId, placementOptions, additionalComponentParam, closeCallback)
 	{
-		var url = BX.message('REST_APPLICATION_URL').replace('#id#', parseInt(applicationId));
+		var url = BX.message('REST_APPLICATION_URL').replace('#ID#', parseInt(applicationId));
 		url = BX.util.add_url_param(url, {'_r': Math.random()});
+
+		var sidePanelSettings = {};
+
+		if (placementOptions && typeof placementOptions === "object")
+		{
+			for (var param in placementOptions) // separation side panel settings and placement options
+			{
+				if (!placementOptions.hasOwnProperty(param))
+				{
+					continue;
+				}
+
+				if (param.search("bx24_") === 0)
+				{
+					var key = param.replace("bx24_", "");
+					sidePanelSettings[key] = placementOptions[param];
+
+					delete placementOptions[param];
+				}
+			}
+
+			if (placementOptions.hasOwnProperty("options"))
+			{
+				if (typeof placementOptions.options === "object")
+				{
+					appOptions = placementOptions.options;
+				}
+
+				if (placementOptions.hasOwnProperty("params"))
+				{
+					placementOptions = placementOptions.params;
+				}
+			}
+		}
 
 		var params = {
 			ID: applicationId,
@@ -76,44 +111,120 @@
 				params.PLACEMENT_ID = additionalComponentParam.PLACEMENT_ID;
 			}
 		}
+		var link = {
+			url : url,
+			anchor : null,
+			target : null
+		};
+		var rule = BX.SidePanel.Instance.getUrlRule(url, link);
+		var options = rule && rule.options ? BX.clone(rule.options) : {};
+		options["cacheable"] = false;
+		options["contentCallback"] = function(sliderPage)
+		{
+			var promise = new top.BX.Promise();
 
-		BX.SidePanel.Instance.open(
-			url,
-			{
-				cacheable: false,
-				contentCallback: function(sliderPage)
+			top.BX.ajax.post(
+				sliderPage.url,
 				{
-					var promise = new top.BX.Promise();
-
-					top.BX.ajax.post(
-						sliderPage.url,
-						{
-							sessid: BX.bitrix_sessid(),
-							site: BX.message('SITE_ID'),
-							PARAMS: {
-								template: '',
-								params: params
-							}
-						},
-						function(result)
-						{
-							promise.fulfill(result);
-						}
-					);
-
-					return promise;
+					sessid: BX.bitrix_sessid(),
+					site: BX.message('SITE_ID'),
+					PARAMS: {
+						template: '',
+						params: params
+					}
 				},
-				events: {
-					onClose: function()
+				function(result)
+				{
+					promise.fulfill(result);
+				}
+			);
+
+			return promise;
+		};
+		options["events"] = (options["events"] ? options["events"] : {});
+		options["events"]["onClose"] = function()
+		{
+			if(!!closeCallback)
+			{
+				closeCallback();
+			}
+		};
+
+		var availableSidePanelSettings = ["width", "leftBoundary", "title", "label"];
+		for (var setting in sidePanelSettings)
+		{
+			if (!sidePanelSettings.hasOwnProperty(setting))
+			{
+				continue;
+			}
+
+			for (var i in availableSidePanelSettings)
+			{
+				if (setting === availableSidePanelSettings[i])
+				{
+					switch (setting)
 					{
-						if(!!closeCallback)
-						{
-							closeCallback();
-						}
+						case "leftBoundary":
+							if (BX.type.isNumber(sidePanelSettings[setting]))
+							{
+								options["customLeftBoundary"] = Number(sidePanelSettings[setting]);
+							}
+
+							break;
+						case "width":
+							if (BX.type.isNumber(sidePanelSettings[setting]))
+							{
+								options["width"] = Number(sidePanelSettings[setting]);
+							}
+
+							break;
+						case "title":
+							if (BX.type.isString(sidePanelSettings[setting]))
+							{
+								options["title"] = String(sidePanelSettings[setting]);
+							}
+
+							break;
+						case "label":
+							var label = sidePanelSettings[setting];
+
+							if (BX.type.isObject(label))
+							{
+								var availableBgColors = {
+									aqua: "#06bab1",
+									green: "#a5de00",
+									orange: "#ffa801",
+									brown: "#b57051",
+									pink: "#f968b6",
+									blue: "#2eceff",
+									grey: "#a1a6ac",
+									violet: "#6b52cc"
+								};
+								if (label.hasOwnProperty("bgColor"))
+								{
+									var replaceColorCode = "";
+
+									for (var color in availableBgColors) // separation side panel settings and placement options
+									{
+										if (label.bgColor === color)
+										{
+											replaceColorCode = availableBgColors[color];
+											break;
+										}
+									}
+
+									sidePanelSettings[setting]["bgColor"] = replaceColorCode;
+								}
+								options["label"] = sidePanelSettings[setting];
+							}
+
+							break;
 					}
 				}
 			}
-		);
+		}
+
+		BX.SidePanel.Instance.open(url, options);
 
 		var slider = top.BX.SidePanel.Instance.getTopSlider();
 		top.BX.addCustomEvent(top, 'Rest:AppLayout:ApplicationInstall', function(installed, eventResult)
@@ -159,7 +270,10 @@
 		destroy: function()
 		{
 			BX.unbind(window, 'message', BX.proxy(this.receiveMessage, this));
-			BX(this.params.frameName).parentNode.removeChild(BX(this.params.frameName));
+			if (BX(this.params.frameName))
+			{
+				BX(this.params.frameName).parentNode.removeChild(BX(this.params.frameName));
+			}
 			this._destroyed = true;
 		},
 
@@ -226,7 +340,7 @@
 					}
 				}, this);
 
-				this.messageInterface[cmd[0]].apply(this, [args, _cb]);
+				this.messageInterface[cmd[0]].apply(this, [args, _cb, this]);
 			}
 		},
 
@@ -592,7 +706,7 @@
 					{
 						autoHide: true,
 						content: result,
-						zIndex: 2000
+						zIndex: 5000
 					}
 				);
 				if(mult)
@@ -642,6 +756,7 @@
 
 				BX.Access.SetSelected(startValue);
 				BX.Access.ShowForm({
+					zIndex : 5000,
 					callback: function(arRights)
 					{
 						var res = [];
@@ -668,7 +783,7 @@
 
 		selectCRM: function(params, cb, loaded)
 		{
-			if(!loaded)
+			if(loaded !== true)
 			{
 				this.loadControl(
 					'crm_selector',
@@ -711,22 +826,22 @@
 
 		imCallTo: function(params)
 		{
-			BXIM.callTo(params.userId, !!params.video)
+			top.BXIM.callTo(params.userId, !!params.video)
 		},
 
 		imPhoneTo: function(params)
 		{
-			BXIM.phoneTo(params.phone)
+			top.BXIM.phoneTo(params.phone)
 		},
 
 		imOpenMessenger: function(params)
 		{
-			BXIM.openMessenger(params.dialogId)
+			top.BXIM.openMessenger(params.dialogId)
 		},
 
 		imOpenHistory: function(params)
 		{
-			BXIM.openHistory(params.dialogId)
+			top.BXIM.openHistory(params.dialogId)
 		},
 
 		openApplication: function(params, cb)
@@ -736,16 +851,41 @@
 
 		closeApplication: function(params, cb)
 		{
-			if(
+			var url = BX.message('REST_APPLICATION_VIEW_URL').replace('#APP#', this.params.appId);
+			if (
 				top.BX.SidePanel.Instance.isOpen()
 				&& top.BX.SidePanel.Instance.getTopSlider().url.match(
-					new RegExp(
-						'^' + BX.message('REST_APPLICATION_URL')
-					)
+					new RegExp('^' + url)
 				)
 			)
 			{
 				top.BX.SidePanel.Instance.close(false, cb);
+			}
+			else
+			{
+				url = BX.message('REST_PLACEMENT_URL').replace('#PLACEMENT_ID#', parseInt(this.params.placementId));
+				if(
+					top.BX.SidePanel.Instance.isOpen()
+					&& top.BX.SidePanel.Instance.getTopSlider().url.match(
+					new RegExp('^' + url)
+					)
+				)
+				{
+					top.BX.SidePanel.Instance.close(false, cb);
+				}
+				else
+				{
+					url = BX.message('REST_APPLICATION_URL').replace('#ID#', parseInt(this.params.id));
+					if(
+						top.BX.SidePanel.Instance.isOpen()
+						&& top.BX.SidePanel.Instance.getTopSlider().url.match(
+						new RegExp('^' + url)
+						)
+					)
+					{
+						top.BX.SidePanel.Instance.close(false, cb);
+					}
+				}
 			}
 		}
 	};

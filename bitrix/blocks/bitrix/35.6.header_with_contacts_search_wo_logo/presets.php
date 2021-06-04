@@ -9,7 +9,7 @@ use \Bitrix\Main\Localization\Loc;
 return [
 	'text' => [
 		'name' => '<span class="fa fa-home"></span> '.Loc::getMessage('LANDING_BLOCK_35_6_HEADER--PRESET_TEXT'),
-		'html' => '<div class="landing-block-node-card col-sm g-brd-right--sm g-brd-gray-light-v4" data-card-preset="text">
+		'html' => '<div class="landing-block-node-card col-sm g-brd-right--sm g-brd-gray-light-v4 g-mb-15 g-mb-0--sm" data-card-preset="text">
 						<div class="g-pa-10--lg">
 							<div class="landing-block-node-card-icon-container d-lg-inline-block g-valign-top g-color-primary g-mr-5 g-font-size-18 g-line-height-1">
 								<i class="landing-block-node-card-icon icon icon-clock"></i>
@@ -36,7 +36,7 @@ return [
 	
 	'link' => [
 		'name' => '<span class="fa fa-envelope"></span>'.Loc::getMessage('LANDING_BLOCK_35_6_HEADER--PRESET_LINK'),
-		'html' => '<div class="landing-block-node-card col-sm g-brd-right--sm g-brd-gray-light-v4" data-card-preset="link">
+		'html' => '<div class="landing-block-node-card col-sm g-brd-right--sm g-brd-gray-light-v4 g-mb-15 g-mb-0--sm" data-card-preset="link">
 						<div class="g-pa-10--lg">
 							<div class="landing-block-node-card-icon-container d-lg-inline-block g-valign-top g-color-primary g-mr-5 g-font-size-18 g-line-height-1">
 								<i class="landing-block-node-card-icon icon icon-envelope"></i>

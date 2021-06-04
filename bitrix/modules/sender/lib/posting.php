@@ -10,11 +10,9 @@ namespace Bitrix\Sender;
 use Bitrix\Main\Entity;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Type as MainType;
-
-use Bitrix\Sender\Posting\Builder as PostingBuilder;
 use Bitrix\Sender\Integration;
 use Bitrix\Sender\Internals\Model;
-
+use Bitrix\Sender\Posting\Builder as PostingBuilder;
 
 Loc::loadMessages(__FILE__);
 
@@ -25,6 +23,7 @@ class PostingTable extends Entity\DataManager
 	const STATUS_SENT = 'S';
 	const STATUS_SENT_WITH_ERRORS = 'E';
 	const STATUS_ABORT = 'A';
+	const STATUS_WAIT = 'W';
 
 	/**
 	 * @return string
@@ -223,18 +222,16 @@ class PostingTable extends Entity\DataManager
 		}
 	}
 
-
 	/**
 	 * @param $postingId
 	 * @param bool $checkDuplicate
+	 * @param bool $prepareFields
+	 *
 	 * @return bool
-	 * @throws \Bitrix\Main\ArgumentException
 	 */
 	public static function initGroupRecipients($postingId, $checkDuplicate = true)
 	{
-		PostingBuilder::create()->run($postingId, $checkDuplicate);
-
-		return true;
+		return PostingBuilder::create()->run($postingId, $checkDuplicate);
 	}
 
 	/**
@@ -680,5 +677,10 @@ class PostingRecipientTable extends Entity\DataManager
 			self::SEND_RESULT_ERROR => Loc::getMessage('SENDER_POSTING_RECIPIENT_STATUS_E'),
 			self::SEND_RESULT_DENY => Loc::getMessage('SENDER_POSTING_RECIPIENT_STATUS_D')
 		);
+	}
+
+	public static function hasUnprocessed($postingId, $threadId = null)
+	{
+		return (static::getCount(['=POSTING_ID' => $postingId, '=STATUS' => self::SEND_RESULT_NONE]) > 0);
 	}
 }

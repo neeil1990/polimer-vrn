@@ -23,7 +23,7 @@ class Uri implements \JsonSerializable
 	 */
 	public function __construct($url)
 	{
-		if(strpos($url, "/") === 0)
+		if(mb_strpos($url, "/") === 0)
 		{
 			//we don't support "current scheme" e.g. "//host/path"
 			$url = "/".ltrim($url, "/");
@@ -33,8 +33,8 @@ class Uri implements \JsonSerializable
 
 		if($parsedUrl !== false)
 		{
-			$this->scheme = (isset($parsedUrl["scheme"])? strtolower($parsedUrl["scheme"]) : "http");
-			$this->host = $parsedUrl["host"];
+			$this->scheme = (isset($parsedUrl["scheme"])? mb_strtolower($parsedUrl["scheme"]) : "http");
+			$this->host = (isset($parsedUrl["host"])? $parsedUrl["host"] : "");
 			if(isset($parsedUrl["port"]))
 			{
 				$this->port = $parsedUrl["port"];
@@ -43,11 +43,11 @@ class Uri implements \JsonSerializable
 			{
 				$this->port = ($this->scheme == "https"? 443 : 80);
 			}
-			$this->user = $parsedUrl["user"];
-			$this->pass = $parsedUrl["pass"];
-			$this->path = ((isset($parsedUrl["path"])? $parsedUrl["path"] : "/"));
-			$this->query = $parsedUrl["query"];
-			$this->fragment = $parsedUrl["fragment"];
+			$this->user = (isset($parsedUrl["user"])? $parsedUrl["user"] : "");
+			$this->pass = (isset($parsedUrl["pass"])? $parsedUrl["pass"] : "");
+			$this->path = (isset($parsedUrl["path"])? $parsedUrl["path"] : "/");
+			$this->query = (isset($parsedUrl["query"])? $parsedUrl["query"] : "");
+			$this->fragment = (isset($parsedUrl["fragment"])? $parsedUrl["fragment"] : "");
 		}
 	}
 
@@ -228,16 +228,45 @@ class Uri implements \JsonSerializable
 	}
 
 	/**
+	 * Extended parsing to allow dots and spaces in parameters names.
+	 * @param string $params
+	 * @return array
+	 */
+	protected static function parseParams($params)
+	{
+		$data = preg_replace_callback(
+			'/(?:^|(?<=&))[^=[]+/',
+			function($match)
+			{
+				return bin2hex(urldecode($match[0]));
+			},
+			$params
+		);
+
+		parse_str($data, $values);
+
+		return array_combine(array_map('hex2bin', array_keys($values)), $values);
+	}
+
+	/**
 	 * Deletes parameters from the query.
 	 * @param array $params Parameters to delete.
+	 * @param bool $preserveDots Special treatment of dots and spaces in the parameters names.
 	 * @return $this
 	 */
-	public function deleteParams(array $params)
+	public function deleteParams(array $params, $preserveDots = false)
 	{
 		if($this->query <> '')
 		{
-			$currentParams = array();
-			parse_str($this->query, $currentParams);
+			if($preserveDots)
+			{
+				$currentParams = static::parseParams($this->query);
+			}
+			else
+			{
+				$currentParams = array();
+				parse_str($this->query, $currentParams);
+			}
 
 			foreach($params as $param)
 			{
@@ -252,14 +281,22 @@ class Uri implements \JsonSerializable
 	/**
 	 * Adds parameters to query or replaces existing ones.
 	 * @param array $params Parameters to add.
+	 * @param bool $preserveDots Special treatment of dots and spaces in the parameters names.
 	 * @return $this
 	 */
-	public function addParams(array $params)
+	public function addParams(array $params, $preserveDots = false)
 	{
 		$currentParams = array();
 		if($this->query <> '')
 		{
-			parse_str($this->query, $currentParams);
+			if($preserveDots)
+			{
+				$currentParams = static::parseParams($this->query);
+			}
+			else
+			{
+				parse_str($this->query, $currentParams);
+			}
 		}
 
 		$currentParams = array_replace($currentParams, $params);
@@ -284,5 +321,23 @@ class Uri implements \JsonSerializable
 	public function jsonSerialize()
 	{
 		return $this->getUri();
+	}
+
+	/**
+	 * Converts the host to punycode.
+	 * @return string|\Bitrix\Main\Error
+	 */
+	public function convertToPunycode()
+	{
+		$host = \CBXPunycode::ToASCII($this->getHost(), $encodingErrors);
+
+		if(!empty($encodingErrors))
+		{
+			return new \Bitrix\Main\Error(implode("\n", $encodingErrors));
+		}
+
+		$this->setHost($host);
+
+		return $host;
 	}
 }

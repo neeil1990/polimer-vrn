@@ -36,6 +36,7 @@
 		this.value = isArray(options.value) ? options.value : null;
 		this.depth = isNumber(options.depth) ? options.depth : 0;
 		this.compact = isBoolean(options.compact) ? options.compact : false;
+		this.multiple = options.multiple !== false;
 
 		data(this.layout, "data-depth", this.depth);
 		data(this.layout, "data-compact", this.compact);
@@ -79,7 +80,9 @@
 			{
 				var itemId = ("checkbox_item_" + random());
 				var item = create("div", {
-					props: {className: "landing-ui-field-checkbox-item"},
+					props: {
+						className: "landing-ui-field-checkbox-item" + (itemOptions.disabled ? ' landing-ui-disabled' : '')
+					},
 					children: [
 						create("input", {
 							props: {className: "landing-ui-field-checkbox-item-checkbox"},
@@ -97,7 +100,7 @@
 						create("label", {
 							props: {className: "landing-ui-field-checkbox-item-label"},
 							attrs: {"for": itemId},
-							html: escapeHtml(itemOptions.name)
+							html: itemOptions.html ? itemOptions.html : escapeHtml(itemOptions.name)
 						})
 					]
 				});
@@ -116,6 +119,7 @@
 		{
 			this.onChangeHandler(this);
 			this.onValueChangeHandler(this);
+			this.emit('onChange');
 		},
 
 
@@ -137,9 +141,9 @@
 				});
 
 				value.forEach(function(currentValue) {
-					var element = slice(this.input.children).forEach(function(element) {
+					var element = slice(this.input.children).find(function(element) {
 						// noinspection EqualityComparisonWithCoercionJS
-						return element.querySelector("input").value == currentValue;
+						return decodeDataValue(element.querySelector("input").value) == currentValue;
 					}, this);
 
 					if (element)
@@ -157,13 +161,20 @@
 		 */
 		getValue: function()
 		{
-			return slice(this.input.children)
+			var values = slice(this.input.children)
 				.filter(function(element) {
 					return element.querySelector("input").checked;
 				})
 				.map(function(element) {
 					return decodeDataValue(element.querySelector("input").value);
-				})
+				});
+
+			if (!this.multiple)
+			{
+				return values.length > 0 ? values[0] : false;
+			}
+
+			return values;
 		}
 	};
 })();
