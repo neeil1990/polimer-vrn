@@ -12,13 +12,13 @@
 /** @var CBitrixComponent $component */
 $this->setFrameMode(true);
 ?><script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-<div class="co__sandwich">
+<!--<div class="co__sandwich">
 	<a href="#" class="sandwich">
 		<span></span>
 		<span></span>
 		<span></span>
 	</a>
-</div>
+</div>-->
 
 <div class="co__cities">
 	<? foreach ($arResult['SECTIONS'] as $key => &$arSection): ?>
