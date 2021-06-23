@@ -1,0 +1,80 @@
+.sc_help_link {
+    display: flex;
+    flex: 25px 0 0;
+    width: 25px;
+    height: 25px;
+
+	background: url("/bitrix/themes/.default/icons/status_icons.png") no-repeat scroll -12px -235px transparent;
+	cursor:pointer;
+
+	margin-left: 10px;
+}
+
+.sc_row_label {
+    width: 40%;
+    line-height: 25px;
+    vertical-align: top;
+}
+
+.sc_row_result {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.sc_icon {
+    display: block;
+    flex: 25px 0 0;
+	height: 25px;
+    width: 25px;
+
+	margin-right: 10px;
+}
+
+.sc_icon_success {
+	background: url("/bitrix/themes/.default/icons/status_icons.png") no-repeat scroll -14px -19px transparent;
+}
+
+.sc_icon_warning{
+	background: url("/bitrix/themes/.default/icons/status_icons.png") no-repeat scroll -12px -212px transparent;
+}
+
+.sc_icon_error{
+	background: url("/bitrix/themes/.default/icons/status_icons.png") no-repeat scroll -12px -73px transparent;
+}
+
+.sc_row_message {
+    display: block;
+    flex: auto 1 1;
+    align-self: center;
+}
+
+.sc_success {
+	color:#408218 !important;
+	vertical-align: middle;
+}
+
+.sc_warning {
+	color:#000000;
+	vertical-align: middle;
+}
+
+.sc_error {
+	color:#DD0000 !important;
+	vertical-align: middle;
+}
+
+.sc_code {
+	border:1px solid #CCC;
+	margin:10px;
+	padding:10px;
+	font-family:monospace;
+	background-color:#FEFEFA;
+}
+
+.sc_progress {
+	text-align:center !important;
+	font-weight:bold !important;
+	background-color:#b9cbdf;
+	padding:2px;
+	margin:10px;
+}

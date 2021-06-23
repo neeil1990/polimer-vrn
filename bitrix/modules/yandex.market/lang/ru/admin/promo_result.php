@@ -1,0 +1,8 @@
+<?php
+
+$MESS['YANDEX_MARKET_ADMIN_PROMO_RESULT_ACCESS_DENIED'] = 'Доступ запрещен';
+$MESS['YANDEX_MARKET_ADMIN_PROMO_RESULT_REQUIRE_MODULE'] = 'Необходим модуль yandex.market';
+$MESS['YANDEX_MARKET_ADMIN_PROMO_RESULT_TITLE'] = 'Результаты выгрузки Акций';
+$MESS['YANDEX_MARKET_ADMIN_PROMO_RESULT_NAV_TITLE'] = 'Результаты выгрузки Акций';
+$MESS['YANDEX_MARKET_ADMIN_PROMO_RESULT_ROW_ACTION_LOG'] = 'Журнал ошибок';
+$MESS['YANDEX_MARKET_ADMIN_PROMO_RESULT_ROW_XML_CONTENT'] = 'Содержимое тега';

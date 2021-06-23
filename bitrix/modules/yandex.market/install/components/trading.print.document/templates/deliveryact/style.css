@@ -1,0 +1,140 @@
+@page {
+	size: A4 portrait;
+	margin: 8mm;
+	padding: 0;
+	border: 0;
+}
+
+.yamarket-act-page {
+	display: block;
+	max-width: 590pt;
+
+	font-family: 'YS Text', 'Helvetica Neue', Arial,sans-serif;
+	font-size: 11pt;
+	line-height: 17pt;
+
+	page-break-inside: avoid;
+}
+
+.yamarket-act-page__header {
+	display: block;
+	margin-bottom: 2mm;
+}
+
+.yamarket-act-page__header:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+
+.yamarket-act-page__number {
+	float: right;
+}
+
+.yamarket-act-page__title {
+	font-weight: bold;
+}
+
+.yamarket-act-page + .yamarket-act-page {
+	page-break-before: always;
+}
+
+.yamarket-act-page p,
+.yamarket-act-page table {
+	margin: 5pt 0;
+}
+
+.yamarket-act-page p.pos--top,
+.yamarket-act-page table.pos--top {
+	margin-top: 0;
+}
+
+p.yamarket-act__intro {
+	margin-top: 10pt;
+}
+
+.yamarket-act__table {
+	clear: both;
+	border-collapse: collapse;
+	border-spacing: 0;
+	max-width: 100%;
+
+	font-size: 9.8pt;
+	line-height: 13pt;
+}
+
+.yamarket-act__table th {
+	font-weight: 600;
+}
+
+.yamarket-act__table th,
+.yamarket-act__table td {
+	vertical-align: top;
+	padding: 2pt 5pt;
+	border: 1pt solid #ddd;
+
+	text-align: left;
+}
+
+.yamarket-act__captions {
+	font-size: 9.8pt;
+	line-height: 15pt;
+
+	page-break-inside: avoid;
+}
+
+.yamarket-act__caption {
+	display: inline-block;
+	vertical-align: top;
+	padding: 3pt 7.5pt;
+	width: 260pt;
+	box-sizing: border-box;
+}
+
+.yamarket-act__holder {
+	display: block;
+	border-bottom: 1pt solid;
+}
+
+.yamarket-act-sign {
+	display: flex;
+}
+
+.yamarket-act-sign__origin {
+	display: block;
+	flex: auto 1 1;
+	border-bottom: 1pt solid;
+}
+
+.yamarket-act-sign__details {
+	display: block;
+	flex: auto 0 0;
+	width: 20ch;
+	margin-left: 7.5pt;
+
+	white-space: nowrap;
+}
+
+.yamarket-act-sign__details-holder {
+	display: inline-block;
+	width: 18ch;
+	border-bottom: 1pt solid;
+}
+
+.yamarket-act-sign-caption {
+	display: flex;
+}
+
+.yamarket-act-sign-caption__origin {
+	display: block;
+	flex: auto 1 1;
+	text-align: center;
+}
+
+.yamarket-act-sign-caption__details {
+	display: block;
+	flex: auto 0 0;
+	width: 20ch;
+	margin-left: 7.5pt;
+	text-align: center;
+}

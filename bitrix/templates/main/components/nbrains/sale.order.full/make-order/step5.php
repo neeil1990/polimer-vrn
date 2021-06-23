@@ -88,7 +88,7 @@ use Bitrix\Sale\PriceMaths;
 						<td style="white-space: nowrap;"><?=$item['BASE_PRICE']?></td>
 						<td><?=$percent?>%</td>
 						<td><?=$item['QUANTITY']?> <?=$item['MEASURE_NAME']?></td>
-						<td style="white-space: nowrap;"><?=PriceMaths::roundPrecision($price*$item['QUANTITY']);?> ₽</td>
+						<td style="white-space: nowrap;"><?=CurrencyFormat($price*$item['QUANTITY'], 'RUB');?></td>
 						<td></td>
 					</tr>
 				<?endforeach;?>
@@ -96,7 +96,7 @@ use Bitrix\Sale\PriceMaths;
 
 			<div class="line">
 				<div class="name">Итого:</div>
-				<div class="val"><span><?=count($arResult["BASKET_ITEMS"])?> <?=$prod?> на сумму <?=array_sum($total)?></span></div>
+				<div class="val"><span><?=count($arResult["BASKET_ITEMS"])?> <?=$prod?> на сумму <?=CurrencyFormat(array_sum($total), 'RUB')?></span></div>
 			</div>
 			<?
 			//echo "<pre>"; print_r($arResult); echo "</pre>";$arBasketItems["DISCOUNT_PRICE"] = CCatalogProduct::GetOptimalPrice($arBasketItems["PRODUCT_ID"], 1, $USER->GetUserGroupArray(), 'N')['RESULT_PRICE']['PERCENT'];

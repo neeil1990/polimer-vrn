@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="9" height="10" viewBox="0 0 9 10" xmlns="http://www.w3.org/2000/svg">
+	<g stroke="#979797" fill="none" fill-rule="evenodd" stroke-linecap="square">
+		<path d="M1.5 9.5h6M7.5 9.5v-5M1.5 9.5v-5M3.5 7.5v-3M5.5 7.5v-3M.5 2.5h8M2.5 1.5v1M3.5.5h2M6.5 1.5v1"/>
+	</g>
+</svg>

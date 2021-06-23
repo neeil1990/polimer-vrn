@@ -1,0 +1,32 @@
+<?php
+
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_ACTIVE_FIELD'] = 'Добавить в прайс-листы';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_ACTIVE_FIELD_HELP_MESSAGE'] = 'Если вы хотите создать акцию, но опубликовать данные о ней на Маркете позже, оставьте чекбокс пустым';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_NAME_FIELD'] = 'Название акции';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_DESCRIPTION_FIELD'] = 'Описание (до 500 символов)';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_PROMO_TYPE_FIELD'] = 'Тип акции';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_PROMO_TYPE_FIELD_HELP_MESSAGE'] = '<p>Если для публикации специальных предложений на&nbsp;сайте магазина вы&nbsp;используете стандартные инструменты системы &laquo;1С-Битрикс&raquo;, лучше выбирать пункт &laquo;Акция из&nbsp;раздела &laquo;Маркетинг&raquo;. Он&nbsp;подходит для передачи данных о&nbsp;скидках по&nbsp;промокоду, подарках при покупке и&nbsp;специальной цене в&nbsp;определённый период.</p><p>Если для публикации вы&nbsp;используете другие инструменты (например, созданные вашими разработчиками), или хотите разместить на&nbsp;Маркете данные об&nbsp;акции &laquo;При покупке&nbsp;N товаров&nbsp;M таких&nbsp;же товаров бесплатно&raquo;, добавьте акцию вручную&nbsp;&mdash; но&nbsp;проследите, чтобы она отображалась на&nbsp;сайте.</p>';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_PROMO_TYPE_FIELD_ENUM_BITRIX_CATALOG'] = 'Скидка модуля &laquo;Торговый каталог&raquo;';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_URL_FIELD'] = 'Ссылка на описание акции на сайте магазина';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_SETUP_EXPORT_ALL_FIELD'] = 'Добавить во все прайс-листы';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_SETUP_FIELD'] = 'Для каких прайс-листов';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_SETUP_LINK_FIELD'] = 'Для каких прайс-листов';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_START_DATE_FIELD'] = 'Дата и время начала';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_FINISH_DATE_FIELD'] = 'Дата и время завершения';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_PROMO_CODE_FIELD'] = 'Промокод';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_DISCOUNT_UNIT_FIELD'] = 'В чём скидка';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_DISCOUNT_UNIT_FIELD_ENUM_PERCENT'] = 'В процентах';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_DISCOUNT_UNIT_FIELD_ENUM_CURRENCY'] = 'В валюте';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_DISCOUNT_CURRENCY_FIELD'] = 'Валюта';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_DISCOUNT_VALUE_FIELD'] = 'Размер скидки';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_GIFT_REQUIRED_QUANTITY_FIELD'] = 'Сколько товаров нужно купить, чтобы получить подарок';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_GIFT_FREE_QUANTITY_FIELD'] = 'Сколько товаров вы даёте в подарок';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_PROMO_PRODUCT_FIELD'] = 'Товары по акции';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_PROMO_GIFT_FIELD'] = 'Подарки по акции';
+$MESS['YANDEX_MARKET_EXPORT_PROMO__ENTITY_EXTERNAL_ID_FIELD'] = 'Акция';
+$MESS['YANDEX_MARKET_EXPORT_PROMO_VALIDATE_URL_REQUIRE_PATH'] = 'Необходимо указать правильный относительный или абсолютный url-адрес';
+$MESS['YANDEX_MARKET_EXPORT_PROMO_VALIDATE_START_DATE_MUST_LESS_FINISH_DATE'] = 'Дата начала должна быть меньше Даты завершения акции';
+$MESS['YANDEX_MARKET_EXPORT_PROMO_VALIDATE_POSITIVE_INTEGER_NOT_NUMBER'] = 'Введите числовое значение в поле &laquo;#NAME#&raquo;';
+$MESS['YANDEX_MARKET_EXPORT_PROMO_VALIDATE_POSITIVE_INTEGER_NOT_POSITIVE'] = 'Введите положительное целое число в поле &laquo;#NAME#&raquo;';
+$MESS['YANDEX_MARKET_EXPORT_PROMO_VALIDATE_POSITIVE_FLOAT_NOT_NUMBER'] = 'Введите числовое значение в поле &laquo;#NAME#&raquo;';
+$MESS['YANDEX_MARKET_EXPORT_PROMO_VALIDATE_POSITIVE_FLOAT_NOT_POSITIVE'] = 'Введите положительное число в поле &laquo;#NAME#&raquo;';

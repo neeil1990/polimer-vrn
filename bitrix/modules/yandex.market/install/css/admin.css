@@ -1,0 +1,54 @@
+.b-log-icon {
+	display: inline-block;
+	vertical-align: middle;
+
+	position: relative;
+	top: -1px;
+
+	margin-right: 4px;
+}
+
+.adm-list-footer-ext .adm-btn-wrap {
+	margin-left: 10px;
+}
+
+.yamarket-dialog-btn {
+	min-width: 90px;
+}
+
+.yamarket-navigation-load-more {
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+	min-width: 90px;
+	width: auto;
+
+	margin-left: 15px !important;
+
+	cursor: pointer;
+}
+
+.yamarket-code {
+	border: 1px solid #CCC;
+	margin: 10px 0;
+	padding: 10px;
+	font-family: monospace;
+	background-color: #FEFEFA;
+	white-space: pre !important;
+	overflow: auto;
+}
+
+.yamarket-code.layout--alone {
+	margin: 0;
+}
+
+.adm-info-message p:first-child,
+.adm-info-message ul:first-child,
+.adm-info-message ol:first-child {
+	margin-top: 0;
+}
+
+.adm-info-message p:last-child,
+.adm-info-message ul:last-child,
+.adm-info-message ol:last-child {
+	margin-bottom: 0;
+}

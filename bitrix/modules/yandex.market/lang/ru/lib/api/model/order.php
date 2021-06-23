@@ -1,0 +1,3 @@
+<?php
+
+$MESS['YANDEX_MARKET_API_MODEL_ORDER_FIELD_EXTERNAL_ID'] = 'Номер заказа';

@@ -1,0 +1,5 @@
+<?php
+
+$MESS['YANDEX_MARKET_TRADING_SERVICE_MARKETPLACE_CANCEL_REASON_SHOP_FAILED'] = 'Магазин не может выполнить заказ';
+$MESS['YANDEX_MARKET_TRADING_SERVICE_MARKETPLACE_CANCEL_REASON_REPLACING_ORDER'] = 'Покупатель решил изменить состав заказа';
+$MESS['YANDEX_MARKET_TRADING_SERVICE_MARKETPLACE_CANCEL_REASON_USER_CHANGED_MIND'] = 'Покупатель отменил заказ по собственным причинам';

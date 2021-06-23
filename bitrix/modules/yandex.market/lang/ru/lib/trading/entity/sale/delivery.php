@@ -1,0 +1,4 @@
+<?php
+
+$MESS['YANDEX_MARKET_TRADING_ENTITY_SALE_DELIVERY_SERVICE_NOT_FOUND'] = 'Служба доставки #ID# не найдена';
+$MESS['YANDEX_MARKET_TRADING_ENTITY_SALE_DELIVERY_CALCULATED_SHIPMENT_NOT_FOUND'] = 'Не найдена отгрузка для расчета доставки';

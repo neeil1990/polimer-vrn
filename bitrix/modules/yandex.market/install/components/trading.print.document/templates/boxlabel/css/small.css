@@ -1,0 +1,77 @@
+@page {
+	margin: 0 5mm;
+	padding: 0;
+	border: 0;
+}
+
+.yamarket-box-label {
+	width: 95mm;
+	height: 134mm;
+	padding-left: 5mm;
+	padding-right: 5mm;
+}
+
+.yamarket-safari .yamarket-box-label {
+	height: 132mm;
+}
+
+.yamarket-box-label__contents {
+	width: 85mm;
+	height: 120mm;
+}
+
+.yamarket-box-label__contents:after {
+	border-top-width: 3mm;
+}
+
+.yamarket-box-label__logo {
+	height: 13mm;
+	margin-bottom: 4mm;
+}
+
+.yamarket-box-label__row {
+	padding-top: 3mm;
+	padding-bottom: 3mm;
+}
+
+.yamarket-box-label__cell {
+	height: 20mm;
+}
+
+.yamarket-box-label__param {
+	height: 10mm;
+	min-width: 13mm;
+}
+
+.yamarket-box-label__label {
+	font-size: 7pt;
+}
+
+.yamarket-box-label__value {
+	font-size: 10pt;
+}
+
+.yamarket-box-label__barcode {
+	height: 16mm;
+	margin-left: -4mm;
+	margin-right: -4mm;
+}
+
+.yamarket-box-label__barcode-type {
+	font-size: 8pt;
+}
+
+.yamarket-box-label__footer {
+	height: 10mm;
+	font-size: 10pt;
+}
+
+@media print {
+	.yamarket-box-label-grid {
+		height: 100%;
+		width: calc(100% + 10mm); /* firefox overlap content without width */
+
+		margin-left: -5mm;
+		margin-right: -5mm;
+	}
+}

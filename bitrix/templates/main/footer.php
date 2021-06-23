@@ -95,12 +95,7 @@
     $config = \Bitrix\Main\Config\Configuration::getInstance()->get("exception_handling");
     if(!$config['debug']):
     ?>
-				<!— BEGIN JIVOSITE CODE {literal} —>
-				<script type='text/javascript'>
-					(function(){ var widget_id = 'Ms4VnpNIHY';var d=document;var w=window;function l(){
-						var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = '//code.jivosite.com/script/widget/'+widget_id; var ss = document.getElementsByTagName('script')[0]; ss.parentNode.insertBefore(s, ss);}if(d.readyState=='complete'){l();}else{if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})();
-				</script>
-				<!— {/literal} END JIVOSITE CODE —>
+
 
 
 
@@ -120,7 +115,12 @@
 
 
 
-
+<script>
+        (function(w,d,u){
+                var s=d.createElement('script');s.async=true;s.src=u+'?'+(Date.now()/60000|0);
+                var h=d.getElementsByTagName('script')[0];h.parentNode.insertBefore(s,h);
+        })(window,document,'https://cdn-ru.bitrix24.ru/b7243579/crm/site_button/loader_3_co14nv.js');
+</script>
 
 
 	</body>

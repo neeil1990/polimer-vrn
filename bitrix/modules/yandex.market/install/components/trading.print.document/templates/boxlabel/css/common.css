@@ -1,0 +1,178 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.yamarket-box-label-grid {
+	display: block;
+	height: 100%;
+}
+
+.yamarket-box-label {
+	display: inline-block;
+	vertical-align: top;
+	overflow: hidden;
+	max-width: 100%;
+	max-height: 100%;
+	box-sizing: border-box;
+
+	position: relative;
+	z-index: 1;
+
+	background: #fff;
+
+	font-family: 'YS Text', 'Helvetica Neue', Arial,sans-serif;
+	text-align: center;
+	white-space: nowrap;
+
+	page-break-inside: avoid;
+}
+
+.yamarket-box-label:before { /* horizontal slice line */
+	content: '';
+	display: block;
+	width: 100%;
+	border-top: 1pt solid #e5e5e5;
+
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	bottom: 0;
+}
+
+.yamarket-box-label:after { /* contents vertical align */
+	content: '';
+	display: inline-block;
+	vertical-align: middle;
+	width: 0;
+	height: 100%;
+}
+
+.yamarket-box-label__contents {
+	display: inline-block;
+	vertical-align: middle;
+	max-width: 100%;
+	max-height: 100%;
+
+	background: #fff;
+
+	text-align: left;
+	white-space: normal;
+}
+
+.yamarket-box-label__contents:before { /* vertical slice line */
+	content: '';
+	display: block;
+	border-right: 1pt solid #e5e5e5;
+	height: 100%;
+
+	position: absolute;
+	z-index: -1;
+	right: 0;
+	top: 0;
+}
+
+.yamarket-box-label__contents:after { /* hide horizontal slice line if height limit */
+	content: '';
+	display: block;
+	border-top: 5pt solid #fff;
+
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	right: 2pt; /* offset from horizontal slice line */
+
+	margin-top: -2pt;
+}
+
+.yamarket-box-label__logo {
+	display: block;
+	border: 0;
+	margin: 0 auto;
+}
+
+.yamarket-box-label__row {
+	display: flex;
+}
+
+.yamarket-box-label__row + .yamarket-box-label__row {
+	border-top: 1pt solid #231f20;
+	margin-top: -1pt;
+}
+
+.yamarket-box-label__cell {
+	flex: auto 1 1;
+}
+
+.yamarket-box-label__cell.layout--strict {
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+
+.yamarket-box-label__cell.contents--center {
+	text-align: center;
+}
+
+.yamarket-box-label__param {
+	flex: auto 0 0;
+}
+
+.yamarket-box-label__param + .yamarket-box-label__param {
+	padding-left: 3.25mm;
+	border-left: 1pt solid #231f20;
+
+	margin-left: 3.25mm;
+}
+
+.yamarket-box-label__param.layout--expand {
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+
+.yamarket-box-label__label {
+	display: block;
+	margin-bottom: 1mm;
+	position: relative;
+	z-index: 1;
+	line-height: 1.25;
+}
+
+.yamarket-box-label__value {
+	display: block;
+	position: relative;
+	z-index: 1;
+	line-height: 1.25;
+	word-wrap: break-word;
+}
+
+.yamarket-box-label__barcode {
+	display: inline-block;
+	vertical-align: top;
+	border: 0;
+	margin: 0;
+}
+
+.yamarket-box-label__barcode-type {
+	display: block;
+	margin-top: 0.15mm;
+	line-height: 1.25;
+	font-weight: bold;
+	text-align: center;
+}
+
+.yamarket-box-label__footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1.25;
+	text-align: center;
+}
+
+.yamarket-box-label__company-logo {
+	display: block;
+	max-width: 100%;
+	max-height: 100%;
+}
