@@ -21,10 +21,13 @@ use Bitrix\Sale\PriceMaths;
 			<div class="title">Данные заказа</div>
 
 			<?
-			foreach($arResult["ORDER_PROPS_PRINT"] as $arProperties)
+            $address = '';
+			foreach($arResult["ORDER_PROPS_PRINT"] as $key => $arProperties)
 			{
 				if(strLen($arProperties["VALUE_FORMATED"])>0)
 				{
+				    if($arProperties['GROUP_NAME'] == "group_store")
+                        $address = $arProperties["VALUE_FORMATED"];
 					?>
 					<div class="line">
 						<div class="name"><?= $arProperties["NAME"] ?>:</div>
@@ -109,7 +112,13 @@ use Bitrix\Sale\PriceMaths;
 					<?if (is_array($arResult["DELIVERY_ID"])):?>
 					<div class="val"><span><? echo " (".$arResult["DELIVERY"]["PROFILES"][$arResult["DELIVERY_PROFILE"]]["TITLE"].")"; ?></span></div>
 					<?else:?>
-					<div class="val"><span><?=$arResult["DELIVERY"]["NAME"];?></span></div>
+					<div class="val">
+                        <span>
+                            <?=$arResult["DELIVERY"]["NAME"];?><?if($arResult["DELIVERY"]["NAME"] == 'Самовывоз')
+                                print ", " . $address;
+                                ?>
+                        </span>
+                    </div>
 					<?endif;?>
 				</div>
 				<?
