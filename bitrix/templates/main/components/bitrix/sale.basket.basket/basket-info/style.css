@@ -1,0 +1,115 @@
+.or__stages.c2{
+    position: relative;
+}
+
+.or__content {
+    float: left;
+    width: 75%;
+}
+
+.or__stages.cl {
+    float: left;
+    width: 75%;
+}
+
+.or__stages.c2{
+    width: 25%;
+    float: left;
+}
+
+
+.basket-info{
+    width: 100%;
+    margin: 0px 25px;
+    padding: 30px;
+    position: absolute;
+    background: rgba(218, 218, 218, 0.43);
+    border: 1px solid #CDD5D8;
+}
+.basket-info .list-info ul li ol,.basket-info .list-info ul{
+    margin: 0;
+    padding: 0;
+}
+
+
+
+
+.basket-info ul li,
+.basket-info ol li {
+    list-style: none;
+}
+
+.basket-info ol li {
+    display: flex;
+    justify-content: space-between;
+}
+
+.basket-info li div:nth-child(2) {
+    flex: 1 0;
+    border-bottom: 1px dotted #000;
+    height: 1em;
+    margin: 0 .4em;
+}
+
+
+.basket-info .list-info ul li .info-weight{
+    font: 700 15px/20px 'Fira Sans';
+}
+.basket-info .list-info ul li .info-weight.itog{
+    font: 700 25px/0px 'Fira Sans';
+}
+.basket-info .list-info ul{
+    font: 400 15px/20px 'Fira Sans';
+}
+
+.basket-info .list-info ul{
+    margin-bottom: 30px;
+}
+
+.basket-info .control{
+    text-decoration: none;
+    border: 1px solid #0060bf;
+    color: #0060bf;
+    border-radius: 5px;
+    font: 500 13px 'Fira Sans',sans-serif;
+    padding: 7px 0px;
+    height: 30px;
+    display: block;
+    text-align: center;
+}
+
+
+@media screen and (max-width: 659px){
+    .or__stages.c2{
+        margin-top: 0px;
+        width: 100%;
+    }
+    .or__content {
+        width: 100%;
+    }
+
+    .or__stages.cl {
+        width: 100%;
+    }
+
+    .basket-info{
+        position: relative;
+        margin: 0px auto;
+    }
+
+    .or__content.s3 .payment_types {
+        margin: 0px 0px!important;
+    }
+    .or__content .methods_detail .group .table.lines .inp input{
+        width: 100%!important;
+    }
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,7 @@
+.button-helper {
+    background: none !important;
+    border: none !important;
+    font-size: 12px !important;
+    opacity: 0.45;
+    padding: 0 0.2rem !important;
+}

@@ -1,0 +1,33 @@
+ul.icon-lists, .icon-lists ul {
+    list-style-type: none;
+}
+
+.list-group {
+    cursor: pointer;
+}
+
+.disable {
+    opacity: 1;
+}
+
+a.disable {
+    color: #c4c4c4
+}
+
+.search-section-form input {
+    height: 43px
+}
+
+.search-item-info {
+    color: #858688
+}
+
+.link-section {
+    margin-left: 20px;
+}
+
+.icon-trash {
+    font-size: 18px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}

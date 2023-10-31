@@ -1,0 +1,63 @@
+.list-group {
+    cursor: pointer;
+}
+
+.disable {
+    opacity: 0.2;
+}
+
+.img-block {
+    width: 48px;
+    height: 48px;
+    margin-right: 10px;
+}
+
+.img-row {
+    width: 100%
+}
+
+.center-block {
+    align-items: center;
+}
+
+.spinner-search {
+    position: absolute;
+    right: 10px;
+    top: 12px;
+}
+
+.list-group i {
+    margin-right: 0 !important;
+}
+
+.dashed {
+    color: #6c757d;
+    text-decoration: none;
+    border-bottom: 1px dashed #6c757d;
+    padding-bottom: 1px;
+}
+
+.helper {
+    font-size: 10px;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.helper-ico {
+    opacity: 0.45;
+}
+
+.list-group-item.active {
+    background-color: #24695c;
+    border-color: #24695c;
+}
+
+.list-group i {
+    margin-right: 10px;
+}
+
+.list-group img {
+    height: 40px;
+    width: 40px;
+    margin-right: 10px;
+}

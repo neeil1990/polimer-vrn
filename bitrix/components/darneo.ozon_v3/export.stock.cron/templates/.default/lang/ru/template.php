@@ -1,0 +1,8 @@
+<?php
+
+$MESS['DARNEO_OZON_VUE_STOCK_CRON_BUTTON_CLOSE'] = 'Закрыть';
+$MESS['DARNEO_OZON_VUE_STOCK_CRON_TASK_TITLE'] = 'Задание для CRON';
+$MESS['DARNEO_OZON_VUE_STOCK_CRON_WARNING'] = 'Внимание';
+$MESS['DARNEO_OZON_VUE_STOCK_CRON_GENERAL_ACTIVE_WARNING_H1'] = 'Внимание!';
+$MESS['DARNEO_OZON_VUE_STOCK_CRON_GENERAL_ACTIVE_WARNING'] = 'Необходимо включить настройку "Выгрузка остатков" в разделе автоматизации';
+$MESS['DARNEO_OZON_VUE_STOCK_CRON_GENERAL_ACTIVE_BUTTON'] = 'Перейти';

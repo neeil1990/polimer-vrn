@@ -1,0 +1,44 @@
+<?php
+/**
+ * Created: 25.03.2021, 11:33
+ * Author : Dmitry Antiptsev <cto@34web.ru>
+ * Company: 34web Studio
+ */
+
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ACCESS_DENIED'] = 'Access is denied.';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ADMIN_TITLE'] = 'List of SMTP accounts';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_ERROR_TITLE'] = 'Module operation error';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_ERROR_DEMO_EXPIRED_TEXT'] = 'The demo mode of the module "Sending mail via external SMTP (Bitrix24 box, Online store + CRM)" has expired!';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_ERROR_NOT_FOUND_TEXT'] = 'The module "Sending mail via external SMTP (Bitrix24 box, Online store + CRM)" was not found!';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_DEMO_TITLE'] = 'Limited mode of operation of the module "Sending mail via external SMTP (Bitrix24 box, Online store + CRM)"';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_DEMO_TEXT'] = 'The module works in demo mode! You can buy the unlimited version!';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_ACTIVE_ERROR_TITLE'] = 'Module operation error';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_ACTIVE_ERROR_TEXT'] = 'Not included work in'.
+    'module settings! <a href = "/bitrix/admin/settings.php?mid=s34web.mailsmtpb24&mid_menu=1&lang='.
+    LANGUAGE_ID. '">Enable</a>?';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_CLASS_SMTP_ERROR_TITLE'] = 'Module operation error';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_MODULE_CLASS_SMTP_ERROR_TEXT'] = 'Class s34web\mailSMTPB24\smtpAccountsTable was not found. Check the operation of the module "Sending mail via external SMTP (Bitrix24 box, Online store + CRM)"!';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_ID'] = 'ID';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_ACTIVE'] = 'Active';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_NAME'] = 'Sender name';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_EMAIL'] = 'Email';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_SERVER'] = 'Server';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_PORT'] = 'Port';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_SECURE'] = 'SSL|TLS';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_AUTH'] = 'Authorization';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_LOGIN'] = 'Login';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_HEADER_PASSWORD'] = 'Password';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ADD_ACCOUNT'] = 'Add';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ADD_ACCOUNT_TITLE'] = 'Add SMTP account';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_CONFIRM_DEL'] = 'Are you sure you want to delete your account?';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_FIELD_YES'] = 'Yes';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_FIELD_NO'] = 'No';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_SAVE_ERROR'] = "Error while changing account #";
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_DELETE_ERROR'] = 'Account deletion error';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_EDIT_ERROR'] = 'Account editing error';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_EDIT_TITLE'] = 'Change account settings ';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ADMIN_MENU_EDIT'] = 'Edit';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ADMIN_MENU_DELETE'] = 'Delete';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_ADMIN_PAGES'] = 'page';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_LIST_ACTIVATE'] = 'activate';
+$MESS['S34WEB_MAILSMTPB24_ACCOUNTS_LIST_DEACTIVATE'] = 'deactivate';

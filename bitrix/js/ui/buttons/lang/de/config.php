@@ -1,0 +1,8 @@
+<?
+$MESS["UI_BUTTONS_SAVE_BTN_TEXT"] = "Speichern";
+$MESS["UI_BUTTONS_CREATE_BTN_TEXT"] = "Erstellen";
+$MESS["UI_BUTTONS_ADD_BTN_TEXT"] = "Hinzufügen";
+$MESS["UI_BUTTONS_SEND_BTN_TEXT"] = "Senden";
+$MESS["UI_BUTTONS_CANCEL_BTN_TEXT"] = "Abbrechen";
+$MESS["UI_BUTTONS_CLOSE_BTN_TEXT"] = "Schließen";
+$MESS["UI_BUTTONS_APPLY_BTN_TEXT"] = "Anwenden";

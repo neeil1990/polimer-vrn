@@ -1,0 +1,25 @@
+<?php
+$MESS["LANDING_TABLE_FIELD_ACCESS"] = "Zugriffsrechte für Block";
+$MESS["LANDING_TABLE_FIELD_ACTIVE"] = "Aktiv";
+$MESS["LANDING_TABLE_FIELD_ANCHOR"] = "Anker";
+$MESS["LANDING_TABLE_FIELD_ASSETS"] = "Zusätzliche Ressourcen des Blocks";
+$MESS["LANDING_TABLE_FIELD_CODE"] = "ID";
+$MESS["LANDING_TABLE_FIELD_CODE_ORIGINAL"] = "Ursprünglicher Code";
+$MESS["LANDING_TABLE_FIELD_CONTENT"] = "Blockinhalte";
+$MESS["LANDING_TABLE_FIELD_CREATED_BY_ID"] = "Erstellt von (Nutzer-ID)";
+$MESS["LANDING_TABLE_FIELD_DATE_CREATE"] = "Erstellt am";
+$MESS["LANDING_TABLE_FIELD_DATE_MODIFY"] = "Geändert am";
+$MESS["LANDING_TABLE_FIELD_DELETED"] = "Gelöscht oder nicht";
+$MESS["LANDING_TABLE_FIELD_DESIGNED"] = "Block wurde geändert von Nutzer";
+$MESS["LANDING_TABLE_FIELD_FAVORITE_META"] = "Vorrangige Felder für gespeicherten Block";
+$MESS["LANDING_TABLE_FIELD_HISTORY_STEP_DESIGNER"] = "Schritt der Superblock-History";
+$MESS["LANDING_TABLE_FIELD_INITIATOR_APP_CODE"] = "Code der übergeordneten Anwendung";
+$MESS["LANDING_TABLE_FIELD_LID"] = "Landing-ID";
+$MESS["LANDING_TABLE_FIELD_MODIFIED_BY_ID"] = "Geändert von (Nutzer-ID)";
+$MESS["LANDING_TABLE_FIELD_PARENT_ID"] = "Übergeordneter Block";
+$MESS["LANDING_TABLE_FIELD_PUBLIC"] = "Öffentlich";
+$MESS["LANDING_TABLE_FIELD_SEARCH_CONTENT"] = "Inhalte des Blocks zum Suchen";
+$MESS["LANDING_TABLE_FIELD_SORT"] = "Sortierung";
+$MESS["LANDING_TABLE_FIELD_SOURCE_PARAMS"] = "Parameter der dynamischen Quelle";
+$MESS["LANDING_TABLE_FIELD_TPL_CODE"] = "Code der Vorlage";
+$MESS["LANDING_TABLE_FIELD_XML_ID"] = "Externe ID";

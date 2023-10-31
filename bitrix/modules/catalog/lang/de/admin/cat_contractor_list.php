@@ -1,0 +1,22 @@
+<?php
+$MESS["CONTRACTOR_ADDRESS"] = "Adresse";
+$MESS["CONTRACTOR_ADD_NEW"] = "Anbieter hinzufügen";
+$MESS["CONTRACTOR_ADD_NEW_ALT"] = "Neuen Anbieter hinzufügen";
+$MESS["CONTRACTOR_COMPANY"] = "Unternehmen";
+$MESS["CONTRACTOR_EMAIL"] = "E-Mail";
+$MESS["CONTRACTOR_FIELD_ALL"] = "beliebig";
+$MESS["CONTRACTOR_INN"] = "Steuerzahler-ID";
+$MESS["CONTRACTOR_KPP"] = " ";
+$MESS["CONTRACTOR_PAGE_TITLE"] = "Anbieter";
+$MESS["CONTRACTOR_PERSON_NAME"] = "Vorname";
+$MESS["CONTRACTOR_PERSON_TITLE"] = "Vollständiger Name des Ansprechpartners";
+$MESS["CONTRACTOR_PHONE"] = "Telefon";
+$MESS["CONTRACTOR_POST_INDEX"] = "PLZ";
+$MESS["CONTRACTOR_TITLE"] = "Name";
+$MESS["CONTRACTOR_TYPE"] = "Anbietertyp";
+$MESS["DELETE_CONTRACTOR_ALT"] = "Löschen";
+$MESS["DELETE_CONTRACTOR_CONFIRM"] = "Möchten Sie diesen Anbieter wirklich löschen?";
+$MESS["EDIT_CONTRACTOR_ALT"] = "Bearbeiten";
+$MESS["ERROR_DELETING_TYPE"] = "Fehler bei der Eintragsaktualisierung..";
+$MESS["ERROR_UPDATING_REC"] = "Fehler bei der Eintragsaktualisierung.";
+$MESS["group_admin_nav"] = "Anbieter";

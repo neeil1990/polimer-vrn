@@ -1,0 +1,13 @@
+DROP TABLE IF EXISTS `b_sotbit_seometa`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_sitemaps`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_section`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_chpu`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_chpu_links`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_chpu_seo_data`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_section_chpu`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_statistics`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_autogeneration`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_og`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_tw`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_not_configured_pages`;
+DROP TABLE IF EXISTS `b_sotbit_seometa_parse_result`;

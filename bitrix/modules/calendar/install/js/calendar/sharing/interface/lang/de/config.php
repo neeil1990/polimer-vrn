@@ -1,0 +1,20 @@
+<?php
+$MESS["SHARING_BUTTON_TITLE"] = "Besucherzugriff";
+$MESS["SHARING_COPY_LINK_NOTIFICATION"] = "Link kopiert.";
+$MESS["SHARING_DIALOG_CHECKBOX_OFF"] = "AUS";
+$MESS["SHARING_DIALOG_CHECKBOX_ON"] = "EIN";
+$MESS["SHARING_DIALOG_INFO_POPUP"] = "Planen Sie Ihre Besprechungen ohne unnötige E-Mails oder Nachrichten. Senden Sie einen Link zu Ihrem Kalender an Ihre Kunden oder Partner, damit diese einen passenden Termin auswählen können.";
+$MESS["SHARING_DIALOG_MORE_DETAILED"] = "Mehr";
+$MESS["SHARING_DIALOG_PREVIEW_BLOCK_CONTENT"] = "Scannen Sie den QR-Code oder #LINK# ein, um eine Vorschau zu bekommen, wie Ihre Verfügbarkeit im Kalender angezeigt wird.";
+$MESS["SHARING_DIALOG_PREVIEW_BLOCK_CONTENT_LINK"] = "Auf den Link klicken";
+$MESS["SHARING_DIALOG_SHARING_BLOCK_COPY_LINK_BUTTON"] = "Link kopieren";
+$MESS["SHARING_DIALOG_SHARING_BLOCK_COPY_LINK_BUTTON_COPIED"] = "Link kopiert.";
+$MESS["SHARING_DIALOG_SHARING_BLOCK_DISABLED_COPY_LINK_BUTTON_POPUP"] = "Zugriff auf den Kalender gewähren, um den Link zu teilen.";
+$MESS["SHARING_DIALOG_SHARING_BLOCK_TITLE"] = "Link zum Kalender";
+$MESS["SHARING_DIALOG_SHARING_HINT"] = "Senden Sie den Link an Ihren Kunden oder Geschäftspartner. Sie werden einen passenden Termin auswählen und ihn zu Ihrem Kalender hinzufügen.";
+$MESS["SHARING_INFO_POPUP_CONTENT_1"] = "Planen Sie Ihre Besprechungen ohne unnötige E-Mails oder Nachrichten. Senden Sie einen Link zu Ihrem Kalender an Ihre Kunden oder Partner, damit diese einen passenden Termin auswählen können.";
+$MESS["SHARING_INFO_POPUP_CONTENT_2"] = "Niemand wird Ihren aktuellen Zeitplan sehen: nur Ihre Verfügbarkeit wird angezeigt.";
+$MESS["SHARING_WARNING_POPUP_CANCEL_BUTTON"] = "Abbrechen";
+$MESS["SHARING_WARNING_POPUP_CONTENT"] = "Ein neuer Besucherlink wird erstellt, wenn Sie den Zugriff auf den Kalender erneut gewähren. Der alte Link wird ungültig sein.";
+$MESS["SHARING_WARNING_POPUP_SUBMIT_BUTTON"] = "Zugriff schließen";
+$MESS["SHARING_WARNING_POPUP_TITLE"] = "Sie sind gerade dabei, den Zugriff zu schließen";

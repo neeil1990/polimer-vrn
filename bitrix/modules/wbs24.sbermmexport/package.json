@@ -1,0 +1,11 @@
+{
+  "name": "wbs24.sbermmexport",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "mocha tests/unit_js/*.test.js"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.1.3"
+  }
+}

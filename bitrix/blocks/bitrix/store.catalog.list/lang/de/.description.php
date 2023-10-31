@@ -1,0 +1,4 @@
+<?
+$MESS["LD_BLOCK_STORE_CATALOG_SECTION_ID"] = "ID der Kategorie";
+$MESS["LD_BLOCK_STORE_CATALOG_LIST_NAME"] = "Produkte";
+?>

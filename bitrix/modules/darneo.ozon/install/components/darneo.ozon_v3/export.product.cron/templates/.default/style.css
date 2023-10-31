@@ -1,0 +1,107 @@
+
+.cron-page-details h3 {
+    display: inline;
+}
+
+.cron-page-details.detail-cron {
+    display: block;
+    width: 100%;
+}
+
+.detail-cron-wrap {
+    column-count: 2;
+    column-gap: 25px;
+}
+
+.detail-cron {
+    margin-bottom: 10px;
+    break-inside: avoid-column;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.detail-cron b {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.btn-edit svg {
+    width: 12px;
+    height: 12px;
+    transition: all .2s;
+}
+
+.btn-edit svg {
+    fill: #979797;
+}
+
+.btn-edit:hover svg {
+    fill: #BC261A;
+}
+
+.detail-edit input {
+    height: 40px;
+    color: #242934;
+    font-weight: 500;
+}
+
+.detail-edit a:not(:last-child) {
+    margin-right: 5px;
+    background-color: green;
+}
+
+.detail-cron--trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-cron--trigger a {
+    margin-left: 5px;
+}
+
+.detail-cron-wrap .detail-edit input {
+    width: 100%;
+    height: -webkit-fit-content;
+    height: -moz-fit-content;
+    height: fit-content;
+    padding: 5px 10px;
+}
+
+@media screen and (max-width: 1370px) {
+    .detail-cron-wrap {
+        column-count: 1;
+    }
+}
+
+.cron-detail {
+    color: #353c4e
+}
+
+.card .field-title {
+    margin-top: 10px;
+    margin-bottom: 0;
+    font-size: 12px;
+    font-weight: normal;
+    padding-bottom: 5px;
+    color: #999;
+}
+
+.cron-detail .disabled {
+    background: #fff;
+    width: 100%;
+    height: 100%;
+    z-index: 101;
+    opacity: 0.3;
+}
+
+.card .sub-title {
+    margin-bottom: 20px !important;
+    border-bottom: 1px solid rgba(204, 204, 204, .35) !important;
+}
+
+.prop-compare {
+    background: #ececec;
+    padding: 15px 20px 20px;
+}

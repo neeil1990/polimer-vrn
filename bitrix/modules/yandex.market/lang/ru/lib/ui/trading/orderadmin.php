@@ -1,0 +1,5 @@
+<?php
+
+$MESS['YANDEX_MARKET_UI_TRADING_ORDER_ADMIN_SERVICE_CODE_NOT_SET'] = 'Не указан код сервиса';
+$MESS['YANDEX_MARKET_UI_TRADING_ORDER_ADMIN_SERVICE_CODE_INVALID'] = 'Сервис #SERVICE# не найден';
+$MESS['YANDEX_MARKET_UI_TRADING_ORDER_ADMIN_SETUP_NOT_FOUND'] = 'Настройки обработки заказов отсутствуют';

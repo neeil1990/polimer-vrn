@@ -1,0 +1,171 @@
+/* table layout */
+
+.b-param-table {
+	min-width: 800px;
+
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.b-param-table__row {
+	width: 100%;
+	table-layout: fixed;
+}
+
+.b-param-table__cell {
+	vertical-align: top;
+	padding: 1px 8px 1px 0;
+}
+
+.b-param-table__cell.for--label {
+	padding-top: 6px;
+	text-align: right;
+}
+
+.b-param-table__input {
+	width: 100%;
+}
+
+.b-param-table__input,
+.b-param-table__control,
+.adm-workarea input.b-param-table__input,
+.adm-workarea input.b-param-table__control {
+	height: 28px;
+	box-sizing: border-box;
+}
+
+.b-param-table__input {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+select.b-param-table__input,
+select.b-param-table__control,
+.b-param-table__control.adm-btn,
+.b-param-table__control.adm-btn:active,
+.b-param-table__control.adm-btn.adm-btn-active {
+	height: 28px;
+}
+
+.b-param-table__input + .select2-container--default .select2-selection.select2-selection--multiple,
+.b-param-table__control + .select2-container--default .select2-selection.select2-selection--multiple,
+select.b-param-table__input[size],
+select.b-param-table__input[multiple],
+select.b-param-table__control[size],
+select.b-param-table__control[multiple] {
+	min-height: 28px; /* select fix */
+}
+
+.b-param-table__input + .select2-container--default .select2-selection--multiple .select2-selection__rendered,
+.b-param-table__control + .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+	padding-bottom: 0;
+}
+
+.b-param-table__input + .select2-container--default .select2-selection .select2-selection__choice,
+.b-param-table__control + .select2-container--default .select2-selection .select2-selection__choice,
+.b-param-table__input + .select2-container .select2-search--inline .select2-search__field,
+.b-param-table__control + .select2-container .select2-search--inline .select2-search__field {
+	margin-top: 5px;
+}
+
+.b-param-table__footer {
+	margin-top: 10px;
+}
+
+.b-param-table__warning > td {
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+
+.b-param-table__warning.is--empty {
+	display: none;
+}
+
+.b-param-table__cell.for--label,
+.width--param-label {
+	width: 40%;
+}
+
+.width--param-source-cell {
+	width: 200px;
+}
+
+.width--param-field-cell {
+	width: 350px;
+}
+
+@media (max-width: 1100px) {
+	.b-param-table__cell.for--label,
+	.width--param-label {
+		width: 250px;
+	}
+}
+
+.b-param-table__setting-label {
+	width: 220px;
+	height: 22px;
+	text-align: right;
+}
+
+.b-param-setting-source {
+	display: flex;
+}
+
+.b-param-setting-source__cell {
+	flex: auto 1 1;
+	width: 50%;
+	max-width: 180px;
+}
+
+.b-param-setting-source__cell + .b-param-setting-source__cell {
+	max-width: 220px;
+	margin-left: 4px;
+}
+
+/* hidden tags */
+
+.js-params--show-hidden-tags {
+	display: inline-block;
+	position: relative;
+}
+
+.js-params--show-hidden-tags a {
+	border-bottom: 1px dotted;
+	text-decoration: none;
+}
+
+.js-params--hidden-tags {
+	background-color: #000;
+	bottom: 100%;
+	display: none;
+	font-size: 14px;
+	left: 50%;
+	padding: 6px 0;
+	position: absolute;
+	transform: translateX(-50%);
+}
+
+.js-params--show-hidden-tags:hover .js-params--hidden-tags {
+	display: block;
+}
+
+.js-params--show-hidden-tags:focus-within .js-params--hidden-tags {
+	display: block;
+}
+
+.js-params--hidden-tags a,
+.js-params--hidden-tags span {
+	background: transparent;
+	border: 0;
+	color: #fff;
+	display: block;
+	font-family: "Courier New", monospace;
+	padding: 2px 16px 3px;
+	text-decoration: none;
+	white-space: pre;
+}
+
+.js-params--hidden-tags a:hover,
+.js-params--hidden-tags span:hover {
+	background-color: #333;
+}

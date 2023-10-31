@@ -1,0 +1,4 @@
+<?php
+$MESS["LANDING_UI_COMPONENT_LIST_ITEM_DRAG_TITLE"] = "Verschieben, um die Reihenfolge zu ändern";
+$MESS["LANDING_UI_COMPONENT_LIST_ITEM_EDIT_TITLE"] = "Bearbeiten";
+$MESS["LANDING_UI_COMPONENT_LIST_ITEM_REMOVE_TITLE"] = "Löschen";

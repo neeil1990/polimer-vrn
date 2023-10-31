@@ -1,0 +1,6 @@
+<?
+
+$sSectionName = 'Экспорт';
+$arDirProperties = [
+
+];

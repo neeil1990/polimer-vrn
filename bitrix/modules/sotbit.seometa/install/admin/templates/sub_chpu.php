@@ -1,0 +1,1 @@
+<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/sotbit.seometa/admin/templates/sub_chpu.php");?>

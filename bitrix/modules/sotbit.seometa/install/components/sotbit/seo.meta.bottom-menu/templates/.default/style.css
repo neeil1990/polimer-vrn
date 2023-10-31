@@ -1,0 +1,39 @@
+.seometa-menu__buttons-wrapper {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: 0 -5px 10px; }
+
+.seometa-menu__button {
+    font-weight: bold;
+    margin: 0 5px;
+    cursor: pointer;
+    -webkit-transition: all 0.2s ease;
+    transition: all 0.2s ease; }
+.seometa-menu__button:hover {
+    color: var(--main-color); }
+.seometa-menu__button_active {
+    color: var(--main-color); }
+
+.seometa-menu__content {
+    display: none;
+    padding: 10px;
+    flex-wrap: wrap;
+    border: 1px solid #ededed; }
+
+.seometa-menu__section {
+    display: inline-block;
+    width: 25%;
+    min-width: 200px;
+    padding: 10px; }
+
+.seometa-menu__link {
+    display: block;
+    margin-left: 10px; }
+
+.seometa-menu__name {
+    display: block;
+    margin-bottom: 5px; }

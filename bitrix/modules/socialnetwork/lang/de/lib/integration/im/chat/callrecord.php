@@ -1,0 +1,3 @@
+<?php
+$MESS["SOCIALNETWORK_CHAT_CALLRECORD_FILE_NOT_FOUND"] = "Datei nicht gefunden";
+$MESS["SOCIALNETWORK_CHAT_CALLRECORD_TEXT"] = "Datei der Anrufaufzeichnung #FILE_NAME#\n[DISK FILE ID=n#DISK_FILE_ID#]";

@@ -1,0 +1,26 @@
+<?php
+$MESS["CAT_MEASURE_ADD"] = "Hinzufügen";
+$MESS["CAT_MEASURE_CLASSIFIER_MAIN"] = "Wählen Sie einen Bereich des Klassifikators aus";
+$MESS["CAT_MEASURE_CLASSIFIER_SUB"] = "Wählen Sie einen Unterbereich des Klassifikators aus";
+$MESS["CAT_MEASURE_CODE"] = "ID";
+$MESS["CAT_MEASURE_CODE_EMPTY"] = "Geben Sie ein Zeichen der Maßeinheit an";
+$MESS["CAT_MEASURE_CODE_MSGVER_1"] = "Code";
+$MESS["CAT_MEASURE_DEFAULT"] = "Standardmäßig";
+$MESS["CAT_MEASURE_DELETE"] = "Löschen";
+$MESS["CAT_MEASURE_DELETE_CONFIRM"] = "Möchten Sie diese Einheit wirklich löschen?";
+$MESS["CAT_MEASURE_IS_DEFAULT"] = "Standardmäßig";
+$MESS["CAT_MEASURE_LIST"] = "Maßeinheiten";
+$MESS["CAT_MEASURE_MEASURE_TITLE"] = "Einheitsname";
+$MESS["CAT_MEASURE_NOTHING_SELECT"] = "Es ist keine Maßeinheit ausgewählt";
+$MESS["CAT_MEASURE_SUCCESS_ADD"] = "Einheit wurde erfolgreich hinzugefügt";
+$MESS["CAT_MEASURE_SYMBOL_INTL"] = "Einheitssymbol (international)";
+$MESS["CAT_MEASURE_SYMBOL_LETTER_INTL"] = "Internationales Einheitszeichen";
+$MESS["CAT_MEASURE_SYMBOL_RUS"] = "Einheitssymbol";
+$MESS["CAT_MEASURE_TITLE"] = "Maßeinheiten";
+$MESS["CAT_MEASURE_TITLE_ADD"] = "Maßeinheit hinzufügen";
+$MESS["CAT_MEASURE_TITLE_EDIT"] = "Maßeinheit #ID# bearbeiten";
+$MESS["CAT_MEASURE_TITLE_EMPTY"] = "Geben Sie den Namen der Maßeinheit an";
+$MESS["CAT_MEASURE_TITLE_NEW"] = "Neue Maßeinheit";
+$MESS["CAT_MEASURE_TITLE_OKEI"] = "Maßeinheit aus dem Klassifikator hinzufügen";
+$MESS["CAT_MEASURE_TITLE_ONE"] = "Maßeinheit";
+$MESS["CVAT_SORT"] = "Sortierung";

@@ -1,0 +1,23 @@
+.list-group {
+    cursor: pointer;
+}
+
+.disable {
+    opacity: 1;
+}
+
+a.disable {
+    color: #c4c4c4
+}
+
+.search-section-form input {
+    height: 43px
+}
+
+.search-item-info {
+    color: #858688
+}
+
+.form-check .form-check-input {
+    float: right !important;
+}

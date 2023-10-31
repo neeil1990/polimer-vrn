@@ -1,0 +1,6 @@
+<?
+$MESS['MICROM_ENTITY_ID_FIELD'] = 'ІД';
+$MESS['MICROM_ENTITY_SITE_ID_FIELD'] = 'ІД сайту';
+$MESS['MICROM_ENTITY_CODE_FIELD'] = 'Код поля';
+$MESS['MICROM_ENTITY_VALUE_FIELD'] = 'Значення';
+?>

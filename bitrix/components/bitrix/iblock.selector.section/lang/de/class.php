@@ -1,0 +1,4 @@
+<?
+$MESS["IBLOCK_SELECTOR_SECTION_ERR_IBLOCK_MODULE_NOT_INSTALLED"] = "Das Modul \"Informationsblöcke\" wurde nicht installiert";
+$MESS["IBLOCK_SELECTOR_SECTION_GRID_PAGENAVIGATION_TITLE"] = "Bereiche";
+?>

@@ -1,0 +1,10 @@
+<?php
+$MESS["LANDING_HOOK_B24BUTTONCODE"] = "Website-Widget";
+$MESS["LANDING_HOOK_B24BUTTONCODE_NO"] = "Keins";
+$MESS["LANDING_HOOK_B24BUTTONCODE_PAGE_TITLE"] = "Widget auf der Website";
+$MESS["LANDING_HOOK_B24BUTTONCODE_USE"] = "Benutzerdefinierte Widget-Einstellungen";
+$MESS["LANDING_HOOK_B24BUTTONCOLOR"] = "Widget-Farbe";
+$MESS["LANDING_HOOK_B24BUTTONCOLOR_BUTTON"] = "Widget-Farbe nutzen";
+$MESS["LANDING_HOOK_B24BUTTONCOLOR_CUSTOM"] = "Benutzerdefinierte Farbe nutzen";
+$MESS["LANDING_HOOK_B24BUTTONCOLOR_SITE"] = "Websitefarbe nutzen";
+$MESS["LANDING_HOOK_B24BUTTONCOLOR_VALUE"] = "Benutzerdefinierte Farbe";

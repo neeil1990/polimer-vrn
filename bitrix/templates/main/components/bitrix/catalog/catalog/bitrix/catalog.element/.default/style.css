@@ -1,0 +1,23 @@
+
+label {
+    display: initial;
+}
+
+.label {
+    color: black;
+}
+.download:before {
+    /* position: absolute; */
+    display: inline-block;
+    content: '';
+    /* top: 0; */
+    /* left: 7px; */
+    /* right: 0; */
+    width: 29px;
+    margin: -3px 2px;
+    height: 20px;
+    background: url(/bitrix/templates/main/img/category_3.png) no-repeat;
+    -webkit-background-size: 100%;
+    -o-background-size: 100%;
+    background-size: 100%;
+}

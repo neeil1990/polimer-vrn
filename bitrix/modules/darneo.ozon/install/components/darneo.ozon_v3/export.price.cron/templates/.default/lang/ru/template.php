@@ -1,0 +1,7 @@
+<?php
+
+$MESS['DARNEO_OZON_VUE_PRICE_CRON_HELPER'] = 'Задание для CRON';
+$MESS['DARNEO_OZON_VUE_PRICE_CRON_WARNING'] = 'Внимание';
+$MESS['DARNEO_OZON_VUE_PRICE_CRON_GENERAL_ACTIVE_WARNING_H1'] = 'Внимание!';
+$MESS['DARNEO_OZON_VUE_PRICE_CRON_GENERAL_ACTIVE_WARNING'] = 'Необходимо включить настройку "Выгрузка цен" в разделе автоматизации';
+$MESS['DARNEO_OZON_VUE_PRICE_CRON_GENERAL_ACTIVE_BUTTON'] = 'Перейти';

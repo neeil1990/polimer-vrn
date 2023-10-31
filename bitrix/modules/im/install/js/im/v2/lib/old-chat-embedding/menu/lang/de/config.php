@@ -1,0 +1,19 @@
+<?php
+$MESS["IM_RECENT_CONTEXT_MENU_CALL"] = "HD-Videoanruf";
+$MESS["IM_RECENT_CONTEXT_MENU_HIDE"] = "Chat ausblenden";
+$MESS["IM_RECENT_CONTEXT_MENU_HISTORY"] = "Nachrichtenprotokoll anzeigen";
+$MESS["IM_RECENT_CONTEXT_MENU_INVITE_CANCEL"] = "Einladung stornieren";
+$MESS["IM_RECENT_CONTEXT_MENU_INVITE_CANCEL_CONFIRM"] = "Möchten Sie die Einladung wirklich stornieren?";
+$MESS["IM_RECENT_CONTEXT_MENU_INVITE_CANCEL_DONE"] = "Einladung wurde storniert.";
+$MESS["IM_RECENT_CONTEXT_MENU_INVITE_RESEND"] = "Erneut einladen";
+$MESS["IM_RECENT_CONTEXT_MENU_INVITE_RESEND_DONE"] = "Einladung wurde erfolgreich gesendet.";
+$MESS["IM_RECENT_CONTEXT_MENU_LEAVE"] = "Chat verlassen";
+$MESS["IM_RECENT_CONTEXT_MENU_LOADING"] = "Menü wird geladen";
+$MESS["IM_RECENT_CONTEXT_MENU_MUTE"] = "Benachrichtigungen deaktivieren";
+$MESS["IM_RECENT_CONTEXT_MENU_PIN"] = "Konversation fixieren";
+$MESS["IM_RECENT_CONTEXT_MENU_PROFILE"] = "Profil anzeigen";
+$MESS["IM_RECENT_CONTEXT_MENU_READ"] = "Als gelesen markieren";
+$MESS["IM_RECENT_CONTEXT_MENU_UNMUTE"] = "Benachrichtigungen aktivieren";
+$MESS["IM_RECENT_CONTEXT_MENU_UNPIN"] = "Konversation lösen";
+$MESS["IM_RECENT_CONTEXT_MENU_UNREAD"] = "Als ungelesen markieren";
+$MESS["IM_RECENT_CONTEXT_MENU_WRITE"] = "Nachrichten schreiben";

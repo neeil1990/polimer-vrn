@@ -1,0 +1,66 @@
+
+20.02.2023 20:23:20 ----------------------------------------------
+20.02.2023 20:23:20 Start update module s34web.mailsmtpb24 from 1.0.1 version to 1.0.2 version.
+20.02.2023 20:23:20 module files updated.
+20.02.2023 20:23:20 admin pages updated.
+20.02.2023 20:23:20 bitrix js files updated.
+20.02.2023 20:23:20 bitrix css files updated.
+20.02.2023 20:23:20 bitrix tools files updated.
+20.02.2023 20:23:20 old component files cleared.
+20.02.2023 20:23:20 old extranet files & module options cleared.
+20.02.2023 20:23:20 main.mail.confirm params & module option updated.
+20.02.2023 20:23:20 mail.client.config params & module option updated.
+20.02.2023 20:23:20 migrate mail accounts from mailAccountsTable to SenderTable.
+20.02.2023 20:23:20 ---
+20.02.2023 20:23:20 Delete old events.
+20.02.2023 20:23:20 Add new events.
+20.02.2023 20:23:20 ---
+20.02.2023 20:23:20 Update finish,  new module version - 1.0.2!
+20.02.2023 20:23:20 ----------------------------------------------
+20.02.2023 20:23:21 ----------------------------------------------
+20.02.2023 20:23:21 Start update module s34web.mailsmtpb24 from 1.0.2 version to 1.0.3 version.
+20.02.2023 20:23:21 ---
+20.02.2023 20:23:21 The current update contains changes to classes and language files.
+20.02.2023 20:23:21 ---
+20.02.2023 20:23:21 Update finish,  new module version - 1.0.3!
+20.02.2023 20:23:21 ----------------------------------------------
+20.02.2023 20:23:22 ----------------------------------------------
+20.02.2023 20:23:22 Start update module s34web.mailsmtpb24 from 1.0.3 version to 1.0.4 version.
+20.02.2023 20:23:22 module files updated.
+20.02.2023 20:23:22 admin pages updated.
+20.02.2023 20:23:22 Add new events.
+20.02.2023 20:23:22 ---
+20.02.2023 20:23:22 Update finish,  new module version - 1.0.4!
+20.02.2023 20:23:22 ----------------------------------------------
+20.02.2023 20:23:22 ----------------------------------------------
+20.02.2023 20:23:22 Start update module s34web.mailsmtpb24 from 1.0.4 version to 1.0.5 version.
+20.02.2023 20:23:22 module files updated.
+20.02.2023 20:23:22 admin pages updated.
+20.02.2023 20:23:22 Add new events.
+20.02.2023 20:23:22 new events added.
+20.02.2023 20:23:22 ---
+20.02.2023 20:23:22 Update finish,  new module version - 1.0.5!
+20.02.2023 20:23:22 ----------------------------------------------
+20.02.2023 20:23:24 ----------------------------------------------
+20.02.2023 20:23:24 Start update module s34web.mailsmtpb24 from 1.0.5 version to 1.0.6 version.
+20.02.2023 20:23:24 module files updated.
+20.02.2023 20:23:24 bitrix tools files updated.
+20.02.2023 20:23:24 ---
+20.02.2023 20:23:24 Update finish,  new module version - 1.0.6!
+20.02.2023 20:23:24 ----------------------------------------------
+20.02.2023 20:23:24 ----------------------------------------------
+20.02.2023 20:23:24 Start update module s34web.mailsmtpb24 from 1.0.6 version to 1.0.7 version.
+20.02.2023 20:23:24 Update finish,  new module version - 1.0.7!
+20.02.2023 20:23:24 ----------------------------------------------
+20.02.2023 20:23:26 ----------------------------------------------
+20.02.2023 20:23:26 Start update module s34web.mailsmtpb24 from 1.0.7 version to 1.0.8 version.
+20.02.2023 20:23:26 Update finish,  new module version - 1.0.8!
+20.02.2023 20:23:26 ----------------------------------------------
+31.03.2023 15:19:44 ----------------------------------------------
+31.03.2023 15:19:44 Start update module s34web.mailsmtpb24 from 1.0.8 version to 1.0.9 version.
+31.03.2023 15:19:44 module files updated.
+31.03.2023 15:19:44 admin pages updated.
+31.03.2023 15:19:44 css updated.
+31.03.2023 15:19:44 js updated.
+31.03.2023 15:19:44 Update finish,  new module version - 1.0.9!
+31.03.2023 15:19:44 ----------------------------------------------

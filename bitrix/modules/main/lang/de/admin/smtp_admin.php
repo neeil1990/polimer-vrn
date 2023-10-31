@@ -1,0 +1,21 @@
+<?php
+$MESS["smtp_configuration_admin_add"] = "SMTP-Verbindung hinzufügen";
+$MESS["smtp_configuration_admin_add_title"] = "Eine neue SMTP-Verbindung hinzufügen";
+$MESS["smtp_configuration_admin_all"] = "(alle)";
+$MESS["smtp_configuration_admin_copy"] = "Kopie hinzufügen";
+$MESS["smtp_configuration_admin_del"] = "Löschen";
+$MESS["smtp_configuration_admin_del_conf"] = "Möchten Sie diese Verbindung wirklich löschen?";
+$MESS["smtp_configuration_admin_edit"] = "Verbindung bearbeiten";
+$MESS["smtp_configuration_admin_edit1"] = "Bearbeiten";
+$MESS["smtp_configuration_admin_email"] = "E-Mail des Absenders";
+$MESS["smtp_configuration_admin_find"] = "Suchen:";
+$MESS["smtp_configuration_admin_host"] = "Host";
+$MESS["smtp_configuration_admin_is_confirmed"] = "Bestätigt";
+$MESS["smtp_configuration_admin_is_public"] = "Wird für alle genutzt";
+$MESS["smtp_configuration_admin_nav"] = "SMTP-Parameter";
+$MESS["smtp_configuration_admin_no"] = "Nein";
+$MESS["smtp_configuration_admin_sites"] = "Websites";
+$MESS["smtp_configuration_admin_title"] = "Parameter der SMTP-Verbindung";
+$MESS["smtp_configuration_admin_username"] = "Name";
+$MESS["smtp_configuration_admin_yes"] = "Ja";
+$MESS["smtp_configuration_wrong_field_value"] = "Der Wert von %FIELD_NAME% ist nicht korrekt";

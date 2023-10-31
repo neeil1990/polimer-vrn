@@ -1,0 +1,5 @@
+<?
+$MESS['SEOMETA_CHPU_SEO_DATA_ID'] = 'ID';
+$MESS['SEOMETA_CHPU_SEO_DATA_BITRIX_URL'] = 'Ссылка фильтра(bitrix url)';
+$MESS['SEOMETA_CHPU_SEO_DATA_CONDITION_ID'] = 'ID условия';
+$MESS['SEOMETA_CHPU_SEO_DATA_SEO_DATA'] = 'SEO данные';

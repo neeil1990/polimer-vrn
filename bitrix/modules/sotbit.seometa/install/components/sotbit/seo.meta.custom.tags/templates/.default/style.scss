@@ -1,0 +1,156 @@
+.sotbit-seometa-tags-column {
+  display: flex;
+  flex-direction: column;
+
+  .sotbit-seometa-tags-column-container {
+
+    .sotbit-seometa-tags-column__title {
+      width: 100%;
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 20px;
+      margin-bottom: 10px;
+    }
+
+    .tags_wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      overflow: hidden;
+      transition: height 0.4s ease;
+      margin-bottom: 0;
+
+      .tags_section {
+        display: flex;
+        flex-wrap: wrap;
+        overflow: hidden;
+        transition: height 0.4s ease;
+        margin-bottom: 0;
+      }
+
+      .sotbit-seometa-tags-column-wrapper {
+        max-width: 100%;
+        width: auto;
+
+        .sotbit-seometa-tag-column {
+
+          .sotbit-seometa-tag-link {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            max-width: 100%;
+          }
+        }
+      }
+    }
+  }
+
+  .sotbit-seometa-tags__hide {
+    display: flex;
+
+    .seometa-tags__hide, .seometa-tags__show {
+      border: 1px solid #ededed;
+      transition: all 0.2s ease-in-out;
+      display: none;
+      padding: 0 30px;
+      font-size: 0.9rem;
+      line-height: 32px;
+      color: #000;
+      align-items: center;
+
+      &:hover {
+        border: 1px solid #fb0040;
+        color: #fb0040;
+
+        .angle-up {
+          border-bottom: 1px solid #fb0040;
+          border-right: 1px solid #fb0040;
+        }
+
+      }
+
+      .angle-up {
+        font-weight: 400;
+        display: block;
+        content: '';
+        width: 7px;
+        height: 7px;
+        top: 8px;
+        right: 1rem;
+        margin-top: 0;
+        border-bottom: 1px solid #000;
+        border-right: 1px solid #000;
+        transform: rotate(45deg) translateX(-3px);
+        transition: all .2s ease-in-out;
+        padding: 0;
+        margin-left: 10px;
+      }
+    }
+
+  }
+
+  &.closed {
+
+    .tags_wrapper {
+      height: 88px;
+    }
+
+    .sotbit-seometa-tags__hide {
+
+      .seometa-tags__hide {
+        display: none;
+      }
+
+      .seometa-tags__show {
+        display: flex;
+      }
+    }
+  }
+
+  &.opened {
+
+
+
+
+    .sotbit-seometa-tags__hide {
+
+      .seometa-tags__hide {
+        display: flex;
+
+        .angle-up {
+          transform: rotate(225deg) translateX(-3px);
+        }
+      }
+
+      .seometa-tags__show {
+        display: none;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .sotbit-seometa-tags-column {
+
+    .sotbit-seometa-tags__hide {
+
+      .seometa-tags__hide, .seometa-tags__show {
+        width: 100%;
+        justify-content: center;
+        border: none;
+
+        &:hover {
+          border: none;
+        }
+      }
+    }
+
+    &.closed {
+
+      .tags_wrapper {
+        height: 176px;
+      }
+    }
+  }
+
+}

@@ -1,0 +1,38 @@
+
+.articles-list{
+    margin: 30px auto;
+}
+.articles-list .block .item {
+    float: left;
+    width: 100%;
+    max-width: 230px;
+    margin-right: 10px;
+}
+.articles-list .block .item:last-child {
+    margin-right: 0px;
+}
+.articles-list .block .item .image {
+    height: 120px;
+    overflow: hidden;
+}
+.articles-list .block .item .name {
+    margin: 5px auto;
+}
+.articles-list .block .item .name .title,.articles-list .archive {
+    font: 400 16px/20px 'Fira Sans', sans-serif;
+}
+
+.articles-list .archive{
+    position: relative;
+}
+
+.articles-list .archive:after {
+    position: absolute;
+    display: block;
+    content: '';
+    width: 40px;
+    height: 2px;
+    bottom: -15px;
+    left: 0;
+    background: #ced5d9;
+}

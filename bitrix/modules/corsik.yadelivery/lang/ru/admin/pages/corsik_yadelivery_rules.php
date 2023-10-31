@@ -1,0 +1,14 @@
+<?php
+$MESS["CORSIK_DELIVERY_SERVICE_SITE_ID"] = "Сайт";
+$MESS["CORSIK_DELIVERY_SERVICE_NAME"] = "Наименование";
+$MESS["CORSIK_DELIVERY_SERVICE_ACTIVE"] = "Активность";
+$MESS["CORSIK_DELIVERY_SERVICE_RULE"] = "Правило";
+$MESS["CORSIK_DELIVERY_SERVICE_SORT"] = "Сортировка";
+$MESS["CORSIK_DELIVERY_SERVICE_SAVE"] = "Сохранить";
+$MESS["CORSIK_DELIVERY_SERVICE_TYPE"] = "Тип правила";
+$MESS["CORSIK_DELIVERY_SERVICE_TYPE_PRICE"] = "по стоимости товаров";
+$MESS["CORSIK_DELIVERY_SERVICE_TYPE_WEIGHT"] = "по весу";
+$MESS["CORSIK_DELIVERY_SERVICE_CANCEL"] = "Отмена";
+$MESS["CORSIK_DELIVERY_SERVICE_ADD_BTN_RULE"] = "Добавить правило";
+$MESS["CORSIK_DELIVERY_SERVICE_ALERT_DELETE"] = "Вы уверены в удалении?";
+$MESS["CORSIK_DELIVERY_SERVICE_UPDATE_BITRIX"] = "<b>Для правильной работы необходимо обновить версию битрикса!</b>";

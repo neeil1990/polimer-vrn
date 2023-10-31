@@ -1,0 +1,30 @@
+
+.prime-banner-bottom{
+    height: 90px;
+    overflow: hidden;
+    text-align: center;
+    position: fixed;
+    z-index: 99999999999999;
+    bottom: -90px;
+    width: 100%;
+    border-top: 1px solid #e05615;
+    background: #f2f2f2;
+    transition: bottom 1s cubic-bezier(0, 0, 1, 1);
+}
+
+.prime-banner-bottom .close-p-bottom {
+    position: absolute;
+    font-size: 21px;
+    font-weight: bold;
+    color: #FFF;
+    text-shadow: 2px 2px 5px #000;
+    top: 0px;
+    right: 0px;
+    background: #e05615;
+    padding: 0px 10px;
+    cursor: pointer;
+}
+
+.prime-banner-bottom img{
+    max-width: 100%;
+}

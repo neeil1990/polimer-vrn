@@ -1,0 +1,35 @@
+<?
+$MESS["BPABL_INVALID_WF"] = "Workflow nicht gefunden";
+$MESS["BPABL_ERROR"] = "Fehler";
+$MESS["BPABL_NO_PERMS"] = "Sie haben nicht genügend Rechte um auf diesen Workflow zuzugreifen.";
+$MESS["BPABL_BACK"] = "Zurück";
+$MESS["BPABL_TITLE"] = "Workflow #ID#";
+$MESS["BPABL_WF_TAB"] = "Workflow";
+$MESS["BPABL_TAB_TITLE"] = "Workflow";
+$MESS["BPABL_NAME"] = "Name der Workflow-Vorlage";
+$MESS["BPABL_DESCRIPTION"] = "Beschreibung der Workflow-Vorlage";
+$MESS["BPABL_ID"] = "Workflow-ID";
+$MESS["BPABL_STATE_MODIFIED_1"] = "Datum des aktuellen Status";
+$MESS["BPABL_STATE_NAME_1"] = "Aktueller Zustand des Workflows";
+$MESS["BPABL_LOG"] = "Workflow-History";
+$MESS["BPABL_TYPE_1_1"] = "Gestartete Aktion '#ACTIVITY#'#NOTE# ";
+$MESS["BPABL_TYPE_2_1"] = "Aktivität '#ACTIVITY#' fertiggestellt, Status: '#STATUS#', Ergebnis: '#RESULT#'#NOTE#";
+$MESS["BPABL_TYPE_3_1"] = "Abgebrochene Aktion '#ACTIVITY#'#NOTE#";
+$MESS["BPABL_TYPE_4_1"] = "Fehler bei der Aktion '#ACTIVITY#'#NOTE#";
+$MESS["BPABL_TYPE_5_1"] = "Aktion '#ACTIVITY#'#NOTE#";
+$MESS["BPABL_TYPE_6_1"] = "Etwas ausgeführt an der Aktion '#ACTIVITY#'#NOTE#";
+$MESS["BPABL_STATUS_1"] = "Initiiert";
+$MESS["BPABL_STATUS_2"] = "In Bearbeitung";
+$MESS["BPABL_STATUS_3"] = "Wird zurückgenommen";
+$MESS["BPABL_STATUS_4"] = "Erledigt";
+$MESS["BPABL_STATUS_5"] = "Fehler";
+$MESS["BPABL_STATUS_6"] = "Nicht definiert";
+$MESS["BPABL_RES_1"] = "Nein";
+$MESS["BPABL_RES_2"] = "Erfolgreich";
+$MESS["BPABL_RES_3"] = "Abgebrochen";
+$MESS["BPABL_RES_4"] = "Fehler";
+$MESS["BPABL_RES_5"] = "Nicht initiiert";
+$MESS["BPABL_RES_6"] = "Nicht definiert";
+$MESS["BPABL_RES2ADMINMODE"] = "Erweiterter Modus";
+$MESS["BPABL_RES2SIMPLEMODE"] = "Einfacher Modus";
+?>

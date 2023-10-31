@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+	<symbol id="download" viewBox="0 0 18 18" preserveAspectRatio="xMinYMin meet">
+		<path d="M16.412 6.353h-4.236V0H5.823v6.353H1.588L9 13.765zm-14.824 9.53V18h14.824v-2.118z" fill="currentColor"
+		      fill-rule="evenodd"/>
+	</symbol>
+	<symbol id="launch" viewBox="0 0 18 18" preserveAspectRatio="xMinYMin meet">
+		<path
+			d="M16 16H2V2h7V0H2C.9 0 0 .9 0 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V9h-2v7ZM11 0v2h3.6l-9.8 9.8 1.4 1.4L16 3.4V7h2V0h-7Z"
+			fill="currentColor" fill-rule="evenodd"/>
+	</symbol>
+</svg>

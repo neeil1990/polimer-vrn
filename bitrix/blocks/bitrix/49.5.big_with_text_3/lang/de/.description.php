@@ -1,0 +1,8 @@
+<?
+$MESS["LANDING_BLOCK_49_5--NAME"] = "Titelseite mit einem gedimmten Video im Hintergrund";
+$MESS["LANDING_BLOCK_49_5--LANDINGBLOCKNODE_VIDEO"] = "Hintergrundvideo";
+$MESS["LANDING_BLOCK_49_5--LANDINGBLOCKNODE_CONTAINER"] = "Sammlung von Elementen";
+$MESS["LANDING_BLOCK_49_5--LANDINGBLOCKNODETITLE"] = "Überschrift";
+$MESS["LANDING_BLOCK_49_5--LANDINGBLOCKNODETEXT"] = "Text";
+$MESS["LANDING_BLOCK_49_5--LANDINGBLOCKNODE_BUTTON"] = "Schaltfläche";
+?>

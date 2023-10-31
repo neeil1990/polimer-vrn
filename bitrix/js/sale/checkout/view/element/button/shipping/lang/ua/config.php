@@ -1,0 +1,5 @@
+<?php
+$MESS["CHECKOUT_VIEW_ELEMENT_BUTTON_SHIPPING_BUY"] = "Дякуємо, до зв'язку!";
+$MESS["CHECKOUT_VIEW_ELEMENT_BUTTON_SHIPPING_NAME"] = "Перейти до оплати";
+$MESS["CHECKOUT_VIEW_ELEMENT_BUTTON_SHIPPING_NAME_NOW"] = "Хочу оплатити зараз";
+$MESS["CHECKOUT_VIEW_ELEMENT_BUTTON_SHIPPING_TO_SHOP"] = "Повернутися до магазину";

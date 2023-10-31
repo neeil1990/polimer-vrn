@@ -1,0 +1,5 @@
+/*Old menu icon and title*/
+#askaron_pro1c_menu_icon {background-image:url(icons/askaron.pro1c/menu.png);}
+
+/*Menu icon BX12*/
+.askaron_pro1c_menu_icon {background:url(icons/askaron.pro1c/menu.png) 5px 0px no-repeat !important;}

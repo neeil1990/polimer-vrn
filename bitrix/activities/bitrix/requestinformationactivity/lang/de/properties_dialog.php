@@ -1,0 +1,26 @@
+<?
+$MESS["BPSFA_PD_YES"] = "Ja";
+$MESS["BPSFA_PD_NO"] = "Nein";
+$MESS["BPSFA_PD_DELETE"] = "Löschen";
+$MESS["BPSFA_PD_EMPTY_TITLE"] = "Der Feldname ist nicht vorhanden";
+$MESS["BPSFA_PD_EMPTY_NAME"] = "Das Feldcode ist nicht vorhanden";
+$MESS["BPSFA_PD_WRONG_NAME"] = "Ein Feldcode kann nur lateinische Buchstaben sowie Zahlen enthalten, kann aber mit einer Zahl nicht anfangen.";
+$MESS["BPSFA_PD_FIELDS"] = "Felder";
+$MESS["BPSFA_PD_F_NAME"] = "ID";
+$MESS["BPSFA_PD_F_TITLE"] = "Name";
+$MESS["BPSFA_PD_F_DESCR"] = "Beschreibung";
+$MESS["BPSFA_PD_F_TYPE"] = "Typ";
+$MESS["BPSFA_PD_F_REQ"] = "Erforderlich";
+$MESS["BPSFA_PD_F_MULT"] = "Mehrfach";
+$MESS["BPSFA_PD_F_ADD"] = "Neues Feld...";
+$MESS["BPSFA_PD_FIELD"] = "Feld";
+$MESS["BPSFA_PD_F_VLIST"] = "Werte";
+$MESS["BPSFA_PD_F_VLIST_HINT"] = "(jede Variante in der neuen Zeile. Wenn der Variantenwert sich von dem Namen unterscheidet, geben Sie ihn in den eckigen Klammern an, z.B. [v1]Variante1)";
+$MESS["BPSFA_PD_F_DEF"] = "Standardwert";
+$MESS["BPSFA_PD_SAVE"] = "Speichern";
+$MESS["BPSFA_PD_CANCEL"] = "Abbrechen";
+$MESS["BPSFA_PD_SAVE_HINT"] = "Feld speichern";
+$MESS["BPSFA_PD_CANCEL_HINT"] = "Beenden ohne Abspeichern";
+$MESS["BP_WF_UP"] = "Nach oben";
+$MESS["BP_WF_DOWN"] = "Nach unten";
+$MESS["BPSFA_PD_TIMEOUT_LIMIT"] = "Minimale Wartezeit";

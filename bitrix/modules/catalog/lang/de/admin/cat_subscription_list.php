@@ -1,0 +1,33 @@
+<?
+$MESS["PSL_PAGE_TITLE"] = "Abonnements";
+$MESS["PSL_ACCESS_DENIED"] = "Zugriff verweigert";
+$MESS["PSL_USER_CONTACT"] = "Kontakt des Nutzers";
+$MESS["PSL_CONTACT_TYPE"] = "Kontakttyp";
+$MESS["PSL_USER"] = "Nutzer";
+$MESS["PSL_DATE_FROM"] = "Abonnement aktiv seit";
+$MESS["PSL_DATE_TO"] = "Abonnement aktiv bis";
+$MESS["PSL_SITE_ID"] = "ID der Website";
+$MESS["PSL_ITEM_ID"] = "Produkt-ID";
+$MESS["PSL_ACTIVE"] = "Aktiv";
+$MESS["PSL_PRODUCT_NAME"] = "Produktname";
+$MESS["PSL_FILTER_ID"] = "ID";
+$MESS["PSL_FILTER_USER_ID"] = "Nutzer";
+$MESS["PSL_FILTER_USER_CONTACT"] = "Nutzerkontakt";
+$MESS["PSL_FILTER_ITEM_ID"] = "Produkt-ID";
+$MESS["PSL_FILTER_DATE_FROM"] = "Abonnement aktiv seit";
+$MESS["PSL_FILTER_DATE_TO"] = "Abonnement aktiv bis";
+$MESS["PSL_FILTER_CONTACT_TYPE"] = "Kontakttyp";
+$MESS["PSL_FILTER_ACTIVE"] = "Aktiv";
+$MESS["PSL_ACTION_DELETE"] = "löschen";
+$MESS["PSL_ACTION_ACTIVATE"] = "aktivieren";
+$MESS["PSL_ACTION_DEACTIVATE"] = "deaktivieren";
+$MESS["PSL_ACTION_DELETE_CONFIRM"] = "Alle Informationen, die mit diesem Eintrag zusammenhängen, werden gelöscht. Fortfahren?";
+$MESS["PSL_PAGES"] = "Seite";
+$MESS["PSL_DELETE_SUBSCRIBE"] = "Löschen";
+$MESS["PSL_LIST_SELECTED"] = "Ausgewählt:";
+$MESS["PSL_LIST_CHECKED"] = "Markiert:";
+$MESS["PSL_FILTER_ANY"] = "(beliebig)";
+$MESS["PSL_FILTER_YES"] = "Ja";
+$MESS["PSL_FILTER_NO"] = "Nein";
+$MESS["PSL_ERR_BUILDER_ADSENT"] = "Link-Builder wurde nicht gefunden.";
+?>

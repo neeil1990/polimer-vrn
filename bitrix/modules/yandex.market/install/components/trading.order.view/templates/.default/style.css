@@ -1,0 +1,575 @@
+/* common */
+
+.yamarket-copy-icon,
+.yamarket-save-icon,
+.yamarket-edit-icon {
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+    width: 15px;
+    height: 15px;
+    padding: 2px;
+    border: 0;
+    box-sizing: content-box;
+	position: relative;
+	top: -1px;
+    margin-top: -8px;
+    margin-bottom: -8px;
+    background: url(/bitrix/images/yandex.market/copy.svg) no-repeat 50% 50%;
+    background-size: 14px 14px;
+    opacity: 0.75;
+    white-space: nowrap;
+    text-indent: 30px;
+    cursor: pointer;
+}
+
+.yamarket-save-icon {
+	top: -2px;
+    background-image: url(/bitrix/images/yandex.market/save.svg);
+	background-size: 16px 16px;
+}
+
+.yamarket-edit-icon {
+	top: -2px;
+    background-image: url(/bitrix/images/yandex.market/settings.svg);
+	background-size: 16px 16px;
+}
+
+.yamarket-transparent-btn {
+	display: inline-block;
+	vertical-align: middle;
+	overflow: visible;
+	padding: 0;
+	border: 0;
+
+	margin: 0;
+
+	background: transparent;
+	color: #717373;
+}
+
+.yamarket-transparent-btn__reveal {
+	opacity: 0;
+	transition: opacity .15s ease-in;
+}
+
+.yamarket-transparent-btn:hover .yamarket-transparent-btn__reveal,
+.yamarket-transparent-btn:focus .yamarket-transparent-btn__reveal {
+	opacity: 1;
+	transition-timing-function: ease-out;
+}
+
+/* title */
+
+.yamarket-section-title {
+	margin-top: 40px;
+}
+
+/* label */
+
+.yamarket-label {
+	display: inline-block;
+	padding: 6px 8px;
+	border-radius: 2px;
+
+	margin-bottom: 20px;
+
+	font-size: 10px;
+	line-height: 1;
+	letter-spacing: 1px;
+
+	text-transform: uppercase;
+}
+
+.yamarket-label.type--danger {
+	background-color: #FFDADA;
+	color: #C30000;
+}
+
+/* properties */
+
+.yamarket-properties-title {
+	margin-top: 2em;
+	margin-bottom: 1em;
+}
+
+.yamarket-properties-title.pos--top {
+	margin-top: 0;
+}
+
+.yamarket-property {
+	display: table;
+	margin-top: 10px;
+	line-height: 1.375;
+}
+
+.yamarket-property__title {
+	display: table-cell;
+	vertical-align: top;
+	padding-right: 10px;
+	width: 255px;
+
+	position: relative;
+}
+
+.yamarket-property__title:after {
+	content:
+		". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+		". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+		". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ";
+	display: inline-block;
+	overflow: hidden;
+	height: 1.375em;
+	border-left: 2px solid transparent;
+	position: absolute;
+	text-align: right;
+	white-space: normal;
+	letter-spacing: -.0625em;
+	opacity: .2;
+}
+
+.yamarket-property__value {
+	display: table-cell;
+	vertical-align: bottom;
+	padding-left: 15px;
+}
+
+/* basket */
+
+.yamarket-basket-wrapper {
+	max-width: 1500px;
+}
+
+.yamarket-basket-table {
+	width: 100%;
+}
+
+.yamarket-basket-table thead td {
+	padding-left: 10px !important;
+	padding-right: 10px !important;
+}
+
+.yamarket-basket-table thead td:first-child {
+	text-align: left;
+}
+
+.yamarket-basket-table tbody td {
+	vertical-align: top;
+	padding: 10px !important;
+}
+
+.yamarket-basket-table tbody td.for--name {
+	min-width: 250px;
+}
+
+.adm-workarea input.yamarket-basket-item__count {
+	vertical-align: top;
+	max-width: 50px;
+	margin-top: -4px;
+	margin-bottom: -4px;
+}
+
+.yamarket-basket-table tfoot td {
+	padding: 16px !important;
+	background: #f7fafa;
+}
+
+.yamarket-basket-summary {
+	text-align: right !important;
+	font-weight: bold !important;
+}
+
+.yamarket-basket-box-select {
+	display: inline-block;
+	vertical-align: top !important;
+	margin-top: -1px;
+	margin-bottom: -1px;
+}
+
+.yamarket-basket-box-select select {
+	width: 150px;
+}
+
+.yamarket-basket-box-add {
+	display: inline-block;
+	vertical-align: top !important;
+
+	margin-left: 10px;
+}
+
+.yamarket-basket-box-add.adm-btn-disabled:before {
+	opacity: 0.5 !important;
+}
+
+/* cis */
+
+.yamarket-cis-summary,
+a.yamarket-cis-summary,
+a.yamarket-cis-summary:link,
+.yamarket-digital-summary,
+a.yamarket-digital-summary,
+a.yamarket-digital-summary:link {
+    text-decoration: none;
+}
+
+.yamarket-cis-summary:hover,
+a.yamarket-cis-summary:hover,
+.yamarket-digital-summary:hover,
+a.yamarket-digital-summary:hover {
+    text-decoration: underline;
+}
+
+.yamarket-cis-summary.is--disabled,
+a.yamarket-cis-summary.is--disabled,
+.yamarket-digital-summary.is--disabled,
+a.yamarket-digital-summary.is--disabled {
+    text-decoration: none;
+}
+
+.yamarket-cis-summary[data-status="EMPTY"],
+a.yamarket-cis-summary[data-status="EMPTY"] {
+    color: inherit;
+}
+
+.yamarket-cis-summary[data-status="WAIT"],
+a.yamarket-cis-summary[data-status="WAIT"],
+.yamarket-digital-summary[data-status="WAIT"],
+a.yamarket-digital-summary[data-status="WAIT"] {
+    color: red;
+}
+
+.yamarket-cis-summary[data-status="READY"],
+a.yamarket-cis-summary[data-status="READY"],
+.yamarket-digital-summary[data-status="READY"],
+a.yamarket-digital-summary[data-status="READY"] {
+    color: green;
+}
+
+.yamarket-cis-table {
+    width: 100%;
+    border-spacing: 0;
+}
+
+.yamarket-cis-table__head td {
+	padding: 0 0 0 5px;
+}
+
+.yamarket-cis-table__number {
+    padding: 5px 0;
+	width: 1%;
+    white-space: nowrap;
+}
+
+.yamarket-cis-table__control {
+    padding: 5px 0 5px 5px;
+}
+
+.yamarket-cis-table__control.type-count--1 {
+	width: 100%;
+}
+
+.yamarket-cis-table__control.type-count--2 {
+	width: 50%;
+}
+
+.yamarket-cis-table__control.type-count--3 {
+	width: 33.33%;
+}
+
+.yamarket-cis-table__control.type-count--4 {
+	width: 25%;
+}
+
+.yamarket-cis-table__input {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.yamarket-cis-table__type {
+    padding: 15px 0 0 5px;
+}
+
+.yamarket-cis-table__type-label {
+	display: block;
+	margin-bottom: 2px;
+}
+
+.yamarket-cis-table__type-value {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.yamarket-cis-table__actions {
+    padding: 20px 0 0 5px;
+}
+
+/* shipment */
+
+.yamarket-shipments-header {
+	display: block;
+	margin: 40px 0 15px -15px;
+}
+
+.yamarket-shipments-header__inline {
+	display: inline-block;
+	vertical-align: baseline;
+	margin: 0 0 0 15px;
+}
+
+.yamarket-shipment-title {
+	display: block;
+	margin: 15px 0 10px;
+}
+
+.yamarket-shipments-layout {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-ms-flex-wrap: wrap;
+	flex-wrap: wrap;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: reverse;
+	-ms-flex-direction: row-reverse;
+	flex-direction: row-reverse;
+	-webkit-box-pack: end;
+	-ms-flex-pack: end;
+	justify-content: flex-end;
+	max-width: 1040px;
+
+	margin-left: -45px;
+}
+
+.yamarket-shipments-layout__main {
+	width: 500px;
+	margin-left: 45px;
+}
+
+.yamarket-shipments-layout__help {
+	width: 310px;
+	margin-left: 45px;
+}
+
+.yamarket-shipments-layout__help .adm-info-message {
+	margin-top: 0 !important;
+}
+
+.yamarket-shipments-layout__help ol {
+	margin: 5px 0;
+	list-style-position: outside;
+	padding-left: 18px;
+}
+
+.yamarket-shipments-layout__help li + li {
+	margin-top: 9px;
+}
+
+.yamarket-boxes-add {
+	text-decoration: none !important;
+}
+
+.yamarket-boxes-add__text {
+	color: inherit !important;
+}
+
+.yamarket-boxes-add:hover .yamarket-boxes-add__text,
+.yamarket-boxes-add:focus .yamarket-boxes-add__text {
+	text-decoration: underline;
+}
+
+.yamarket-box-table {
+	width: 100%;
+	margin-bottom: 15px !important;
+}
+
+.yamarket-box-header {
+	height: auto !important;
+	padding: 10px 15px !important;
+	text-align: left !important;
+	font-weight: normal !important;
+
+	line-height: 29px !important;
+}
+
+.yamarket-box-header__title {
+	display: inline-block;
+	vertical-align: baseline;
+
+	margin: 0;
+}
+
+.yamarket-box-header__title span {
+	font-weight: inherit !important;
+	font-size: inherit !important;
+	line-height: inherit !important;
+}
+
+.yamarket-box-header__actions {
+	float: right;
+	margin-left: 15px;
+}
+
+.yamarket-box-header__properties {
+	display: inline-block;
+	vertical-align: baseline;
+
+	margin-left: 5px;
+
+	color: #838383;
+}
+
+.yamarket-box-property {
+	display: inline-block;
+	vertical-align: baseline;
+
+	margin-left: 10px;
+}
+
+.yamarket-box-action:first-child {
+	margin-left: 0;
+}
+
+.yamarket-box-action {
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-left: 10px;
+}
+
+.yamarket-box-table thead td {
+	padding-left: 10px !important;
+	padding-right: 10px !important;
+}
+
+.yamarket-box-table thead td:first-child {
+	text-align: left;
+}
+
+.yamarket-box-table tbody td {
+	padding: 10px !important;
+}
+
+.yamarket-box-pack-select {
+	margin-bottom: 10px;
+}
+
+.yamarket-box-pack-select__origin {
+    display: inline-block;
+    vertical-align: middle;
+	max-width: 220px;
+}
+
+.yamarket-box-pack-select__save {
+    display: inline-block;
+    vertical-align: middle;
+
+    margin-left: 5px;
+}
+
+.yamarket-box-sizes-wrap.is--disabled {
+	display: none;
+}
+
+.yamarket-box-sizes {
+	display: block;
+	margin-left: -20px;
+}
+
+.yamarket-box-size {
+	float: left;
+	min-width: 95px;
+	margin-left: 20px;
+}
+
+.yamarket-box-size__label {
+	display: block;
+	margin-bottom: 4px;
+}
+
+.yamarket-box-size__input {
+	display: block;
+}
+
+.yamarket-shipment-submit {
+	display: block;
+	margin-top: 40px;
+	margin-left: -10px;
+}
+
+.yamarket-shipment-submit__button {
+	min-width: 100px;
+	margin-left: 10px !important;
+}
+
+.yamarket-shipment-submit__result {
+	display: block;
+	margin-top: 10px;
+	margin-left: 10px;
+
+	font-weight: bold;
+}
+
+.yamarket-shipment-submit__result-row {
+    display: block;
+}
+
+.yamarket-shipment-submit__result[data-status="ok"],
+.yamarket-shipment-submit__result-row[data-status="ok"] {
+	color: green;
+}
+
+.yamarket-shipment-submit__result[data-status="error"],
+.yamarket-shipment-submit__result-row[data-status="error"] {
+	color: red;
+}
+
+.yamarket-btn {
+	padding: 1px 13px 3px;
+}
+
+.yamarket-dialog-btn {
+	min-width: 90px;
+}
+
+.yamarket-dismiss-parent {
+	position: relative;
+}
+
+.yamarket-dismiss {
+	display: block;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	-webkit-appearance: none;
+
+	position: absolute;
+	z-index: 1;
+	right: 0;
+	top: 0;
+
+	background: transparent;
+	color: #333;
+	opacity: .65;
+	box-shadow: none;
+
+	font-size: 28px;
+	line-height: 40px;
+	text-decoration: none;
+	text-align: center;
+	font-style: normal;
+	font-family: Arial, Baskerville, monospace;
+
+	cursor: pointer;
+}
+
+.yamarket-dismiss:hover,
+.yamarket-dismiss:focus {
+	opacity: 1;
+}
+
+/* js */
+
+.is--hidden {
+	display: none !important;
+}

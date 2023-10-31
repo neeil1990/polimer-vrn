@@ -1,0 +1,26 @@
+<?php
+
+$MESS = [
+	'CORSIK_JS_NAME' => "Название",
+	'CORSIK_JS_NEW_ZONE' => "Новая зона",
+	'CORSIK_JS_NEW_WAREHOUSES' => "Новый склад",
+	'CORSIK_JS_ZONE_NAME_EXIST' => "Зона с таким названием уже существует.",
+	'CORSIK_JS_STOCK_NAME_EXIST' => "Склад с таким названием уже существует.",
+	'CORSIK_JS_EDIT' => "Изменить",
+	'CORSIK_JS_ADD' => "Добавить",
+	'CORSIK_JS_SAVE' => "Сохранить",
+	'CORSIK_JS_MORE' => "Ещё",
+	'CORSIK_JS_NO_NAME_COLOR' => "Заполните имя и цвет зоны!",
+	'CORSIK_JS_NO_NAME_STOCK' => "Заполните имя склада",
+	'CORSIK_JS_REMOVE_ALL' => "Вы уверены, что хотите удалить все зоны?",
+	'CORSIK_JS_QUESTION_REMOVE_ZONE' => "Вы уверены, что хотите удалить зону",
+	'CORSIK_JS_QUESTION_REMOVE_STOCK' => "Вы уверены, что хотите удалить склад? ",
+	'CORSIK_JS_QUESTION_REMOVE' => "Вы уверены что хотите удалить зону ",
+	'CORSIK_JS_SAVE_PREVENT_STOCK' => "Сохраните предыдущий склад",
+	'CORSIK_JS_SAVE_PREVENT_ZONE' => "Сохраните предыдущую зону",
+	'CORSIK_JS_NOT_ADDED_STOCK' => "Вы не добавили склад на карту",
+	'CORSIK_JS_FILL_OPACITY' => "Прозрачность заливки: <br /> ",
+	'CORSIK_JS_STROKE_WIDTH' => "Ширина обводки: <br /> ",
+	'CORSIK_JS_STROKE_COLOR' => "Цвет обводки: <br /> ",
+	'CORSIK_JS_CODE' => "Символьный код: <br /> ",
+];

@@ -1,0 +1,6 @@
+<?php
+
+$sSectionName = 'OZON';
+$arDirProperties = [
+
+];

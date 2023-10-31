@@ -1,0 +1,3 @@
+<?php
+$MESS["INVENTORY_MANAGEMENT_REPORT_BATCH_TITLE"] = "Bestandsverwaltung";
+$MESS["STORE_STOCK_REPORT_TITLE"] = "Bestand";

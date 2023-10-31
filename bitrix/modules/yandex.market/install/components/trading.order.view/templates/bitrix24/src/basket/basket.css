@@ -1,0 +1,208 @@
+.yamarket-basket {
+	max-width: 1500px;
+}
+
+.yamarket-basket-table-viewport {
+	display: block;
+	width: 100%;
+	overflow-x: auto;
+}
+
+.yamarket-basket-table {
+	width: 100%;
+	min-width: 800px;
+	border: 1px solid #F1F1F1;
+	border-spacing: 0;
+	background: #fff;
+}
+
+.yamarket-basket-table tr.is--delete {
+	color: rgba(66, 73, 86, .5);
+	text-decoration: line-through;
+}
+
+.yamarket-basket-table td {
+	padding: 10px;
+	vertical-align: top;
+	text-align: right;
+}
+
+.yamarket-basket-table td.for--index {
+	text-align: left;
+	width: 1%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table td.for--name {
+	min-width: 250px;
+	text-align: left;
+}
+
+.yamarket-basket-table td.for--price {
+	width: 15%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table td.for--count,
+.yamarket-basket-table td.for--subsidy {
+	width: 10%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table td.for--count > .ui-ctl {
+	float: right;
+	margin-top: -5px;
+	margin-bottom: -5px;
+	max-width: 70px !important;
+}
+
+.yamarket-basket-table td.for--count > .ui-ctl > input {
+	direction: rtl;
+	text-align: right;
+}
+
+.yamarket-basket-table td.for--delete {
+	width: 1%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table thead td {
+	border-bottom: 1px solid #F1F1F1;
+	vertical-align: bottom;
+	white-space: nowrap;
+}
+
+.yamarket-basket-summary {
+	display: table;
+	margin-top: 12px;
+}
+
+.yamarket-basket-summary__row {
+	display: table-row;
+}
+
+.yamarket-basket-summary__label {
+	display: table-cell;
+	padding-right: 6px;
+	padding-top: 8px;
+	text-align: right;
+}
+
+.yamarket-basket-summary__value {
+	display: table-cell;
+	padding-right: 10px;
+	padding-top: 8px;
+	width: 1%;
+	white-space: nowrap;
+	text-align: right;
+}
+
+.yamarket-delete-toggle__input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0,0,0,0);
+	border: 0;
+}
+
+.yamarket-delete-toggle__icon {
+	display: inline-block;
+	overflow: hidden;
+	vertical-align: top;
+	width: 11px;
+	height: 11px;
+	padding: 4px;
+	border: 0;
+	box-sizing: content-box;
+
+	background: no-repeat 50% 50%;
+	box-shadow: none;
+
+	text-indent: 200%;
+	white-space: nowrap;
+
+	opacity: 1;
+	transition: opacity .15s ease-in;
+
+	cursor: pointer;
+}
+
+.yamarket-delete-toggle:hover .yamarket-delete-toggle__icon,
+.yamarket-delete-toggle:focus .yamarket-delete-toggle__icon {
+	opacity: 0.85;
+	transition-timing-function: ease-out;
+}
+
+.yamarket-delete-toggle:active .yamarket-delete-toggle__icon {
+	opacity: 0.7;
+	transition-timing-function: linear;
+}
+
+.yamarket-delete-toggle__icon.icon--delete {
+	background-image: url('i/delete.svg');
+}
+
+.yamarket-delete-toggle__icon.icon--restore {
+	display: none;
+	background-image: url('i/restore.svg');
+}
+
+.yamarket-delete-toggle__input:checked ~ .yamarket-delete-toggle__icon.icon--delete {
+	display: none;
+}
+
+.yamarket-delete-toggle__input:checked ~ .yamarket-delete-toggle__icon.icon--restore {
+	display: inline-block;
+}
+
+.yamarket-cis-table {
+	width: 100%;
+	border-spacing: 0;
+}
+
+.yamarket-cis-table__head td {
+	padding: 0 0 0 5px;
+}
+
+.yamarket-cis-table__number {
+	padding: 5px 0;
+	width: 1%;
+	white-space: nowrap;
+}
+
+.yamarket-cis-table__control {
+	padding: 5px 0 5px 5px;
+}
+
+.yamarket-cis-table__control.type-count--1 {
+	width: 100%;
+}
+
+.yamarket-cis-table__control.type-count--2 {
+	width: 50%;
+}
+
+.yamarket-cis-table__control.type-count--3 {
+	width: 33.33%;
+}
+
+.yamarket-cis-table__control.type-count--4 {
+	width: 25%;
+}
+
+.yamarket-cis-table__input {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.yamarket-cis-table__type {
+	padding: 15px 0 0 5px;
+}
+
+.yamarket-cis-table__type-value {
+	max-width: 100%;
+	box-sizing: border-box;
+}

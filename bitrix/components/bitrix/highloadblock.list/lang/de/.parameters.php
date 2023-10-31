@@ -1,0 +1,8 @@
+<?
+$MESS["HLLIST_COMPONENT_BLOCK_ID_PARAM"] = "Informationsblock-ID";
+$MESS["HLLIST_COMPONENT_DETAIL_URL_PARAM"] = "Pfad zur Seite der Eintragsansicht";
+$MESS["HLLIST_COMPONENT_ROWS_PER_PAGE_PARAM"] = "Elemente pro Seite";
+$MESS["HLLIST_COMPONENT_PAGEN_ID_PARAM"] = "ID der Seite";
+$MESS["HLLIST_COMPONENT_FILTER_NAME_PARAM"] = "ID des Filters";
+$MESS["HLLIST_COMPONENT_CHECK_PERMISSIONS_PARAM"] = "Zugriffsrechte prüfen";
+?>

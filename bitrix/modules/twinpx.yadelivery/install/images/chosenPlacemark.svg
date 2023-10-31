@@ -1,0 +1,9 @@
+<svg id="UserPointer" xmlns="http://www.w3.org/2000/svg" width="32" height="41.845" viewBox="0 0 32 41.845">
+  <circle id="Эллипс_49" data-name="Эллипс 49" cx="16" cy="16" r="16" fill="#fc3f1d"/>
+  <circle id="Эллипс_50" data-name="Эллипс 50" cx="3.282" cy="3.282" r="3.282" transform="translate(13.129 13.127)" fill="#fff"/>
+  <g id="Эллипс_51" data-name="Эллипс 51" transform="translate(13.129 35.281)" fill="#fff" stroke="#fc3f1d" stroke-width="1">
+    <circle cx="3.282" cy="3.282" r="3.282" stroke="none"/>
+    <circle cx="3.282" cy="3.282" r="2.782" fill="none"/>
+  </g>
+  <path id="Многоугольник_1" data-name="Многоугольник 1" d="M1.641,0,3.282,3.282H0Z" transform="translate(18.051 34.461) rotate(180)" fill="#fc3f1d"/>
+</svg>

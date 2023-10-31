@@ -1,0 +1,81 @@
+a.search-page-params {
+	border-bottom: 1px dashed blue;
+	text-decoration: none;
+}
+div.search-page-params {
+	margin-top: 6px;
+}
+.search-item-rate {font-size: 11px;}
+
+.search-picture{
+    float: left;
+    width: 78px;
+    margin: 4px 14px 4px 4px;
+}
+
+.search-page .price{
+    background: none;
+}
+
+.search-page .pro-title{
+    width: auto;
+}
+
+.search-page hr{
+    color: #CCC;
+    height: 1px;
+    background-color: #CCC;
+    border-color: #CCC;
+    margin: 3px 0;
+    border-style: none;
+}
+
+.search-page .search_chain{padding:0 0 10px 0;}
+.search-page .search_chain a{}
+
+.search-page .search-body b{color:#15C3E6}
+.search-page .pro-title b,
+.search-page .search-body b
+{
+    margin-right: 4px;
+}
+.search-page .pro-title b:last-child,
+.search-page .search-body b:last-child
+{
+    margin-right: 0px;
+}
+
+.add2basket {
+    background: url(/bitrix/templates/main/img/compare-basket-ico.png) center no-repeat #0060bf;
+    border: 0;
+    display: block;
+    width: 27px;
+    height: 21px;
+    border-radius: 4px;
+    margin: -4px 5px;
+    display: inline-block;
+}
+.pro-title .price {
+    float: left;
+    font-size: 18px;
+    line-height: 20px;
+    color: #15c3e6;
+    padding: 7px 26px 0 0;
+}
+.product_top{
+    margin-bottom: 30px;
+}
+.product_top .catalog_top .item_c:nth-child(6n+1),
+.product_top .catalog_top .item_c
+{
+    margin-left: 10px!important;
+}
+.ct__content{
+    width: 100%!important;
+}
+.products_roll .pr_box .item:nth-child(4n+1){
+    margin-left: 10px!important;
+}
+.h1{
+    margin: 0px 0px 20px 10px!important;
+}

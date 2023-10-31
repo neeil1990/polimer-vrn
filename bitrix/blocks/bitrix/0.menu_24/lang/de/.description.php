@@ -1,0 +1,6 @@
+<?
+$MESS["LANDING_BLOCK_MENU_24-LINK"] = "Link";
+$MESS["LANDING_BLOCK_MENU_24-NAME"] = "Senkrechtes Menü";
+$MESS["LANDING_BLOCK_MENU_24-NAVBAR"] = "Menü";
+$MESS["LANDING_BLOCK_MENU_24-TEXT"] = "Linktext";
+?>

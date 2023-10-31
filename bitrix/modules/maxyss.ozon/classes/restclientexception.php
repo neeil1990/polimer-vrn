@@ -1,0 +1,1 @@
+<?class RestClientException extends Exception {}?>

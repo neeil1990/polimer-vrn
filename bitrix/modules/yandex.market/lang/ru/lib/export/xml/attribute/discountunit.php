@@ -1,0 +1,3 @@
+<?php
+
+$MESS['YANDEX_MARKET_EXPORT_ATTRIBUTE_DISCOUNT_UNIT_VALUE_INVALID'] = 'Недопустимое значение';

@@ -1,0 +1,24 @@
+<?php
+$MESS["MP_ERROR_INCORRECT_URL_INSTALL"] = "URL zur Installation ist nicht korrekt.";
+$MESS["PAYMENT_MESSAGE_D_N_Y"] = "Einige Funktionen der Anwendung sind  nicht verfügbar. Wenden Sie sich bitte an Ihren Administrator, um die volle Version zu installieren.";
+$MESS["PAYMENT_MESSAGE_D_N_Y_A"] = "Einige Funktionen der Anwendung sind nicht verfügbar. Kaufen Sie bitte die volle Version.";
+$MESS["PAYMENT_MESSAGE_D_Y_Y"] = "Ihr Abonnement für die Anwendung ist abgelaufen. Einige Funktionen der Anwendung sind nicht verfügbar. Wenden Sie sich bitte an Ihren Administrator, um die volle Version zu installieren.";
+$MESS["PAYMENT_MESSAGE_D_Y_Y_A"] = "Ihr Abonnement für die Anwendung ist abgelaufen. Einige Funktionen der Anwendung sind nicht verfügbar.";
+$MESS["PAYMENT_MESSAGE_HOLD_OVERLOAD"] = "Diese Lösung wurde blockiert, weil sie übermäßige Last verursacht hat. Wenden Sie sich bitte an den Bitrix24 Administrator.";
+$MESS["PAYMENT_MESSAGE_HOLD_OVERLOAD_A"] = "Diese Lösung wurde blockiert, weil sie übermäßige Last verursacht hat. Wenden Sie sich bitte an den Helpdesk, um das Problem zu lösen.";
+$MESS["PAYMENT_MESSAGE_P_N_Y"] = "Ihr Abonnement für die Anwendung läuft in <b>#DAYS#</b> Tagen ab. Wenden Sie sich bitte an Ihren Administrator, um das Abonnement zu verlängern.";
+$MESS["PAYMENT_MESSAGE_P_N_Y_A"] = "Ihr Abonnement für die Anwendung läuft in <b>#DAYS#</b> Tagen ab.";
+$MESS["PAYMENT_MESSAGE_P_Y_N"] = "Die Anwendung ist nicht mehr verfügbar, weil Ihr Abonnement abgelaufen ist. Wenden Sie sich bitte an Ihren Administrator, um das Abonnement zu verlängern.";
+$MESS["PAYMENT_MESSAGE_P_Y_N_A"] = "Die Anwendung ist nicht mehr verfügbar, weil Ihr Abonnement abgelaufen ist.";
+$MESS["PAYMENT_MESSAGE_P_Y_Y"] = "Ihr Abonnement für die Anwendung ist abgelaufen. Wenden Sie sich bitte an Ihren Administrator, um die volle Version zu installieren.";
+$MESS["PAYMENT_MESSAGE_P_Y_Y_A"] = "Ihr Abonnement für die Anwendung ist abgelaufen.";
+$MESS["PAYMENT_MESSAGE_S_N_Y"] = "Sie haben noch <b>#DAYS#</b> Tage, bis Ihr Anwendungsabonnement abläuft. Kontaktieren Sie bitte den Administrator, um das Abonnement zu verlängern.";
+$MESS["PAYMENT_MESSAGE_S_N_Y_A"] = "Sie haben noch <b>#DAYS#</b> Tage, bis Anwendungsabonnement abläuft.";
+$MESS["PAYMENT_MESSAGE_S_Y_N"] = "Die Anwendung wurde gesperrt, weil Ihr Abonnement abgelaufen ist. Kontaktieren Sie bitte den Administrator, um das Abonnement zu verlängern.";
+$MESS["PAYMENT_MESSAGE_S_Y_N_A"] = "Die Anwendung wurde gesperrt, weil Ihr Abonnement abgelaufen ist.";
+$MESS["PAYMENT_MESSAGE_S_Y_Y"] = "Ihr Anwendungsabonnement ist abgelaufen. Kontaktieren Sie bitte den Administrator, um das Abonnement zu verlängern.";
+$MESS["PAYMENT_MESSAGE_S_Y_Y_A"] = "Ihr Anwendungsabonnement ist abgelaufen.";
+$MESS["PAYMENT_MESSAGE_T_N_Y"] = "Die Testzeit läuft in <b>#DAYS#</b> Tagen ab. Wenden Sie sich bitte an Ihren Administrator,  um die volle Version zu installieren.";
+$MESS["PAYMENT_MESSAGE_T_N_Y_A"] = "Die Testzeit läuft in <b>#DAYS#</b> Tagen ab.";
+$MESS["PAYMENT_MESSAGE_T_Y_N"] = "Die Testzeit ist abgelaufen. Wenden Sie sich bitte an Ihren Administrator, um die volle Version zu installieren.";
+$MESS["PAYMENT_MESSAGE_T_Y_N_A"] = "Die Testzeit ist abgelaufen. Kaufen Sie bitte die volle Version.";

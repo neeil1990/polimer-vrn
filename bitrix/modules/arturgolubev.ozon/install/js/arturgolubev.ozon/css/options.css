@@ -1,0 +1,63 @@
+/* */
+#bx-admin-prefix .ag_options form select, #bx-admin-prefix .ag_options form input[type=text], #bx-admin-prefix .ag_options form textarea {
+	max-width: 350px;
+	min-width: 200px;
+}
+
+#bx-admin-prefix .ag_options option:checked {
+	background-color: #0078d7;
+	color: #fff;
+}
+
+/* simple page */
+.agwb_adm_page {
+	margin-top: 15px;
+	background: #fff;
+	padding: 18px;
+	border-radius: 3px;
+}
+	.agwb_adm_page .simpletitle {
+		font-weight: bold;
+		margin-bottom: 5px;
+		font-size: 16px;
+	}
+	.agwb_adm_page a {
+		color: #111;
+	}
+
+/* log and agents */
+.log_table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid #c4ced2;
+}
+	.log_table td {
+		border: 1px solid #c4ced2;
+		padding: 5px 10px;
+	}
+		.log_table_title {
+			font-weight: bold;
+			margin-bottom: 10px;
+			font-size: 14px;
+		}
+		.log_table_description {
+			margin-top: 10px;
+		}
+		.log_table_fullhref {
+			font-weight: normal;
+			font-size: 12px;
+		}
+	.console_text {
+		border: 1px solid #c4ced2;
+	}
+	.console_text_item {
+		padding: 5px 10px;
+	}
+	.console_text_item + .console_text_item {
+		border-top: 1px solid #c4ced2;
+	}
+	
+.ag_options_account_title {
+	font-size: 18px;
+	margin: 15px 0;
+}

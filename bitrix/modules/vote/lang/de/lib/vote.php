@@ -1,0 +1,28 @@
+<?php
+$MESS["VOTE_ANONYMOUSLY"] = "Anonym";
+$MESS["VOTE_ERROR"] = "Fehler:";
+$MESS["VOTE_ERROR_BY_COOKIE"] = "Mit diesem Cookie wurde bereits abgestimmt [cookie].";
+$MESS["VOTE_ERROR_BY_IP"] = "Von dieser IP-Adresse wurde bereits abgestimmt [ip].";
+$MESS["VOTE_ERROR_BY_IP_2"] = "Diese IP-Adresse kann frühestens am #DATE# zu einer erneuten Abstimmung genutzt werden [ip].";
+$MESS["VOTE_ERROR_BY_SESSION"] = "Sie haben in dieser Sitzung bereits abgestimmt [session].";
+$MESS["VOTE_ERROR_BY_USER_AUTH"] = "Sie müssen sich einloggen [user_auth].";
+$MESS["VOTE_ERROR_BY_USER_DATE_REGISTER"] = "Sie können an der Umfrage nicht teilnehmen, da Sie sich erst nach Beginn der Umfrage angemeldet haben.";
+$MESS["VOTE_ERROR_BY_USER_ID"] = "Sie haben bereits abgestimmt.";
+$MESS["VOTE_ERROR_DATE_START_LATER_THAN_END"] = "Das Datum des Umfrageendes ist früher als das des Anfangs.";
+$MESS["VOTE_ERROR_DATE_VOTE_IS_EMPTY"] = "Das Datum, wann die Umfrage aktiv ist, kann nicht leer sein.";
+$MESS["VOTE_ERROR_DATE_VOTE_IS_WRONG"] = "Das Datum, wann die Umfrage aktiv ist, ist nicht korrekt.";
+$MESS["VOTE_ERROR_SAME_DATE_VOTE_IS_ALREADY_EXISTS"] = "Der Zeitraum der Umfrage steht im Konflikt mit der Umfrage #VOTE#.";
+$MESS["VOTE_GUEST"] = "Besucher";
+$MESS["VOTE_GUESTS"] = "Besucher";
+$MESS["VOTE_IS_NOT_ACTIVE"] = "Die Umfrage ist nicht aktiv.";
+$MESS["VOTE_IS_OCCUPIED"] = "Die Umfrage ist immer noch aktiv. Versuchen Sie bitte später erneut.";
+$MESS["V_EXPORT_DATE"] = "Datum";
+$MESS["V_EXPORT_GENERAL_INFO"] = "Allgemeine Informationen";
+$MESS["V_EXPORT_NAME"] = "Name";
+$MESS["V_EXPORT_STATISTIC"] = "Statistik";
+$MESS["V_NOTIFY_MESSAGE"] = "Hat an der Umfrage #VOTE_TITLE# teilgenommen.";
+$MESS["V_NOTIFY_MESSAGE_F"] = "Hat an der Umfrage \"#VOTE_TITLE#\" teilgenommen.";
+$MESS["V_NOTIFY_MESSAGE_HREF"] = "Hat an der Umfrage <a href=\"#VOTE_URL#\">#VOTE_TITLE#</a> teilgenommen.";
+$MESS["V_NOTIFY_MESSAGE_HREF_F"] = "Hat an der Umfrage <a href=\"#VOTE_URL#\">#VOTE_TITLE#</a> teilgenommen.";
+$MESS["V_NOTIFY_MESSAGE_OUT_HREF"] = "Hat an der Umfrage \"#VOTE_TITLE#\" (#VOTE_URL#) teilgenommen";
+$MESS["V_NOTIFY_MESSAGE_OUT_HREF_F"] = "Hat an der Umfrage \"#VOTE_TITLE#\" (#VOTE_URL#) teilgenommen";

@@ -1,0 +1,6 @@
+<?
+$sSectionName = "Кредит";
+$arDirProperties = Array(
+
+);
+?>

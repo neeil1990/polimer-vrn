@@ -1,0 +1,57 @@
+<?php
+$MESS = [
+	"freePrice" => "Бесплатно",
+	"addressHint" => "Выберите адрес доставки",
+	"deliveryNotActive" => "Выбранная доставка не активна",
+	"notApiKey" => "Для использования Яндекс.Карт необходимо ввести api_key в настройках Битрикса",
+	"notEnableDeliveryCalc" => "Отключен модуль расчета стоимости доставки",
+	"dadataMode" => "Модуль работает в режиме \"Только подсказки\"",
+	"dadataNeedOn" => "Подсказки \"DADATA\" отключены в настройках модуля, для правильной работы модуля подключены подсказки от Яндекс.Карт",
+	"ymapsNotDefined" => "Яндекс карты не подключены, автоматическое подключение!",
+	"notLoadJsonOption" => "Не загрузились настройки модуля, обратитесь к разработчику",
+	"noAddressField" => "Поле ввода адреса доставки не найдено",
+	"noCoordinates" => "Не найдены координаты для доставки ID-",
+	"newAddressResetOrder" => "Найден новый адрес, перезагрузка компонента",
+	"requestError" => "При запросе данных о службе доставки возникли ошибки!!",
+	"inputAddressPlaceholder" => "Куда. Укажите город, улицу, дом",
+	"inputAddressApply" => "Выбрать",
+	"inputAddressCancel" => "Отмена",
+	"deliveryBlockError" => "Для расчёта стоимости доставки <a href='javascript:void(0);' onclick='window.showYaDeliveryModal()'>выберите адрес на карте</a>",
+	"errorsSetupModules" => "Необходимо проверить и сохранить настройки складов и профиля доставки.",
+	"deliveryCostAddress" => "Стоимость:",
+	"deliveryCostAddressFull" => "Стоимость доставки:",
+	"routeLength" => "Расстояние:",
+	"routeLengthFull" => "Расстояние до адреса доставки:",
+
+	//Maps errors
+	"geoCodeError" => "Ошибка при геокодирование, проверьте наличие ключа для Яндекс.Карт",
+	"notSearchZones" => "Не найдены зоны начала или окончания маршрута",
+	"createRouteError" => "Ошибка при построении маршрута",
+	"createRouteErrorPoints" => "Ошибка при создание путевых точек",
+	"notSearchAddress" => "Не найден адрес для расчета маршрута",
+	"routeParamsErrors" => "Ошибка при получение параметров маршрута",
+
+	//Order error
+	"errorOrderFunction" => "Выполняемый запрос не является функцией OrderAjaxComponent",
+	"errorOrderAjaxComponent" => "BX.Sale.OrderAjaxComponent не определён",
+	"errorPersonType" => "Профиль покупателя не найден или отключен расчет доставки",
+	"extraInputCalculationError" => "Стоимость доставки не рассчитана!",
+	"zoneOutDisabled" => "К сожалению, мы еще не производим доставку по выбранному адресу!",
+	"deliveryAddressError" => "Нет доставки по этому адресу",
+	"isDeliveryEnabledFalse" => "Не определены все параметры для расчета стоимости",
+	"isRequiredHouse" => "Для расчета доставки необходимо ввести номер дома!",
+	"currency" => " руб.",
+	"kilometer" => " км",
+	"meter" => " м",
+	"field" => "Поле",
+	"confirm" => "Подтвердить",
+	"required" => "обязательно для заполнения",
+	"noAddress" => "Поле \"Адрес доставки\" обязательно для заполнения",
+
+	//Yandex
+	"yandexSuggestionPlaceholder" => "Введите адрес доставки",
+	"yandexSuggestionClose" => "Закрыть",
+	"yandexSuggestionTitleClose" => "Закрыть модальное окно",
+	"yandexErrorRoute" => "Ошибка при построение маршрута",
+];
+

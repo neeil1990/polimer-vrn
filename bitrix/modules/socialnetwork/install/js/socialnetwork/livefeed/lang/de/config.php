@@ -1,0 +1,23 @@
+<?php
+$MESS["SONET_EXT_LIVEFEED_DELETE_SUCCESS"] = "Der Beitrag wurde gelöscht.";
+$MESS["SONET_EXT_LIVEFEED_FOLLOW_TITLE_N"] = "Verfolgen";
+$MESS["SONET_EXT_LIVEFEED_FOLLOW_TITLE_Y"] = "Nicht verfolgen";
+$MESS["SONET_EXT_LIVEFEED_MENU_TITLE_FAVORITES_N"] = "Lesezeichen";
+$MESS["SONET_EXT_LIVEFEED_MENU_TITLE_FAVORITES_Y"] = "Aus Lesezeichen entfernen";
+$MESS["SONET_EXT_LIVEFEED_MENU_TITLE_PINNED_N"] = "Fixieren";
+$MESS["SONET_EXT_LIVEFEED_MENU_TITLE_PINNED_Y"] = "Lösen";
+$MESS["SONET_EXT_LIVEFEED_PINNED_CANCEL_BUTTON"] = "lösen";
+$MESS["SONET_EXT_LIVEFEED_PINNED_CANCEL_DESCRIPTION"] = "Sie ist jetzt immer oben im Feed.";
+$MESS["SONET_EXT_LIVEFEED_PINNED_CANCEL_TITLE"] = "Diese Nachricht wurde fixiert.";
+$MESS["SONET_EXT_LIVEFEED_PIN_TITLE_N"] = "Fixieren";
+$MESS["SONET_EXT_LIVEFEED_PIN_TITLE_Y"] = "Lösen";
+$MESS["SONET_EXT_LIVEFEED_POST_BACKGROUND_EDIT_WARNING_BUTTON_CANCEL"] = "Abbrechen";
+$MESS["SONET_EXT_LIVEFEED_POST_BACKGROUND_EDIT_WARNING_BUTTON_SUBMIT"] = "Fortfahren";
+$MESS["SONET_EXT_LIVEFEED_POST_BACKGROUND_EDIT_WARNING_DESCRIPTION"] = "Die Nachricht wurde auf der mobilen App erstellt. Wenn Sie die Nachricht hier bearbeiten werden, wird die Formatierung verloren gehen.";
+$MESS["SONET_EXT_LIVEFEED_POST_BACKGROUND_EDIT_WARNING_TITLE"] = "Nachricht bearbeiten";
+$MESS["SONET_EXT_LIVEFEED_CREATE_TASK_ERROR_GET_DATA"] = "Daten können nicht erhalten werden, um eine Aufgabe zu erstellen.";
+$MESS["SONET_EXT_LIVEFEED_CREATE_TASK_WAIT"] = "Bitte warten...";
+$MESS["SONET_EXT_LIVEFEED_CREATE_TASK_SUCCESS_TITLE"] = "Aufgabe wurde erstellt";
+$MESS["SONET_EXT_LIVEFEED_CREATE_TASK_VIEW"] = "Anzeigen";
+$MESS["SONET_EXT_LIVEFEED_CREATE_TASK_FAILURE_TITLE"] = "Fehler";
+$MESS["SONET_EXT_ERROR_SESSION"] = "Ihre Sitzung ist abgelaufen. Bitte senden Sie den Kommentar erneut ab.";

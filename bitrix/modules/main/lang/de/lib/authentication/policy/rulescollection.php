@@ -1,0 +1,19 @@
+<?php
+$MESS["GP_BLOCK_LOGIN_ATTEMPTS"] = "Maximale Anzahl der Versuche der Passworteingabe, bevor Nutzer gesperrt wird";
+$MESS["GP_BLOCK_TIME"] = "Nutzersperren für (Minuten)";
+$MESS["GP_CHECKWORD_TIMEOUT"] = "Lebensdauer des Prüfwortes bei der Wiederherstellung des Passwortes";
+$MESS["GP_LOGIN_ATTEMPTS"] = "Passwort-Eingabeversuche ohne CAPTCHA";
+$MESS["GP_MAX_STORE_NUM"] = "Maximale Computeranzahl, an denen die Anmeldedaten gespeichert werden dürfen";
+$MESS["GP_PASSWORD_CHANGE_DAYS"] = "Den Nutzer auffordern, das Passwort nach (Tagen) zu ändern";
+$MESS["GP_PASSWORD_CHECK_POLICY"] = "Passwortänderung erfordern, wenn es gegen aktuelle Sicherheitspolitik verstößt";
+$MESS["GP_PASSWORD_CHECK_WEAK"] = "Passwort mithilfe von der Datenbank unsicherer Passwörter prüfen";
+$MESS["GP_PASSWORD_DIGITS"] = "Passwort muss Zahlen enthalten (0-9)";
+$MESS["GP_PASSWORD_LENGTH"] = "Min. Passwortlänge";
+$MESS["GP_PASSWORD_LOWERCASE"] = "Passwort muss lateinische Kleinbuchstaben enthalten (a-z)";
+$MESS["GP_PASSWORD_PUNCTUATION"] = "Passwort muss folgende Satzzeichen enthalten (#SPECIAL_CHARS#)";
+$MESS["GP_PASSWORD_UNIQUE_COUNT"] = "Anzahl der zuletzt verwendeten Passwörter, um die Einmaligkeit zu prüfen";
+$MESS["GP_PASSWORD_UPPERCASE"] = "Passwort muss lateinische Großbuchstaben enthalten (A-Z)";
+$MESS["GP_SESSION_IP_MASK"] = "Netzmaske für die Sessionbindung";
+$MESS["GP_SESSION_TIMEOUT"] = "Maximale Session-Lebensdauer (Minuten)";
+$MESS["GP_STORE_IP_MASK"] = "Netzmaske für die Bindung der gespeicherten Autorisierung";
+$MESS["GP_STORE_TIMEOUT"] = "Zeitraum, wie lange die Anmeldedaten auf dem Computer des Nutzers gespeichert werden (Min.)";

@@ -1,0 +1,28 @@
+.b-bid-recommendation {
+	display: flex;
+	max-width: 600px;
+}
+
+.b-bid-recommendation__cell {
+	flex: auto 1 1;
+	margin-left: 5px;
+}
+
+.b-bid-recommendation__cell:first-child {
+	margin-left: 0;
+}
+
+.b-bid-recommendation__bar {
+	display: block;
+	height: 4px;
+	border-radius: 2px;
+	flex: auto 1 1;
+
+	margin: 5px 0;
+
+	background: #ccc;
+}
+
+.b-bid-recommendation__bar.is--active {
+	background: #3bc915;
+}

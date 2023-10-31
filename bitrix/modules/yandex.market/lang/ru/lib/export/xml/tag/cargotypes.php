@@ -1,0 +1,3 @@
+<?php
+
+$MESS['YANDEX_MARKET_EXPORT_XML_TAG_CARGOTYPES_VALIDATE_FALSE'] = 'Недопустимое значение';

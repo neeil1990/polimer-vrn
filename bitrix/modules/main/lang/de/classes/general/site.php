@@ -1,0 +1,27 @@
+<?
+$MESS['BAD_SITE_NAME'] = "Geben Sie den Namen der Seite ein.";
+$MESS['BAD_SITE_LID'] = "Die Seiten ID muss aus 2 Symbolen bestehen.";
+$MESS['MAIN_SITE_LATIN'] = "Die Website-ID darf nur lateinische Buchstaben und Zahlen enthalten.";
+$MESS['BAD_LANG_DIR'] = "Geben Sie den Ordner für die Seite ein.";
+$MESS['MAIN_BAD_LANGUAGE_ID'] = "Keine Sprache angegeben.";
+$MESS['MAIN_BAD_LANGUAGE_ID_BAD'] = "Falscher Wert für das Feld \"Sprachverweis\" angegeben.";
+$MESS['lang_check_culture_not_set'] = "Regionale Einstellungen sind nicht angegeben.";
+$MESS['lang_check_culture_incorrect'] = "Regionale Einstellungen sind nicht korrekt.";
+$MESS['BAD_SORT'] = "Geben Sie die Sortierung ein.";
+$MESS['MAIN_BAD_TEMPLATE_DUP'] = "Vorlagelink duplizieren, wenn die Bedingungen gleich sind";
+$MESS['MAIN_BAD_TEMPLATE'] = "Die Vorlage ist falsch.";
+$MESS['BAD_SITE_DUP'] = "Dublizierte Seiten ID.";
+$MESS['MAIN_BEFORE_DEL_ERR1'] = "Fehler beim Löschen von Daten";
+$MESS['MAIN_NAME_JOHN_SMITH'] = "Max Mustermann";
+$MESS['MAIN_NAME_SMITH_JOHN'] = "Mustermann Max";
+$MESS['MAIN_NAME_MR_SMITH'] = "Hr. Schmidt";
+$MESS['MAIN_NAME_JOHN_L_SMITH'] = "Max M. Mustermann";
+$MESS['MAIN_NAME_SMITH_JOHN_LLOYD'] = "Mustermann Max Moritz";
+$MESS['MAIN_NAME_SMITH_COMMA_JOHN_LLOYD'] = "Mustermann, Max Moritz";
+$MESS['MAIN_NAME_JOHN_LLOYD_SMITH'] = "Max Moritz Mustermann";
+$MESS['MAIN_NAME_J_L_SMITH'] = "M. M. Mustermann";
+$MESS['MAIN_NAME_J_SMITH'] = "M. Mustermann";
+$MESS['MAIN_NAME_SMITH_J'] = "Mustermann M.";
+$MESS['MAIN_NAME_SMITH_J_L'] = "Mustermann, M. M.";
+$MESS['MAIN_NAME_SMITH_COMMA_J'] = "Mustermmann, M.";
+$MESS['MAIN_NAME_SMITH_COMMA_J_L'] = "Mustermann, M. M.";

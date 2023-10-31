@@ -1,0 +1,58 @@
+<?php
+$MESS["ERROR"] = "Ошибка!";
+$MESS["TWINPX_YADELIVERY_OFFERY_NE_POLUCENY"] = "Офферы не получены!";
+$MESS["TWINPX_YADELIVERY_ZAPROS_VYPOLNEN"] = "Запрос выполнен";
+$MESS["TWINPX_YADELIVERY_OBNOVLEN_ZAKAZ"] = "Обновлен заказ ID:";
+$MESS["TWINPX_YADELIVERY_OSIBKA_SOZDANIE_ZAAV"] = "Ошибка создание заявки";
+$MESS["TWINPX_YADELIVERY_ZAAVKA_PERENESENA_V"] = "Заявка перенесена в архив";
+$MESS["TWINPX_YADELIVERY_NE_ZAPOLNENO"] = "Не заполнено: ";
+$MESS["TWINPX_YADELIVERY_OSIBKA_SOZDANIA_ZAAV"] = "Ошибка создания заявки";
+$MESS["TWINPX_YADELIVERY_PROIZOSLA_OSIBKA_BRO"] = "Произошла ошибка бронирования варианта. Пожалуйста, попробуйте ещё раз.";
+$MESS["TWINPX_YADELIVERY_NE_UDALOSQ_POLUCITQ"] = "Не удалось получить интервалы доставки. Пожалуйста, проверьте корректность адреса доставки.";
+$MESS["TWINPX_YADELIVERY_NET_DOSTUPNYH_INTERV"] = "Нет доступных интервалов для доставки.";
+$MESS["TWINPX_YADELIVERY_ORDER"] = "ID заказа";
+$MESS["TWINPX_YADELIVERY_PAY"] = "Метод оплаты";
+$MESS["TWINPX_YADELIVERY_FIO"] = "ФИО";
+$MESS["TWINPX_YADELIVERY_EMAIL"] = "E-mail";
+$MESS["TWINPX_YADELIVERY_PHONE"] = "Телефон";
+$MESS["TWINPX_YADELIVERY_CITY"] = "Город";
+$MESS["TWINPX_YADELIVERY_COMMENT"] = "Комментарии для курьера";
+$MESS["TWINPX_YADELIVERY_STREET"] = "Улица";
+$MESS["TWINPX_YADELIVERY_HOME"] = "Дом";
+$MESS["TWINPX_YADELIVERY_KORP"] = "Корпус";
+$MESS["TWINPX_YADELIVERY_AP"] = "Квартира";
+$MESS["TWINPX_YADELIVERY_ADDRESS"] = "Адрес";
+$MESS["TWINPX_YADELIVERY_LENGTH"] = "Длина (см)";
+$MESS["TWINPX_YADELIVERY_WIDTH"] = "Ширина (см)";
+$MESS["TWINPX_YADELIVERY_HEIGHT"] = "Высота (см)";
+$MESS["TWINPX_YADELIVERY_SUBMIT"] = "ЗАПРОСИТЬ ВАРИАНТЫ";
+$MESS["TWINPX_YADELIVERY_AUTH"] = "Данные для авторизации неверные";
+$MESS["Wrong-Address"] = "Не удалось получить интервалы доставки. Пожалуйста, проверьте корректность адреса доставки.";
+$MESS["No-intervals"] = "Нет доступных интервалов для доставки.";
+$MESS["No-Pvz-intervals"] = "Нет доступных дат для доставки в этот пункт выдачи.";
+$MESS["Pickup-point"] = "Пункт выдачи заказов";
+$MESS["Terminal"] = "Постомат";
+$MESS["Post-office"] = "Почтовое отделение";
+$MESS["Sorting-center"] = "Сортировочный центр";
+$MESS["Warehouse"] = "";
+$MESS["PaymentError"] = "Не правильная платежная система (Не поддерживается)";
+$MESS["object_not_found"] = "Не удалось загрузить список пунктов выдачи. Пожалуйста, попробуйте позже.";
+$MESS["TWINPX_YADELIVERY_METHOD_PAID"] = "Метод оплаты";
+$MESS["TWINPX_YADELIVERY_SELECT"] = "Выберите вариант оплаты*";
+$MESS["TWINPX_YADELIVERY_PAID"] = "Заказ и доставка уже оплачены";
+$MESS["TWINPX_YADELIVERY_CASH"] = "Оплата заказа и доставки наличными при получении";
+$MESS["TWINPX_YADELIVERY_CARD"] = "Оплата заказа и доставки картой при получении";
+$MESS["Not authorized request"] = "Ошибка авторизации";
+$MESS["TWINPX_YADELIVERY_GETDATA"] = "ЗАПОЛНИТЬ ПОЛЯ ИЗ ЗАКАЗА";
+$MESS["TWINPX_YADELIVERY_COST"] = "Взять за доставку при получении*";
+
+$MESS["TWINPX_YADELIVERY_CHECK_SUCCES"] = "<font color=\"green\">Токен и Station Platfrom ID корректные.</font>";
+$MESS["TWINPX_YADELIVERY_TOKEN_ERROR"] = "<font color=\"red\">Неверный или некорректный токен.</font> <br/>Получите корректный токен в личном кабинете Яндекс Доставка или обратитесь в поддержку Яндекс Доставка.";
+$MESS["TWINPX_YADELIVERY_PLATFORM_ERROR"] = "<font color=\"red\">Неверный, некорректный или неактивированный Platform ID или у вас нулевой баланс.</font> <br/>Убедитесь, что на вашем счету достаточно средств для работы Яндекс Доставка. Возможно, у вас не задан календарь отгрузок для склада в личном кабинете Яндекс Доставка (работа модуля будет невозможной при использовании этого Platform ID). <br/>Если календарь отгрузок настроен, то обратитесь в поддержку Яндекс Доставка или к менеджеру Яндекс Доставка для получения корректного Platform ID.";
+$MESS["TWINPX_YADELIVERY_OTHER_ERROR"] = "<font color=\"red\">Не удалось выполнить проверку. <br/>Попробуйте выполнить её позже</font>";
+$MESS["TWINPX_YADELIVERY_CHECK_ERROR"] = "<font color=\"red\">Не удалось выполнить проверку. <br/>Попробуйте выполнить её позже</font>";
+
+$MESS["TWINPX_MODAL_GENERAL"] = "Общие данные";
+$MESS["TWINPX_MODAL_PROPS"] = "Характеристики";
+
+$MESS["TWINPX_PVZ_EMPTY"] = "Не удалось загрузить список пунктов выдачи. Пожалуйста, попробуйте позже.";

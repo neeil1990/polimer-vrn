@@ -1,0 +1,22 @@
+<?
+$MESS["MAIL_BLACKLIST_LIST_AJAX_DELETE_CONFIRM"] = "Möchten Sie diese Adresse wirklich aus der schwarzen Liste entfernen?";
+$MESS["MAIL_BLACKLIST_LIST_COLUMN_EMAIL"] = "E-Mail-Adresse";
+$MESS["MAIL_BLACKLIST_LIST_COLUMN_IS_FOR_ALL_USERS"] = "Für alle Nutzer";
+$MESS["MAIL_BLACKLIST_LIST_CREATE_BLACKLIST"] = "Zur schwarzen Liste hinzufügen";
+$MESS["MAIL_BLACKLIST_LIST_CREATE_BLACKLIST_2"] = "E-Mail hinzufügen";
+$MESS["MAIL_BLACKLIST_LIST_DELETE_ERROR"] = "E-Mail #EMAIL# kann nicht entfernt werden";
+$MESS["MAIL_BLACKLIST_LIST_DELETE_TEXT"] = "E-Mail aus der schwarzen Liste entfernen";
+$MESS["MAIL_BLACKLIST_LIST_DELETE_TITLE"] = "Entfernen";
+$MESS["MAIL_BLACKLIST_LIST_FILTER_DOMAIN_TITLE"] = "Domain";
+$MESS["MAIL_BLACKLIST_LIST_FILTER_MAIL_TITLE"] = "Mailbox";
+$MESS["MAIL_BLACKLIST_LIST_FILTER_TYPE"] = "Typ des Eintrags";
+$MESS["MAIL_BLACKLIST_LIST_INTERNAL_AJAX_DELETE_ERROR"] = "Fehler beim Löschen des Auftrags";
+$MESS["MAIL_BLACKLIST_LIST_INTERNAL_ERROR_TITLE"] = "Ein unbekannter Fehler ist aufgetreten.";
+$MESS["MAIL_BLACKLIST_LIST_IS_FOR_ALL_USERS"] = "Ja";
+$MESS["MAIL_BLACKLIST_LIST_PAGE_TITLE"] = "Schwarze Liste mit E-Mail-Adressen";
+$MESS["MAIL_BLACKLIST_LIST_PAGE_TITLE_2"] = "Schwarze Liste";
+$MESS["MAIL_BLACKLIST_LIST_POPUP_BTN_ADD"] = "Hinzufügen";
+$MESS["MAIL_BLACKLIST_LIST_POPUP_BTN_CLOSE"] = "Abbrechen";
+$MESS["MAIL_BLACKLIST_LIST_POPUP_CHECKBOX_TITLE"] = "Für alle Nutzer";
+$MESS["MAIL_BLACKLIST_LIST_POPUP_TITLE"] = "Schwarze Liste";
+?>

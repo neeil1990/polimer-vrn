@@ -1,0 +1,13 @@
+
+.rule{
+    margin: 10px 0;
+}
+
+input.send{
+    cursor: pointer;
+}
+div.mf-ok-text {color:green; font-weight:bold; padding-bottom: 1em;}
+
+.mf-captcha{
+    margin: 10px 0;
+}

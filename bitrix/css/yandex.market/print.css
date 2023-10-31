@@ -1,0 +1,13 @@
+@font-face {
+	font-family: 'YS Text';
+	font-weight: 400;
+	src: url('https://yastatic.net/s3/home/fonts/ys/1/text-regular.woff2') format('woff2'), url('https://yastatic.net/s3/home/fonts/ys/1/text-regular.woff') format('woff');
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: #fff;
+}

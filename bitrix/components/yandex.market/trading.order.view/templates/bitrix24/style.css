@@ -1,0 +1,441 @@
+.yamarket-editor-wrapper {
+	max-width: 1220px;
+}
+
+.yamarket-editor-wrapper__title {
+	margin-left: 20px;
+	margin-bottom: 5px;
+
+	color: #535c69;
+	font-family: "OpenSans-Bold", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	text-transform: uppercase;
+}
+
+.yamarket-editor-wrapper__refresh {
+	float: right;
+	margin-right: 20px;
+	margin-bottom: 5px;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-column-wrapper {
+	flex-wrap: wrap;
+	width: calc(100% + 20px);
+	margin-left: -20px;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-column-content {
+	flex-basis: 600px;
+	padding-left: 20px;
+	padding-right: 0;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section,
+.yamarket-editor-wrapper .ui-entity-editor-section-edit {
+	width: 600px;
+	max-width: 100%;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"],
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="BASKET_SECTION"],
+.yamarket-editor-wrapper .ui-entity-editor-section-edit[data-cid="BASKET_SECTION"] {
+	width: 1220px;
+}
+.yamarket-basket {
+	max-width: 1500px;
+}
+
+.yamarket-basket-table-viewport {
+	display: block;
+	width: 100%;
+	overflow-x: auto;
+}
+
+.yamarket-basket-table {
+	width: 100%;
+	min-width: 800px;
+	border: 1px solid #F1F1F1;
+	border-spacing: 0;
+	background: #fff;
+}
+
+.yamarket-basket-table tr.is--delete {
+	color: rgba(66, 73, 86, .5);
+	text-decoration: line-through;
+}
+
+.yamarket-basket-table td {
+	padding: 10px;
+	vertical-align: top;
+	text-align: right;
+}
+
+.yamarket-basket-table td.for--index {
+	text-align: left;
+	width: 1%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table td.for--name {
+	min-width: 250px;
+	text-align: left;
+}
+
+.yamarket-basket-table td.for--price {
+	width: 15%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table td.for--count,
+.yamarket-basket-table td.for--subsidy {
+	width: 10%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table td.for--count > .ui-ctl {
+	float: right;
+	margin-top: -5px;
+	margin-bottom: -5px;
+	max-width: 70px !important;
+}
+
+.yamarket-basket-table td.for--count > .ui-ctl > input {
+	direction: rtl;
+	text-align: right;
+}
+
+.yamarket-basket-table td.for--delete {
+	width: 1%;
+	white-space: nowrap;
+}
+
+.yamarket-basket-table thead td {
+	border-bottom: 1px solid #F1F1F1;
+	vertical-align: bottom;
+	white-space: nowrap;
+}
+
+.yamarket-basket-summary {
+	display: table;
+	margin-top: 12px;
+}
+
+.yamarket-basket-summary__row {
+	display: table-row;
+}
+
+.yamarket-basket-summary__label {
+	display: table-cell;
+	padding-right: 6px;
+	padding-top: 8px;
+	text-align: right;
+}
+
+.yamarket-basket-summary__value {
+	display: table-cell;
+	padding-right: 10px;
+	padding-top: 8px;
+	width: 1%;
+	white-space: nowrap;
+	text-align: right;
+}
+
+.yamarket-delete-toggle__input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0,0,0,0);
+	border: 0;
+}
+
+.yamarket-delete-toggle__icon {
+	display: inline-block;
+	overflow: hidden;
+	vertical-align: top;
+	width: 11px;
+	height: 11px;
+	padding: 4px;
+	border: 0;
+	box-sizing: content-box;
+
+	background: no-repeat 50% 50%;
+	box-shadow: none;
+
+	text-indent: 200%;
+	white-space: nowrap;
+
+	opacity: 1;
+	transition: opacity .15s ease-in;
+
+	cursor: pointer;
+}
+
+.yamarket-delete-toggle:hover .yamarket-delete-toggle__icon,
+.yamarket-delete-toggle:focus .yamarket-delete-toggle__icon {
+	opacity: 0.85;
+	transition-timing-function: ease-out;
+}
+
+.yamarket-delete-toggle:active .yamarket-delete-toggle__icon {
+	opacity: 0.7;
+	transition-timing-function: linear;
+}
+
+.yamarket-delete-toggle__icon.icon--delete {
+	background-image: url('i/delete.svg');
+}
+
+.yamarket-delete-toggle__icon.icon--restore {
+	display: none;
+	background-image: url('i/restore.svg');
+}
+
+.yamarket-delete-toggle__input:checked ~ .yamarket-delete-toggle__icon.icon--delete {
+	display: none;
+}
+
+.yamarket-delete-toggle__input:checked ~ .yamarket-delete-toggle__icon.icon--restore {
+	display: inline-block;
+}
+
+.yamarket-cis-table {
+	width: 100%;
+	border-spacing: 0;
+}
+
+.yamarket-cis-table__head td {
+	padding: 0 0 0 5px;
+}
+
+.yamarket-cis-table__number {
+	padding: 5px 0;
+	width: 1%;
+	white-space: nowrap;
+}
+
+.yamarket-cis-table__control {
+	padding: 5px 0 5px 5px;
+}
+
+.yamarket-cis-table__control.type-count--1 {
+	width: 100%;
+}
+
+.yamarket-cis-table__control.type-count--2 {
+	width: 50%;
+}
+
+.yamarket-cis-table__control.type-count--3 {
+	width: 33.33%;
+}
+
+.yamarket-cis-table__control.type-count--4 {
+	width: 25%;
+}
+
+.yamarket-cis-table__input {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.yamarket-cis-table__type {
+	padding: 15px 0 0 5px;
+}
+
+.yamarket-cis-table__type-value {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+.yamarket-print__intro {
+	margin: 0 0 20px;
+	font-size: smaller;
+}
+
+.yamarket-print__documents {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.yamarket-print__document {
+	display: block;
+	margin-top: 15px;
+}
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"] {
+	padding: 0;
+	margin-bottom: 0;
+	background: none;
+	box-shadow: none;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"] > .ui-entity-editor-section-content {
+	padding: 0;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"] .ui-entity-editor-content-block:empty {
+	margin-bottom: 0;
+}
+.yamarket-boxes-use-dimensions {
+	margin-bottom: 0;
+	margin-right: 15px;
+	white-space: nowrap;
+}
+
+.yamarket-boxes__add {
+	margin-top: 15px;
+}
+
+.yamarket-box {
+	max-width: 500px;
+	border: 1px solid #F1F1F1;
+	background: #fff;
+	color: #a3a9b1;
+}
+
+.yamarket-box + .yamarket-box {
+	margin-top: 15px;
+}
+
+.yamarket-box__header {
+	padding: 10px 15px;
+	text-align: left;
+	font-weight: normal;
+
+	line-height: 29px;
+}
+
+.yamarket-box__title {
+	display: inline-block;
+	vertical-align: baseline;
+
+	margin: 0;
+
+	color: #424956;
+}
+
+.yamarket-box__actions {
+	float: right;
+	margin-left: 15px;
+}
+
+.yamarket-box__action:first-child {
+	margin-left: 0;
+}
+
+.yamarket-box__action {
+	display: inline-block;
+	vertical-align: middle;
+
+	margin-left: 10px;
+}
+
+.yamarket-box__properties {
+	display: inline-block;
+	vertical-align: baseline;
+
+	margin-left: 5px;
+}
+
+.yamarket-box__property {
+	display: inline-block;
+	vertical-align: baseline;
+
+	margin-left: 10px;
+}
+
+.yamarket-box__header + .yamarket-box__body {
+	border-top: 1px solid #F1F1F1;
+}
+
+.yamarket-box__body {
+	padding: 10px 15px;
+}
+
+.yamarket-box__body.is--disabled {
+	display: none;
+}
+
+.yamarket-box__sizes {
+	display: block;
+	margin-left: -10px;
+}
+
+.yamarket-box__sizes:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+
+.yamarket-box__size {
+	float: left;
+	min-width: 95px;
+	margin-left: 10px;
+}
+.yamarket-item-summary__status {
+	text-decoration: none;
+	font-size: small;
+}
+
+.yamarket-item-summary__status:hover {
+	text-decoration: underline;
+}
+
+.yamarket-item-summary__status.is--disabled {
+	text-decoration: none;
+}
+
+.yamarket-item-summary__status[data-status="EMPTY"],
+a.yamarket-item-summary__status[data-status="EMPTY"] {
+	color: inherit;
+}
+
+.yamarket-item-summary__status[data-status="WAIT"],
+a.yamarket-item-summary__status[data-status="WAIT"] {
+	color: red;
+}
+
+.yamarket-item-summary__status[data-status="READY"],
+a.yamarket-item-summary__status[data-status="READY"] {
+	color: green;
+}
+
+.yamarket-item-summary__copy {
+	display: inline-block;
+	vertical-align: middle;
+	overflow: hidden;
+	width: 15px;
+	height: 15px;
+	padding: 4px;
+	border: 0;
+	box-sizing: content-box;
+
+	margin-top: -6px;
+	margin-bottom: -6px;
+
+	background: url('/bitrix/images/yandex.market/copy.svg') no-repeat 50% 50%;
+	background-size: 14px 14px;
+
+	opacity: 0.75;
+
+	white-space: nowrap;
+	text-indent: 200%;
+
+	cursor: pointer;
+}
+
+.yamarket-form-group-title {
+	display: block;
+	padding-bottom: 8px;
+	border-bottom: 1px solid rgba(216, 216, 216, .3);
+	margin-top: 24px;
+	margin-bottom: 16px;
+	color: #333;
+	font-size: 16px;
+	line-height: 1.25;
+}
+
+.yamarket-form-group-title:first-child {
+	margin-top: 0;
+}

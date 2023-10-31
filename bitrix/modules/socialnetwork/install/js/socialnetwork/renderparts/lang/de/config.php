@@ -1,0 +1,5 @@
+<?
+$MESS["SONET_RENDERPARTS_JS_DESTINATION_ALL"] = "Alle Mitarbeiter";
+$MESS["SONET_RENDERPARTS_JS_DESTINATION_ALL_BUS"] = "Alle Nutzer";
+$MESS["SONET_RENDERPARTS_JS_HIDDEN"] = "Verborgener Empfänger";
+?>

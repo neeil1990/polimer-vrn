@@ -1,0 +1,6 @@
+<?
+
+$sSectionName = 'Обновление цен';
+$arDirProperties = [
+
+];

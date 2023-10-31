@@ -1,0 +1,1 @@
+window.pdfjs = require('pdfjs');

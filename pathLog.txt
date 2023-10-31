@@ -1,0 +1,1 @@
+/home/polimer/web/new.polimer-vrn.ru/public_html/bitrix/modules/sale/install/components/bitrix/sale.personal.order/templates/.default/bitrix//home/polimer/web/new.polimer-vrn.ru/public_html/bitrix/components/bitrix/sale.personal.order/templates/.default/bitrix/

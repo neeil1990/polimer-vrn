@@ -1,0 +1,16 @@
+.block_disabled {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    z-index: 10;
+    opacity: 0.8;
+}
+
+.f-right {
+    float: right !important;
+}
+
+.btn-group-sm>.btn:not(.btn-outline):not(.btn-dashed):not(.border-hover):not(.border-active):not(.btn-flush):not(.btn-icon),.btn:not(.btn-outline):not(.btn-dashed):not(.border-hover):not(.border-active):not(.btn-flush):not(.btn-icon).btn-xs {
+    padding: calc(.25rem + 1px) calc(.6rem + 1px)
+}

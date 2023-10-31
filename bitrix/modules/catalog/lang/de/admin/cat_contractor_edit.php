@@ -1,0 +1,24 @@
+<?php
+$MESS["CONTRACTOR_ADDRESS"] = "Adresse";
+$MESS["CONTRACTOR_ADDRESS_JURIDICAL"] = "Geschäftsadresse";
+$MESS["CONTRACTOR_COMPANY"] = "Unternehmensname";
+$MESS["CONTRACTOR_DELETE"] = "Löschen";
+$MESS["CONTRACTOR_DELETE_CONFIRM"] = "Möchten Sie diesen Anbieter wirklich löschen?";
+$MESS["CONTRACTOR_EMAIL"] = "E-Mail";
+$MESS["CONTRACTOR_INN"] = "Steuerzahler-ID";
+$MESS["CONTRACTOR_KPP"] = " ";
+$MESS["CONTRACTOR_LAST_NAME"] = "Nachname";
+$MESS["CONTRACTOR_LIST"] = "Anbieter";
+$MESS["CONTRACTOR_NAME"] = "Vorname";
+$MESS["CONTRACTOR_NEW"] = "Hinzufügen";
+$MESS["CONTRACTOR_PHONE"] = "Telefon";
+$MESS["CONTRACTOR_POSTINDEX"] = "PLZ";
+$MESS["CONTRACTOR_SECOND_NAME"] = "Zweiter Vorname";
+$MESS["CONTRACTOR_TAB"] = "Anbieter";
+$MESS["CONTRACTOR_TAB_DESCR"] = "Anbieter";
+$MESS["CONTRACTOR_TITLE"] = "Vollname";
+$MESS["CONTRACTOR_TITLE_ADD"] = "Neuer Anbieter";
+$MESS["CONTRACTOR_TITLE_JURIDICAL"] = "Ansprechpartner";
+$MESS["CONTRACTOR_TITLE_UPDATE"] = "Anbieter #ID# bearbeiten";
+$MESS["CONTRACTOR_TYPE"] = "Anbietertyp";
+$MESS["CVAT_SORT"] = "Sortieren";

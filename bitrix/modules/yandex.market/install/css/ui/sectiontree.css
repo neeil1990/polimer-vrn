@@ -1,0 +1,34 @@
+.b-section-tree.has--subtree {
+	padding-left: 20px;
+}
+
+.b-section-tree__summary {
+	list-style: none;
+}
+
+/*noinspection CssUnknownTarget*/
+.b-section-tree__summary:before {
+	content: '';
+	display: inline-block;
+	vertical-align: middle;
+	width: 13px;
+	height: 13px;
+
+	margin-left: -20px;
+	margin-right: 7px;
+
+	background: url('/bitrix/images/catalog/load/plus.gif') no-repeat 50% 50%;
+}
+
+/*noinspection CssUnknownTarget*/
+.b-section-tree[open] > .b-section-tree__summary:before {
+	background-image: url('/bitrix/images/catalog/load/minus.gif');
+}
+
+.b-section-tree__level {
+	padding-left: 20px;
+}
+
+.b-section-tree__item {
+	margin-top: 4px;
+}

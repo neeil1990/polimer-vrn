@@ -1,0 +1,71 @@
+.corsik_setup__nav {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16px;
+	padding: 16px 20px;
+	margin-right: 0;
+	margin-left: 0;
+	border: 2px solid #f7f7f9;
+	background: #ffffff;
+}
+
+.corsik_setup__navItem {
+	padding: 8px 10px;
+	outline-offset: -1px;
+	color: #fff;
+	font-weight: 400;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	user-select: none;
+	font-size: 14px;
+	line-height: 1.5;
+	border-radius: .25rem;
+	transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.corsik_setup__navItem a {
+	color: #ffffff;
+	text-decoration: none;
+}
+
+.corsik_setup__navItem:hover {
+	cursor: pointer;
+	box-shadow: inset 0 0 0 2px #868686, 0 2px 2px 0 rgb(0 0 0 / 8%);
+	background: #f0f0f0;
+}
+
+.corsik_setup__navDoc {
+	background-color: #28a745;
+}
+
+.corsik_setup__navDoc:hover {
+	background-color: #218838;
+}
+
+.corsik_setup__navReview {
+	background-color: #007bff;
+}
+
+.corsik_setup__navReview:hover {
+	background-color: #0069d9;
+}
+
+.corsik_setup__navEmail {
+	background-color: #17a2b8;
+}
+
+.corsik_setup__navEmail:hover {
+	background-color: #138496;
+}
+
+.corsik_setup__navItem:not(:last-child) {
+	margin-right: 16px;
+}
+
+.corsik_setup_link {
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 400;
+	text-decoration: underline dotted;
+}

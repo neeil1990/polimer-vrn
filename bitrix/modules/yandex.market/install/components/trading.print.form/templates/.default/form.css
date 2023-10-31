@@ -1,0 +1,180 @@
+.yamarket-shipment-print-form__intro {
+	display: block;
+	margin-top: 24px;
+	margin-bottom: 0;
+
+	font-size: 1.3em;
+}
+
+.yamarket-shipment-print-form__intro.pos--top {
+	margin-top: 0;
+}
+
+.yamarket-shipment-print-form__description {
+	display: block;
+	margin-top: 9px;
+	margin-bottom: 0;
+}
+
+.yamarket-shipment-print-form__field {
+	margin-top: 18px;
+}
+
+.yamarket-shipment-print-setting {
+	display: block;
+
+	margin-top: 18px;
+}
+
+.yamarket-shipment-print-setting__label {
+	display: block;
+	margin-bottom: 6px;
+}
+
+.yamarket-shipment-print-form__box-header,
+.yamarket-shipment-print-orders-header {
+	display: inline-block;
+	padding: 0 6px 8px 0;
+	border-bottom: 1px solid #c9d0d1;
+	min-width: 150px;
+
+	margin-top: 18px;
+}
+
+.yamarket-shipment-print-form__heading {
+	display: block;
+	margin-top: 12px;
+	margin-bottom: 6px;
+}
+
+.yamarket-shipment-print-form__box {
+	display: block;
+	margin-top: 8px;
+}
+
+.yamarket-shipment-print-form__box.has--warning {
+	font-weight: bold;
+}
+
+.yamarket-shipment-print-orders-header {
+	width: 480px;
+	margin-top: 24px;
+}
+
+.yamarket-shipment-print-orders {
+	display: block;
+	border-spacing: 0;
+	width: 480px;
+	margin-bottom: 6px;
+}
+
+.yamarket-shipment-print-order {
+	cursor: pointer;
+}
+
+.yamarket-shipment-print-orders th,
+.yamarket-shipment-print-orders td {
+	padding: 6px 0 6px 12px;
+	min-width: 95px;
+}
+
+.yamarket-shipment-print-orders th:first-child,
+.yamarket-shipment-print-orders td:first-child {
+	padding-left: 0;
+	min-width: 0;
+}
+
+.yamarket-shipment-print-orders__gap {
+	margin-left: 12px;
+}
+
+.yamarket-shipment-print-orders th.tar,
+.yamarket-shipment-print-orders td.tar {
+	text-align: right;
+}
+
+.yamarket-shipment-print-pager {
+	margin-top: 24px !important;
+}
+
+.yamarket-shipment-print-page-num {
+	display: flex;
+	width: 486px;
+	margin-top: 36px;
+	margin-bottom: 12px;
+}
+
+.yamarket-shipment-print-page-num:before,
+.yamarket-shipment-print-page-num:after {
+	content: '';
+	display: block;
+	flex: auto 1 1;
+	align-self: center;
+	border-top: 1px solid #c9d0d1;
+}
+
+.yamarket-shipment-print-page-num__contents {
+	display: block;
+	flex: auto 0 0;
+	padding: 0 10px;
+	text-align: center !important;
+	opacity: 0.5;
+}
+
+/* loader dots */
+
+.yaberu-loader-dots {
+	display: inline-block;
+	vertical-align: top !important;
+	overflow: hidden;
+	position: relative;
+	text-align: left;
+	font-weight: inherit !important;
+}
+
+.yaberu-loader-dots.layout--hanging {
+	position: absolute;
+}
+
+.yaberu-loader-dots__content {
+	display: block;
+	position: relative;
+	animation: yaberu-loader-dots-animation 1s steps(1,end) infinite;
+	will-change: transform;
+	perspective: 1000px;
+	backface-visibility: hidden;
+}
+
+.yaberu-loader-dots__content:after,
+.yaberu-loader-dots__content:before {
+	content: '.';
+	display: block;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	left: 0;
+	top: 100%;
+}
+
+.yaberu-loader-dots__content:after {
+	content: '..';
+	top: 200%;
+}
+
+@keyframes yaberu-loader-dots-animation {
+	0% {
+		transform: translateY(-100%)
+	}
+
+	33.33% {
+		transform: translateY(-200%)
+	}
+
+	66.66% {
+		transform: translateY(0)
+	}
+
+	100% {
+		transform: translateY(-100%)
+	}
+}

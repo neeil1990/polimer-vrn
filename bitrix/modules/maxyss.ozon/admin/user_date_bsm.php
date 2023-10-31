@@ -1,0 +1,1 @@
+<?define("maxyss_ozon_TEMPORARY_CACHE", "JzVSUCxhBQJrU3AxA2QGLAF7");?>

@@ -1,0 +1,66 @@
+.yamarket-item-summary__status {
+	text-decoration: none;
+	font-size: small;
+}
+
+.yamarket-item-summary__status:hover {
+	text-decoration: underline;
+}
+
+.yamarket-item-summary__status.is--disabled {
+	text-decoration: none;
+}
+
+.yamarket-item-summary__status[data-status="EMPTY"],
+a.yamarket-item-summary__status[data-status="EMPTY"] {
+	color: inherit;
+}
+
+.yamarket-item-summary__status[data-status="WAIT"],
+a.yamarket-item-summary__status[data-status="WAIT"] {
+	color: red;
+}
+
+.yamarket-item-summary__status[data-status="READY"],
+a.yamarket-item-summary__status[data-status="READY"] {
+	color: green;
+}
+
+.yamarket-item-summary__copy {
+	display: inline-block;
+	vertical-align: middle;
+	overflow: hidden;
+	width: 15px;
+	height: 15px;
+	padding: 4px;
+	border: 0;
+	box-sizing: content-box;
+
+	margin-top: -6px;
+	margin-bottom: -6px;
+
+	background: url('/bitrix/images/yandex.market/copy.svg') no-repeat 50% 50%;
+	background-size: 14px 14px;
+
+	opacity: 0.75;
+
+	white-space: nowrap;
+	text-indent: 200%;
+
+	cursor: pointer;
+}
+
+.yamarket-form-group-title {
+	display: block;
+	padding-bottom: 8px;
+	border-bottom: 1px solid rgba(216, 216, 216, .3);
+	margin-top: 24px;
+	margin-bottom: 16px;
+	color: #333;
+	font-size: 16px;
+	line-height: 1.25;
+}
+
+.yamarket-form-group-title:first-child {
+	margin-top: 0;
+}

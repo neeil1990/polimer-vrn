@@ -1,0 +1,1 @@
+<? require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/maxyss.ozon/admin/order_ozon_maxyss.php");?>

@@ -1,0 +1,28 @@
+.adm-list-footer-ext .adm-btn-wrap {
+	margin-left: 10px;
+}
+
+.adm-info-message p:first-child,
+.adm-info-message ul:first-child,
+.adm-info-message ol:first-child {
+	margin-top: 0;
+}
+
+.adm-info-message p:last-child,
+.adm-info-message ul:last-child,
+.adm-info-message ol:last-child {
+	margin-bottom: 0;
+}
+
+.adm-workarea textarea[readonly],
+.adm-workarea input[readonly] {
+	opacity: 1 !important;
+}
+
+.adm-detail-content-cell-l.push--top {
+	padding-top: 11px;
+}
+
+.adm-detail-content-cell-l.push--pill {
+	padding-top: 16px;
+}

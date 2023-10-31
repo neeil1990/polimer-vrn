@@ -1,0 +1,8 @@
+<?
+$MESS["LANDING_BLOCK_51_3_COUNTDOWN_08--NAME"] = "Timer in einem Rahmen mit einem gedimmten Bild im Hintergrund";
+$MESS["LANDING_BLOCK_51_3_COUNTDOWN_08--DATW"] = "Enddatum";
+$MESS["LANDING_BLOCK_51_3_COUNTDOWN_08--IMG"] = "Hintergrundbild";
+$MESS["LANDING_BLOCK_51_3_COUNTDOWN_08--TITLE"] = "Überschrift";
+$MESS["LANDING_BLOCK_51_3_COUNTDOWN_08--NUMBER_NUMBER"] = "Zahl";
+$MESS["LANDING_BLOCK_51_3_COUNTDOWN_08--NUMBER_TEXT"] = "Text";
+?>

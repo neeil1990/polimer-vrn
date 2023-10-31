@@ -1,0 +1,106 @@
+
+.product-page-details h3 {
+    display: inline;
+}
+
+.product-page-details.detail-product {
+    display: block;
+    width: 100%;
+}
+
+.detail-product-wrap {
+    column-count: 2;
+    column-gap: 25px;
+}
+
+.detail-product {
+    margin-bottom: 10px;
+    break-inside: avoid-column;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.detail-product b {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.btn-edit svg {
+    width: 12px;
+    height: 12px;
+    transition: all .2s;
+}
+
+.btn-edit svg {
+    fill: #979797;
+}
+
+.btn-edit:hover svg {
+    fill: #BC261A;
+}
+
+.detail-edit input {
+    height: 40px;
+    color: #242934;
+    font-weight: 500;
+}
+
+.detail-edit a:not(:last-child) {
+    margin-right: 5px;
+}
+
+.detail-product--trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-product--trigger a {
+    margin-left: 5px;
+}
+
+.detail-product-wrap .detail-edit input {
+    width: 100%;
+    height: -webkit-fit-content;
+    height: -moz-fit-content;
+    height: fit-content;
+    padding: 5px 10px;
+}
+
+@media screen and (max-width: 1370px) {
+    .detail-product-wrap {
+        column-count: 1;
+    }
+}
+
+.product-detail {
+    color: #353c4e
+}
+
+.card .field-title {
+    margin-top: 10px;
+    margin-bottom: 0;
+    font-size: 12px;
+    font-weight: normal;
+    padding-bottom: 5px;
+    color: #999;
+}
+
+.product-detail .disabled {
+    background: #fff;
+    width: 100%;
+    height: 100%;
+    z-index: 101;
+    opacity: 0.3;
+}
+
+.card .sub-title {
+    margin-bottom: 20px !important;
+    border-bottom: 1px solid rgba(204, 204, 204, .35) !important;
+}
+
+.prop-compare {
+    background: #ececec;
+    padding: 15px 20px 20px;
+}

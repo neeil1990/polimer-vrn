@@ -1,0 +1,1 @@
+<? require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/dimitrii.pbcredit/admin/ajax.php");?>

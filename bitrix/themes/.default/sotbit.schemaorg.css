@@ -1,0 +1,7 @@
+#global_menu_sotbit .adm-main-menu-item-icon{
+    background: url("icons/sotbit/icon.png") no-repeat 50% 55%;
+}
+
+.schema_menu_icon{
+    background: url("icons/sotbit.schemaorg/icon.png") no-repeat center;
+}

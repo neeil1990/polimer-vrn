@@ -1,0 +1,22 @@
+<?php
+$MESS["CANCEL_CONDUCT_BUTTON"] = "Verarbeitung abbrechen";
+$MESS["CONDUCT_BUTTON"] = "Verarbeiten";
+$MESS["DOCUMENT_ADD_CONTRACTOR"] = "Anbieter erstellen:";
+$MESS["DOCUMENT_ADD_CONTRACTOR_ERROR"] = "Fehler beim Erstellen des Anbieters";
+$MESS["DOCUMENT_CONDUCT_SUCCESSFUL"] = "Element erfolgreich verarbeitet";
+$MESS["DOCUMENT_CONDUCT_SUCCESSFUL_VIEW"] = "Anzeigen";
+$MESS["DOCUMENT_CONTRACTOR_FIELD_PLACEHOLDER"] = "Anbieter finden oder erstellen";
+$MESS["DOCUMENT_CONTRACTOR_NOT_FILLED"] = "leer";
+$MESS["DOCUMENT_FIRST_TIME_HINT_TEXT"] = "Erstellen Sie eine neue Bestandskorrektur für Produkte, die auf Lager sind; tragen Sie Produkte und den Bestand ein.<br/>Sie können den Operationstyp hier ändern, wenn Sie einen neuen Wareneingang erstellen müssen.";
+$MESS["DOCUMENT_FIRST_TIME_HINT_TITLE"] = "Operation";
+$MESS["DOCUMENT_LINK_COPIED"] = "Elementlink wurde in die Zwischenablage kopiert";
+$MESS["DOCUMENT_PRODUCTS_ADD_PRODUCT"] = "Produkte hinzugefügt";
+$MESS["DOCUMENT_PRODUCTS_NOT_SHOWN"] = "Noch #COUNT#";
+$MESS["DOCUMENT_PRODUCTS_TOTAL"] = "Gesamt";
+$MESS["FEEDBACK_BUTTON_TITLE"] = "Feedback";
+$MESS["SAVE_AND_CONDUCT_BUTTON"] = "Speichern und verarbeiten";
+$MESS["SLIDER_LABEL_A"] = "Wareneingang";
+$MESS["SLIDER_LABEL_D"] = "Abschreibung";
+$MESS["SLIDER_LABEL_M"] = "Verschiebung";
+$MESS["SLIDER_LABEL_S"] = "Bestandskorrektur";
+$MESS["SLIDER_LABEL_W"] = "Vertrieb";

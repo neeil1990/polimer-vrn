@@ -1,0 +1,4 @@
+<?
+$MESS["LANDING_BLOCK_27_7_ONE_COL_FIX_TEXT_BG_NAME_NEW"] = "Text mit fixierter Breite auf einem Farbhintergrund";
+$MESS["LANDING_BLOCK_27_7_ONE_COL_FIX_TEXT_BG_NODES_LANDINGBLOCKNODE_TEXT"] = "Text";
+?>

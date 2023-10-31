@@ -1,0 +1,19 @@
+<?php
+$MESS["UI_STAMP_UPLOADER_CROP_BUTTON_LABEL"] = "Zuschneiden";
+$MESS["UI_STAMP_UPLOADER_DROPZONE_HEADER"] = "Stempelbild hochladen";
+$MESS["UI_STAMP_UPLOADER_DROPZONE_TEXT"] = "Oder verschieben Sie die Bilddatei hierher";
+$MESS["UI_STAMP_UPLOADER_HEADER_CHANGE_CONTACT_BUTTON_LABEL"] = "Ändern";
+$MESS["UI_STAMP_UPLOADER_HEADER_TITLE"] = "Stempel für:";
+$MESS["UI_STAMP_UPLOADER_PREPARING_STATUS"] = "Verarbeitung";
+$MESS["UI_STAMP_UPLOADER_PREVIEW_TITLE"] = "Klicken Sie, um ein anderes Bild hochzuladen";
+$MESS["UI_STAMP_UPLOADER_SAVE_BUTTON_LABEL"] = "Speichern";
+$MESS["UI_STAMP_UPLOADER_SELECT_PHOTO_BUTTON_LABEL"] = "Bild hochladen";
+$MESS["UI_STAMP_UPLOADER_SLIDER_MESSAGE_DESCRIPTION"] = "Laden Sie das Stempelbild hoch und nutzen Sie es zum Unterschreiben von Dokumenten. Das Bild wird von der KI verarbeitet, damit es authentisch aussieht.";
+$MESS["UI_STAMP_UPLOADER_SLIDER_MESSAGE_TITLE"] = "Stempel";
+$MESS["UI_STAMP_UPLOADER_TAKE_PHOTO_BUTTON_LABEL"] = "Machen Sie ein Foto mit Ihrem Telefon";
+$MESS["UI_STAMP_UPLOADER_UPLOAD_STATUS_PERCENT"] = "{{number}} %";
+$MESS["UI_STAMP_UPLOADER_UPLOAD_STATUS_SIZE"] = "{{number}} {{text}}";
+$MESS["UI_STAMP_UPLOADER_UPLOAD_STATUS_SIZE_B"] = "Bytes";
+$MESS["UI_STAMP_UPLOADER_UPLOAD_STATUS_SIZE_KB"] = "KB";
+$MESS["UI_STAMP_UPLOADER_UPLOAD_STATUS_SIZE_MB"] = "MB";
+$MESS["UI_STAMP_UPLOADER_UPLOAD_STATUS_TEXT"] = "Datei wird hochgeladen";

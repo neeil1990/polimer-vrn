@@ -1,0 +1,23 @@
+<?php
+$MESS["LANDING_BLOCK_ATTRS_ANIMATION"] = "Seitenleistenanimation";
+$MESS["LANDING_BLOCK_ATTRS_ANIMATION_HINT"] = "Wählen Sie Animationseffekt aus, der beim Wechseln zwischen einzelnen Folien erscheint. Fade-Animation ist nur dann verfügbar, wenn es nur eine Folie gibt.";
+$MESS["LANDING_BLOCK_ATTRS_ANIMATION_OFF"] = "Ohne";
+$MESS["LANDING_BLOCK_ATTRS_ARROWS"] = "Schaltflächendesign";
+$MESS["LANDING_BLOCK_ATTRS_ARROWS_0"] = "Keine Schaltflächen";
+$MESS["LANDING_BLOCK_ATTRS_AUTO"] = "Automatisch";
+$MESS["LANDING_BLOCK_ATTRS_AUTOPLAY"] = "Autoplay";
+$MESS["LANDING_BLOCK_ATTRS_AUTOPLAY_SPEED"] = "Geschwindigkeit";
+$MESS["LANDING_BLOCK_ATTRS_DOTS"] = "Navigationspunkte anzeigen";
+$MESS["LANDING_BLOCK_ATTRS_NO"] = "Nein";
+$MESS["LANDING_BLOCK_ATTRS_OFF"] = "Deaktivieren";
+$MESS["LANDING_BLOCK_ATTRS_ON"] = "Aktivieren";
+$MESS["LANDING_BLOCK_ATTRS_PAUSE_HOVER"] = "Pause durch Mauszeiger";
+$MESS["LANDING_BLOCK_ATTRS_SLIDES_SHOW"] = "Folien auf dem Bildschirm";
+$MESS["LANDING_BLOCK_ATTRS_SLIDES_SHOW_HINT"] = "Die Anzahl der Folien, die einem Nutzer gelichzeitig, platziert nebeneinander, angezeigt werden. Diese Option ist nur dann verfügbar, wenn die Website auf einem PC oder Laptop angezeigt wird.";
+$MESS["LANDING_BLOCK_ATTRS_TIME_1"] = "1 Sek.";
+$MESS["LANDING_BLOCK_ATTRS_TIME_3"] = "3 Sek.";
+$MESS["LANDING_BLOCK_ATTRS_TIME_5"] = "5 Sek.";
+$MESS["LANDING_BLOCK_ATTRS_TIME_10"] = "10 Sek.";
+$MESS["LANDING_BLOCK_ATTRS_TIME_15"] = "15 Sek.";
+$MESS["LANDING_BLOCK_ATTRS_TIME_30"] = "30 Sek.";
+$MESS["LANDING_BLOCK_ATTRS_YES"] = "Ja";

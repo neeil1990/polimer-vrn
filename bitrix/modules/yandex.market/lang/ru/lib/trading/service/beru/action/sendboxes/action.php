@@ -1,0 +1,4 @@
+<?php
+
+$MESS['YANDEX_MARKET_TRADING_ACTION_SEND_BOXES_SEND_LOG'] = 'Отгрузка #SHIPMENT_ID#: грузовых мест - #BOX_COUNT# шт.';
+$MESS['YANDEX_MARKET_TRADING_ACTION_SEND_BOXES_RESPONSE_FAIL'] = 'Ошибочный ответ сервиса: #MESSAGE#';

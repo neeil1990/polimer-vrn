@@ -1,0 +1,1 @@
+<?require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/maxyss.ozon/tools/ozon_ajax.php');?>

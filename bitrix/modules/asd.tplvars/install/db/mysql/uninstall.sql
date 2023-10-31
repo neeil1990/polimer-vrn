@@ -1,0 +1,1 @@
+drop table if exists b_asd_option_descr;

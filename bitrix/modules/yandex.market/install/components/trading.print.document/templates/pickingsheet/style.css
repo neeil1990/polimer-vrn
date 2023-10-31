@@ -1,0 +1,45 @@
+body {
+	display: block;
+	max-width: 590pt;
+
+	font-family: 'YS Text', 'Helvetica Neue', Arial,sans-serif;
+	font-size: 11pt;
+	line-height: 17pt;
+
+	page-break-inside: avoid;
+}
+
+h1 {
+	display: block;
+
+	margin-top: 0;
+	margin-bottom: 4mm;
+
+	font-size: 1em;
+	line-height: inherit;
+	font-weight: bold;
+}
+
+table {
+	clear: both;
+	border-collapse: collapse;
+	border-spacing: 0;
+	width: 100%;
+
+	font-size: 9.8pt;
+	line-height: 13pt;
+}
+
+th {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+th,
+td {
+	vertical-align: top;
+	padding: 4pt 5pt;
+	border: 1pt solid #ddd;
+
+	text-align: left;
+}

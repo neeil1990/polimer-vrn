@@ -1,0 +1,3 @@
+<?php
+
+$MESS['YANDEX_MARKET_COMPONENT_PLAIN_EDIT_FORM_FIELD_REQUIRED'] = 'Не заполнено поле "#FIELD_NAME#"';

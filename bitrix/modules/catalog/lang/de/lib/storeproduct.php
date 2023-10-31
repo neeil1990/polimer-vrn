@@ -1,0 +1,6 @@
+<?php
+$MESS["STORE_PRODUCT_ENTITY_AMOUNT_FIELD"] = "Menge";
+$MESS["STORE_PRODUCT_ENTITY_ID_FIELD"] = "Die ID des Eintrags mit Informationen über Produktbestand";
+$MESS["STORE_PRODUCT_ENTITY_PRODUCT_ID_FIELD"] = "Produkt-ID";
+$MESS["STORE_PRODUCT_ENTITY_QUANTITY_RESERVED_FIELD"] = "Reservierte Menge auf dem Lager";
+$MESS["STORE_PRODUCT_ENTITY_STORE_ID_FIELD"] = "Lager-ID";

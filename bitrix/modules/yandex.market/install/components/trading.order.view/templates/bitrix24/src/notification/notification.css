@@ -1,0 +1,14 @@
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"] {
+	padding: 0;
+	margin-bottom: 0;
+	background: none;
+	box-shadow: none;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"] > .ui-entity-editor-section-content {
+	padding: 0;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"] .ui-entity-editor-content-block:empty {
+	margin-bottom: 0;
+}

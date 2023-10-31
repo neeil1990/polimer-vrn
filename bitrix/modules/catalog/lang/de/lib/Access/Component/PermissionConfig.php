@@ -1,0 +1,16 @@
+<?php
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_CATALOG"] = "Produktkatalog";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_CATALOG_SETTINGS"] = "Einstellungen des Produktkatalogs";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_INVENTORY_MANAGMENT"] = "Bestandsverwaltung";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_RESERVATION"] = "Produkt reservieren";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_SETTINGS"] = "Einstellungen";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_ARRIVAL"] = "Wareneingang";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_DEDUCT"] = "Abschreibung";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_MOVING"] = "Verschiebung";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_SALES_ORDER"] = "Vertrieb";
+$MESS["CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_STORE_ADJUSTMENT"] = "Bestandskorrektur";
+$MESS["HINT_CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_ARRIVAL"] = "Bei der Verwaltung der Bestandselemente werden die Zugriffsrechte für Lager berücksichtigt.";
+$MESS["HINT_CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_DEDUCT"] = "Bei der Verwaltung der Bestandselemente werden die Zugriffsrechte für Lager berücksichtigt.";
+$MESS["HINT_CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_MOVING"] = "Bei der Verwaltung der Bestandselemente werden die Zugriffsrechte für Lager berücksichtigt.";
+$MESS["HINT_CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_SALES_ORDER"] = "Bei der Verwaltung der Bestandselemente werden die Zugriffsrechte für Lager berücksichtigt.";
+$MESS["HINT_CATALOG_CONFIG_PERMISSIONS_SECTION_STORE_DOCUMENT_STORE_ADJUSTMENT"] = "Bei der Verwaltung der Bestandselemente werden die Zugriffsrechte für Lager berücksichtigt.";

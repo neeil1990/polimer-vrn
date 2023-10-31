@@ -1,0 +1,850 @@
+window.twinpxYadeliveryFetchURL = window.twinpxYadeliveryFetchURL || '/bitrix/tools/twinpx.yadelivery/ajax.php';
+
+window.twinpxYadeliveryPopupProps = {
+  width: 1076,
+  height: 600,
+  zIndex: 100,
+  overlay: {
+    backgroundColor: '#333',
+    opacity: '80',
+  },
+  closeByEsc: true,
+  autoHide: true,
+  darkMode: false,
+  draggable: false,
+  resizable: false,
+  lightShadow: false,
+  angle: false
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  
+  {
+    //focusout for the Region block
+    document.getElementById('bx-soa-region').addEventListener('focusout', (e) => {
+      if (e.target.tagName.toLowerCase() === 'input' && e.target.closest('.form-control')) {
+        resetPrice();
+      }
+    });
+    
+    //focusout for the Person block
+    document.getElementById('bx-soa-properties').addEventListener('focusout', (e) => {
+      if (e.target.classList.contains('form-control')) {
+        resetPrice();
+      }
+    });
+    
+    //focusout for the Person block
+    document.getElementById('bx-soa-paysystem').addEventListener('click', (e) => {
+      if (e.target.classList.contains('bx-soa-pp-company-graf-container') || e.target.closest('.bx-soa-pp-company-graf-container')) {
+        resetPrice();
+      }
+    });
+    
+    //reset price when focusout happened
+    function resetPrice() {  
+      let formData = new FormData();
+      formData.set('action', 'reset');
+              
+      fetch(window.twinpxYadeliveryFetchURL, {
+        method: 'POST',
+        body: formData,
+      }); 
+    }
+  }
+});
+
+//передаем цену
+//!!! пока не найдено где эта функция вызывается !!!
+/*function setPrice(price, offer, expire) {
+    let post = {};
+
+    post['action'] = 'price';
+    post['price'] = price;
+    post['offer'] = offer;
+    post['expire'] = expire;
+
+    window.BX.ajax({
+        url: window.twinpxYadeliveryFetchURL,
+        method: 'POST',
+        data: post,
+        onsuccess: function (data) {
+            window.BX.Sale.OrderAjaxComponent.sendRequest();
+        },
+    });
+}*/
+
+async function sendOffer(jsonStr) {
+  let formData = new FormData(),
+      response;
+      
+  formData.set('action', 'setOfferPrice');
+  formData.set('fields', jsonStr);
+      
+  response = await fetch(
+    window.twinpxYadeliveryFetchURL,
+    {
+      method: 'POST',
+      body: formData
+    }
+  );
+  
+  return response.json();
+}
+
+function pageScroll(flag) {
+  flag ? document.querySelector('body').classList.remove('no-scroll') :  document.querySelector('body').classList.add('no-scroll');
+}
+
+//открываем офферы
+function twinpxYadeliveryCourierPopupOpen() {
+  
+  let fields = $('#bx-soa-order-form').serialize(),
+      twpxYadeliveryElem = document.createElement('div'),
+      showOfferElem,
+      courierPopup
+	  fetchTimeout = 20000;
+      
+  twpxYadeliveryElem.id = 'twpx_yadelivery';
+  twpxYadeliveryElem.classList.add('twpx_yadelivery');
+  twpxYadeliveryElem.innerHTML = '<div id="showOffer" class="load-circle"></div>';
+  
+  showOfferElem = twpxYadeliveryElem.querySelector('#showOffer');
+
+  showOfferElem.addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    if (e.target.className === 'yd-popup-offers__item' || e.target.closest('.yd-popup-offers__item')) {
+      let offerElem = e.target.className === 'yd-popup-offers__item' ? e.target : e.target.closest('.yd-popup-offers__item'),
+          jsonStr = offerElem.getAttribute('data-json');//string
+      
+      sendOffer(jsonStr);
+    
+      if (window.BX) {
+        window.BX.Sale.OrderAjaxComponent.sendRequest();
+      }
+
+      courierPopup.destroy();
+      pageScroll(true);
+    }
+  });
+
+  courierPopup = BX.PopupWindowManager.create(
+    'twpx_yadelivery_popup',
+    '',
+    {
+      content: twpxYadeliveryElem,
+      titleBar: BX.message('TWINPX_JS_TYPE'),
+      closeIcon: {opacity: 1},
+      ...twinpxYadeliveryPopupProps,
+      events: {
+        onPopupShow: courierPopupShow,
+        onPopupClose: courierPopupClose,
+      },
+    });
+
+  courierPopup.show();
+
+  function offersError(message) {
+    showOfferElem.innerHTML = `<div class="yd-popup-error__message">${message}</div>`;
+    showOfferElemLoader(false);
+  }
+  
+  function createOffersHtml(offersArray) {
+    let selectMessage = window.BX ? window.BX.message('TWINPX_JS_SELECT') : 'Choose',
+        html = `<div class="yd-popup-offers__wrapper">`;
+    
+    offersArray.forEach(({ json, date, time, price }) => {
+      html += `<div class="yd-popup-offers__item" data-json='${json}'>
+      <div class="yd-popup-offers__info">
+          <span class="yd-popup-offers__date"><i style="background-image: url(/bitrix/images/twinpx.yadelivery/pvz-calendar.svg)"></i>${date}</span>
+          <span class="yd-popup-offers__time"><i style="background-image: url(/bitrix/images/twinpx.yadelivery/pvz-clock.svg)"></i>${time}</span>
+        </div>
+      <b class="yd-popup-offers__price">${price}</b>
+      <a href="#" class="yd-popup-offers__btn">${selectMessage}</a>
+    </div>`;
+    });
+    
+    html += '</div>';
+    
+    return html;
+  }
+  
+  function showOfferElemLoader(flag) {
+    flag ? showOfferElem.classList.add('load-circle') : showOfferElem.classList.remove('load-circle');
+  }
+
+  async function courierPopupShow() {
+    pageScroll(false);
+    
+    let formData = new FormData(),
+        controller = new AbortController(),
+        response,
+        result,
+        html = '';
+    
+    //fetch request
+    formData.set('action', 'getOffer');
+    formData.set('fields', fields);
+    
+    setTimeout(() => {
+      if (!response) {
+        controller.abort();
+      }
+    }, fetchTimeout);
+    
+    try {
+      response = await fetch(window.twinpxYadeliveryFetchURL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      
+      result = await response.json();
+
+      if (result && typeof result === 'object') {
+		  
+		if (result.STATUS === 'Y') {
+			if (result.ERRORS) {
+				offersError(result.ERRORS);
+			} else {
+				if (result.OFFERS) {
+				  //remove preloader
+				  showOfferElemLoader(false);
+					  
+				  //html
+				  html = createOffersHtml(result.OFFERS);
+				  showOfferElem.innerHTML = html;
+			  
+				  //effect
+				  setTimeout(() => {
+					showOfferElem.classList.add('yd-popup-offers--animate');
+				  }, 0);
+				  
+				} else {
+				  offersError(BX.message('TWINPX_JS_EMPTY_OFFER'));
+				}
+			}
+		} else {
+			offersError(BX.message('TWINPX_JS_NO_RESPONSE'));
+		}
+      }
+    } catch(err) {
+      offersError(BX.message('TWINPX_JS_NO_RESPONSE'));
+    }
+
+    courierPopup.adjustPosition();
+  }
+
+  function courierPopupClose() {
+    courierPopup.destroy();
+    pageScroll(true);
+  }
+
+}
+
+//открываем карту
+function showPvz(fields) {
+  let ydPopupContainer,
+      ydPopupList,
+      ydPopupWrapper,
+      ydPopupDetail,
+      map,
+      objectManager,
+      bounds,
+      firstGeoObjectCoords,
+      topBtns,
+      regionName,
+      payment,
+      pvzPopup,
+      centerCoords,
+      pointsArray,
+      pointsNodesArray = {},
+      newBounds = [],
+	    fetchTimeout = 20000
+      
+      container = `<div class="yd-popup-container yd-popup--map">
+        <div class="yd-popup-map">
+          <div class="yd-popup-detail-map"></div>
+          <div id="ydPopupMap" class="yd-popup-map-container load-circle"></div>
+        </div>
+        <div class="yd-popup-list">
+          <div class="yd-popup-list__back">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="6.446" height="10.891" viewBox="0 0 6.446 10.891">
+              <defs><clipPath id="clip-path"><rect width="6.446" height="10.891" transform="translate(0 0)" fill="none" stroke="#0b0b0b" stroke-width="1"/></clipPath></defs>
+              <g transform="translate(0 0)"><g clip-path="url(#clip-path)"><path d="M5.446,9.891,1,5.445,5.446,1" fill="none" stroke="#0b0b0b" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></g></g>
+            </svg>
+            ${BX.message('TWINPX_JS_RETURN_LIST')}
+          </div>
+          <div class="yd-popup-list-wrapper load-circle"></div>
+          <div class="yd-popup-list-detail"></div>
+        </div>
+        <div class="yd-popup-mobile-top">
+          <div class="yd-popup-btn yd-popup-btn--light yd-popup-btn--active">${BX.message('TWINPX_JS_ONCART')}</div>
+          <div class="yd-popup-btn yd-popup-btn--light">${BX.message('TWINPX_JS_ONLIST')}</div>
+        </div>
+        <div class="yd-popup-mobile-bottom">
+          <div class="yd-popup-btn yd-popup-btn--gray">${BX.message('TWINPX_JS_CLOSE')}</div>
+        </div>
+      </div>`;
+      
+
+  pvzPopup = BX.PopupWindowManager.create('ydPopup', '', {
+    content: container,
+    ...twinpxYadeliveryPopupProps,
+    events: {
+      onPopupShow: pvzPopupShow,
+      onPopupClose: pvzPopupClose,
+    },
+  });
+
+  pvzPopup.show();
+  
+  async function pvzPopupShow() {
+    pageScroll(false);
+        
+    //send request to get region name
+    let formData = new FormData(),
+        controller = new AbortController(),
+        response,
+        result;
+    
+    //fetch request
+    formData.set('action', 'getRegion');
+    formData.set('fields', fields);
+    
+    setTimeout(() => {
+      if (!response) {
+        controller.abort();
+      }
+    }, fetchTimeout);
+    
+    try {
+      response = await fetch(window.twinpxYadeliveryFetchURL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      
+      result = await response.json();
+
+      if (result && result.STATUS === 'Y') {
+        regionName = result.REGION;
+        payment = result.PAYMENT;
+        onPopupShow();
+      }
+    } catch(err) {
+      throw err;
+    }
+  }
+  
+  function pvzPopupClose() {
+    pvzPopup.destroy();
+    pageScroll(true);
+  }
+  
+  function elemLoader(elem, flag) {
+    flag ? elem.classList.add('load-circle') : elem.classList.remove('load-circle');
+  }
+  
+  function pointsError (message) {
+    ydPopupWrapper.innerHTML = `<div class="yd-popup-error__message"><i style="background-image: url(/bitrix/images/twinpx.yadelivery/danger.svg)"></i>${message || BX.message('TWINPX_JS_EMPTY_LIST')}</div>`;
+  }
+  
+  function offersError(error) {
+    ydPopupDetail.innerHTML = `<div class="yd-popup-error__message"><i style="background-image: url(/bitrix/images/twinpx.yadelivery/danger.svg)"></i>${error}</div>`;
+    elemLoader(ydPopupDetail, false);
+  }
+  
+  function onObjectEvent(e) {
+    let id = e.get('objectId');
+    
+    let pointObject = pointsArray.find(p => {
+      return p.id === id;
+    });
+    
+    //clickPlacemark(id, pointObject.address, map, pointObject.coords);
+    clickPlacemarkMap(id, pointObject.address, map, pointObject.coords);
+  }
+  
+  function onClusterEvent(e) {
+	setBtnActive(1);
+	setPopupMode('list');
+  }
+	
+  function setBtnActive(btnIndex) {
+		topBtns[btnIndex === 0 ? 1 : 0].classList.remove('yd-popup-btn--active');
+		topBtns[btnIndex].classList.add('yd-popup-btn--active');
+  }
+  
+  function setPopupMode(mode) {
+    ydPopupContainer.classList.remove('yd-popup--map', 'yd-popup--detail', 'yd-popup--list');	
+    ydPopupContainer.classList.add(`yd-popup--${mode}`);
+  }
+								
+  function createPointsItem({ id, title, type, schedule, address, coords }) {
+    let item = document.createElement('div');
+    item.className = 'yd-popup-list__item';
+    item.setAttribute('data-id', id);
+    item.setAttribute('data-address', address);
+    item.setAttribute('data-coords', coords);
+
+    item.innerHTML = `
+      <div class="yd-popup-list__title">${title}</div>
+      <div class="yd-popup-list__text">
+      <span>${type}</span> ${schedule}<br>
+      ${address}
+      </div>
+      <div class="yd-popup-btn yd-popup-btn--red">${BX.message('TWINPX_JS_SELECT')}</div>
+    `;
+    
+    return item;
+  }
+	
+  async function clickPlacemark(id, address, map, coords) {
+    //pan map
+    map.panTo(coords).then(() => {map.setZoom(15)});
+                    
+    //set detail mode
+    setPopupMode('detail');
+    
+      
+    //add preloader
+    elemLoader(ydPopupDetail, true);
+    ydPopupDetail.innerHTML = '';
+
+    //get offers
+    let formData = new FormData();
+    formData.set('action', 'pvzOffer');
+    formData.set('fields', `${fields}&id=${id}&address=${address}`);
+    
+    let controller = new AbortController();
+    let response;
+    
+    setTimeout(() => {
+      if (!response) {
+        controller.abort();
+      }
+    }, fetchTimeout);
+
+    try {
+      response = await fetch(window.twinpxYadeliveryFetchURL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
+      
+      let result = await response.json();
+
+      let html = '';
+
+      if (result && typeof result === 'object') {
+		  
+		if (result.STATUS === 'Y') {
+			if (result.ERRORS) {
+				offersError(result.ERRORS);
+			} else {
+				if (result.OFFERS) {
+				  html = `<div class="yd-h3">${BX.message('TWINPX_JS_VARIANT')}</div>`;
+				  
+				  result.OFFERS.forEach(({ json, date, time, price }) => {
+					html += `
+					<div class="yd-popup-offer" data-json='${json}'>
+					  <div class="yd-popup-offer__info">
+						<div class="yd-popup-offer__date">${date}</div>
+						<div class="yd-popup-offer__time">${time}</div>
+					  </div>
+					  <div class="yd-popup-offer__price">${price}</div>
+					  <div class="yd-popup-btn yd-popup-btn--red">${BX.message('TWINPX_JS_SELECT')}</div>
+					</div>
+				  `;
+				  });
+				
+				  //remove preloader
+				  elemLoader(ydPopupDetail, false);
+				  ydPopupDetail.innerHTML = html;
+				} else {
+				  offersError(BX.message('TWINPX_JS_EMPTY_OFFER'));
+				}
+			}
+		} else {
+			offersError(BX.message('TWINPX_JS_NO_RESPONSE'));
+		}
+      }
+    } catch(err) {
+      offersError(BX.message('TWINPX_JS_NO_RESPONSE'));
+    }
+    //active button
+    setBtnActive(1);
+    //item content
+    let item = ydPopupList.querySelector(`[data-id="${id}"]`).cloneNode(true);
+    ydPopupDetail.prepend(item);
+    ydPopupDetail.scrollTo({
+      top: 0,
+    });
+  }
+  
+  async function clickPlacemarkMap(id, address, map, coords) {
+    //pan map
+    map.panTo(coords).then(() => {map.setZoom(15)});
+                    
+    //set detail mode
+    setPopupMode('detail-map');
+      
+    //add preloader
+    elemLoader(ydPopupDetail, true);
+    ydPopupDetail.innerHTML = '';
+
+    //get offers
+    let formData = new FormData();
+    formData.set('action', 'pvzOffer');
+    formData.set('fields', `${fields}&id=${id}&address=${address}`);
+    
+    let controller = new AbortController();
+    let response;
+    
+    setTimeout(() => {
+      if (!response) {
+        controller.abort();
+      }
+    }, fetchTimeout);
+
+    try {
+      response = await fetch(window.twinpxYadeliveryFetchURL, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      });
+      
+      let result = await response.json();
+
+      let html = '';
+
+      if (result && typeof result === 'object') {
+		  
+		if (result.STATUS === 'Y') {
+			if (result.ERRORS) {
+				offersError(result.ERRORS);
+			} else {
+				if (result.OFFERS) {
+				  html = `<div class="yd-h3">${BX.message('TWINPX_JS_VARIANT')}</div>`;
+				  
+				  result.OFFERS.forEach(({ json, date, time, price }) => {
+					html += `
+					<div class="yd-popup-offer" data-json='${json}'>
+					  <div class="yd-popup-offer__info">
+						<div class="yd-popup-offer__date">${date}</div>
+						<div class="yd-popup-offer__time">${time}</div>
+					  </div>
+					  <div class="yd-popup-offer__price">${price}</div>
+					  <div class="yd-popup-btn yd-popup-btn--red">${BX.message('TWINPX_JS_SELECT')}</div>
+					</div>
+				  `;
+				  });
+				
+				  //remove preloader
+				  elemLoader(ydPopupDetail, false);
+				  ydPopupDetail.innerHTML = html;
+				} else {
+				  offersError(BX.message('TWINPX_JS_EMPTY_OFFER'));
+				}
+			}
+		} else {
+			offersError(BX.message('TWINPX_JS_NO_RESPONSE'));
+		}
+      }
+    } catch(err) {
+      offersError(BX.message('TWINPX_JS_NO_RESPONSE'));
+    }
+    //item content
+    let item = ydPopupList.querySelector(`[data-id="${id}"]`).cloneNode(true);
+    ydPopupDetail.prepend(item);
+    ydPopupDetail.scrollTo({
+      top: 0,
+    });
+  }
+  
+  function onPopupShow() {
+    ydPopupContainer = document.querySelector('#ydPopup .yd-popup-container');
+    ydPopupList = ydPopupContainer.querySelector('.yd-popup-list');
+    ydPopupWrapper = ydPopupList.querySelector('.yd-popup-list-wrapper');
+    ydPopupDetail = ydPopupList.querySelector('.yd-popup-list-detail');
+    
+    pointsArray = [];
+	
+	//choose point event
+    ydPopupWrapper.addEventListener('click', (e)=> {
+      e.preventDefault();
+	  
+      let item, id, coords, address;
+      
+      if (e.target.classList.contains('yd-popup-list__item')) {
+        item = e.target;
+      } else if (e.target.closest('.yd-popup-list__item')) {
+        item = e.target.closest('.yd-popup-list__item');
+      }
+      
+      if (!item) return;
+      
+      function getProp(prop) {
+        return item.getAttribute(`data-${prop}`);
+      }
+      
+      if (e.target.classList.contains('yd-popup-btn')) {
+        //click button
+        clickPlacemark(getProp('id'), getProp('address'), map, getProp('coords'));
+      } else if (window.matchMedia('(min-width: 1077px)').matches) {
+        //pan map on desktop
+        map.panTo(getProp('coords')).then(() => {map.setZoom(15)});
+      }
+    });
+    
+    //choose offer event
+    ydPopupDetail.addEventListener('click', async (e)=> {
+      e.preventDefault();
+      if (e.target.classList.contains('yd-popup-btn')) {
+        let btn = e.target;
+        let offerElem = btn.closest('.yd-popup-offer');
+        let jsonStr = offerElem.getAttribute('data-json');//string
+        
+        
+        let result = await sendOffer(jsonStr);
+        
+        if (result && result.STATUS === "Y") {
+          pvzPopup.destroy();
+          BX.Sale.OrderAjaxComponent.sendRequest();
+          pageScroll(true);
+        }
+      }
+    });
+    
+    //ymaps
+    if (window.ymaps && window.ymaps.ready) {
+      ymaps.ready(() => {
+        //geo code
+        const myGeocoder = ymaps.geocode(regionName, {
+          results: 1,
+        });
+
+        myGeocoder.then((res) => {
+          // first result, its coords and bounds
+          let firstGeoObject = res.geoObjects.get(0);
+          firstGeoObjectCoords = firstGeoObject.geometry.getCoordinates();
+          bounds = firstGeoObject.properties.get('boundedBy');
+          newBounds = bounds;
+
+          map = new ymaps.Map('ydPopupMap', {
+            center: firstGeoObjectCoords,
+            zoom: 9,
+            controls: [],
+          });
+          
+          let customBalloonContentLayout = ymaps.templateLayoutFactory.createClass(`<div class="yd-popup-balloon-content">${BX.message("TWINPX_JS_MULTIPLE_POINTS")}</div>`);
+          
+          objectManager = new ymaps.ObjectManager({
+            clusterize: true,
+            clusterBalloonContentLayout: customBalloonContentLayout
+          });
+          
+          objectManager.objects.options.set('iconLayout', 'default#image');
+          objectManager.objects.options.set('iconImageHref', '/bitrix/images/twinpx.yadelivery/yandexPoint.svg');
+          objectManager.objects.options.set('iconImageSize', [32, 42]);
+          objectManager.objects.options.set('iconImageOffset', [-16, -42]);
+          objectManager.clusters.options.set('preset', 'islands#blackClusterIcons');
+          objectManager.objects.events.add(['click'], onObjectEvent);
+          objectManager.clusters.events.add(['balloonopen'], onClusterEvent);
+          
+          let firstBound = true;
+          
+          if (map) {
+            //add object manager
+            map.geoObjects.add(objectManager);
+            //remove preloader
+            elemLoader(document.querySelector('#ydPopupMap'), false);
+            //map bounds
+            map.setBounds(bounds, {
+              checkZoomRange: true,
+            });
+            //events
+            map.events.add('boundschange', onBoundsChange);
+          }
+          
+          function onBoundsChange(e) {
+            newBounds = e ? e.get('newBounds') : newBounds;
+			  
+            if (firstBound) {
+              firstBound = false;
+              return;
+            }
+            
+            //wrapper sorted mode
+            ydPopupWrapper.classList.add('yd-popup-list-wrapper--sorted');
+            
+            //clear sorted pvz
+            for (let key in pointsNodesArray) {
+              if (pointsNodesArray[key]['sorted'] === true) {
+                pointsNodesArray[key]['node'].classList.remove('yd-popup-list__item--sorted');
+              }
+            }
+            
+            //items array
+            let arr = pointsArray.filter(point => {
+              return point.coords[0] > newBounds[0][0] && point.coords[0] < newBounds[1][0] && point.coords[1] > newBounds[0][1] && point.coords[1] < newBounds[1][1]
+            });
+      
+            //set items sorted
+            arr.forEach(point => {
+              let sortedItem = pointsNodesArray[point.id]['node'];
+              pointsNodesArray[point.id]['sorted'] = true;
+              if (sortedItem) {
+                sortedItem.classList.add('yd-popup-list__item--sorted');
+              }
+            });
+          }
+
+          //send to the server
+          (async () => {
+            //get offices
+            let formData = new FormData();
+            formData.set('action', 'getPoints');
+            formData.set('fields', `lat-from=${bounds[0][0]}&lat-to=${bounds[1][0]}&lon-from=${bounds[0][1]}&lon-to=${bounds[1][1]}&payment=${payment}`);
+            
+            let controller = new AbortController();
+            let response;
+            
+            setTimeout(() => {
+              if (!response) {
+                controller.abort();
+              }
+            }, fetchTimeout);
+            
+            try {
+              response = await fetch(
+                window.twinpxYadeliveryFetchURL,
+                {
+                  method: 'POST',
+                  body: formData,
+                  signal: controller.signal,
+                }
+              );
+              let result = await response.json();
+              
+              //remove preloader
+              elemLoader(ydPopupWrapper, false);
+
+              if (result && typeof result === 'object') {
+		  
+				if (result.STATUS === 'Y') {
+					if (result.ERRORS) {
+						pointsError(result.ERRORS);
+					} else {
+						if (result.POINTS) {
+						    //fill pointsArray
+							pointsArray = result.POINTS;
+							
+							//list
+							let pointsFlag,
+								objectsArray = [];
+							
+							result.POINTS.forEach(
+							  (point) => {
+								
+								if (!point.id) return;
+								
+								pointsFlag = true;
+								
+								//placemark
+								objectsArray.push({
+								  "type": "Feature",
+								  "id": point.id,
+								  "geometry": {
+									"type": "Point",
+									"coordinates": point.coords
+								  }
+								});
+								
+								//list
+								let item = createPointsItem(point);
+								ydPopupWrapper.appendChild(item);
+								
+								//push to nodes array
+								pointsNodesArray[point.id] = {
+								  node: item,
+								  sorted: false
+								};
+							});
+							
+							objectManager.add(objectsArray);
+							
+							if (!pointsFlag) {
+							  pointsError();
+							}
+
+							//map bounds
+							if (map) {
+							  centerCoords = map.getCenter();
+							}
+								
+							//if the map was moved while offices were loading
+							if (ydPopupWrapper.classList.contains('yd-popup-list-wrapper--sorted')) {
+							  onBoundsChange();
+							}
+						} else {
+						  pointsError(BX.message('TWINPX_JS_EMPTY_OFFER'));
+						}
+					}
+				} else {
+					pointsError(BX.message('TWINPX_JS_NO_RESPONSE'));
+				}
+			  }
+            } catch(err) {
+              pointsError();
+            }
+          })();
+        });
+      });
+    }
+    //back button
+    ydPopupList
+      .querySelector('.yd-popup-list__back')
+      .addEventListener('click', (e) => {
+		setPopupMode('list');
+        //show sorted
+		if (Object.values(pointsNodesArray).find( value => value.sorted )) {
+			ydPopupWrapper.classList.add('yd-popup-list-wrapper--sorted');
+		}
+      });
+
+    topBtns = document.querySelectorAll(
+      '#ydPopup .yd-popup-mobile-top .yd-popup-btn'
+    );
+      
+    topBtns[0].addEventListener('click', (e) => {
+      e.preventDefault();
+      if (ydPopupContainer.classList.contains('yd-popup--map')) return;
+
+	  setBtnActive(0);
+      setPopupMode('map');
+    });
+    
+    topBtns[1].addEventListener('click', (e) => {
+      e.preventDefault();
+      if (ydPopupContainer.classList.contains('yd-popup--list')) return;
+
+	  setBtnActive(1);
+      setPopupMode('list');
+      
+      ydPopupWrapper.scrollTo({
+        top: 0,
+      });
+    });
+    
+    document
+      .querySelector('#ydPopup .yd-popup-mobile-bottom .yd-popup-btn')
+      .addEventListener('click', (e) => {
+        e.preventDefault();
+        pvzPopup.destroy();
+        pageScroll(true);
+      });
+  }
+}

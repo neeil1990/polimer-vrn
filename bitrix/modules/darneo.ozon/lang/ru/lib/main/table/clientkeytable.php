@@ -1,0 +1,6 @@
+<?php
+
+$MESS['DARNEO_OZON_MAIN_TABLE_CLIENT_KEY_ID'] = 'ID';
+$MESS['DARNEO_OZON_MAIN_TABLE_CLIENT_KEY_NAME'] = 'Название ключа';
+$MESS['DARNEO_OZON_MAIN_TABLE_CLIENT_KEY_NAME_DEFAULT'] = 'Без названия';
+$MESS['DARNEO_OZON_MAIN_TABLE_CLIENT_DEFAULT'] = 'Использовать для парсинга данных';

@@ -1,0 +1,1 @@
+<?define("zverushki_microm_TEMPORARY_CACHE", "fGIBXXlrCQZsCHhiA21QLAV7");?>

@@ -1,0 +1,6 @@
+<?
+
+$sSectionName = 'Обновление остатков';
+$arDirProperties = [
+
+];

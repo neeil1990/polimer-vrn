@@ -1,0 +1,26 @@
+#bx-admin-prefix .yamarket-form td.adm-detail-content-cell-r > table[id^="table_"] {
+    border-spacing: 0;
+}
+
+#bx-admin-prefix .yamarket-form td.adm-detail-content-cell-r > table[id^="table_"] td {
+    padding: 0;
+}
+
+.adm-workarea .adm-input-calendar[readonly] {
+	opacity: 1;
+}
+
+.yamarket-btn {
+	color: #3f4b54 !important;
+	text-decoration: none !important;
+
+	margin: 2px;
+}
+
+.yamarket-btn-additional {
+	float: right;
+}
+
+.yamarket-btn.adm-btn-load {
+	box-sizing: border-box;
+}

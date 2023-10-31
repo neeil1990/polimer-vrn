@@ -1,0 +1,33 @@
+<?php                                                
+$MESS["h"] = "ч";                                        
+$MESS["SEO_META_FROM_%//yandex.%"] = "Из Яндекса";                                        
+$MESS["SEO_META_FROM_%//google.%"] = "Из Гугла";                                          
+$MESS["SEO_META_FROM_%//avito.ru%"] = "С Авито";                                        
+$MESS["SEO_META_FROM_%".$_SERVER['SERVER_NAME'].'%'] = "С этого сайта";                                        
+$MESS["SEO_META_FROM_"] = "Без реферала";                                        
+$MESS["SEO_META_FROM_other"] = "С других сайтов";                                        
+$MESS["SEO_META_pages_cnt"] = " стр.";                                        
+$MESS["SEO_META_TABLE_ORDER_ID"] = "ID заказа";                                        
+$MESS["SEO_META_TABLE_SUMM"] = "Сумма заказа";                                        
+$MESS["SEO_META_TABLE_URL_TO"] = "Куда совершен переход";                                        
+$MESS["SEO_META_TABLE_PAGES_COUNT"] = "Просмотрено страниц";                                        
+$MESS["SEO_META_TABLE_DATE_CREATE"] = "Время перехода";                                        
+$MESS["SEO_META_TABLE_SUMMARY"] = "Общая сумма заказов:";
+$MESS["SEOMETA_STATISTICS_ENTITY_DATE_CREATE_FIELD"] = "Дата создания";
+$MESS["SEOMETA_STATISTICS_ENTITY_SORT_FIELD"] = "Сортировка";
+$MESS["SEOMETA_STATISTICS_ENTITY_URL_FROM_FIELD"] = "Откуда совершен переход";
+$MESS["SEOMETA_STATISTICS_ENTITY_URL_TO_FIELD"] = "Куда совершен переход";
+$MESS["SEOMETA_STATISTICS_ENTITY_ORDER_ID_FIELD"] = "ID заказа";
+$MESS["SEOMETA_STATISTICS_ENTITY_PAGES_COUNT_FIELD"] = "Количество посещенных страниц";
+$MESS["SEOMETA_STATISTICS_ENTITY_SESS_ID_FIELD"] = "Пользовательская сессия";
+$MESS["SEOMETA_STATISTICS_ENTITY_CONDITION_ID_FIELD"] = "Условие";
+$MESS["SEOMETA_STATISTICS_ENTITY_USER_ID_FIELD"] = "ID пользователя";
+$MESS["SEOMETA_STATISTICS_ENTITY_URL_FIELD"] = "Ссылка на страницу";
+$MESS["SEOMETA_STATISTICS_ENTITY_NO_INDEX_FIELD"] = "Открыта/Закрыта страница для индексации";
+$MESS["SEOMETA_STATISTICS_ENTITY_IN_SITEMAP_FIELD"] = "В карте сайта";
+$MESS["SEOMETA_STATISTICS_ENTITY_SEOMETA_INFO_FIELD"] = "Метатеги страницы";
+$MESS["SEOMETA_STATISTICS_ENTITY_ROBOTS_INFO_FIELD"] = "Информация о поисковых роботах";
+$MESS["SEOMETA_STATISTICS_ENTITY_ROBOTS_INFO_FIELD"] = "ID сайта";
+$MESS["SEOMETA_STATISTICS_ENTITY_LAST_DATE_CHECK_FIELD"] = "Последняя проверка";
+$MESS["SEOMETA_STATISTICS_ENTITY_PAGE_STATUS_FIELD"] = "Статус страницы";
+?>

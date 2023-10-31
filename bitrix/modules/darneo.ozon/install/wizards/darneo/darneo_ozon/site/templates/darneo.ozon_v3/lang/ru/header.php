@@ -1,0 +1,9 @@
+<?
+
+$MESS['DARNEO_OZON_TEMPLATE_HEADER_IS_TEST_TITLE'] = 'Включен режим диагностики';
+$MESS['DARNEO_OZON_TEMPLATE_HEADER_IS_TEST_HELPER'] = 'Выгрузка данных на OZON отключена';
+$MESS['DARNEO_OZON_TEMPLATE_DOCS'] = 'Документация';
+$MESS['DARNEO_OZON_TEMPLATE_SUPPORT'] = 'Поддержка';
+$MESS['DARNEO_OZON_TEMPLATE_INTEGRATION'] = 'Интеграция';
+$MESS['DARNEO_OZON_TEMPLATE_REVIEW'] = 'Оставить отзыв';
+$MESS['DARNEO_OZON_TEMPLATE_PARTNER'] = 'Партнерство';

@@ -1,0 +1,36 @@
+.yamarket_origin_icon {
+	background: url('icons/yandex.market/origin.png') no-repeat 50% 50%;
+	background-size: 100% auto;
+}
+
+.yamarket_assortment_icon {
+	background: url('icons/yandex.market/assortment.svg') no-repeat 50% 50%;
+	background-size: 100% auto;
+}
+
+.yamarket_turbo_icon {
+	background: url('icons/yandex.market/turbo.png') no-repeat 50% 50%;
+	background-size: 100% auto;
+}
+
+.yamarket_beru_icon {
+	background: url('icons/yandex.market/beru.png') no-repeat 50% 50%;
+	background-size: 100% auto;
+}
+
+.yamarket_promotion_icon {
+	background: url('icons/yandex.market/promotion.svg') no-repeat 50% 50%;
+	background-size: 100% auto;
+}
+
+.adm-yamarket .adm-main-menu-item-icon,
+.adm-yamarket.adm-main-menu-item-active .adm-main-menu-item-icon {
+	height: 47px;
+	background: url('icons/yandex.market/global.png') no-repeat 50% 0;
+	background-size: 40px auto;
+}
+
+.adm-yamarket:hover .adm-main-menu-item-icon,
+.adm-yamarket.adm-main-menu-item-active .adm-main-menu-item-icon {
+	background-position: 50% 100%;
+}

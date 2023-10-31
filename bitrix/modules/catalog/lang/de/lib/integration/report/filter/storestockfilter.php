@@ -1,0 +1,6 @@
+<?php
+$MESS["STOCK_FILTER_DEFAULT_STORE_PRESET_TITLE"] = "Lager: #STORE_TITLE#";
+$MESS["STOCK_FILTER_PRODUCTS_STUB"] = "Geben Sie Produktnamen oder Produktvariante ein";
+$MESS["STOCK_FILTER_PRODUCTS_TITLE"] = "Produkte";
+$MESS["STOCK_FILTER_REPORT_INTERVAL_TITLE"] = "Berichtszeitraum";
+$MESS["STOCK_FILTER_STORES_TITLE"] = "Lager";

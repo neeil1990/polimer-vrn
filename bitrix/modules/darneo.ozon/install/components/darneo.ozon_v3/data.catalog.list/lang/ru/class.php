@@ -1,0 +1,5 @@
+<?php
+
+$MESS['DARNEO_OZON_MODULE_LOAD_ERROR'] = 'Модуль \'#MODULE_NAME#\' не установлен!';
+$MESS['DARNEO_OZON_MODULE_CATALOG_LIST_FILTER_ALL'] = 'Все товары';
+$MESS['DARNEO_OZON_MODULE_CATALOG_LIST_FILTER_FAIL'] = 'С ошибками';

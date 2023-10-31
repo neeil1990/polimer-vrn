@@ -1,0 +1,8 @@
+<?php
+
+$MESS['YANDEX_MARKET_GROUP_EDIT_TITLE_ADD'] = 'Новая группа';
+$MESS['YANDEX_MARKET_GROUP_EDIT_TITLE_EDIT'] = 'Редактирование группы';
+$MESS['YANDEX_MARKET_GROUP_EDIT_ACCESS_DENIED'] = 'Доступ запрещен';
+$MESS['YANDEX_MARKET_GROUP_EDIT_REQUIRE_MODULE'] = 'Необходим модуль yandex.market';
+$MESS['YANDEX_MARKET_GROUP_EDIT_CONTEXT_MENU_LIST'] = 'Прайс-листы';
+$MESS['YANDEX_MARKET_GROUP_EDIT_TAB_COMMON'] = 'Группа';

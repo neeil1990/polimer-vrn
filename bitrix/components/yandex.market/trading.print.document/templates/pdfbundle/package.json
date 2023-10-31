@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "pdfjs": "^2.4.4"
+  },
+	"devDependencies": {
+		"parcel-bundler": "latest"
+	},
+	"scripts": {
+		"build:pdfjs": "parcel build src/pdfjs.js --no-source-maps --no-cache",
+		"build:printer": "parcel build src/printer.js --no-source-maps --no-cache",
+		"build": "npm run build:pdfjs && npm run build:printer"
+	}
+}

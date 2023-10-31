@@ -1,0 +1,25 @@
+<?php
+$MESS["DOCUMENT_CONTRACTOR_CRM_COMPANY_ID_NAME"] = "Anbieter: Unternehmen";
+$MESS["DOCUMENT_CONTRACTOR_CRM_CONTACT_ID_NAME"] = "Anbieter: Kontakt";
+$MESS["DOCUMENT_CONTRACTOR_ID_NAME"] = "Anbieter";
+$MESS["DOCUMENT_CREATED_BY_NAME"] = "Erstellt von";
+$MESS["DOCUMENT_DATE_CREATE_NAME"] = "Erstellt am";
+$MESS["DOCUMENT_DATE_DOCUMENT_NAME"] = "Datum des Basiselements";
+$MESS["DOCUMENT_DATE_MODIFY_NAME"] = "Geändert am";
+$MESS["DOCUMENT_DATE_STATUS_NAME"] = "Status geändert am";
+$MESS["DOCUMENT_DOC_NUMBER_NAME"] = "Basiselement #";
+$MESS["DOCUMENT_DOC_TYPE_NAME"] = "Elementtyp";
+$MESS["DOCUMENT_ID_NAME"] = "ID";
+$MESS["DOCUMENT_MODIFIED_BY_NAME"] = "Geändert von";
+$MESS["DOCUMENT_PRODUCTS_NAME"] = "Produkt";
+$MESS["DOCUMENT_RESPONSIBLE_ID_NAME"] = "Verantwortliche Person";
+$MESS["DOCUMENT_STATUS_BY_NAME"] = "Status geändert von";
+$MESS["DOCUMENT_STATUS_NAME"] = "Status";
+$MESS["DOCUMENT_STORES_FROM_NAME"] = "Ursprüngliches Lager";
+$MESS["DOCUMENT_STORES_NAME"] = "Lager";
+$MESS["DOCUMENT_STORES_TO_NAME"] = "Ziellager";
+$MESS["DOCUMENT_TITLE_NAME"] = "Name";
+$MESS["DOCUMENT_TOTAL_NAME"] = "Gesamtbetrag";
+$MESS["DOCUMENT_TYPE_A"] = "Wareneingang";
+$MESS["DOCUMENT_TYPE_NAME"] = "Typ";
+$MESS["DOCUMENT_TYPE_S"] = "Bestandskorrektur";

@@ -1,0 +1,3 @@
+<?php
+
+$MESS['YANDEX_MARKET_COMPONENT_CONCERNS_HAS_GROUP_TOP_LEVEL'] = 'Верхний уровень';

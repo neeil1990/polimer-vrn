@@ -1,0 +1,5 @@
+<?
+$MESS["LANDING_BLOCK_32.11.IMG_GRID_4_COLS_4_COLS_NAME"] = "Zentrierte Bilder mit Innenabstand: Zwei quadratförmige und ein panoramaartiges";
+$MESS["LANDING_BLOCK_32.11.IMG_GRID_4_COLS_4_COLS_NODES_LANDINGBLOCKNODEIMG"] = "Bild";
+$MESS["LANDING_BLOCK_32.11.IMG_GRID_4_COLS_4_COLS_NODES_LANDINGBLOCKNODETXT"] = "Überschrift";
+?>

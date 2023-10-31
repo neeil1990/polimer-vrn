@@ -1,0 +1,5 @@
+<?php
+$MESS["DOCUMENT_ENTITY_ENTITY_DOCUMENT_ID_FIELD"] = "Ідентифікатор документа";
+$MESS["DOCUMENT_ENTITY_ENTITY_ENTITY_ID_FIELD"] = "Ідентифікатор сутності";
+$MESS["DOCUMENT_ENTITY_ENTITY_ENTITY_TYPE_FIELD"] = "Тип сутності";
+$MESS["DOCUMENT_ENTITY_ENTITY_ID_FIELD"] = "Ідентифікатор";

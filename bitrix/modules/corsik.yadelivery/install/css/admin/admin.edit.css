@@ -1,0 +1,134 @@
+.control_panel {
+    max-height: 450px;
+    overflow: auto;
+    padding: 10px;
+    border-radius: 3px;
+    background-color: #fafafa;
+    border-color: transparent;
+    box-shadow: 0 1px 2px 1px rgba(0, 0, 0, .15), 0 2px 5px -3px rgba(0, 0, 0, .15);
+}
+
+
+.panel_form {
+    text-align: center;
+}
+
+.panel_form .row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px 10px;
+}
+
+.row input {
+    margin-right: 3px !important;
+}
+
+.ya_add, .ya_more,
+.ya_save, .ya_edit {
+    display: flex;
+    width: min-content;
+    line-height: 26px;
+    text-align: left;
+    padding: 0 12px;
+    border-style: solid;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: transparent;
+    background-color: #ffdb4d;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-transition: background-color .15s ease-out, border-color .15s ease-out, opacity .15s ease-out;
+    transition: background-color .15s ease-out, border-color .15s ease-out, opacity .15s ease-out;
+    box-shadow: 0 1px 2px 1px rgba(0, 0, 0, .15), 0 2px 5px -3px rgba(0, 0, 0, .15);
+}
+
+.ya_more {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.ya_save {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.ya_edit {
+    color: #fff;
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.ya_add:active {
+    background-color: #fc0;
+}
+
+.ya_name {
+    font-size: 12px !important;
+}
+
+.ya_color {
+    font-size: 12px !important;
+    width: 60px;
+}
+
+.pickr {
+    display: inline;
+}
+
+.pickr .pcr-button {
+    vertical-align: middle;
+}
+
+.delete {
+    opacity: .5;
+    vertical-align: middle;
+}
+
+.delete:not(:disabled):not(.disabled):focus,
+.delete:not(:disabled):not(.disabled):hover {
+    opacity: 1;
+}
+
+.float-right {
+    display: inline-block;
+    float: right;
+}
+
+#menu {
+    position: absolute;
+    width: 12em;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    padding-bottom: 10px;
+    z-index: 2
+}
+
+#menu ul {
+    list-style-type: none;
+    padding: 20px;
+    margin: 0;
+}
+
+#menu .menu_footer {
+    padding: 0 20px;
+}
+
+#menu input {
+    width: 100%;
+}
+
+/*form[name=ya_delivery] .typeselect {*/
+/*    width: 100px;*/
+/*}*/
+
+form[name=ya_delivery] .internal .typeselect {
+    width: 200px;
+}
+
+form[name=ya_delivery] .column_action {
+    display: flex;
+    flex-direction: row;
+}

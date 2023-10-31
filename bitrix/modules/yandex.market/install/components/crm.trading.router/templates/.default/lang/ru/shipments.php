@@ -1,0 +1,3 @@
+<?php
+
+$MESS['YANDEX_MARKET_CRM_ROUTER_SHIPMENTS_TITLE'] = 'Отгрузки';

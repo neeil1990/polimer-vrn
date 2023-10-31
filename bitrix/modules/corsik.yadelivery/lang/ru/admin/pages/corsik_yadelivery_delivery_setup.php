@@ -1,0 +1,45 @@
+<?php
+require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/corsik.yadelivery/lang/ru/handbook.php';
+
+if (isset($HANDBOOK) && is_array($HANDBOOK))
+{
+	$MESS = array_merge($HANDBOOK, [
+		"CORSIK_DELIVERY_SERVICE_DELIVERY_SETUP" => "Настройка доставки",
+		"CORSIK_DELIVERY_SERVICE_CALCULATE_SETUP" => "Настройки расчета стоимости",
+		"CORSIK_DELIVERY_SERVICE_YANDEX_INFO" => "Для правильной работы Яндекс Карт необходимо получить API ключ<br> <strong>JavaScript API и HTTP Геокодер</strong> в <a href='https://developer.tech.yandex.ru/services/' target='_blank'>Кабинете разработчика Яндекс</a>",
+		"CORSIK_DELIVERY_SERVICE_DELIVERY_JS_ENABLE" => "Включить расчет доставок",
+		"CORSIK_DELIVERY_SERVICE_YANDEX_MAP_ENABLE" => "Подключить скрипт Яндекс Карт",
+		"CORSIK_DELIVERY_SERVICE_SHOW_MAP_BTN" => "Отобразить кнопку \"Показать карту\"",
+		"CORSIK_DELIVERY_SERVICE_DISABLED_OUT_DELIVERY" => "Запретить доставку за пределы зон у всех доставок",
+		"CORSIK_DELIVERY_SERVICE_DISABLED_SAVE_ORDER" => "<span data-hint='Данная опция запрещает возможность расчета стоимости за пределы всех зон доставки во всех службах доставки'></span>Запретить сохранение заказа без рассчитанной стоимости доставки",
+		"CORSIK_DELIVERY_TYPE_ZONE_CALCULATE" => "<span data-hint='При расчёте за пределы зон'></span>Метод выбора зон доставки",
+		"CORSIK_DELIVERY_SERVICE_CALCULATE" => "<span data-hint='Полученная стоимость заказа будет использоваться для расчета стоимости доставки согласно \"Правилам доставки\"'></span>Метод расчета стоимости заказа ",
+		"CORSIK_DELIVERY_SERVICE_ROUTE_BUILDING_METHOD" => "Способ построения маршрута",
+		"CORSIK_DELIVERY_SERVICE_ROUTE_METHOD_ROAD" => "По дорогам",
+		"CORSIK_DELIVERY_SERVICE_ROUTE_METHOD_LINEAR" => "Линейный от точки до точки",
+		"CORSIK_DELIVERY_SERVICE_TYPE_ROUTE" => "<span data-hint=''></span>Способ построения маршрута",
+		"CORSIK_DELIVERY_TOTAL_CALCULATE_BASE" => "Общая стоимость товаров",
+		"CORSIK_DELIVERY_TOTAL_CALCULATE_DISCOUNT" => "Стоимость заказа со скидкой",
+		"CORSIK_DELIVERY_TOTAL_CALCULATE_INTERNAL" => "Стоимость заказа после оплаты с внутреннего счёта",
+		"CORSIK_DELIVERY_TOTAL_CALCULATE_INTERNAL_DISCOUNT" => "Стоимость заказа со скидкой и оплаты с внутреннего счёта",
+		"CORSIK_DELIVERY_SERVICE_RESET_DELIVERY_BY_LOCATION" => "Сброс стоимости доставки при изменение местоположения",
+		"CORSIK_DELIVERY_SERVICE_AUTO_CALCULATE" => "<span data-hint='Возможен только для пользователей, которые ранее делали заказ и их адрес уже сохранён. (Только при использование подсказок DaData)'></span>Автоматический расчет стоимости доставки<span style='color:red; font-size: 18px'>*</span>",
+		"CORSIK_DELIVERY_SERVICE_REQUIRED_HOUSE" => "<span data-hint='Номер дома будет обязателен для расчета стоимости доставки (Только при использование подсказок DaData)'></span>Обязательный ввода номера дома<span style='color:red; font-size: 18px'>*</span>",
+		"CORSIK_DELIVERY_SERVICE_CURRENCY_FORMAT_STRING" => "Формат отображения валюты",
+		"CORSIK_DELIVERY_SERVICE_CURRENCY" => "руб.",
+		"CORSIK_DELIVERY_TYPE_ZONE_CLOSEST_TO_ADDRESS" => "Ближайшая к адресу доставки",
+		"CORSIK_DELIVERY_TYPE_ZONE_CLOSEST_TO_WAREHOUSE" => "Ближайшая к складу",
+		'CORSIK_DELIVERY_TYPE_ADDRESS_SELECTION' => 'Способ определения адреса доставки',
+		'CORSIK_DELIVERY_TYPE_ADDRESS_SELECTION_DADATA' => 'Подсказки DaData',
+		'CORSIK_DELIVERY_TYPE_ADDRESS_SELECTION_MAP' => 'Выбор на карте',
+		'CORSIK_DELIVERY_SERVICE_MAIN_SETUP' => 'Основные',
+		'CORSIK_DELIVERY_SERVICE_YANDEX_ACTIONS_TITLE' => 'Настройки действий в Яндекс Картах',
+		'CORSIK_DELIVERY_SERVICE_CONSOLE_LOGS' => '<span data-hint="Данную опцию желательно отключить после перевода модуля в общедоступное состояние"></span>Показывать в консоли логи работы модуля (DEBUG)',
+		'CORSIK_DELIVERY_SERVICE_YANDEX_API_KEY' => 'Ключ API для Yandex Карт',
+		'CORSIK_DELIVERY_SERVICE_POINT_DRAGGABLE' => 'Разрешить перетаскивание метки адреса доставки по карте (Drag\'n\'Drop)',
+		'CORSIK_DELIVERY_SERVICE_POINT_SELECTION' => 'Разрешить выбор адреса доставки на карте',
+		'CORSIK_DELIVERY_SERVICE_POINT_EVENT_SELECTION' => 'Выберите тип события для установки адреса доставки на карте',
+		'CORSIK_DELIVERY_SERVICE_POINT_EVENT_CLICK' => 'Однократное нажатие',
+		'CORSIK_DELIVERY_SERVICE_POINT_EVENT_DBLCLICK' => 'Двойное нажатие',
+	]);
+}

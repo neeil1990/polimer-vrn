@@ -1,0 +1,42 @@
+.yamarket-editor-wrapper {
+	max-width: 1220px;
+}
+
+.yamarket-editor-wrapper__title {
+	margin-left: 20px;
+	margin-bottom: 5px;
+
+	color: #535c69;
+	font-family: "OpenSans-Bold", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	text-transform: uppercase;
+}
+
+.yamarket-editor-wrapper__refresh {
+	float: right;
+	margin-right: 20px;
+	margin-bottom: 5px;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-column-wrapper {
+	flex-wrap: wrap;
+	width: calc(100% + 20px);
+	margin-left: -20px;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-column-content {
+	flex-basis: 600px;
+	padding-left: 20px;
+	padding-right: 0;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section,
+.yamarket-editor-wrapper .ui-entity-editor-section-edit {
+	width: 600px;
+	max-width: 100%;
+}
+
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="NOTIFICATION_SECTION"],
+.yamarket-editor-wrapper .ui-entity-editor-section[data-cid="BASKET_SECTION"],
+.yamarket-editor-wrapper .ui-entity-editor-section-edit[data-cid="BASKET_SECTION"] {
+	width: 1220px;
+}

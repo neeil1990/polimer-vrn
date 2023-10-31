@@ -1,0 +1,11 @@
+<?php
+$MESS["CONTRACTOR_ADDRESS"] = "Anschrift";
+$MESS["CONTRACTOR_COMPANY"] = "Unternehmen";
+$MESS["CONTRACTOR_EMAIL"] = "E-Mail";
+$MESS["CONTRACTOR_INN"] = "ID des Steuerzahlers";
+$MESS["CONTRACTOR_KPP"] = "KPP";
+$MESS["CONTRACTOR_PERSON_TITLE"] = "Ansprechpartner";
+$MESS["CONTRACTOR_PHONE"] = "Telefon";
+$MESS["CONTRACTOR_POST_INDEX"] = "PLZ";
+$MESS["CONTRACTOR_TITLE"] = "Name";
+$MESS["CONTRACTOR_TYPE"] = "Anbietertyp";

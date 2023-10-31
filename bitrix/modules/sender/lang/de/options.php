@@ -1,0 +1,25 @@
+<?php
+$MESS["MAIN_RESTORE_DEFAULTS"] = "Standardmäßig";
+$MESS["mail_max_consent_requests"] = "Anzahl der Anfragen wegen Einwilligung zum Erhalt der Newsletters";
+$MESS["mail_need_consent"] = "Einwilligung zum Erhalt der Newsletters erforderlich";
+$MESS["opt_address_from"] = "Adressen für das Feld 'Von':";
+$MESS["opt_address_send_to_me"] = "Adressen für das Feld 'Empfänger des Test-Newsletters':";
+$MESS["opt_auto_agent_interval"] = "Zeitabstand zwischen einzelnen nacheinander folgenden Versand-Aktionen (in Sek., 0 - sofort versenden):";
+$MESS["opt_def_from"] = "Standardmäßige Absender-Adresse:";
+$MESS["opt_interval"] = "Anzahl Sekunden, die zu warten sind zwischen einzelnen Sendversuchen (0 - alle auf einmal senden):";
+$MESS["opt_link_protocol"] = "Protokoll der Nachrichten-URL:";
+$MESS["opt_mail_headers"] = "Nachrichtenüberschriften (bspw.: \"List-Post: NO\"):";
+$MESS["opt_max_per_cron"] = "Anzahl der E-Mail, die via Cron auf einmal gesendet werden sollen:";
+$MESS["opt_max_per_hit"] = "Anzahl der Nachrichten zum Versand via Agent pro Ausgabe:";
+$MESS["opt_method"] = "Methode des automatischen Versands:";
+$MESS["opt_method_agent"] = "Agent";
+$MESS["opt_method_cron"] = "Cron";
+$MESS["opt_method_single_thread"] = "1 Thread";
+$MESS["opt_method_ten_threads"] = "10 Threads";
+$MESS["opt_reiterate_interval"] = "Regelmäßige Newsletters überprüfen alle (Sek.):";
+$MESS["opt_reiterate_method"] = "Regelmäßige Newsletter überprüfen mit:";
+$MESS["opt_sender_cron_support"] = "Cron kann momentan nicht benutzt werden. Diese Funktion wird ab der Kernel-Version 15.0.9 unterstützt. Ihre Kernel-Version ist";
+$MESS["opt_sub_link"] = "Benutzerdefinierte Abonnement-Seite:";
+$MESS["opt_threads_type"] = "Anzahl der gesendeten Threads";
+$MESS["opt_track_mails"] = "Nachverfolgen, wie E-Mails angezeigt und Links angeklickt werden:";
+$MESS["opt_unsub_link"] = "Eigene Seite zum Abbestellen des Abonnements:";

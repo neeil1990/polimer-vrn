@@ -1,0 +1,6 @@
+<?php
+
+$MESS['YANDEX_MARKET_ACCESS_DENIED'] = 'Доступ запрещен';
+$MESS['YANDEX_MARKET_MODULE_NOT_INSTALLED'] = 'Модуль не установлен';
+$MESS['YANDEX_MARKET_FILTER_AUTOCOMPLETE_FIELD_NOT_FOUND'] = 'Поле не найдено';
+$MESS['YANDEX_MARKET_FILTER_AUTOCOMPLETE_FIELD_NOT_SUPPORT_AUTOCOMPLETE'] = 'Поле не поддериживает подсказки';

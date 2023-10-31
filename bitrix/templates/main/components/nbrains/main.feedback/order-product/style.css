@@ -1,0 +1,20 @@
+div.mfeedback {}
+div.mf-name, div.mf-email, div.mf-captcha, div.mf-message {width:80%; padding-bottom:0.4em;}
+div.mf-name input, div.mf-email input {width:60%;}
+div.mf-message textarea {width: 60%;}
+span.mf-req {color:red;}
+div.mf-ok-text {color:green; font-weight:bold; padding-bottom: 1em;}
+.popup{
+    display: none;
+}
+.rule{
+    margin: 30px 0px;
+    max-width: 550px;
+}
+
+#order-product .mf-captcha{
+    margin: 10px auto;
+}
+#order-product .g-recaptcha div{
+    margin: 0 auto;
+}

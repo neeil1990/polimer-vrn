@@ -1,0 +1,1 @@
+<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/twinpx.yadelivery/admin/twinpx_delivery_offers.php';

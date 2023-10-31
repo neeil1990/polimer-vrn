@@ -1,0 +1,6 @@
+<?
+$MESS["LANDING_CMP_PAR_DOMAIN_ID"] = "Domain-ID";
+$MESS["LANDING_CMP_PAR_FIELD_ID"] = "ID des Domainfeldes";
+$MESS["LANDING_CMP_PAR_FIELD_NAME"] = "Feldname";
+$MESS["LANDING_CMP_PAR_SITE_TYPE"] = "Typ";
+?>

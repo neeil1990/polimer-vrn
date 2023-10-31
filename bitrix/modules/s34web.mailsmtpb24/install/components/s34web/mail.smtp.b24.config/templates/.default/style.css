@@ -1,0 +1,201 @@
+/**
+ * Created: 22.03.2021, 14:27
+ * Author : Dmitry Antiptsev <cto@34web.ru>
+ * Company: 34web Studio
+ */
+
+.smtpmail
+{
+    background: #fff;
+    color: #535c6a;
+}
+
+.smtpmail.mail-config-slider
+{
+    padding: 18px 28px 30px 19px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-section-block
+{
+    margin-bottom: 40px;
+    color: #535c6a
+}
+.smtpmail.mail-config-slider .smtpmail-section-block-last
+{
+    margin-bottom: 80px;
+}
+.smtpmail.mail-config-slider .smtpmail-title-block
+{
+    font-size: 30px;
+    font-weight: bold;
+    color: #000;
+    line-height: 23px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-mailbox-block
+{
+    margin-bottom: 12px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-mailbox-block .smtpmail-config-mailbox-name
+{
+    color: #000;
+    font: 24px/30px "OpenSans-Light","Helvetica Neue",Arial,Helvetica,sans-serif;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-mailbox-block .smtpmail-config-last-sync-wrapper
+{
+    margin: 8px 0 0 0;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-item
+{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 11px;
+    max-width: 520px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-item.smtpmail-form-item-error .smtpmail-config-form-input
+{
+    border-color: #ff5752;
+}
+
+.smtpmail.mail-config-slider .smtpmail-advanced-items
+{
+    display: none;
+    cursor: pointer;
+    margin-bottom: 11px;
+    max-width: 520px;
+    flex-direction: column;
+}
+
+.smtpmail.mail-config-slider .smtpmail-advanced-items.show
+{
+    display: flex;
+}
+
+.smtpmail.mail-config-slider .smtpmail-advanced-notice-block
+{
+    background: #f8f4bc;
+    border-radius: 2px;
+    padding: 10px 30px 11px 14px;
+    margin-bottom: 13px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-advanced-notice-text {
+    color: #535c6a;
+    opacity: .8;
+    font: 13px/16px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-label
+{
+    color: #828b95;
+    font-size: 13px;
+    line-height: 22px;
+    margin-bottom: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-input
+{
+    outline: 0;
+    border: 1px solid #c6cdd3;
+    border-radius: 2px;
+    padding: 8px 10px 6px;
+    margin: 0;
+    color: #535c6a;
+    font-size: 13px;
+    line-height: 22px;
+    height: 22px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-select
+{
+    display: inline-block;
+    padding: 7px 25px 8px 6px;
+    max-width: 250px;
+    min-width: 200px;
+    width: 100%;
+    height: 38px;
+    border: 1px solid #c6cdd3;
+    border-radius: 2px;
+    background: #fff url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2012%208%22%3E%3Cpath%20fill%3D%22%23828B95%22%20fill-rule%3D%22evenodd%22%20d%3D%22M6.122%204.55L10.558.113l1.414%201.414-4.436%204.436-1.478%201.478L.401%201.785%201.88.307l4.242%204.242z%22/%3E%3C/svg%3E') center right 10px no-repeat;
+    background-size: auto;
+    background-size: auto;
+    background-size: 12px 8px;
+    font-size: 13px;
+    transition: border-color .3s;
+    outline: 0;
+    vertical-align: middle;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    margin: 0 0 8px 0;
+    color: #535c6a;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-error-global
+{
+    display: none;
+    margin: 0 0 12px 0;
+    padding: 10px 18px;
+    background: rgb(253,225,229);
+    color: rgb(219,0,22);
+    font-size: 13px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-error
+{
+    display: none;
+    font-size: 12px;
+    color: #ff5752;
+    margin-top: 5px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-item-inner
+{
+    display: flex;
+    align-items: center;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-item-inner .smtpmail-config-form-input
+{
+    max-width: 120px;
+    margin-right: 21px;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-item-inner .smtpmail-config-form-input-check
+{
+    max-width: 120px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-form-item-inner .smtpmail-config-form-label-check
+{
+    color: #535c6a;
+    line-height: 15px;
+    margin-bottom: 0;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-footer-fixed
+{
+    box-shadow: 0 -2px 4px 0 rgba(0,0,0,0.06);
+    overflow: hidden;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    padding: 12px 20px;
+    background: #fff;
+    text-align: left;
+    border-top: 0;
+}
+
+.smtpmail.mail-config-slider .smtpmail-config-footer-container
+{
+    text-align: center;
+}

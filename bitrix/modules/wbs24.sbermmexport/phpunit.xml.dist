@@ -1,0 +1,13 @@
+<!-- Путь до bootstrap файла -->
+<phpunit bootstrap="tests/bootstrap.php">
+    <testsuites>
+        <testsuite name="unit">
+            <!-- Путь до директории с unit-тестами -->
+            <directory>tests/unit/</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <!-- Путь до директории с integration-тестами -->
+            <directory>tests/integration/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

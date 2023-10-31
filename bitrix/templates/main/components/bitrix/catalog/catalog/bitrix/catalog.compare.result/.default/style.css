@@ -1,0 +1,29 @@
+.compare-page .params-name .action-btn{
+    margin: 10px;
+}
+.compare-page .params-name .action-btn a{
+    border: 1px solid #ced5d9;
+    padding: 5px 10px;
+    line-height: 26px;
+    background: #fff;
+    border-radius: 3px;
+    color: #333;
+    font-size: 12px;
+    margin-right: 4px;
+    display: block;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.compare-page .params-name .action-btn a.current{
+    border-color: #0464bb;
+    color: #0464bb;
+}
+
+@media screen and (max-width: 1019px){
+
+    .compare-page .params-name .action-btn{
+        margin-top: 70px;
+    }
+}
+
